@@ -1,0 +1,24 @@
+/* CSS file */
+
+@namespace c "com.worlize.view.components.*";
+c|WorlizeWindow {
+	skinClass: ClassReference('com.worlize.view.skins.WorlizeWindowSkin');
+	titleBarHeight: 10px;
+	titleBarColor: #CCCCCC;
+	titleTextColor: #888888;
+}
+
+c|CapacityButton {
+	skinClass: ClassReference('com.worlize.view.skins.CapacityButtonSkin');
+	fillColor: #50a63a;
+	color: #FFFFFF;
+	cornerRadius: 4px;
+}
+
+c|WorlizeFloatingPanel {
+	skinClass: ClassReference('com.worlize.view.skins.WorlizeFloatingPanelSkin');
+	titleBarHeight: 10px;
+	titleBarColor: #CCCCCC;
+	titleTextColor: #888888;
+	showCloseButton: false;
+}

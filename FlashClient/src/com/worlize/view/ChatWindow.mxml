@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark" xmlns:view="com.worlize.interactivity.view.*" xmlns:code="http://code.google.com/p/flexlib/"
+	creationComplete="handleCreationComplete()"
+	click="handleTitleClicked(event)"
+	width="950"
+	currentState="disconnected" xmlns:layout="flexlib.scheduling.scheduleClasses.layout.*" xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:view1="com.worlize.interactivity.view.*">
+	
+	<s:states>
+		<s:State name="disconnected" />
+		<s:State name="connecting" />
+		<s:State name="connected" />
+		<s:State name="authormode" />
+	</s:states>
+	
+	<s:filters>
+		<s:GlowFilter blurX="4" blurY="4" alpha="0.47" color="#000000" quality="{BitmapFilterQuality.MEDIUM}" />
+	</s:filters>
+	
+	<fx:Metadata>
+		[Event(name="securityError", type="com.worlize.interactivity.event.InteractivitySecurityErrorEvent")]
+	</fx:Metadata>
+	
+	<s:layout>
+		<s:BasicLayout />
+	</s:layout>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.command.CreateHotspotCommand;
+			import com.worlize.event.AuthorModeNotification;
+			import com.worlize.event.NotificationCenter;
+			import com.worlize.interactivity.event.InteractivitySecurityErrorEvent;
+			import com.worlize.interactivity.iptscrae.command.CLIENTTYPECommand;
+			import com.worlize.interactivity.rpc.InteractivityClient;
+			import com.worlize.view.author.MyBackgroundsWindow;
+			import com.worlize.view.author.MyGamesWindow;
+			import com.worlize.view.author.MyMediaWindow;
+			import com.worlize.view.author.MyObjectsWindow;
+			import com.worlize.view.windows.LogWindow;
+			
+			import flash.filters.BitmapFilterQuality;
+			[Bindable]
+			public var client:InteractivityClient; 
+			
+			private var chatHistory:Array = [];
+			private var chatIndex:Number = 0;
+			
+			// Timer required because in Flex 4 the chat box won't clear
+			// immediately in response to the keydown event
+			private var timer:Timer = new Timer(10, 1);
+			
+			private function handleTitleClicked(e:MouseEvent):void{
+				// FIXME: Find a better way to de-select the currently selected user.
+				if(e.target.name == "Label50")//need to make go from type titleDisplay
+				{
+					client.currentRoom.selectedUser = null;
+				}
+	
+			}
+			
+			private function handleCreationComplete():void {
+				timer.addEventListener(TimerEvent.TIMER, clearChatBox);
+				roomView.addEventListener(MouseEvent.MOUSE_UP, handleRoomMouseUp);
+			}
+			
+			private function handleChatKeyDown(event:KeyboardEvent):void {
+				if (event.keyCode == Keyboard.ENTER) {
+					client.say(chatBox.text);
+					timer.reset();
+					timer.start();
+				}
+				else if (event.keyCode == Keyboard.UP) {
+					if (chatIndex == chatHistory.length &&
+						chatBox.text.length > 0) {
+						chatHistory.push(chatBox.text);
+					}
+					
+					if (chatIndex > 0) {
+						chatIndex--;
+					}
+					
+					chatBox.text = chatHistory[chatIndex];
+					moveCursorToEnd();
+				}
+				else if (event.keyCode == Keyboard.DOWN){
+					if (chatIndex < chatHistory.length) {
+						chatIndex++;
+					}
+					else if (chatIndex == chatHistory.length &&
+							 chatBox.text.length > 0) {
+						chatHistory.push(chatBox.text);
+						chatIndex++;
+					}
+					chatBox.text = chatHistory[chatIndex];	
+					moveCursorToEnd();
+				}
+				else if (event.keyCode == Keyboard.ESCAPE) {
+					chatIndex = chatHistory.length;
+					chatBox.text = "";
+				}
+			}
+			
+			private function moveCursorToEnd():void {
+				chatBox.selectionBeginIndex = chatBox.selectionEndIndex = chatBox.text.length;
+			}
+			
+			private function clearChatBox(event:TimerEvent):void {
+				chatHistory.push(chatBox.text);
+				chatIndex = chatHistory.length;
+				chatBox.text = "";
+			}
+
+			private function handleRoomMouseUp(event:MouseEvent):void {
+				focusManager.setFocus(chatBox);
+				moveCursorToEnd();
+			}
+
+			private function handleSecurityError(event:InteractivitySecurityErrorEvent):void {
+				dispatchEvent(event.clone());
+			}
+			
+			private function clearStatusMessage():void {
+				client.currentRoom.clearStatusMessage();
+			}
+			
+			private function handleAvatarsClick():void {
+				LockerWindow.toggleOpen(systemManager.getSandboxRoot());
+			}
+			
+			private function handlePropsClick():void {
+				LockerWindow.toggleOpen(systemManager.getSandboxRoot());
+			}
+			
+			private function handleBackgroundsClick():void {
+				MyBackgroundsWindow.toggleOpen(systemManager.getSandboxRoot());
+			}
+			
+			private function handleObjectsClick():void {
+				MyObjectsWindow.toggleOpen(systemManager.getSandboxRoot());
+			}
+			
+			private function handleGamesClick():void {
+				MyGamesWindow.toggleOpen(systemManager.getSandboxRoot());
+			}
+			
+			private function handleMediaClick():void {
+				MyMediaWindow.toggleOpen(systemManager.getSandboxRoot());
+			}
+			
+			private function createHotspot():void {
+				client.currentRoom.createHotspot();
+			}
+			
+			private var stateBeforeAuthorMode:String;
+			private function toggleAuthorMode():void {
+				var event:AuthorModeNotification;
+				
+				if (currentState == 'authormode') {
+					// disable authormode
+					currentState = stateBeforeAuthorMode;
+					event = new AuthorModeNotification(AuthorModeNotification.AUTHOR_DISABLED);
+				}
+				else {
+					// enable authormode
+					stateBeforeAuthorMode = currentState;
+					currentState = 'authormode';
+					event = new AuthorModeNotification(AuthorModeNotification.AUTHOR_ENABLED);
+				}
+				NotificationCenter.postNotification(event);				
+			}
+			
+			
+			private function toggleLogWindow():void {
+				if (LogWindow.isOpen) {
+					LogWindow.close();
+				}
+				else {
+					LogWindow.open(systemManager.getSandboxRoot());
+				}
+			}
+		]]>
+	</fx:Script>
+	
+	<s:BorderContainer
+		borderVisible="false"
+		backgroundColor="#f0f0f1"
+		top="0" left="0" right="0" height="21">
+		
+		<s:Group left="0" top="0">
+			<s:layout>
+				<s:HorizontalLayout gap="15" paddingTop="5" paddingLeft="6" />
+			</s:layout>
+			
+			<s:Label
+				id="worldTitle"
+				styleName="chatWindowWorldTitle"
+				text="{client.serverName.toUpperCase()}" />
+			
+			<s:Label
+				id="roomTitle"
+				styleName="chatWindowWorldTitle"
+				text="{client.currentRoom.name}" />
+		</s:Group>
+		
+		<mx:Image
+			id="backButton"
+			right="55" top="3"
+			toolTip="Go Back"
+			buttonMode="{client.roomHistoryManager.canGoBack}" useHandCursor="{client.roomHistoryManager.canGoBack}"
+			alpha="{client.roomHistoryManager.canGoBack ? 1 : 0.5}"
+			click="client.roomHistoryManager.goBack();"
+			source="@Embed(source='src/assets/icons/icon_back.png')"
+				  />
+		<mx:Image
+			id="forwardButton"
+			right="20" top="3"
+			toolTip="Go Forward"
+			buttonMode="{client.roomHistoryManager.canGoForward}" useHandCursor="{client.roomHistoryManager.canGoForward}"
+			alpha="{client.roomHistoryManager.canGoForward ? 1 : 0.5}"
+			click="client.roomHistoryManager.goForward();"
+			source="@Embed(source='src/assets/icons/icon_forward.png')" />
+		
+	</s:BorderContainer>
+	
+	
+	<s:Group top="21" left="0">
+		<s:layout>
+			<s:VerticalLayout gap="0"/>
+		</s:layout>
+		
+		<view1:RoomView id="roomView"
+							 enabled="{client.connected}"
+							 securityError="handleSecurityError(event)"
+							 room="{client.currentRoom}" />
+	</s:Group>
+
+	<s:Rect bottom="0" left="0" right="0" height="26">
+		<s:fill>
+			<s:SolidColor color="#f0f0f1" alpha="0.55" />
+		</s:fill>
+	</s:Rect>
+		
+	<s:HGroup
+		bottom="3" left="431"
+		id="lockerIcons" gap="3">
+		<mx:Image toolTip="Avatars Locker" source="@Embed(source='src/assets/icons/icon_avatar.png')"
+				  click="handleAvatarsClick()" />
+		<mx:Image toolTip="Props Locker" source="@Embed(source='src/assets/icons/icon_props.png')" 
+				  click="handlePropsClick()" />
+	</s:HGroup>
+	
+	<s:HGroup
+		bottom="3" right="3">
+		<s:HGroup id="authorIcons" includeIn="authormode">
+			<s:Button label="New Hotspot" click="createHotspot()" />
+			
+			<mx:Image useHandCursor="true" buttonMode="true" 
+				toolTip="Worlz Settings" source="@Embed(source='src/assets/icons/icon_myworlz.png')" />
+			<mx:Image useHandCursor="true" buttonMode="true"
+				toolTip="Backgrounds" source="@Embed(source='src/assets/icons/icon_author_bkg.png')"
+			    click="handleBackgroundsClick()" />
+			<mx:Image useHandCursor="true" buttonMode="true"
+				toolTip="Objects" source="@Embed(source='src/assets/icons/icon_author_object.png')"
+				click="handleObjectsClick()" />
+			<mx:Image useHandCursor="true" buttonMode="true"
+			    toolTip="Games" source="@Embed(source='src/assets/icons/icon_author_games.png')"
+				click="handleGamesClick()" />
+			<mx:Image useHandCursor="true" buttonMode="true"
+				toolTip="Media" source="@Embed(source='src/assets/icons/icon_author_media.png')"
+				click="handleMediaClick()" />
+		</s:HGroup>
+		<mx:Image
+			toolTip="Author Mode"
+			useHandCursor="true" buttonMode="true"
+			source="@Embed(source='src/assets/icons/icon_authormode_grey.png')"
+			source.authormode="@Embed(source='src/assets/icons/icon_authormode_red.png')"
+			click="toggleAuthorMode();"/>
+	</s:HGroup>
+	
+	<code:PromptingTextInput
+		bottom="3" height="21" left="13"
+		focusRect="false"
+		focusAlpha="0"
+		width="411"
+		prompt="Type here to chat..."
+		borderVisible="false"
+	 	fontStyle="{client.currentRoom.selectedUser ? 'italic' : 'normal'}"
+		paddingLeft="15"
+		paddingTop="1"
+		enabled="{client.connected}"
+		id="chatBox" keyDown="handleChatKeyDown(event);" maxChars="254"/>
+	
+	<mx:Image
+		bottom="3" left="2"
+		toolTip="Log Window"
+		click="toggleLogWindow()"
+		source="@Embed(source='src/assets/icons/icon_log.png')" />
+	
+	<s:Label includeIn="connecting"
+			 color="#AAAAAA" fontSize="15"
+			 horizontalCenter="0" verticalCenter="0"
+			 text="Connecting..." />
+</s:Group>

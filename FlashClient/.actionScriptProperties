@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<actionScriptProperties mainApplicationPath="FlashClient.mxml" projectUUID="1c0dca64-10f6-4eba-bc70-654fd09d859a" version="6">
+  <compiler additionalCompilerArguments="-locale en_US -show-unused-type-selector-warnings=false" autoRSLOrdering="true" copyDependentFiles="true" fteInMXComponents="true" generateAccessible="false" htmlExpressInstall="true" htmlGenerate="true" htmlHistoryManagement="false" htmlPlayerVersionCheck="true" includeNetmonSwc="false" outputFolderPath="bin-debug" sourceFolderPath="src" strict="true" targetPlayerVersion="0.0.0" useApolloConfig="false" useDebugRSLSwfs="true" verifyDigests="true" warn="true">
+    <compilerSourcePath/>
+    <libraryPath defaultLinkType="0">
+      <libraryPathEntry kind="4" path=""/>
+      <libraryPathEntry kind="1" linkType="1" path="libs"/>
+      <libraryPathEntry kind="3" linkType="1" path="/WorlizeShared/bin/WorlizeShared.swc" useDefaultLinkType="false"/>
+    </libraryPath>
+    <sourceAttachmentPath/>
+  </compiler>
+  <applications>
+    <application path="TestFloatingPanel.mxml"/>
+    <application path="TestBubble.mxml"/>
+    <application path="FlashClient.mxml"/>
+  </applications>
+  <modules/>
+  <buildCSSFiles/>
+</actionScriptProperties>

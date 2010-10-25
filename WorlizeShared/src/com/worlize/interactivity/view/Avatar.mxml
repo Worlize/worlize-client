@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:mx="library://ns.adobe.com/flex/halo"
+	xmlns:s="library://ns.adobe.com/flex/spark" xmlns:fx="http://ns.adobe.com/mxml/2009"
+	x="{user.x-25}" y="{user.y-25}"
+	height="50"
+	width="50"
+	mouseEnabled="false"
+	buttonMode="{!user.isSelf}"
+	creationComplete="handleCreationComplete()"
+	xmlns:view="com.worlize.interactivity.view.*"
+	xmlns:filters="flash.filters.*" xmlns:mx1="library://ns.adobe.com/flex/mx">
+	
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.event.AvatarEvent;
+			import com.worlize.model.SimpleAvatar;
+			
+			import mx.binding.utils.ChangeWatcher;
+			import mx.core.FlexBitmap;
+			import mx.events.CollectionEvent;
+			import mx.events.CollectionEventKind;
+			import mx.events.PropertyChangeEvent;
+			
+			import com.worlize.interactivity.model.InteractivityUser;
+			import com.worlize.interactivity.rpc.InteractivityClient;
+			
+			import spark.effects.Fade;
+			import spark.layouts.BasicLayout;
+			[Bindable]
+			public var user:InteractivityUser = new InteractivityUser();
+			
+			public static var chatBubbleTintColors:Array = [
+				0xFF9999, // 0  Red
+				0xFF9966, // 1  Orange
+				0xFFCC88, // 2  Gold
+				0xFFEE99, // 3  Yellow
+				0xD0F29F, // 4  Yellow-Green
+				0xB9F29F, // 5  Green
+				0xAFF2AE, // 6  Green 2
+				0xC4F4DE, // 7  Green-Cyan
+				0xA9EEF1, // 8  Cyan
+				0x8DD2FF, // 9  Cyan-Blue
+				0x86ABFF, // 10 Blue
+				0x8F86FF, // 11 Blue-Violet
+				0xAB86FF, // 12 Violet
+				0xEF86FF, // 13 Magenta
+				0xFF86E4, // 14 Magenta-Rose
+				0xFF86B1  // 15 Rose
+			]; 
+			
+			private function handleCreationComplete():void {
+				ChangeWatcher.watch(this, ['user','simpleAvatar'], handleSimpleAvatarChanged);
+				checkAvatar();
+			}
+			
+			private function handleSimpleAvatarChanged(event:PropertyChangeEvent):void {
+				checkAvatar();
+			}
+
+			private function checkAvatar():void {
+				if (user && user.simpleAvatar && !user.simpleAvatar.error) {
+					user.showFace = false;
+					if (user.simpleAvatar.ready) {
+						if (user.simpleAvatar.mediumURL != simpleAvatarImage.source) {
+							simpleAvatarImage.source = user.simpleAvatar.mediumURL;
+							simpleAvatarProgressBar.visible = true;
+						}
+					}
+					else {
+						user.simpleAvatar.addEventListener(AvatarEvent.AVATAR_LOADED, handleSimpleAvatarLoaded);
+						user.simpleAvatar.addEventListener(AvatarEvent.AVATAR_ERROR, handleSimpleAvatarError);
+					}
+				}
+				else {
+					user.showFace = true;
+					simpleAvatarImage.source = null;
+					simpleAvatarImage.visible = false;
+					simpleAvatarProgressBar.visible = false;
+				}
+			}
+			
+			private function handleSimpleAvatarLoaded(event:AvatarEvent):void {
+				simpleAvatarImage.source = SimpleAvatar(event.target).mediumURL;
+				simpleAvatarProgressBar.visible = true;
+				SimpleAvatar(event.target).removeEventListener(AvatarEvent.AVATAR_LOADED, handleSimpleAvatarLoaded);
+			}
+			
+			private function handleSimpleAvatarError(event:AvatarEvent):void {
+				user.showFace = true;
+				simpleAvatarImage.source = null;
+				simpleAvatarImage.visible = false;
+				simpleAvatarProgressBar.visible = false;
+			}
+			
+			private function handleMouseOver(event:MouseEvent):void {
+				if (!user.isSelf) {
+					Mouse.cursor = MouseCursor.BUTTON;
+				}
+			}
+			
+			private function handleMouseOut(event:MouseEvent):void {
+				Mouse.cursor = MouseCursor.ARROW;
+			}
+			
+
+			protected function handleSimpleAvatarImageComplete(event:Event):void
+			{
+				simpleAvatarImage.visible = true;
+				simpleAvatarProgressBar.visible = false;
+			}
+
+		]]>
+	</fx:Script>
+	
+	<s:layout>
+		<s:BasicLayout />
+	</s:layout>
+
+	<s:Group x="0" y="5" width="50" height="40"
+			 mouseEnabled="false"
+			 visible="{user.showFace}">
+		<view:AlphaHitAreaImage
+			mouseOver="handleMouseOver(event)" mouseOut="handleMouseOut(event)"
+			smoothBitmapContent="true" source="{user.faceImage}" />
+	</s:Group>
+	
+	<view:AlphaHitAreaImage
+		complete="handleSimpleAvatarImageComplete(event)"
+		id="simpleAvatarImage" loaderContext="{InteractivityClient.loaderContext}"
+		verticalCenter="0" horizontalCenter="0"
+		mouseOver="handleMouseOver(event)" mouseOut="handleMouseOut(event)"
+		smoothBitmapContent="true" />
+
+	<mx1:ProgressBar horizontalCenter="0" verticalCenter="10"
+					 label=""
+					 height="10" width="50"
+					 id="simpleAvatarProgressBar" source="{simpleAvatarImage}" visible="false" />
+	
+</s:Group>

@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<components:WorlizeFloatingPanel xmlns:fx="http://ns.adobe.com/mxml/2009" 
+								 xmlns:s="library://ns.adobe.com/flex/spark" 
+								 xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:components="com.worlize.view.components.*"
+								 width="600" height="250"
+								 title="Chat Log"
+								 resizable="true"
+								 showCloseButton="true"
+								 creationComplete="handleCreationComplete()">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.model.PreferencesManager;
+			
+			import flex.utils.spark.resize.ResizeManager;
+			
+			import mx.events.CloseEvent;
+			import mx.events.ResizeEvent;
+			import mx.managers.PopUpManager;
+			
+			import com.worlize.interactivity.rpc.InteractivityClient;
+			
+			import spark.events.TitleWindowBoundsEvent;
+			
+			private static var _open:Boolean = false;
+			private static var _instance:WorlizeFloatingPanel;
+
+			[Bindable]
+			public var interactivityClient:InteractivityClient = InteractivityClient.getInstance();
+			
+			private var timer:Timer = new Timer(50, 1);
+			
+			public static function get isOpen():Boolean {
+				return _open;
+			}
+			
+			private function handleCreationComplete():void {
+				addEventListener(ResizeManager.RESIZE_END, function(event:ResizeEvent):void {
+					saveSizeAndPosition();
+				});
+				addEventListener(TitleWindowBoundsEvent.WINDOW_MOVE_END, function(event:TitleWindowBoundsEvent):void {
+					saveSizeAndPosition();
+				});
+				
+				interactivityClient.currentRoom.addEventListener('chatLogUpdated', handleChatLogUpdated);
+				timer.addEventListener(TimerEvent.TIMER, scrollToBottom);
+			}
+			
+			public static function open(parent:DisplayObject):void {
+				var preferences:PreferencesManager = PreferencesManager.getInstance();
+				if (_open) {
+					PopUpManager.bringToFront(_instance);
+					_instance.setFocus();
+				}
+				else {
+					var needsPosition:Boolean = false;
+					if (!_instance) {
+						needsPosition = true;
+						_instance = new LogWindow();
+						_instance.addEventListener(CloseEvent.CLOSE, function(event:CloseEvent):void {
+							close();
+						});
+					}
+					PopUpManager.addPopUp(_instance, parent);
+					if (needsPosition) {
+						var coordinates:Array = preferences.getPreference('logPosition') as Array;
+						var size:Array = preferences.getPreference('logSize') as Array;
+						if (coordinates && size &&
+							_instance.boundsAreValid(coordinates[0], coordinates[1], size[0], size[1]))
+						{
+							_instance.x = coordinates[0];
+							_instance.y = coordinates[1];
+							_instance.width = size[0];
+							_instance.height = size[1];
+						}
+						else {
+							PopUpManager.centerPopUp(_instance);
+						}
+					}
+					_open = true;
+				}
+			}
+			
+			public static function close():void {
+				if (_open && _instance) {
+					PopUpManager.removePopUp(_instance);
+					_open = false;
+				}
+			}
+			
+			private function saveSizeAndPosition():void {
+				var preferences:PreferencesManager = PreferencesManager.getInstance();
+				preferences.setPreference('logPosition', [x,y]);
+				preferences.setPreference('logSize', [width, height]);
+			}
+			
+			private function handleChatLogUpdated(event:Event):void {
+				timer.reset();
+				timer.start();
+			}
+			
+			private function scrollToBottom(event:TimerEvent = null):void {
+				logViewer.verticalScrollPosition = logViewer.maxVerticalScrollPosition;
+			}
+		]]>
+	</fx:Script>
+
+	<mx:TextArea left="10" top="0" bottom="10" right="10"
+				 paddingLeft="5" paddingRight="5" paddingBottom="5" paddingTop="5"
+				 
+				 borderStyle="solid"
+				 borderColor="#DDDDDD"
+				 editable="false" id="logViewer"
+				 htmlText="{interactivityClient.currentRoom.chatLog}"/>
+	
+</components:WorlizeFloatingPanel>

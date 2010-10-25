@@ -1,0 +1,85 @@
+/* CSS file */
+@namespace s "library://ns.adobe.com/flex/spark";
+@namespace mx "library://ns.adobe.com/flex/halo";
+@namespace mx1 "library://ns.adobe.com/flex/mx";
+
+@font-face {
+	src: url("assets/fonts/PT_Sans_Narrow_Bold.ttf");
+	fontFamily: PTSansNarrowBold;
+	embedAsCFF: true;
+}
+
+@font-face {
+	src: url("assets/fonts/Tuffy.ttf");
+	fontFamily: Tuffy;
+	embedAsCFF: true;
+}
+
+@font-face {
+	src: url("assets/fonts/Tuffy_Bold.ttf");
+	fontFamily: Tuffy;
+	fontWeight: bold;
+	embedAsCFF: true;
+}
+
+s|Button s|Label, s|DropDownList s|Label {
+	fontFamily: PTSansNarrowBold;
+	fontSize: 14pt;
+}
+
+global {
+	modal-transparency-blur: 0;
+	modal-transparency-duration: 0;
+}
+
+s|Label {
+	fontFamily: Tuffy;
+	fontSize: 14pt;
+}
+
+s|TextInput {
+	fontFamily: Tuffy;
+	contentBackgroundColor: #f3ecdd;
+	color: #413b2a;
+}
+
+.topNavButton {
+	fontFamily: PTSansNarrowBold;
+	fontSize: 14pt;
+	paddingTop: 0px;
+	paddingBottom: 1px;
+	paddingLeft: 1px;
+	paddingRight: 7px;
+	cornerRadius: 12px;
+	rollOverColor: #e6e3dc;
+}
+
+.lockerNavButton {
+	fontFamily: Tuffy;
+	fontSize: 16pt;
+	fontWeight: bold;
+	paddingTop: 0px;
+	paddingBottom: 1px;
+	paddingLeft: 2px;
+	paddingRight: 5px;
+	cornerRadius: 14px;
+	rollOverColor: #e6e3dc;
+}
+
+.chatWindowWorldTitle {
+	color: #1076a4;
+	fontFamily: PTSansNarrowBold;
+	fontSize: 14pt;
+}
+
+mx1|ToolTip {
+	fontFamily: PTSansNarrowBold;
+	fontSize: 14pt;
+	backgroundColor: #FFFFFF;
+	cornerRadius: 0;
+}
+
+mx1|ProgressBar {
+	chrome-color: #333333;
+	color: #BBBBBB;
+}

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.control.Uploader;
+			
+			import mx.events.StateChangeEvent;
+			
+			[Bindable]
+			private var _uploader:Uploader;
+			
+			public function set uploader(newValue:Uploader):void {
+				if (_uploader !== newValue) {
+					if (_uploader) {
+						_uploader.removeEventListener(StateChangeEvent.CURRENT_STATE_CHANGE, handleUploaderStateChange);
+					}
+					_uploader = newValue;
+					_uploader.addEventListener(StateChangeEvent.CURRENT_STATE_CHANGE, handleUploaderStateChange);
+				}
+			}
+			public function get uploader():Uploader {
+				return _uploader;
+			}
+			
+			private function handleUploaderStateChange(event:StateChangeEvent):void {
+				switch (event.newState) {
+					case Uploader.STATE_UPLOADING:
+						currentState = "uploading";
+						break;
+					case Uploader.STATE_PROCESSING:
+						currentState = "processing";
+						break;
+					case Uploader.STATE_READY:
+					case Uploader.STATE_ERROR:
+					case Uploader.STATE_COMPLETE:
+					case Uploader.STATE_CANCELED:
+					default:
+						currentState = "idle";
+						break;
+				}
+			}
+		]]>
+	</fx:Script>
+	
+	<s:states>
+		<s:State name="idle" />
+		<s:State name="uploading" stateGroups="working" />
+		<s:State name="processing" stateGroups="working" />
+	</s:states>
+	
+	<s:layout>
+		<s:HorizontalLayout gap="5" />
+	</s:layout>
+	
+	<s:Label fontFamily="PTSansNarrowBold" text="Uploading..."  includeIn="uploading"/>
+	<s:Label fontFamily="PTSansNarrowBold" text="Processing..." includeIn="processing" />
+	
+	<mx:ProgressBar includeIn="uploading"
+		width="75" height="5" label="" source="{_uploader}" chromeColor="#777777" />
+</s:Group>

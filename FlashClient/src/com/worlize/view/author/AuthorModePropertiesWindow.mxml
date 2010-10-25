@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<components:WorlizeFloatingPanel xmlns:fx="http://ns.adobe.com/mxml/2009" 
+								 xmlns:s="library://ns.adobe.com/flex/spark" 
+								 xmlns:mx="library://ns.adobe.com/flex/mx"
+								 xmlns:components="com.worlize.view.components.*"
+								 xmlns:properties="com.worlize.view.author.properties.*"
+								 title="Properties"
+								 title.hotspot="Hotspot Properties"
+								 currentState="noItemSelected"
+								 creationComplete="handleCreationComplete()"
+								 width="200" minHeight="60" maxHeight="300">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<components:states>
+		<s:State name="noItemSelected" />
+		<s:State name="hotspot" />
+	</components:states>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.event.AuthorModeNotification;
+			import com.worlize.event.NotificationCenter;
+			import com.worlize.interactivity.model.Hotspot;
+			import com.worlize.state.AuthorModeState;
+			
+			[Bindable]
+			private var authorModeState:AuthorModeState = AuthorModeState.getInstance(); 
+			
+			private function handleCreationComplete():void {
+				NotificationCenter.addListener(AuthorModeNotification.SELECTED_ITEM_CHANGED, handleSelectedItemChanged);
+				updatePanelForCurrentItem();
+			}
+			
+			private function handleSelectedItemChanged(notification:AuthorModeNotification):void {
+				updatePanelForCurrentItem();
+			}
+			
+			private function updatePanelForCurrentItem():void {
+				if (authorModeState.selectedItem is Hotspot) {
+					currentState = "hotspot";
+				}
+				else {
+					currentState = "noItemSelected";
+				}
+			}
+		]]>
+	</fx:Script>
+	
+
+	<s:Group width="100%" height="40" includeIn="noItemSelected">
+		<s:Label text="(No item selected)"
+				 verticalCenter="0" horizontalCenter="0"/>
+	</s:Group>
+	
+	<properties:HotspotPropertiesEditor includeIn="hotspot" width="100%"
+										hotspot="{Hotspot(authorModeState.selectedItem)}" />
+	
+</components:WorlizeFloatingPanel>

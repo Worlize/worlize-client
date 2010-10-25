@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" minWidth="955" minHeight="600"
+			   backgroundColor="#88AAFF"
+			   creationComplete="handleCreationComplete()">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Style source="Styles.css" />
+	<fx:Style source="src/com/worlize/view/skins/skins.css" />
+	
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.view.author.AuthorModePropertiesWindow;
+			import com.worlize.view.components.WorlizeFloatingPanel;
+			
+			import mx.managers.PopUpManager;
+			private function handleCreationComplete():void {
+				var window:AuthorModePropertiesWindow = new AuthorModePropertiesWindow();
+				window.x = 400;
+				window.y = 80;
+				PopUpManager.addPopUp(window, systemManager.getSandboxRoot());
+				
+			}
+		]]>
+	</fx:Script>
+	
+</s:Application>

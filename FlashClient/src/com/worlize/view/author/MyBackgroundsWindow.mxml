@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<components:WorlizeWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+						  xmlns:s="library://ns.adobe.com/flex/spark" 
+						  xmlns:mx="library://ns.adobe.com/flex/mx"
+						  xmlns:components="com.worlize.view.components.*"
+						  title="My Backgrounds"
+						  titleBarColor="#962626" titleTextColor="#962626" 
+						  windowIcon="@Embed('assets/icons/large/w_icon_backgrounds.png')"
+						  minWidth="525" minHeight="415"
+						  creationComplete="handleCreationComplete()"
+						  width="525" height="415">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.command.LoadBackgroundLockerCommand;
+			import com.worlize.model.PreferencesManager;
+			
+			import flex.utils.spark.resize.ResizeManager;
+			
+			import mx.events.CloseEvent;
+			import mx.events.MoveEvent;
+			import mx.events.ResizeEvent;
+			import mx.graphics.SolidColor;
+			import mx.managers.PopUpManager;
+			import mx.managers.SystemManager;
+			
+			import spark.events.TitleWindowBoundsEvent;
+			import spark.primitives.Rect;
+			private static var _open:Boolean = false;
+			private static var _instance:WorlizeWindow;
+			
+			public static function toggleOpen(parent:DisplayObject):void {
+				if (_open) {
+					close();
+				}
+				else {
+					open(parent);
+				}
+			}
+			
+			public static function open(parent:DisplayObject):void {
+				var preferences:PreferencesManager = PreferencesManager.getInstance();
+				if (_open) {
+					PopUpManager.bringToFront(_instance);
+					_instance.setFocus();
+				}
+				else {
+					var needsPosition:Boolean = false;
+					if (!_instance) {
+						needsPosition = true;
+						_instance = new MyBackgroundsWindow();
+						_instance.addEventListener(CloseEvent.CLOSE, function(event:CloseEvent):void {
+							close();
+						});
+						_instance.addEventListener(ResizeManager.RESIZE_END, function(event:ResizeEvent):void {
+							preferences.setPreference('myBackgroundsSize', [_instance.width, _instance.height]);
+						});
+						_instance.addEventListener(TitleWindowBoundsEvent.WINDOW_MOVE_END, function(event:TitleWindowBoundsEvent):void {
+							preferences.setPreference('myBackgroundsPosition', [_instance.x, _instance.y]);
+						});
+					}
+					PopUpManager.addPopUp(_instance, parent);
+					if (needsPosition) {
+						var coordinates:Array = preferences.getPreference('myBackgroundsPosition') as Array;
+						var size:Array = preferences.getPreference('myBackgroundsSize') as Array;
+						if (coordinates && size &&
+							_instance.boundsAreValid(coordinates[0], coordinates[1], size[0], size[1]))
+						{
+							_instance.x = coordinates[0];
+							_instance.y = coordinates[1];
+							_instance.width = size[0];
+							_instance.height = size[1];
+						}
+						else {
+							PopUpManager.centerPopUp(_instance);
+						}
+					}
+					_open = true;
+				}
+			}
+			
+			public static function close():void {
+				if (_open && _instance) {
+					PopUpManager.removePopUp(_instance);
+					_open = false;
+				}
+			}
+			
+			private function handleCreationComplete():void {
+				var command:LoadBackgroundLockerCommand = new LoadBackgroundLockerCommand();
+				command.execute();
+				
+				for (var i:int = 0; i < 60; i++) {
+					var rect:Rect = new Rect();
+					rect.width = rect.height = 80;
+					var color:uint = 0xCCCCCC + Math.floor(Math.random()*0x333333);
+					rect.fill = new SolidColor(color);
+					pictureContainer.addElement(rect);
+				}
+			}
+		]]>
+	</fx:Script>
+	
+	
+	
+	<components:controlBarContent>
+		<s:Button label="I'm in the control bar!" />
+		<s:Button label="Me too!" />
+	</components:controlBarContent>
+	
+	<s:Scroller top="10" left="10" right="10" bottom="10">
+		<s:Group id="pictureContainer">
+			<s:layout>
+				<s:TileLayout verticalGap="10" horizontalGap="10" />
+			</s:layout>
+			
+		</s:Group>
+	</s:Scroller>
+	
+	
+	
+</components:WorlizeWindow>

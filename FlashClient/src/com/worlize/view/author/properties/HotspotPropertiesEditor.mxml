@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 width="100%">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.command.SetHotspotDestinationCommand;
+			import com.worlize.model.RoomList;
+			import com.worlize.model.RoomListEntry;
+			
+			import flash.utils.setTimeout;
+			
+			import mx.collections.ArrayCollection;
+			import mx.utils.OnDemandEventDispatcher;
+			
+			import com.worlize.interactivity.model.Hotspot;
+			import com.worlize.interactivity.rpc.InteractivityClient;
+			
+			import spark.events.IndexChangeEvent;
+			
+			private var _hotspot:Hotspot;
+			
+			[Bindable]
+			private var roomList:ArrayCollection;
+			
+			[Bindable]
+			private var client:InteractivityClient = InteractivityClient.getInstance();
+			
+			
+			[Bindable(event='hotspotChanged')]
+			public function set hotspot(newValue:Hotspot):void {
+				if (_hotspot !== newValue) {
+					_hotspot = newValue;
+					
+					if (newValue !== null) {
+						updateRoomList();
+						setTimeout(updateSelectedItem, 10);
+					}
+					
+					dispatchEvent(new Event('hotspotChanged'));
+				}
+			}
+			public function get hotspot():Hotspot {
+				return _hotspot;
+			}
+			
+			private function updateRoomList():void {
+				roomList = new ArrayCollection();
+				var noDestinationEntry:RoomListEntry = new RoomListEntry();
+				noDestinationEntry.name = "(No Destination)";
+				noDestinationEntry.guid = null;				
+				roomList.addItem(noDestinationEntry);
+				
+				var sourceList:ArrayCollection = client.currentWorld.roomList.rooms;
+				for each (var item:Object in sourceList) {
+					roomList.addItem(item);
+				}
+			}
+			
+			private function updateSelectedItem():void {
+				var length:int = roomList.length;
+				for (var i:int = 0; i < length; i++) {
+					var room:RoomListEntry = roomList.getItemAt(i) as RoomListEntry;
+					if (room.guid == hotspot.dest) {
+						destinationComboBox.selectedIndex = i;
+						return;
+					}
+				}
+				destinationComboBox.selectedIndex = 0;
+			}
+			
+			private function handleDeleteClick():void {
+				hotspot.deleteHotspot();
+			}
+
+			protected function handleDestinationChange(event:IndexChangeEvent):void
+			{
+				var destRoom:RoomListEntry = roomList.getItemAt(event.newIndex) as RoomListEntry;
+				hotspot.dest = destRoom.guid;
+				
+				var command:SetHotspotDestinationCommand = new SetHotspotDestinationCommand();
+				
+				var destString:String = (destRoom.guid === null) ? "" : destRoom.guid;
+				command.execute(client.currentRoom.id, hotspot.guid, destString);
+			}
+
+		]]>
+	</fx:Script>
+	
+	<s:layout>
+		<s:VerticalLayout
+			gap="3"
+			paddingBottom="10" paddingLeft="10"
+			paddingRight="10" paddingTop="10"
+			/>
+	</s:layout>
+	
+	<s:Label text="Destination:" />
+	<s:DropDownList id="destinationComboBox"
+					change="handleDestinationChange(event)"
+					labelField="name" width="100%"
+					dataProvider="{roomList}" />
+	
+	<mx:Spacer height="10" />
+	
+	<s:Button
+		width="100%"
+		label="Delete" click="handleDeleteClick()" />
+		
+</s:Group>

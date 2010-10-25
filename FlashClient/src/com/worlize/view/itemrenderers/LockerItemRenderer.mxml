@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				xmlns:s="library://ns.adobe.com/flex/spark" 
+				xmlns:mx="library://ns.adobe.com/flex/mx"
+				width="82" height="82"
+				xmlns:components="com.worlize.view.components.*">
+	
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.interactivity.rpc.InteractivityClient;
+			import com.worlize.model.AvatarInstance;
+			import com.worlize.model.SimpleAvatar;
+			
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			private function requestAvatarDelete():void {
+				var client:InteractivityClient = InteractivityClient.getInstance();
+				var currentAvatar:SimpleAvatar = client.currentUser.simpleAvatar;
+				if (currentAvatar && currentAvatar.guid == AvatarInstance(data).avatar.guid) {
+					client.naked();
+				}
+				AvatarInstance(data).requestDelete();
+				
+			}
+			
+			private function handleDeleteClick(event:MouseEvent):void {
+				event.stopImmediatePropagation();
+				var alert:Alert = Alert.show(
+					"Are you sure you want to delete this avatar?",
+					"Delete Avatar",
+					Alert.YES | Alert.NO,
+					null,
+					handleAlertClose,
+					null,
+					Alert.NO);
+			}
+			
+			private function handleAlertClose(event:CloseEvent):void {
+				if (event.detail == Alert.YES) {
+					requestAvatarDelete();
+				}
+			}
+			
+			private function stopPropagation(event:MouseEvent):void {
+				event.stopImmediatePropagation();
+				event.preventDefault();
+			}
+		]]>
+	</fx:Script>
+	
+	<s:states>
+		<s:State name="normal" />
+		<s:State name="hovered" stateGroups="active" />
+		<s:State name="selected" stateGroups="active" />
+	</s:states>
+	
+	
+	<s:Rect left="0" top="0" right="0" bottom="0">
+		<s:stroke>
+			<s:SolidColorStroke weight="1" color="#CCCCCC" />
+		</s:stroke>
+		<s:fill>
+			<s:SolidColor color="#F0F0F0" />
+		</s:fill>
+	</s:Rect>
+	
+	<components:AvatarThumbnailView left="1" top="1" dataProvider="{data}" />
+	
+	<s:Rect left="0" top="0" right="0" bottom="0" includeIn="active">
+		<s:stroke>
+			<s:SolidColorStroke joints="miter"
+								weight.hovered="1" color.hovered="#ffe49b" alpha.hovered="0.3"
+								color="#f5b501" weight="5" />
+		</s:stroke>
+		<s:fill>
+			<s:SolidColor color="#ffe49b" alpha="0.3" alpha.selected="0.4" />
+		</s:fill>
+	</s:Rect>
+	
+	<mx:Image source="@Embed(source='../../../../assets/icons/icon_delete.png')"
+			  toolTip="Delete" useHandCursor="true"
+			  includeIn="active" bottom="4" right="4" mouseDown="stopPropagation(event)" click="handleDeleteClick(event)" />
+	
+</s:ItemRenderer>

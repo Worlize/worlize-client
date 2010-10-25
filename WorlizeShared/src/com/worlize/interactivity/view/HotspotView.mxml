@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark" xmlns:mx="library://ns.adobe.com/flex/halo"
+	clipAndEnableScrolling="true" currentState="normal"
+	creationComplete="handleCreationComplete()" xmlns:view="com.worlize.interactivity.view.*" xmlns:mx1="library://ns.adobe.com/flex/mx">
+	
+	<fx:Metadata>
+		[Event(name="securityError", type="com.worlize.interactivity.event.InteractivitySecurityErrorEvent")]
+	</fx:Metadata>
+	
+	<s:states>
+		<s:State name="normal" />
+		<s:State name="authorMode" />
+	</s:states>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.event.AuthorModeNotification;
+			import com.worlize.event.NotificationCenter;
+			
+			import mx.collections.ArrayCollection;
+			import mx.events.CollectionEvent;
+			import mx.events.CollectionEventKind;
+			
+			import com.worlize.interactivity.event.HotspotEvent;
+			import com.worlize.interactivity.event.InteractivitySecurityErrorEvent;
+			import com.worlize.interactivity.model.CurrentRoom;
+			import com.worlize.interactivity.model.Hotspot;
+			
+			[Bindable]
+			public var hotSpots:ArrayCollection;
+			[Bindable]
+			public var room:CurrentRoom;
+			[Bindable]
+			public var mediaServer:String;
+			[Bindable]
+			public var authorMode:Boolean = false;
+			
+			private var viewsByHotSpot:Dictionary = new Dictionary();
+			private var nameTagsByHotSpot:Dictionary = new Dictionary();
+			
+			// Hash of Arrays keyed by hotspot guid.
+			// Array contains references to the grab handle view objects for
+			// a given hotspot so that they can be removed from the display
+			// list when appropriate.
+			private var dragHandlesHotSpotMap:Object = {};
+			
+			private function handleCreationComplete():void {
+				hotSpots.addEventListener(CollectionEvent.COLLECTION_CHANGE, handleHotSpotsChange);
+				NotificationCenter.addListener(AuthorModeNotification.AUTHOR_ENABLED, handleAuthorEnabled);
+				NotificationCenter.addListener(AuthorModeNotification.AUTHOR_DISABLED, handleAuthorDisabled);
+				NotificationCenter.addListener(AuthorModeNotification.SELECTED_ITEM_CHANGED, handleSelectedItemChanged);
+			}
+			
+			private function handleAuthorEnabled(event:AuthorModeNotification):void {
+				currentState = "authorMode";
+				authorMode = true;
+				for each (var view:HotSpotSprite in viewsByHotSpot) {
+					view.authorMode = true;
+				}
+			}
+			
+			private function handleAuthorDisabled(event:AuthorModeNotification):void {
+				currentState = "normal";
+				authorMode = false;
+				for each (var view:HotSpotSprite in viewsByHotSpot) {
+					view.authorMode = false;
+				}
+			}
+			
+			public function getHotspotsUnderPoint(roomPoint:Point):Vector.<HotSpotSprite> {
+				var hotSpots:Vector.<HotSpotSprite> = new Vector.<HotSpotSprite>();
+				var globalPoint:Point = localToGlobal(roomPoint);
+				for each (var sprite:HotSpotSprite in viewsByHotSpot) {
+					if (sprite.hitTestPoint(globalPoint.x, globalPoint.y, true)) {
+						hotSpots.push(sprite);
+					}
+				}
+				return hotSpots;
+			}
+			
+			public function hitTestHotSpot(hotSpot:Hotspot, globalPoint:Point):Boolean {
+				var view:HotSpotSprite = HotSpotSprite(viewsByHotSpot[hotSpot]);
+				if (view) {
+					return view.hitTestPoint(globalPoint.x, globalPoint.y, true);
+				}
+				return false;
+			}
+			
+			private function handleHotSpotsChange(event:CollectionEvent):void {
+				var hotSpot:Hotspot;
+				if (event.kind == CollectionEventKind.ADD) {
+					for each (hotSpot in event.items) {
+						addHotSpot(hotSpot);
+					}
+				}
+				else if (event.kind == CollectionEventKind.REMOVE) {
+					for each (hotSpot in event.items) {
+						removeHotSpot(hotSpot);
+					}
+				}
+				else if (event.kind == CollectionEventKind.RESET) {
+					resetHotSpots();
+				}
+			}
+			
+			private function addHotSpot(hotSpot:Hotspot):void {
+				
+				var hotSpotSprite:HotSpotSprite = new HotSpotSprite(hotSpot, true);
+				hotSpotSprite.authorMode = authorMode;
+				hotspotCanvas.rawChildren.addChild(hotSpotSprite);
+				viewsByHotSpot[hotSpot] = hotSpotSprite;
+				
+				hotSpot.addEventListener(HotspotEvent.MOVED, handleHotspotMoved);
+				
+				createDragHandlesForHotspot(hotSpot);
+				
+			}
+			
+			private function removeHotSpot(hotSpot:Hotspot):void {
+				hotSpot.removeEventListener(HotspotEvent.MOVED, handleHotspotMoved);
+				
+				var sprite:HotSpotSprite = viewsByHotSpot[hotSpot];
+				if (sprite) {
+					var index:int = hotspotCanvas.rawChildren.getChildIndex(sprite);
+					if (index != -1) {
+						hotspotCanvas.rawChildren.removeChildAt(index);
+					}
+					delete viewsByHotSpot[hotSpot];
+					
+					removeDragHandlesForHotSpot(hotSpot);
+				}
+			}
+			
+			private function handleHotspotMoved(event:HotspotEvent):void {
+				refreshDragHandlesForHotspot(Hotspot(event.target));
+			}
+
+			private function removeDragHandles():void {
+				dragHandlesHotSpotMap = {};
+				dragHandles.removeAllElements();
+			}
+			
+			private function refreshDragHandlesForHotspot(hotSpot:Hotspot):void {
+				removeDragHandlesForHotSpot(hotSpot);
+				createDragHandlesForHotspot(hotSpot);
+			}
+			
+			private function removeDragHandlesForHotSpot(hotSpot:Hotspot):void {
+				var dragHandlesList:Array = dragHandlesHotSpotMap[hotSpot.guid];
+				if (dragHandlesList) {
+					for each (var dragHandle:CornerDragHandle in dragHandlesList) {
+						dragHandles.removeElement(dragHandle);
+					}
+					delete dragHandlesHotSpotMap[hotSpot.guid];
+				}
+			}
+			
+			private function createDragHandlesForHotspot(hotSpot:Hotspot):void {
+				var dragHandlesList:Array = dragHandlesHotSpotMap[hotSpot.guid] = [];
+
+				// Create drag handles
+				for (var i:int=0; i < hotSpot.polygon.length; i++) {
+					var point:Point = hotSpot.polygon[i];
+					var dragHandle:CornerDragHandle = new CornerDragHandle();
+					dragHandle.hotspot = hotSpot;
+					dragHandle.pointIndex = i;
+					dragHandlesList.push(dragHandle);
+					dragHandles.addElement(dragHandle);
+				}
+			}
+			
+			private function handleSecurityError(event:SecurityErrorEvent):void {
+				var securityEvent:InteractivitySecurityErrorEvent = new InteractivitySecurityErrorEvent(InteractivitySecurityErrorEvent.SECURITY_ERROR);
+				dispatchEvent(securityEvent);
+			}
+			
+			private function resetHotSpots():void {
+				viewsByHotSpot = new Dictionary();
+				nameTagsByHotSpot = new Dictionary();
+				while (hotspotCanvas.rawChildren.numChildren > 0) {
+					hotspotCanvas.rawChildren.removeChildAt(0);
+				}
+				imageGroup.removeAllElements();
+				removeDragHandles();
+			}
+			
+			private function handleSelectedItemChanged(notification:AuthorModeNotification):void {
+				if (notification.oldValue is Hotspot || notification.newValue is Hotspot) {
+					for each (var sprite:HotSpotSprite in viewsByHotSpot) {
+						sprite.selected = (sprite.hotSpot === notification.newValue);
+					}
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<s:layout>
+		<s:BasicLayout />
+	</s:layout>
+
+	<s:Group id="imageGroup" top="0" left="0" bottom="0" right="0"
+		mouseEnabled="false">
+		<s:layout>
+			<s:BasicLayout />
+		</s:layout>
+	</s:Group>
+
+	<mx1:Canvas id="hotspotCanvas" top="0" left="0" bottom="0" right="0" 
+			   verticalScrollPolicy="off" horizontalScrollPolicy="off"/>
+	
+	
+	<s:Group id="dragHandles" top="0" left="0" bottom="0" right="0"
+			 visible="false" visible.authorMode="true">
+		<s:layout>
+			<s:BasicLayout />
+		</s:layout>
+	</s:Group>
+	
+</s:Group>

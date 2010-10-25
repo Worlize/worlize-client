@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+
+    ADOBE SYSTEMS INCORPORATED
+    Copyright 2008 Adobe Systems Incorporated
+    All Rights Reserved.
+    
+    NOTICE: Adobe permits you to use, modify, and distribute this file
+    in accordance with the terms of the license agreement accompanying it.
+
+-->
+
+<!--- The default skin class for a Spark TitleWindow container.  
+
+     @see spark.skins.spark.TitleWindowCloseButtonSkin
+     @see spark.components.TitleWindow
+
+     @langversion 3.0
+     @playerversion Flash 10
+     @playerversion AIR 1.5
+     @productversion Flex 4
+-->
+<s:SparkSkin xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark" 
+    xmlns:fb="http://ns.adobe.com/flashbuilder/2009"
+	blendMode="normal" mouseEnabled="false"
+	creationComplete="created(event)"
+    minWidth="76" minHeight="76"
+	alpha.disabled="0.5" alpha.disabledWithControlBar="0.5" xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:resize="flex.utils.spark.resize.*">
+    <fx:Metadata>[HostComponent("com.worlize.view.components.WorlizeWindow")]</fx:Metadata>
+    
+    <fx:Script fb:purpose="styling">
+		<![CDATA[
+			import flex.utils.spark.resize.ResizeManager;
+			
+			import mx.events.FlexEvent;
+			
+			[Bindable]
+			public var resizeManager:ResizeManager;
+
+	        /**
+	         * @private
+	         */
+	        override protected function initializationComplete():void
+	        {
+	            useChromeColor = false;
+	            super.initializationComplete();
+	        }
+	        
+	        /**
+	         * @private
+	         */
+	        override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+	        {
+	            dropShadow.visible = getStyle("dropShadowVisible");
+	            
+	            var withControls:Boolean = 
+	                (currentState == "disabledWithControlBar" || 
+	                 currentState == "normalWithControlBar" ||
+	                 currentState == "inactiveWithControlBar");
+	            
+	            backgroundFill.color = getStyle("backgroundColor");
+	            backgroundFill.alpha = getStyle("backgroundAlpha");
+	            
+				titleBarBackgroundFill.color = getStyle("titleBarColor");
+				titleDisplay.setStyle("color", getStyle("titleTextColor"));
+				
+				tbDiv.graphics.clear();
+				tbDiv.graphics.beginFill(getStyle("titleTextColor"));
+				tbDiv.graphics.moveTo(0,0);
+				
+				for (var i:int = 0; i < (width - 20); i += 3) {
+					tbDiv.graphics.drawCircle(i, 0, 0.85);
+				}
+				
+				
+				
+	            super.updateDisplayList(unscaledWidth, unscaledHeight);
+	        }
+			
+			private function created(event:FlexEvent):void {
+				if (hostComponent.minWidth == 0) {
+					hostComponent.minWidth = minWidth;
+				}
+				if (hostComponent.minHeight == 0) {
+					hostComponent.minHeight = minHeight;
+				}
+				resizeManager = new ResizeManager(hostComponent, resizeHandle);
+				resizeManager.enabled = hostComponent.resizable;
+			}
+			
+			private static const brighterMatrix:Array =
+				[0.79258, 0.18282, 0.0246, 0, 35,
+				 0.09258, 0.88282, 0.0246, 0, 35,
+				 0.09258, 0.18282, 0.7246, 0, 35,
+				 0,       0,       0,      1, 0]
+//				[1, 0, 0, 0, 40,
+//				 0, 1, 0, 0, 40,
+//				 0, 0, 1, 0, 40,
+//				 0, 0, 0, 1, 0];
+
+		]]>
+    </fx:Script>
+    
+    <s:states>
+        <s:State name="normal" />
+        <s:State name="inactive" stateGroups="inactiveGroup" />
+        <s:State name="disabled" />
+        <s:State name="normalWithControlBar" stateGroups="withControls" />
+        <s:State name="inactiveWithControlBar" stateGroups="withControls, inactiveGroup" />
+        <s:State name="disabledWithControlBar" stateGroups="withControls" />
+    </s:states>
+    
+    <!--- drop shadow can't be hittable so it stays sibling of other graphics @private-->
+    <s:RectangularDropShadow id="dropShadow"
+							 blurX="18" blurY="18" blurX.inactiveGroup="8" blurY.inactiveGroup="8"
+							 alpha="0.52" alpha.inactiveGroup="0.32"
+							 distance="4"  distance.inactiveGroup="2"
+                             angle="90" color="0x000000" left="0" top="0" right="0" bottom="0"/>
+    
+    <!--- drop shadow can't be hittable so all other graphics go in this group -->
+    <s:Group left="0" right="0" top="0" bottom="0">
+        
+        <!--- bottom group mask @private-->
+        <s:Group left="1" top="1" right="1" bottom="1" id="bottomGroupMask" 
+                 includeIn="withControls">
+            <!--- @private-->
+            <s:Rect id="bottomMaskRect" left="0" top="0" right="0" bottom="0">
+                <s:fill>
+                    <s:SolidColor alpha="0"/>
+                </s:fill>
+            </s:Rect>
+        </s:Group>
+        
+        <!-- layer 1: background fill -->
+        <!--- Defines the appearance of the TitleWindowSkin class's background. -->
+        <s:Rect id="background" left="0" top="0" right="0" bottom="0">
+            <s:fill>
+                <!--- Defines the TitleWindowSkin class's background fill. The default color is 0xFFFFFF. -->
+                <s:SolidColor id="backgroundFill" color="#FFFFFF" />
+            </s:fill>
+        </s:Rect>
+        
+        <!-- layer 2: contents -->
+        <!--- Contains the vertical stack of title bar content and control bar. -->
+        <s:Group left="0" right="0" top="0" bottom="0" id="contents">
+            <s:layout>
+                <s:VerticalLayout gap="0" horizontalAlign="justify" />
+            </s:layout>
+            <!--- @private -->
+            <s:Group id="topGroup" height="62">
+                
+                <!--- layer 0: title bar fill @private -->
+                <s:Rect id="tbFill" left="0" right="0" top="0" height="{getStyle('titleBarHeight')}">
+                    <s:fill>
+						<s:SolidColor color="0x888888" id="titleBarBackgroundFill" />
+                    </s:fill>
+					<s:filters>
+						<mx:ColorMatrixFilter matrix="{brighterMatrix}" includeIn="inactiveGroup" />
+					</s:filters>
+                </s:Rect>
+				
+				<mx:Image source="{getStyle('windowIcon')}"
+						  top="-10" left="-15">
+					<mx:filters>
+						<mx:ColorMatrixFilter matrix="{brighterMatrix}" includeIn="inactiveGroup" />
+					</mx:filters>
+				</mx:Image>
+				
+				<s:Group left="0" top="0" bottom="2" right="0">
+
+					<!-- layer 3: text -->
+					<!--- @copy spark.components.Panel#titleDisplay -->
+					<s:Label id="titleDisplay" maxDisplayedLines="1"
+							 fontFamily="Tuffy" fontWeight="bold" fontSize="22"
+							 left="35" bottom="10" paddingRight="10" 
+							 verticalAlign="middle" />
+					
+					<s:Group id="moveArea" left="0" right="0" top="0" bottom="0" />
+					
+					<s:Group id="controlBarGroup" top="{getStyle('titleBarHeight')}" right="30" bottom="2"
+							 					  left="{titleDisplay.x + titleDisplay.width}">
+						<s:layout>
+							<s:HorizontalLayout
+								paddingLeft="10" paddingRight="10" paddingTop="10" paddingBottom="10"
+								gap="14" horizontalAlign="right" verticalAlign="middle" />
+						</s:layout>
+					</s:Group>
+					
+				</s:Group>
+				
+				<s:SpriteVisualElement id="tbDiv" bottom="0" height="1" left="10" right="10" />
+				
+                <!--- @copy spark.components.TitleWindow#closeButton -->
+                <s:Button id="closeButton" skinClass="com.worlize.view.skins.WorlizeWindowCloseButtonSkin"
+                          width="14" height="10" right="0" top="0">
+				</s:Button>
+				
+            </s:Group>
+            
+			<!--
+                Note: setting the minimum size to 0 here so that changes to the host component's
+                size will not be thwarted by this skin part's minimum size.   This is a compromise,
+                more about it here: http://bugs.adobe.com/jira/browse/SDK-21143
+            -->
+            <!--- @copy spark.components.SkinnableContainer#contentGroup -->
+            <s:Group id="contentGroup" width="100%" height="100%" minWidth="0" minHeight="0">
+            </s:Group>
+        </s:Group>
+    </s:Group>
+	
+	<resize:ResizeHandleLines id="resizeHandle"
+							  enabled="{resizeManager.enabled}"
+							  bottom="1"
+							  right="1"
+							  visible="{resizeManager.enabled}"/>
+	
+</s:SparkSkin>

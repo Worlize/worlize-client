@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Image xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" 
+		  xmlns:mx="library://ns.adobe.com/flex/mx">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.model.WorlizeAsset;
+			import com.worlize.model.WorlizeAssetKind;
+			private var _dataProvider:WorlizeAsset;
+			
+			[Bindable('dataProviderChanged')]
+			public function set dataProvider(newValue:WorlizeAsset):void {
+				if (_dataProvider !== newValue) {
+					_dataProvider = newValue;
+					if (_dataProvider.kind == WorlizeAssetKind.BACKGROUND) {
+						width = 133;
+					}
+					else {
+						width = 80;
+					}
+					height = 80;
+					source = _dataProvider.imageURL.thumbnail;
+					dispatchEvent(new Event('dataProviderChanged'));
+				}
+			}
+			public function get dataProvider():WorlizeAsset {
+				return _dataProvider;
+			}
+		]]>
+	</fx:Script>
+</mx:Image>

@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application
+	xmlns:fx="http://ns.adobe.com/mxml/2009"
+	xmlns:s="library://ns.adobe.com/flex/spark"
+	minWidth="965" minHeight="640"
+	skinClass="FlashClientApplicationSkin"
+	applicationComplete="handleApplicationComplete()"
+	creationComplete="handleCreationComplete()"
+	xmlns:code="http://code.google.com/p/flexlib/"
+	xmlns:view="com.worlize.interactivity.view.*"
+	xmlns:local="*" xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:view1="com.worlize.view.*">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	
+	
+	<fx:Style source="Styles.css" />
+	<fx:Style source="src/com/worlize/view/skins/skins.css" />
+ 
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.event.AuthorModeNotification;
+			import com.worlize.event.NotificationCenter;
+			import com.worlize.interactivity.event.InteractivityEvent;
+			import com.worlize.interactivity.event.InteractivitySecurityErrorEvent;
+			import com.worlize.interactivity.iptscrae.command.CLIENTTYPECommand;
+			import com.worlize.interactivity.model.InteractivityUser;
+			import com.worlize.interactivity.rpc.InteractivityClient;
+			import com.worlize.rpc.HTTPMethod;
+			import com.worlize.rpc.WorlizeResultEvent;
+			import com.worlize.rpc.WorlizeServiceClient;
+			import com.worlize.view.MarketplaceWindow;
+			import com.worlize.view.author.AuthorModePropertiesWindow;
+			
+			import mx.binding.utils.ChangeWatcher;
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.events.PropertyChangeEvent;
+			import mx.managers.PopUpManager;
+			[Bindable]
+			public var client:InteractivityClient = InteractivityClient.getInstance();
+
+			private var preferences:Preferences = Preferences.getInstance();
+			
+			private var authorPropertiesWindowShowing:Boolean = false;
+			private var authorPropertiesWindow:AuthorModePropertiesWindow;
+			
+			private function handleApplicationComplete():void {
+				stage.addEventListener(KeyboardEvent.KEY_DOWN, handleStageKeyDown);
+				trace("Flash Player Version: " + Capabilities.version);
+			}
+			
+			private function handleStageKeyDown(event:KeyboardEvent):void {
+				if (event.keyCode == Keyboard.NUMPAD_ADD) {
+					client.setFace(client.currentUser.face+1);
+				}
+				else if (event.keyCode == Keyboard.NUMPAD_SUBTRACT) {
+					client.setFace(client.currentUser.face-1);
+				}
+			}
+
+			private function handleCreationComplete():void {
+				client.addEventListener(InteractivityEvent.CONNECT_COMPLETE, handleConnectComplete);
+				client.addEventListener(InteractivityEvent.CONNECT_FAILED, handleConnectFailed);
+				client.addEventListener(InteractivityEvent.CONNECT_START, handleConnectStart);
+				client.addEventListener(InteractivityEvent.GOTO_URL, handleGotoURL);
+					
+				client.setCyborg(preferences.cyborg);
+				
+				client.connect();
+				
+				authorPropertiesWindow = new AuthorModePropertiesWindow();
+				authorPropertiesWindow.x = 750;
+				authorPropertiesWindow.y = 75;
+
+				NotificationCenter.addListener(AuthorModeNotification.AUTHOR_DISABLED, handleAuthorDisabled);
+				NotificationCenter.addListener(AuthorModeNotification.SELECTED_ITEM_CHANGED, handleAuthorSelectedItemChanged);
+			}
+			
+			private function handleAuthorDisabled(notification:AuthorModeNotification):void {
+				hideAuthorPropertiesWindow();
+			}
+			
+			private function handleAuthorSelectedItemChanged(notification:AuthorModeNotification):void {
+				if (!authorPropertiesWindowShowing && notification.newValue !== null) {
+					showAuthorPropertiesWindow();
+				}
+				else {
+					if (notification.newValue === null) {
+						hideAuthorPropertiesWindow();
+					}
+				}
+			}
+			
+			private function showAuthorPropertiesWindow():void {
+				if (authorPropertiesWindow) {
+					PopUpManager.addPopUp(authorPropertiesWindow, systemManager.getSandboxRoot());
+					authorPropertiesWindowShowing = true;
+				}
+			}
+			private function hideAuthorPropertiesWindow():void {
+				if (authorPropertiesWindow && authorPropertiesWindowShowing) {
+					PopUpManager.removePopUp(authorPropertiesWindow);
+				}
+				authorPropertiesWindowShowing = false;
+			}
+			
+			
+			private function handleGotoURL(event:InteractivityEvent):void {
+				var url:String = event.url;
+				Alert.show("Do you want to visit this url in your browser?\n\n" + event.url,
+						   "External Link",
+						   Alert.YES | Alert.NO,
+						   null,
+						   function(event:CloseEvent):void {
+							  if (event.detail == Alert.YES) {
+								  var req:URLRequest = new URLRequest(url);
+								  navigateToURL(req, "_BLANK");
+							  }
+						   });
+			}
+			
+			private function handleConnectComplete(event:InteractivityEvent):void {
+				chatWindow.currentState = "connected";
+			}
+			
+			private function handleConnectFailed(event:InteractivityEvent):void {
+				Alert.show(event.text, "Error");
+				chatWindow.currentState = "disconnected"
+			}
+			
+			private function handleConnectStart(event:InteractivityEvent):void {
+				chatWindow.currentState = "connecting";
+			}
+			
+			private function disconnect():void {
+				client.disconnect();
+			}
+			
+
+		]]>
+	</fx:Script>
+
+	
+	<view1:ChatWindow id="chatWindow" client="{client}" top="40" left="10" />	
+
+	<s:BorderContainer
+		top="3" left="10" height="25"
+		borderVisible="false"
+		backgroundColor="#FFFFFF" cornerRadius="12">
+		<s:layout>
+			<s:HorizontalLayout gap="38"
+								paddingTop="1"
+								paddingLeft="4"
+								paddingRight="-1" />
+		</s:layout>
+		
+		<mx:LinkButton
+			styleName="topNavButton"
+			color="#0C9dea"
+			icon="@Embed(source='src/assets/icons/icon_myworlz.png')"
+			label="MY WORLZ" />
+		<mx:LinkButton
+			styleName="topNavButton"
+			color="#1076a4"
+			icon="@Embed(source='src/assets/icons/icon_friends.png')"
+			label="FRIENDS" />
+		<mx:LinkButton
+			styleName="topNavButton"
+			color="#F15601"
+			icon="@Embed(source='src/assets/icons/icon_bookmarks.png')"
+			label="BOOKMARKS" />
+		<mx:LinkButton
+			styleName="topNavButton"
+			color="#9e1F63"
+			icon="@Embed(source='src/assets/icons/icon_gifts.png')"
+			label="GIFTS" />
+		<mx:LinkButton
+			styleName="topNavButton"
+			color="#5c5d87"
+			icon="@Embed(source='src/assets/icons/icon_messages.png')"
+			label="MESSAGES" />
+	</s:BorderContainer>
+	
+	<s:HGroup
+		top="3" right="10"
+		gap="12">
+		
+		<mx:LinkButton
+			styleName="topNavButton"
+			color="#498639"
+			icon="@Embed(source='src/assets/icons/icon_add.png')"
+			label="Add Coins or Bucks" />
+		<mx:LinkButton
+			styleName="topNavButton"
+			color="#B58B0B"
+			icon="@Embed(source='src/assets/icons/icon_marketplace.png')"
+			click="MarketplaceWindow.toggleOpen(systemManager.getSandboxRoot())"
+			label="Marketplace" />
+		<mx:LinkButton
+			styleName="topNavButton"
+			color="#888888"
+			fontSize="12"
+			icon="@Embed(source='src/assets/icons/icon_settings.png')"
+			label="Settings" />
+		
+	</s:HGroup>
+	
+</s:Application>

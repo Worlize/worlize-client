@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+
+    ADOBE SYSTEMS INCORPORATED
+    Copyright 2008 Adobe Systems Incorporated
+    All Rights Reserved.
+    
+    NOTICE: Adobe permits you to use, modify, and distribute this file
+    in accordance with the terms of the license agreement accompanying it.
+
+-->
+
+<!--- The default skin class for the close button of the Spark TitleWindow component.  
+
+     @see spark.skins.spark.TitleWindowSkin     
+     @see spark.components.TitleWindow
+
+     @langversion 3.0
+     @playerversion Flash 10
+     @playerversion AIR 1.5
+     @productversion Flex 4
+-->
+<s:SparkSkin xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+    xmlns:fb="http://ns.adobe.com/flashbuilder/2009" alpha.disabled="0.5" xmlns:mx="library://ns.adobe.com/flex/mx">
+    
+    <!-- host component -->
+    <fx:Metadata>
+        <![CDATA[ 
+        /** 
+         * @copy spark.skins.spark.ApplicationSkin#hostComponent
+         */
+        [HostComponent("spark.components.Button")]
+        ]]>
+    </fx:Metadata> 
+    
+    <fx:Script fb:purpose="styling">
+        /* Define the skin elements that should not be colorized. 
+        For closeButton, the graphics are colorized but the x is not. */
+        static private const exclusions:Array = ["xGraphic"];
+    </fx:Script>
+    
+    <s:states>
+        <s:State name="up" />
+        <s:State name="over" stateGroups="engaged" />
+        <s:State name="down" stateGroups="engaged" />
+        <s:State name="disabled" />
+    </s:states>
+    
+    <!--- Defines the appearance of the x in the close button. -->
+
+	<mx:Image id="xGraphic" top="0" right="0"
+			  source="@Embed(source='src/assets/icons/window_close.png')"
+			  source.engaged="@Embed(source='src/assets/icons/window_close_over.png')"/>
+	
+</s:SparkSkin>
