@@ -103,9 +103,9 @@
     <classEntry path="com.worlize.interactivity.view.ChatBubbleSkin"/>
     <classEntry path="com.worlize.interactivity.view.CornerDragHandle"/>
     <classEntry path="com.worlize.interactivity.view.HotSpotSprite"/>
+    <classEntry path="com.worlize.interactivity.view.HotspotView"/>
     <classEntry path="com.worlize.interactivity.view.JellyImages"/>
     <classEntry path="com.worlize.interactivity.view.NameTag"/>
-    <classEntry path="com.worlize.interactivity.view.HotspotView"/>
     <classEntry path="com.worlize.interactivity.view.RoomView"/>
     <classEntry path="com.worlize.interactivity.view.SoundPlayer"/>
     <classEntry path="com.worlize.model.AvatarInstance"/>
@@ -125,7 +125,6 @@
     <classEntry path="com.worlize.rpc.WorlizeServiceClient"/>
     <classEntry path="com.worlize.state.AuthorModeState"/>
     <classEntry path="com.worlize.util.MultiPartFormBuilder"/>
-    <classEntry path="net.codecomposer.openpalace.accountserver.rpc.AccountServerClient"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>
