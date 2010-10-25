@@ -1,0 +1,605 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- width="{backgroundImage.width}" height="{backgroundImage.height}" -->
+<s:Group xmlns:mx="library://ns.adobe.com/flex/halo"
+	width="950" height="570"
+	clipAndEnableScrolling="true"
+	currentState="normal"
+	xmlns:view="com.worlize.interactivity.view.*"
+	creationComplete="handleCreationComplete()" xmlns:s="library://ns.adobe.com/flex/spark" xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:mx1="library://ns.adobe.com/flex/mx">
+
+	<s:layout>
+		<s:BasicLayout />
+	</s:layout>
+
+	<fx:Metadata>
+		[Event(name="securityError", type="com.worlize.interactivity.event.InteractivitySecurityErrorEvent")]
+	</fx:Metadata>
+	
+	<s:states>
+		<s:State name="normal" />
+		<s:State name="unableToLoadBackground" />
+	</s:states>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.state.AuthorModeState;
+			
+			import mx.binding.utils.ChangeWatcher;
+			import mx.collections.ArrayCollection;
+			import mx.core.DragSource;
+			import mx.core.FlexBitmap;
+			import mx.core.IUIComponent;
+			import mx.core.IVisualElement;
+			import mx.events.DragEvent;
+			import mx.events.EffectEvent;
+			import mx.events.PropertyChangeEvent;
+			import mx.managers.DragManager;
+			
+			import com.worlize.interactivity.event.ChatEvent;
+			import com.worlize.interactivity.event.RoomEvent;
+			import com.worlize.interactivity.event.InteractivitySecurityErrorEvent;
+			import com.worlize.interactivity.model.ChatMessage;
+			import com.worlize.interactivity.model.InteractivityConfig;
+			import com.worlize.interactivity.model.CurrentRoom;
+			import com.worlize.interactivity.model.Hotspot;
+			import com.worlize.interactivity.model.InteractivityUser;
+			import com.worlize.interactivity.rpc.InteractivityClient;
+			
+			import spark.effects.Animate;
+			import spark.effects.Fade;
+			import spark.effects.Move;
+			
+			private var _room:CurrentRoom;
+			private var roomBackgroundWatcher:ChangeWatcher;
+					
+			private var avatarsByUser:Dictionary = new Dictionary();
+			private var nameTagsByUser:Dictionary = new Dictionary();
+			
+			private var baseBackgroundFile:String;
+			private var forcingPng:Boolean = false;
+			private var forcingJpeg:Boolean = false;
+			
+			[Bindable(event="roomChanged")]
+			public function get room():CurrentRoom {
+				return _room;
+			}
+			public function set room(newValue:CurrentRoom):void {
+				if (_room && _room !== newValue) {
+					_room.removeEventListener(ChatEvent.CHAT, handleChat);
+					_room.removeEventListener(ChatEvent.ROOM_MESSAGE, handleChat);
+					_room.removeEventListener(ChatEvent.WHISPER, handleChat);
+					_room.removeEventListener(RoomEvent.ROOM_CLEARED, handleRoomCleared);
+					_room.removeEventListener(RoomEvent.USER_ENTERED, handleUserEntered);
+					_room.removeEventListener(RoomEvent.USER_LEFT, handleUserLeft);
+					_room.removeEventListener(RoomEvent.USER_MOVED, handleUserMoved);
+					_room.removeEventListener(RoomEvent.SELECTED_USER_CHANGED, handleSelectedUserChanged);
+					_room.roomView = null;
+					roomBackgroundWatcher.unwatch();
+				}
+				if (_room !== newValue) {
+					_room = newValue;
+					_room.addEventListener(ChatEvent.CHAT, handleChat);
+					_room.addEventListener(ChatEvent.ROOM_MESSAGE, handleChat);
+					_room.addEventListener(ChatEvent.WHISPER, handleChat);
+					_room.addEventListener(RoomEvent.ROOM_CLEARED, handleRoomCleared);
+					_room.addEventListener(RoomEvent.USER_ENTERED, handleUserEntered);
+					_room.addEventListener(RoomEvent.USER_LEFT, handleUserLeft);
+					_room.addEventListener(RoomEvent.USER_MOVED, handleUserMoved);
+					_room.addEventListener(RoomEvent.SELECTED_USER_CHANGED, handleSelectedUserChanged);
+					roomBackgroundWatcher = ChangeWatcher.watch(room, 'backgroundFile', handleBGChange);
+					_room.roomView = this;
+					updateAvatarTransparencies();
+					dispatchEvent(new Event("roomChanged"));
+				};
+			}
+			
+			private function handleCreationComplete():void {
+				this.addEventListener(MouseEvent.MOUSE_DOWN, handleMouseDown);
+			}
+			
+			private function handleUserMoved(event:RoomEvent):void {
+				
+			}
+			
+			private function handleSelectedUserChanged(event:Event):void {
+				updateAvatarTransparencies();
+			}
+			
+			private var draggingAvatar:Boolean = false;
+			private var liveDraggingAvatar:Boolean = false;
+			private var liveDraggingTimer:Timer = new Timer(100, 0);
+			
+			private function handleAvatarDragMouseDown(event:MouseEvent):void {
+				if (event.currentTarget is Avatar) {
+					var user:InteractivityUser = Avatar(event.currentTarget).user;
+					if (!user.isSelf) { return; }
+				}
+				if (event.shiftKey) {
+					liveDraggingTimer.reset();
+					liveDraggingTimer.start();
+					liveDraggingTimer.addEventListener(TimerEvent.TIMER, handleLiveDraggingTimer);
+					liveDraggingAvatar = true;
+				}
+				startAvatarDrag();
+				updateSelfPosition();
+			}
+			
+			private function startAvatarDrag(event:MouseEvent = null):void {
+				draggingAvatar = true;
+				systemManager.getSandboxRoot().addEventListener(MouseEvent.MOUSE_UP, handleStageMouseUp);
+				addEventListener(MouseEvent.MOUSE_MOVE, handleAvatarDragMouseMove);
+			}
+
+			private function stopAvatarDrag():void {
+				draggingAvatar = false;
+				if (liveDraggingAvatar) {
+					liveDraggingAvatar = false;
+					liveDraggingTimer.stop();
+					liveDraggingTimer.removeEventListener(TimerEvent.TIMER, handleLiveDraggingTimer);
+				}
+				systemManager.getSandboxRoot().removeEventListener(MouseEvent.MOUSE_UP, handleStageMouseUp);
+				removeEventListener(MouseEvent.MOUSE_MOVE, handleAvatarDragMouseMove);
+			}
+			
+			private function handleMouseDown(event:MouseEvent):void {
+				var authorModeState:AuthorModeState = AuthorModeState.getInstance();
+				if (authorModeState.enabled) {
+					event.stopImmediatePropagation();
+					authorModeState.selectedItem = null;
+					return;
+				}
+				updateSelfPosition();
+				sendCurrentPositionToServer();
+			}
+			
+			private function sendCurrentPositionToServer():void {
+				var self:InteractivityUser = room.getSelfUser();
+				if (self) {
+					InteractivityClient.getInstance().move(self.x, self.y);
+				}
+			}
+			
+			private function updateSelfPosition():void {
+				var self:InteractivityUser = room.getSelfUser();
+				if (!self) { return; }
+				var x:int = this.contentMouseX;
+				var y:int = this.contentMouseY;
+				if (x < 22) { x = 22; }
+				if (y < 22) { y = 22; }
+				if (x > width - 22) { x = width - 22; }
+				if (y > height - 22) { y = height - 22; }
+				
+				self.x = x;
+				self.y = y;
+			}
+			
+			private function handleLiveDraggingTimer(event:TimerEvent):void {
+				if (liveDraggingAvatar) {
+					sendCurrentPositionToServer();
+				}
+			}
+			
+			private function handleAvatarDragMouseMove(event:MouseEvent):void {
+				if (draggingAvatar) {
+					updateSelfPosition();
+				}
+			}
+						
+			private function handleStageMouseUp(event:MouseEvent):void {
+				stopAvatarDrag();
+				sendCurrentPositionToServer();
+			}
+			
+
+			private function handleAvatarMouseDown(event:MouseEvent):void {
+				if (event.currentTarget is Avatar) {
+					var user:InteractivityUser = Avatar(event.currentTarget).user;
+					trace("Clicked avatar " + user.id + " - self is " + room.selfUserId);
+					if (user.isSelf) {
+						room.selectedUser = null;
+					}
+					else if (room.selectedUser != user) {
+						room.selectedUser = user;
+					}
+					else if (room.selectedUser == user) {
+						room.selectedUser = null;
+					}
+					event.stopPropagation();
+				}
+			}
+			
+			private function updateAvatarTransparencies():void {
+				//trace("Updating avatar transparencies");
+				for each (var avatar:Object in avatarsByUser) {
+					var av:Avatar = Avatar(avatar);
+					if (room.selectedUser == null || av.user.id == room.selfUserId || av.user == room.selectedUser) {
+						//trace("User " + av.user.id + " is self or selected user or no user is selected");
+						av.alpha = 1;
+					}
+					else {
+						//trace("User " + av.user.id + " is not the selected user (" + room.selectedUser.id + ")");
+						av.alpha = 0.6;
+					}
+				}
+			}
+			
+			private var stickyMessagesByUser:Dictionary = new Dictionary();
+			private var currentlyDisplayedChatMessages:ArrayCollection = new ArrayCollection();
+			private var chatQueue:Array = [];
+			
+			private function handleChat(event:ChatEvent):void {
+				if (event.soundName) {
+					SoundPlayer.getInstance().playSound(event.soundName);
+				}
+				
+				if (event.logOnly) { return; }
+				
+				var message:ChatMessage = new ChatMessage();
+				message.isWhisper = event.whisper;
+				message.text = event.chatText;
+				if (message.text.length < 1) { return; }
+				message.tint = event.user ? Avatar.chatBubbleTintColors[event.user.color] : 0xF9F9F9;
+				message.user = event.user;
+				if (event.user) {
+					message.x = event.user.x;
+					message.y = event.user.y;
+				}
+				else {
+					message.x = 0;
+					message.y = 10;
+				}
+				
+				chatQueue.push(message);
+				
+				checkChatQueue();
+			}
+			
+			private function checkChatQueue():void {
+				var itemsInQueue:int = chatQueue.length;
+				
+				for (var i:int = 0; i < itemsInQueue; i ++) {
+					var message:ChatMessage = chatQueue.shift();
+					if (!displayChatBubble(message)) {
+						// If we're not currently able to display the chat bubble,
+						// put it back on the queue.
+						//trace("Didn't successfully display message.");
+						message.displayFailureCount ++;
+						if (message.displayFailureCount < 40) {
+							chatQueue.push(message);
+						}
+					}
+				}
+			}
+			
+			// return true for success, false to put it back on the queue
+			private function displayChatBubble(message:ChatMessage):Boolean {
+				
+				if (message.user && stickyMessagesByUser[message.user]) {
+					var oldMessage:ChatMessage = stickyMessagesByUser[message.user];
+					try {
+						delete stickyMessagesByUser[message.user];
+					}
+					catch (e:Error) { /* do nothing */ }
+					try {
+						textGroup.removeElement(oldMessage.chatBubble);
+					}
+					catch (e:Error) { /* do nothing */ }
+				}
+				
+				var chatBubble:ChatBubble = new ChatBubble();
+				chatBubble.setStyle('skinClass', Class(com.worlize.interactivity.view.ChatBubbleSkin));
+				chatBubble.text = message.text;
+				chatBubble.x = message.x;
+				chatBubble.y = message.y;
+				chatBubble.mouseEnabled = false;
+				chatBubble.isWhisper = message.isWhisper;
+				chatBubble.tintColor = message.tint;
+				chatBubble.visible = true;
+				
+				var overlapped:Boolean = false;
+				
+				// Check for overlaps...
+				textGroup.addElement(chatBubble)
+				chatBubble.validateNow();
+				for (var positionNumber:int = 0; positionNumber < 4; positionNumber ++) {
+					overlapped = false;
+
+					// Check if we're running off the edge of the screen
+					//trace(chatBubble.skin.currentState);
+
+					var skinState:String = chatBubble.skin.currentState;
+					var rightCheck:int, leftCheck:int, bottomCheck:int, topCheck:int;
+					
+					
+					if (skinState.indexOf('Right') != -1) {
+						rightCheck = chatBubble.x + chatBubble.skin.x + chatBubble.skin.measuredWidth;
+						leftCheck = chatBubble.x + chatBubble.skin.x;
+					}
+					if (skinState.indexOf('Left') != -1) {
+						rightCheck = chatBubble.x + chatBubble.skin.x;
+						leftCheck = chatBubble.x + chatBubble.skin.x - chatBubble.skin.measuredWidth;
+					}
+					if (skinState.indexOf('bottom') != -1) {
+						bottomCheck = chatBubble.y + chatBubble.skin.y + chatBubble.skin.measuredHeight;
+						topCheck = chatBubble.y + chatBubble.skin.y;
+					}
+					if (skinState.indexOf('top') != -1) {
+						bottomCheck = chatBubble.y + chatBubble.skin.y;
+						topCheck = chatBubble.y + chatBubble.skin.y - chatBubble.skin.measuredHeight;
+					}
+					 
+					if (
+							rightCheck > width ||
+							bottomCheck > height ||
+							leftCheck < 0 ||
+							topCheck < 0
+					   ) { 
+					   	overlapped = true;
+						chatBubble.tryNextPosition();
+						chatBubble.validateNow();
+						continue;
+					}
+					
+					innerLoop: for (var i:int = 0; i < currentlyDisplayedChatMessages.length; i ++) {
+						var m:ChatMessage = ChatMessage(currentlyDisplayedChatMessages.getItemAt(i));
+						if (!m.isStickyBubble && m.chatBubble.hitTestObject(chatBubble)) {
+							overlapped = true;
+							chatBubble.tryNextPosition();
+							chatBubble.validateNow();
+							break innerLoop;
+						}
+					}
+					if (!overlapped) {
+						break;
+					}
+				}
+				
+				if (overlapped) {
+					//trace("unresolvable overlap detected.");
+					textGroup.removeElement(chatBubble);
+					return false;
+				}
+				
+				chatBubble.visible = true;
+				message.chatBubble = chatBubble;
+				
+				if (!message.isStickyBubble) {
+					setTimeout(removeChatBubble, 3000 + (message.text.length * 70), message);
+				}
+				else if (message.user) {
+					stickyMessagesByUser[message.user] = message;
+				}
+				currentlyDisplayedChatMessages.addItem(message);
+				return true;
+			}
+			
+			private function removeChatBubble(message:ChatMessage):void {
+				try {
+					var bubble:ChatBubble = message.chatBubble;
+					var fade:Fade = new Fade(bubble);
+					fade.duration = 300;
+					fade.alphaFrom = 1;
+					fade.alphaTo = 0;
+					fade.addEventListener(EffectEvent.EFFECT_END, handleChatBubbleFadeComplete);
+					fade.play();
+					currentlyDisplayedChatMessages.removeItemAt(currentlyDisplayedChatMessages.getItemIndex(message));
+				}
+				catch (e:Error) { /* do nothing */ }
+				
+				checkChatQueue();
+			}
+			
+			private function handleChatBubbleFadeComplete(event:EffectEvent):void {
+				try {
+					textGroup.removeElement(Animate(event.target).target as IVisualElement);
+				}
+				catch(e:Error) {
+					trace("Unable to remove element after fadeout animation. ", Animate(event.target).target);
+					// do nothing
+				}
+			}
+			
+			private function handleUserEntered(event:RoomEvent):void {
+				var avatar:Avatar = new Avatar();
+				avatar.user = event.user;
+				avatar.alpha = 1;
+				avatar.addEventListener(MouseEvent.MOUSE_DOWN, handleAvatarMouseDown);
+				avatar.addEventListener(MouseEvent.MOUSE_DOWN, handleAvatarDragMouseDown);
+				avatarsGroup.addElement(avatar);
+				avatar.validateDisplayList();
+				avatarsByUser[event.user] = avatar;
+				updateAvatarTransparencies();
+				
+				var nameTag:NameTag = new NameTag();
+				nameTag.user = event.user;
+				nameTagsByUser[event.user] = nameTag;
+				nameTag.alpha = 0;
+				nameTagGroup.addElement(nameTag);
+				
+				var fade:Fade = new Fade(nameTag);
+				fade.duration = 700;
+				fade.startDelay = int(Math.random() * 400);
+				fade.alphaFrom = 0;
+				fade.alphaTo = 1;
+				fade.play();
+			}
+			
+			private function handleUserLeft(event:RoomEvent):void {
+				var avatar:Avatar = avatarsByUser[event.user];
+				if (avatar != null) {
+					avatar.removeEventListener(MouseEvent.MOUSE_DOWN, handleAvatarMouseDown);
+					avatar.removeEventListener(MouseEvent.MOUSE_DOWN, handleAvatarDragMouseDown);
+					avatarsGroup.removeElement(avatar);
+					delete avatarsByUser[event.user];
+				}
+								
+				var nameTag:NameTag = nameTagsByUser[event.user];
+				if (nameTag != null) {
+					nameTagGroup.removeElement(nameTag);
+					delete nameTagsByUser[event.user];
+				}
+				
+				var chatMessage:ChatMessage = stickyMessagesByUser[event.user];
+				if (chatMessage != null) {
+					textGroup.removeElement(chatMessage.chatBubble);
+					delete stickyMessagesByUser[event.user];
+				}
+			}
+			
+			private function handleRoomCleared(event:RoomEvent):void {
+				for each (var avatar:Object in avatarsByUser) {
+					Avatar(avatar).removeEventListener(MouseEvent.MOUSE_DOWN, handleAvatarMouseDown);
+				}
+				avatarsGroup.removeAllElements();
+				avatarsByUser = new Dictionary();
+
+				nameTagGroup.removeAllElements();
+				nameTagsByUser = new Dictionary();
+				
+				currentlyDisplayedChatMessages.removeAll();
+				chatQueue = [];
+				textGroup.removeAllElements();
+				
+			}
+			
+			
+			
+			private function handleBGChange(event:PropertyChangeEvent):void {
+				currentState = "normal";
+				backgroundImage.visible = false;
+				roomFader.alpha = 1;
+				if (room.backgroundFile == null) {
+					return;
+				}
+				backgroundImage.source = room.backgroundFile;
+				if (backgroundImage.content) {
+					backgroundImage.visible = true;
+				}
+			}
+			
+			private function handleBackgroundLoadComplete(event:Event):void {
+				if (InteractivityConfig.fadeBackgroundImages) { 
+					var fade:Fade = new Fade(roomFader);
+					fade.duration = 200;
+					fade.alphaFrom = 1;
+					fade.alphaTo = 0;
+					fade.play();
+					
+					currentState = "normal";
+				}
+				backgroundImage.visible = true;
+				backgroundImage.smoothBitmapContent = false;
+				backgroundImage.smoothBitmapContent = true;
+			}
+			
+			private function handleUnableToLoadBG():void {
+				backgroundImage.source = null;
+				currentState = "unableToLoadBackground";
+			}
+			
+			private function handleBGioERROR(event:IOErrorEvent):void {
+				handleUnableToLoadBG();
+			}
+			
+			private function handleSecurityError(event:SecurityErrorEvent = null):void {
+				var security_event:InteractivitySecurityErrorEvent = new InteractivitySecurityErrorEvent(InteractivitySecurityErrorEvent.SECURITY_ERROR);
+				dispatchEvent(event);
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<s:Rect width="100%" height="100%">
+		<s:fill>
+			<s:LinearGradient rotation="90">
+				<s:GradientEntry color="#b5ab99" />
+				<s:GradientEntry color="#968d7a" />
+			</s:LinearGradient>
+		</s:fill>
+	</s:Rect>
+	
+	<mx1:Image top="0" left="0" id="backgroundImage" minHeight="570" minWidth="950"
+		smoothBitmapContent="true"
+		scaleContent="false" complete="handleBackgroundLoadComplete(event)"
+		loaderContext="{InteractivityClient.loaderContext}" securityError="handleSecurityError(event)" ioError="handleBGioERROR(event);"
+		visible="false" />
+	
+	<s:Label text="Unable to load background." width="90%"
+			 mouseEnabled="false"
+			 color="#FFFFFF" fontSize="15"
+			 includeIn="unableToLoadBackground"
+			 textAlign="center"
+			 verticalCenter="0" horizontalCenter="0" />
+	
+	<view:HotspotView id="hotSpotCanvas" room="{room}"
+							securityError="handleSecurityError()"
+							hotSpots="{room.hotSpotsAboveNothing}" top="0" right="0" bottom="0" left="0"
+							/>
+	
+	<s:Rect width="100%" height="100%">
+		<s:fill>
+			<s:SolidColor color="0x000000" alpha="{1 - room.dimLevel}" />
+		</s:fill>
+	</s:Rect>
+	
+	<s:Rect width="100%" height="100%" visible.unableToLoadBackground="false"
+			id="roomFader" alpha="0">
+		<s:fill>
+			<s:LinearGradient rotation="90">
+				<s:GradientEntry color="#b5ab99" />
+				<s:GradientEntry color="#968d7a" />
+			</s:LinearGradient>
+		</s:fill>
+	</s:Rect>
+	
+	<s:Group id="avatarsGroup" top="0" right="0" bottom="0" left="0"
+			 visible="{room.showAvatars}">
+		<s:layout>
+			<s:BasicLayout />
+		</s:layout>
+	</s:Group>
+
+	<view:HotspotView id="hotSpotAboveAvatarsCanvas" room="{room}"
+							securityError="handleSecurityError()"
+							hotSpots="{room.hotSpotsAboveAvatars}"
+							top="0" right="0" bottom="0" left="0"
+							/>
+	
+	<s:Group id="nameTagGroup" mouseEnabled="false"
+			 mouseChildren="false"
+			 visible="{room.showAvatars}">
+		<s:layout>
+			<s:BasicLayout />
+		</s:layout>
+	</s:Group>
+	
+	<view:HotspotView id="hotSpotAboveNametagsCanvas" room="{room}"
+							securityError="handleSecurityError()"
+							hotSpots="{room.hotSpotsAboveNametags}"
+							top="0" right="0" bottom="0" left="0"
+							/>
+	
+	<s:Group id="textGroup" mouseEnabled="false" mouseChildren="false"
+			 top="0" right="0" bottom="0" left="0">
+		<s:layout>
+			<s:BasicLayout />
+		</s:layout>
+	</s:Group>
+	
+	<view:HotspotView id="hotSpotAboveEverythingCanvas" room="{room}"
+							securityError="handleSecurityError()"
+							hotSpots="{room.hotSpotsAboveEverything}"
+							top="0" right="0" bottom="0" left="0"
+							/>
+	
+	<mx1:ProgressBar
+		width="950"
+		bottom="25"
+		source="{backgroundImage}"
+		visible="{backgroundImage.source != null &amp;&amp; progressBar.percentComplete &lt; 100}"
+		labelPlacement="center"
+		id="progressBar"
+		label="Downloading Background... {Math.ceil(progressBar.percentComplete)}%" />
+	
+	
+</s:Group>
