@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <flexLibProperties includeAllClasses="true" version="3">
-  <includeClasses/>
+  <includeClasses>
+    <classEntry path="com.worlize.model.BackgroundImageAsset"/>
+    <classEntry path="com.worlize.model.BackgroundImageInstance"/>
+  </includeClasses>
   <includeResources/>
   <namespaceManifests/>
 </flexLibProperties>

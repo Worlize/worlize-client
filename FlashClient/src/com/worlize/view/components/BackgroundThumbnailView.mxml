@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Image xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" 
+		  xmlns:mx="library://ns.adobe.com/flex/mx"
+		  width="133" height="80">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.model.BackgroundImageInstance;
+			
+			private var _dataProvider:BackgroundImageInstance;
+			
+			[Bindable('dataProviderChanged')]
+			public function set dataProvider(newValue:BackgroundImageInstance):void {
+				if (_dataProvider !== newValue) {
+					_dataProvider = newValue;
+					source = _dataProvider.backgroundImageAsset.thumbnailURL;
+					dispatchEvent(new Event('dataProviderChanged'));
+				}
+			}
+			public function get dataProvider():BackgroundImageInstance {
+				return _dataProvider;
+			}
+		]]>
+	</fx:Script>
+</mx:Image>

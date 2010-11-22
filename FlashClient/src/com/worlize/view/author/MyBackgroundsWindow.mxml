@@ -15,8 +15,9 @@
 	
 	<fx:Script>
 		<![CDATA[
-			import com.worlize.command.LoadBackgroundLockerCommand;
 			import com.worlize.model.PreferencesManager;
+			import com.worlize.model.locker.BackgroundsLocker;
+			import com.worlize.view.itemrenderers.BackgroundLockerItemRenderer;
 			
 			import flex.utils.spark.resize.ResizeManager;
 			
@@ -31,6 +32,9 @@
 			import spark.primitives.Rect;
 			private static var _open:Boolean = false;
 			private static var _instance:WorlizeWindow;
+			
+			[Bindable]
+			private var backgroundsLocker:BackgroundsLocker = new BackgroundsLocker();
 			
 			public static function toggleOpen(parent:DisplayObject):void {
 				if (_open) {
@@ -90,16 +94,8 @@
 			}
 			
 			private function handleCreationComplete():void {
-				var command:LoadBackgroundLockerCommand = new LoadBackgroundLockerCommand();
-				command.execute();
+				backgroundsLocker.load();				
 				
-				for (var i:int = 0; i < 60; i++) {
-					var rect:Rect = new Rect();
-					rect.width = rect.height = 80;
-					var color:uint = 0xCCCCCC + Math.floor(Math.random()*0x333333);
-					rect.fill = new SolidColor(color);
-					pictureContainer.addElement(rect);
-				}
 			}
 		]]>
 	</fx:Script>
@@ -107,18 +103,17 @@
 	
 	
 	<components:controlBarContent>
-		<s:Button label="I'm in the control bar!" />
-		<s:Button label="Me too!" />
+		
 	</components:controlBarContent>
 	
-	<s:Scroller top="10" left="10" right="10" bottom="10">
-		<s:Group id="pictureContainer">
-			<s:layout>
-				<s:TileLayout verticalGap="10" horizontalGap="10" />
-			</s:layout>
-			
-		</s:Group>
-	</s:Scroller>
+	<s:List top="10" right="10" left="10" bottom="10"
+			id="backgroundImagesList" dataProvider="{backgroundsLocker.backgroundInstances}"
+			borderVisible="false"
+			itemRenderer="com.worlize.view.itemrenderers.BackgroundLockerItemRenderer">
+		<s:layout>
+			<s:TileLayout verticalGap="10" horizontalGap="10" />
+		</s:layout>
+	</s:List>
 	
 	
 	
