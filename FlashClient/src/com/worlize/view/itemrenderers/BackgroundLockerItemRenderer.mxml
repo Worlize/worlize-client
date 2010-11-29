@@ -8,11 +8,12 @@
 	<fx:Script>
 		<![CDATA[
 			import com.worlize.interactivity.rpc.InteractivityClient;
-			import com.worlize.model.BackgroundImageInstance;
 			import com.worlize.model.BackgroundImageAsset;
-						
+			import com.worlize.model.BackgroundImageInstance;
+			
 			import mx.controls.Alert;
 			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
 //			private function requestAvatarDelete():void {
 //				var client:InteractivityClient = InteractivityClient.getInstance();
 //				var currentAvatar:SimpleAvatar = client.currentUser.simpleAvatar;
@@ -43,7 +44,36 @@
 			
 			private function stopPropagation(event:MouseEvent):void {
 				event.stopImmediatePropagation();
-				event.preventDefault();
+				event.preventDefault(); 
+			}
+			
+			/**
+			 *  @private
+			 *  Storage for the data property.
+			 */
+			private var _data:Object;
+			
+			[Bindable("dataChange")]
+			override public function get data():Object
+			{
+				return _data;
+			}
+			
+			/**
+			 *  @private
+			 */
+			override public function set data(value:Object):void
+			{
+				_data = value;
+				if (_data && _data.emptySpace) {
+					this.enabled = false;
+					this.currentState = "emptySpace";
+				}
+				else {
+					this.enabled = true;
+					this.currentState = "normal";
+				}
+				dispatchEvent(new FlexEvent(FlexEvent.DATA_CHANGE));
 			}
 		]]>
 	</fx:Script>
@@ -52,6 +82,7 @@
 		<s:State name="normal" />
 		<s:State name="hovered" stateGroups="active" />
 		<s:State name="selected" stateGroups="active" />
+		<s:State name="emptySpace" />
 	</s:states>
 	
 	
@@ -64,7 +95,9 @@
 		</s:fill>
 	</s:Rect>
 	
-	<components:BackgroundLockerThumbnail left="1" top="1" dataProvider="{data}" />
+	<components:BackgroundLockerThumbnail excludeFrom="emptySpace" left="1" top="1" dataProvider="{data}" />
+	
+	<s:Label includeIn="emptySpace" horizontalCenter="0" verticalCenter="0" text="Empty" />
 	
 	<s:Rect left="0" top="0" right="0" bottom="0" includeIn="active">
 		<s:stroke>

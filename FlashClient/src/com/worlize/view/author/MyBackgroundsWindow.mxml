@@ -15,6 +15,7 @@
 	
 	<fx:Script>
 		<![CDATA[
+			import com.worlize.control.BackgroundUploader;
 			import com.worlize.model.PreferencesManager;
 			import com.worlize.model.locker.BackgroundsLocker;
 			import com.worlize.view.itemrenderers.BackgroundLockerItemRenderer;
@@ -32,6 +33,9 @@
 			import spark.primitives.Rect;
 			private static var _open:Boolean = false;
 			private static var _instance:WorlizeWindow;
+			
+			[Bindable]
+			private var uploader:BackgroundUploader = new BackgroundUploader();
 			
 			[Bindable]
 			private var backgroundsLocker:BackgroundsLocker = new BackgroundsLocker();
@@ -94,8 +98,11 @@
 			}
 			
 			private function handleCreationComplete():void {
-				backgroundsLocker.load();				
-				
+				backgroundsLocker.load();
+			}
+			
+			private function uploadBackground():void {
+				uploader.browse();
 			}
 		]]>
 	</fx:Script>
@@ -108,8 +115,21 @@
 			line2="Current: {backgroundsLocker.count}"
 			toolTip="Click to add more locker capacity"/>
 	</components:controlBarContent>
+
+	<s:HGroup right="10" top="5" gap="10" verticalAlign="middle">
+		<components:UploadProgressIndicator
+			uploader="{uploader}" />
+
+		<mx:LinkButton
+			id="uploadButton"
+			click="uploadBackground()"
+			styleName="lockerNavButton"
+			color="#2b9610"
+			icon="@Embed(source='src/assets/icons/icon_upload.png')"
+			label="Upload" />
+	</s:HGroup>
 	
-	<s:List top="10" right="10" left="10" bottom="10"
+	<s:List top="40" right="10" left="10" bottom="10"
 			id="backgroundImagesList" dataProvider="{backgroundsLocker.backgroundInstances}"
 			borderVisible="false"
 			itemRenderer="com.worlize.view.itemrenderers.BackgroundLockerItemRenderer">

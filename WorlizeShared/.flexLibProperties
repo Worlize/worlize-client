@@ -4,6 +4,7 @@
     <classEntry path="com.worlize.model.BackgroundImageAsset"/>
     <classEntry path="com.worlize.model.BackgroundImageInstance"/>
     <classEntry path="com.worlize.model.CurrentUser"/>
+    <classEntry path="com.worlize.notification.BackgroundImageNotification"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

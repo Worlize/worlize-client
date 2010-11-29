@@ -1,7 +1,9 @@
 package com.worlize.model.locker
 {
+	import com.worlize.event.NotificationCenter;
 	import com.worlize.model.BackgroundImageAsset;
 	import com.worlize.model.BackgroundImageInstance;
+	import com.worlize.notification.BackgroundImageNotification;
 	import com.worlize.rpc.HTTPMethod;
 	import com.worlize.rpc.WorlizeResultEvent;
 	import com.worlize.rpc.WorlizeServiceClient;
@@ -22,6 +24,7 @@ package com.worlize.model.locker
 		
 		public var capacity:int;
 		public var count:int;
+		public var emptySpaces:int;
 		public var backgroundInstances:ArrayCollection = new ArrayCollection();
 		
 		public var state:String = STATE_INIT; 
@@ -30,6 +33,19 @@ package com.worlize.model.locker
 		public function BackgroundsLocker(target:IEventDispatcher=null)
 		{
 			super(target);
+			NotificationCenter.addListener(BackgroundImageNotification.BACKGROUND_UPLOADED, handleBackgroundUploaded);
+		}
+		
+		private function handleBackgroundUploaded(notification:BackgroundImageNotification):void {
+			for (var i:int = 0, len:int = backgroundInstances.length; i < len; i++) {
+				var instance:BackgroundImageInstance = BackgroundImageInstance(backgroundInstances.getItemAt(i));
+				if (instance.emptySpace) {
+					backgroundInstances.removeItemAt(i);
+					backgroundInstances.addItemAt(notification.backgroundInstance, i);
+					return;
+				}
+			}
+			backgroundInstances.addItem(notification.backgroundInstance);
 		}
 		
 		public function load():void {
@@ -42,15 +58,22 @@ package com.worlize.model.locker
 		
 		private function handleLoadResult(event:WorlizeResultEvent):void {
 			var result:Object = event.resultJSON;
+			var asset:BackgroundImageInstance;
 			if (result.success) {
 				trace("Success: Got " + result.count + " backgrounds.");
 				backgroundInstances.removeAll();
 				for each (var rawData:Object in result.data) {
-					var asset:BackgroundImageInstance = BackgroundImageInstance.fromData(rawData);
+					asset = BackgroundImageInstance.fromData(rawData);
 					backgroundInstances.addItem(asset);
 				}
 				capacity = result.capacity;
 				count = result.count;
+				emptySpaces = capacity - count;
+				for (var i:int = 0; i < emptySpaces; i++) {
+					asset = new BackgroundImageInstance();
+					asset.emptySpace = true;
+					backgroundInstances.addItem(asset);
+				}
 				state = STATE_READY;
 			}
 			else {
