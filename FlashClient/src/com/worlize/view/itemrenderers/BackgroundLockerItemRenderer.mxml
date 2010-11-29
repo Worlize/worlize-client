@@ -64,7 +64,7 @@
 		</s:fill>
 	</s:Rect>
 	
-	<components:BackgroundThumbnailView left="1" top="1" dataProvider="{data}" />
+	<components:BackgroundLockerThumbnail left="1" top="1" dataProvider="{data}" />
 	
 	<s:Rect left="0" top="0" right="0" bottom="0" includeIn="active">
 		<s:stroke>
