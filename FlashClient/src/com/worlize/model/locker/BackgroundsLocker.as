@@ -20,6 +20,8 @@ package com.worlize.model.locker
 		public static const STATE_READY:String = "ready";
 		public static const STATE_ERROR:String = "error";
 		
+		public var capacity:int;
+		public var count:int;
 		public var backgroundInstances:ArrayCollection = new ArrayCollection();
 		
 		public var state:String = STATE_INIT; 
@@ -47,6 +49,8 @@ package com.worlize.model.locker
 					var asset:BackgroundImageInstance = BackgroundImageInstance.fromData(rawData);
 					backgroundInstances.addItem(asset);
 				}
+				capacity = result.capacity;
+				count = result.count;
 				state = STATE_READY;
 			}
 			else {

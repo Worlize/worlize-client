@@ -8,7 +8,7 @@
 	creationComplete="handleCreationComplete()"
 	xmlns:code="http://code.google.com/p/flexlib/"
 	xmlns:view="com.worlize.interactivity.view.*"
-	xmlns:local="*" xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:view1="com.worlize.view.*">
+	xmlns:local="*" xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:view1="com.worlize.view.*" xmlns:components="com.worlize.view.components.*">
 	<s:layout>
 		<s:BasicLayout/>
 	</s:layout>
@@ -26,6 +26,7 @@
 			import com.worlize.interactivity.iptscrae.command.CLIENTTYPECommand;
 			import com.worlize.interactivity.model.InteractivityUser;
 			import com.worlize.interactivity.rpc.InteractivityClient;
+			import com.worlize.model.CurrentUser;
 			import com.worlize.rpc.HTTPMethod;
 			import com.worlize.rpc.WorlizeResultEvent;
 			import com.worlize.rpc.WorlizeServiceClient;
@@ -39,6 +40,9 @@
 			import mx.managers.PopUpManager;
 			[Bindable]
 			public var client:InteractivityClient = InteractivityClient.getInstance();
+			
+			[Bindable]
+			private var worlizeUser:CurrentUser = CurrentUser.getInstance(); 
 
 			private var preferences:Preferences = Preferences.getInstance();
 			
@@ -144,66 +148,70 @@
 	
 	<view1:ChatWindow id="chatWindow" client="{client}" top="40" left="10" />	
 
-	<s:BorderContainer
-		top="3" left="10" height="25"
-		borderVisible="false"
-		backgroundColor="#FFFFFF" cornerRadius="12">
-		<s:layout>
-			<s:HorizontalLayout gap="38"
-								paddingTop="1"
-								paddingLeft="4"
-								paddingRight="-1" />
-		</s:layout>
+	<s:HGroup top="3" left="10" right="10" gap="15">
 		
-		<mx:LinkButton
-			styleName="topNavButton"
-			color="#0C9dea"
-			icon="@Embed(source='src/assets/icons/icon_myworlz.png')"
-			label="MY WORLZ" />
-		<mx:LinkButton
-			styleName="topNavButton"
-			color="#1076a4"
-			icon="@Embed(source='src/assets/icons/icon_friends.png')"
-			label="FRIENDS" />
-		<mx:LinkButton
-			styleName="topNavButton"
-			color="#F15601"
-			icon="@Embed(source='src/assets/icons/icon_bookmarks.png')"
-			label="BOOKMARKS" />
-		<mx:LinkButton
-			styleName="topNavButton"
-			color="#9e1F63"
-			icon="@Embed(source='src/assets/icons/icon_gifts.png')"
-			label="GIFTS" />
-		<mx:LinkButton
-			styleName="topNavButton"
-			color="#5c5d87"
-			icon="@Embed(source='src/assets/icons/icon_messages.png')"
-			label="MESSAGES" />
-	</s:BorderContainer>
-	
-	<s:HGroup
-		top="3" right="10"
-		gap="12">
+		<s:BorderContainer
+			height="25"
+			borderVisible="false"
+			backgroundColor="#FFFFFF" cornerRadius="12">
+			<s:layout>
+				<s:HorizontalLayout gap="38"
+									paddingTop="1"
+									paddingLeft="4"
+									paddingRight="-1" />
+			</s:layout>
+			
+			<mx:LinkButton
+				styleName="topNavButton"
+				color="#0C9dea"
+				icon="@Embed(source='src/assets/icons/icon_myworlz.png')"
+				label="MY WORLZ" />
+			<mx:LinkButton
+				styleName="topNavButton"
+				color="#1076a4"
+				icon="@Embed(source='src/assets/icons/icon_friends.png')"
+				label="FRIENDS" />
+			<mx:LinkButton
+				styleName="topNavButton"
+				color="#F15601"
+				icon="@Embed(source='src/assets/icons/icon_bookmarks.png')"
+				label="BOOKMARKS" />
+			<mx:LinkButton
+				styleName="topNavButton"
+				color="#9e1F63"
+				icon="@Embed(source='src/assets/icons/icon_gifts.png')"
+				label="GIFTS" />
+			<mx:LinkButton
+				styleName="topNavButton"
+				color="#5c5d87"
+				icon="@Embed(source='src/assets/icons/icon_messages.png')"
+				label="MESSAGES" />
+		</s:BorderContainer>
 		
-		<mx:LinkButton
-			styleName="topNavButton"
-			color="#498639"
-			icon="@Embed(source='src/assets/icons/icon_add.png')"
-			label="Add Coins or Bucks" />
-		<mx:LinkButton
-			styleName="topNavButton"
-			color="#B58B0B"
-			icon="@Embed(source='src/assets/icons/icon_marketplace.png')"
-			click="MarketplaceWindow.toggleOpen(systemManager.getSandboxRoot())"
-			label="Marketplace" />
-		<mx:LinkButton
-			styleName="topNavButton"
-			color="#888888"
-			fontSize="12"
-			icon="@Embed(source='src/assets/icons/icon_settings.png')"
-			label="Settings" />
-		
+		<s:HGroup
+			verticalAlign="middle"
+			gap="12">
+			
+			<components:CapacityButton
+				line1="Coins: {worlizeUser.coins}"
+				line2="Bucks: {worlizeUser.bucks}"
+				toolTip="Click to add coins or bucks"
+				/>
+			<mx:LinkButton
+				styleName="topNavButton"
+				color="#B58B0B"
+				icon="@Embed(source='src/assets/icons/icon_marketplace.png')"
+				click="MarketplaceWindow.toggleOpen(systemManager.getSandboxRoot())"
+				label="Marketplace" />
+			<mx:LinkButton
+				styleName="topNavButton"
+				color="#888888"
+				fontSize="12"
+				icon="@Embed(source='src/assets/icons/icon_settings.png')"
+				label="Settings" />
+			
+		</s:HGroup>
+
 	</s:HGroup>
 	
 </s:Application>

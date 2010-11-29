@@ -96,7 +96,7 @@
 		</s:fill>
 	</s:Rect>
 
-	<mx:Image right="6" top="4"
+	<mx:Image right="6" top="5"
 		source="@Embed(source='src/assets/icons/capacity_widget_add.png')" />
 	
     <s:Label id="labelDisplay"
@@ -113,7 +113,7 @@
 			 textAlign="left"
 			 verticalAlign="top"
 			 maxDisplayedLines="1"
-			 left="6" right="30" top="4">
+			 left="6" right="30" y="3">
 	</s:Label>
 	
 	<s:Label id="line2Display"

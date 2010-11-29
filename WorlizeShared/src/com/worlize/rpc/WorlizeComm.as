@@ -1,19 +1,21 @@
 package com.worlize.rpc
 {
+	import com.adobe.protocols.dict.events.ConnectedEvent;
 	import com.adobe.serialization.json.JSON;
+	import com.worlize.interactivity.event.WorlizeCommEvent;
+	import com.worlize.model.CurrentUser;
 	import com.worlize.model.InteractivitySession;
 	
 	import flash.events.EventDispatcher;
 	import flash.events.IEventDispatcher;
 	import flash.external.ExternalInterface;
 	
-	import com.worlize.interactivity.event.WorlizeCommEvent;
-	
 	public class WorlizeComm extends EventDispatcher
 	{
 		private static var _instance:WorlizeComm;
 		
 		public var interactivitySession:InteractivitySession;
+		public var currentUser:CurrentUser = CurrentUser.getInstance();
 		
 		public function WorlizeComm(target:IEventDispatcher=null)
 		{
@@ -53,6 +55,7 @@ package com.worlize.rpc
 				interactivitySession = InteractivitySession.fromData(config.interactivity_session);
 				WorlizeServiceClient.authenticityToken = config.authenticity_token;
 				WorlizeServiceClient.cookies = config.cookies;
+				currentUser.load(config.user_guid);
 			}
 			trace("User Guid: " + interactivitySession.userGuid);
 			trace("Session Guid: " + interactivitySession.sessionGuid);
