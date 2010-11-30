@@ -34,6 +34,19 @@ package com.worlize.model.locker
 		{
 			super(target);
 			NotificationCenter.addListener(BackgroundImageNotification.BACKGROUND_UPLOADED, handleBackgroundUploaded);
+			NotificationCenter.addListener(BackgroundImageNotification.BACKGROUND_INSTANCE_DELETED, handleBackgroundDeleted);
+		}
+		
+		private function handleBackgroundDeleted(notification:BackgroundImageNotification):void {
+			for (var i:int = 0, len:int = backgroundInstances.length; i < len; i++) {
+				var instance:BackgroundImageInstance = BackgroundImageInstance(backgroundInstances.getItemAt(i));
+				if (instance.guid == notification.deletedInstanceGuid) {
+					backgroundInstances.removeItemAt(i);
+					addEmptySlot();
+					updateCount();
+					return;
+				}
+			}
 		}
 		
 		private function handleBackgroundUploaded(notification:BackgroundImageNotification):void {
@@ -42,6 +55,7 @@ package com.worlize.model.locker
 				if (instance.emptySpace) {
 					backgroundInstances.removeItemAt(i);
 					backgroundInstances.addItemAt(notification.backgroundInstance, i);
+					updateCount();
 					return;
 				}
 			}
@@ -70,9 +84,7 @@ package com.worlize.model.locker
 				count = result.count;
 				emptySpaces = capacity - count;
 				for (var i:int = 0; i < emptySpaces; i++) {
-					asset = new BackgroundImageInstance();
-					asset.emptySpace = true;
-					backgroundInstances.addItem(asset);
+					addEmptySlot();
 				}
 				state = STATE_READY;
 			}
@@ -80,6 +92,23 @@ package com.worlize.model.locker
 				trace("Failed to load background locker information.");
 				state = STATE_ERROR;
 			}
+		}
+		
+		private function updateCount():void {
+			var count:int = 0;
+			for (var i:int = 0, len:int = backgroundInstances.length; i < len; i++) {
+				if (!BackgroundImageInstance(backgroundInstances.getItemAt(i)).emptySpace) {
+					count ++;
+				}
+			}
+			this.count = count;
+			emptySpaces = capacity - this.count;
+		}
+		
+		private function addEmptySlot():void {
+			var asset:BackgroundImageInstance = new BackgroundImageInstance();
+			asset.emptySpace = true;
+			backgroundInstances.addItem(asset);
 		}
 		
 		private function handleFault(event:FaultEvent):void {

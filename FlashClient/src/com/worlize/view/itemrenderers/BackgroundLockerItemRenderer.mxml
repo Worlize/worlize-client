@@ -14,33 +14,28 @@
 			import mx.controls.Alert;
 			import mx.events.CloseEvent;
 			import mx.events.FlexEvent;
-//			private function requestAvatarDelete():void {
-//				var client:InteractivityClient = InteractivityClient.getInstance();
-//				var currentAvatar:SimpleAvatar = client.currentUser.simpleAvatar;
-//				if (currentAvatar && currentAvatar.guid == AvatarInstance(data).avatar.guid) {
-//					client.naked();
-//				}
-//				AvatarInstance(data).requestDelete();
-//				
-//			}
-			
-			private function handleDeleteClick(event:MouseEvent):void {
-//				event.stopImmediatePropagation();
-//				var alert:Alert = Alert.show(
-//					"Are you sure you want to delete this avatar?",
-//					"Delete Avatar",
-//					Alert.YES | Alert.NO,
-//					null,
-//					handleAlertClose,
-//					null,
-//					Alert.NO);
+			private function requestDelete():void {
+				BackgroundImageInstance(data).requestDelete();
 			}
 			
-//			private function handleAlertClose(event:CloseEvent):void {
-//				if (event.detail == Alert.YES) {
-//					requestAvatarDelete();
-//				}
-//			}
+			private function handleDeleteClick(event:MouseEvent):void {
+				event.stopImmediatePropagation();
+				var alert:Alert = Alert.show(
+					"Are you sure you want to delete this background?",
+					"Delete Background",
+					Alert.YES | Alert.NO,
+					null,
+					handleAlertClose,
+					null,
+					Alert.NO);
+			}
+			
+			private function handleAlertClose(event:CloseEvent):void {
+				if (event.detail == Alert.YES) {
+					requestDelete();
+					enabled = false;
+				}
+			}
 			
 			private function stopPropagation(event:MouseEvent):void {
 				event.stopImmediatePropagation();

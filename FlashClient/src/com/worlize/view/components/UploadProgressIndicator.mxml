@@ -37,9 +37,6 @@
 						currentState = "processing";
 						break;
 					case Uploader.STATE_READY:
-					case Uploader.STATE_ERROR:
-					case Uploader.STATE_COMPLETE:
-					case Uploader.STATE_CANCELED:
 					default:
 						currentState = "idle";
 						break;

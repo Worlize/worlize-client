@@ -148,8 +148,7 @@
 			}
 			
 			private function handleUploadStateChange(event:StateChangeEvent):void {
-				if (event.newState == Uploader.STATE_COMPLETE ||
-					event.newState == Uploader.STATE_READY) {
+				if (event.newState == Uploader.STATE_READY) {
 					uploadButton.enabled = true;
 				}
 				else {

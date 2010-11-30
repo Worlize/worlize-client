@@ -16,12 +16,14 @@
 	<fx:Script>
 		<![CDATA[
 			import com.worlize.control.BackgroundUploader;
+			import com.worlize.control.Uploader;
 			import com.worlize.model.PreferencesManager;
 			import com.worlize.model.locker.BackgroundsLocker;
 			import com.worlize.view.itemrenderers.BackgroundLockerItemRenderer;
 			
 			import flex.utils.spark.resize.ResizeManager;
 			
+			import mx.controls.Alert;
 			import mx.events.CloseEvent;
 			import mx.events.MoveEvent;
 			import mx.events.ResizeEvent;
@@ -102,7 +104,12 @@
 			}
 			
 			private function uploadBackground():void {
-				uploader.browse();
+				if (backgroundsLocker.emptySpaces > 0) {
+					uploader.browse();
+				}
+				else {
+					Alert.show("You don't have enough empty spaces.  Either delete some existing backgrounds or purchase more space.", "Insufficient Space"); 
+				}
 			}
 		]]>
 	</fx:Script>
@@ -123,6 +130,7 @@
 		<mx:LinkButton
 			id="uploadButton"
 			click="uploadBackground()"
+			enabled="{uploader.state == Uploader.STATE_READY}"
 			styleName="lockerNavButton"
 			color="#2b9610"
 			icon="@Embed(source='src/assets/icons/icon_upload.png')"

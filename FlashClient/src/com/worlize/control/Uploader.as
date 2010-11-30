@@ -29,8 +29,6 @@ package com.worlize.control
 		
 		public static const STATE_READY:String = "ready";
 		public static const STATE_UPLOADING:String = "uploading";
-		public static const STATE_COMPLETE:String = "complete";
-		public static const STATE_ERROR:String = "error";
 		public static const STATE_CANCELED:String = "canceled";
 		public static const STATE_PROCESSING:String = "processing";
 		
@@ -122,12 +120,12 @@ package com.worlize.control
 		
 		protected function handleFileUploadComplete(event:DataEvent):void {
 			trace("UploadComplete");
-			state = STATE_COMPLETE;
+			state = STATE_READY;
 		}
 		
 		protected function handleFileComplete(event:Event):void {
 			trace("FileComplete");
-			state = STATE_COMPLETE;
+			state = STATE_READY;
 		}
 		
 		protected function handleUploadBegin(event:Event):void {
@@ -146,7 +144,7 @@ package com.worlize.control
 		
 		protected function cancelUpload():void {
 			trace("Upload Canceled");
-			state = STATE_CANCELED;
+			state = STATE_READY;
 		}
 	}
 }

@@ -1,5 +1,13 @@
 package com.worlize.model
 {
+	import com.worlize.event.NotificationCenter;
+	import com.worlize.notification.BackgroundImageNotification;
+	import com.worlize.rpc.HTTPMethod;
+	import com.worlize.rpc.WorlizeResultEvent;
+	import com.worlize.rpc.WorlizeServiceClient;
+	
+	import mx.rpc.events.FaultEvent;
+
 	[Bindable]
 	public class BackgroundImageInstance
 	{
@@ -18,6 +26,23 @@ package com.worlize.model
 				object.room.guid = data.room.guid;
 			}
 			return object;
+		}
+		
+		public function requestDelete():void {
+			var client:WorlizeServiceClient = new WorlizeServiceClient();
+			client.addEventListener(WorlizeResultEvent.RESULT, handleDeleteResult);
+			client.addEventListener(FaultEvent.FAULT, handleFault);
+			client.send("/locker/backgrounds/" + guid + ".json", HTTPMethod.DELETE);
+		}
+		
+		private function handleFault(event:FaultEvent):void {
+			trace("Background Delete Failed. " + event);
+		}
+		
+		private function handleDeleteResult(event:WorlizeResultEvent):void {
+			var notification:BackgroundImageNotification = new BackgroundImageNotification(BackgroundImageNotification.BACKGROUND_INSTANCE_DELETED);
+			notification.deletedInstanceGuid = guid;
+			NotificationCenter.postNotification(notification);
 		}
 	}
 }
