@@ -39,7 +39,7 @@ package com.worlize.model
 					throw new Error("Unhandled asset type " + kind);
 					break;
 			}
-			var url:String = "/marketplace/" + keyword + "/" + guid + "/buy";
+			var url:String = "/marketplace/" + keyword + "/" + guid + "/buy.json";
 			client.addEventListener(WorlizeResultEvent.RESULT, handleBuyResult);
 			client.addEventListener(FaultEvent.FAULT, handleBuyFault);
 			client.send(url, HTTPMethod.POST);

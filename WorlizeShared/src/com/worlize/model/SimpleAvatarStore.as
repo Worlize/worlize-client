@@ -75,7 +75,7 @@ package com.worlize.model
 					avatar.dispatchEvent(errorEvent);
 					removeAvatar(avatar);
 				});
-			client.send('/avatars/' + avatar.guid, HTTPMethod.GET);
+			client.send('/avatars/' + avatar.guid + ".json", HTTPMethod.GET);
 		}
 	}
 }

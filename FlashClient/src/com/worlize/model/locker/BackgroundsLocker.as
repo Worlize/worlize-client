@@ -52,7 +52,7 @@ package com.worlize.model.locker
 			var client:WorlizeServiceClient = new WorlizeServiceClient();
 			client.addEventListener(WorlizeResultEvent.RESULT, handleLoadResult);
 			client.addEventListener(FaultEvent.FAULT, handleFault);
-			client.send('/locker/backgrounds', HTTPMethod.GET);
+			client.send('/locker/backgrounds.json', HTTPMethod.GET);
 			state = STATE_LOADING;
 		}
 		

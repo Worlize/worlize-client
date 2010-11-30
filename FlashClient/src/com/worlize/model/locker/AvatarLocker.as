@@ -34,7 +34,7 @@ package com.worlize.model.locker
 			var client:WorlizeServiceClient = new WorlizeServiceClient();
 			client.addEventListener(WorlizeResultEvent.RESULT, handleLoadResult);
 			client.addEventListener(FaultEvent.FAULT, handleFault);
-			client.send('/locker/avatars', HTTPMethod.GET);
+			client.send('/locker/avatars.json', HTTPMethod.GET);
 			state = STATE_LOADING;
 		}
 		

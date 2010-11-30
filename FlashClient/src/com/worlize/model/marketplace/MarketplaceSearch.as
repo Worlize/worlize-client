@@ -51,7 +51,7 @@ package com.worlize.model.marketplace
 			var url:String;
 			switch (assetKind) {
 				case WorlizeAssetKind.BACKGROUND:
-					url = "/marketplace/backgrounds";
+					url = "/marketplace/backgrounds.json";
 					break;
 				default:
 					throw new Error("Unknown Asset Kind");

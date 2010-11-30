@@ -47,7 +47,7 @@ package com.worlize.model
 			var client:WorlizeServiceClient = new WorlizeServiceClient();
 			client.addEventListener(WorlizeResultEvent.RESULT, handleResult);
 			client.addEventListener(FaultEvent.FAULT, handleFault);
-			client.send('/users/' + guid, HTTPMethod.GET);
+			client.send('/users/' + guid + ".json", HTTPMethod.GET);
 		}
 		
 		private function handleResult(event:WorlizeResultEvent):void {
