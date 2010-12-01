@@ -8,8 +8,8 @@
 	<s:states>
 		<s:State name="disconnected" />
 		<s:State name="connecting" />
-		<s:State name="connected" />
-		<s:State name="authormode" />
+		<s:State name="connected" stateGroups="ready" />
+		<s:State name="authormode" stateGroups="ready" />
 	</s:states>
 	
 	<s:filters>
@@ -39,6 +39,9 @@
 			import com.worlize.view.windows.LogWindow;
 			
 			import flash.filters.BitmapFilterQuality;
+			
+			import mx.binding.utils.ChangeWatcher;
+			import mx.events.PropertyChangeEvent;
 			[Bindable]
 			public var client:InteractivityClient; 
 			
@@ -62,7 +65,7 @@
 				timer.addEventListener(TimerEvent.TIMER, clearChatBox);
 				roomView.addEventListener(MouseEvent.MOUSE_UP, handleRoomMouseUp);
 			}
-			
+						
 			private function handleChatKeyDown(event:KeyboardEvent):void {
 				if (event.keyCode == Keyboard.ENTER) {
 					client.say(chatBox.text);
@@ -271,6 +274,8 @@
 		</s:HGroup>
 		<mx:Image
 			toolTip="Author Mode"
+			visible="{client.authoringAvailable}"
+			includeInLayout="{client.authoringAvailable}"
 			useHandCursor="true" buttonMode="true"
 			source="@Embed(source='src/assets/icons/icon_authormode_grey.png')"
 			source.authormode="@Embed(source='src/assets/icons/icon_authormode_red.png')"

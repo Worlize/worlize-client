@@ -5,6 +5,18 @@ package com.worlize.interactivity.rpc
 	import com.worlize.command.GotoRoomCommand;
 	import com.worlize.event.AuthorModeNotification;
 	import com.worlize.event.GotoRoomResultEvent;
+	import com.worlize.interactivity.event.InteractivityEvent;
+	import com.worlize.interactivity.event.InteractivitySecurityErrorEvent;
+	import com.worlize.interactivity.event.WorlizeCommEvent;
+	import com.worlize.interactivity.iptscrae.IptEventHandler;
+	import com.worlize.interactivity.iptscrae.IptInteractivityController;
+	import com.worlize.interactivity.model.CurrentRoom;
+	import com.worlize.interactivity.model.Hotspot;
+	import com.worlize.interactivity.model.InteractivityConfig;
+	import com.worlize.interactivity.model.InteractivityUser;
+	import com.worlize.interactivity.model.RoomHistoryManager;
+	import com.worlize.interactivity.record.ChatRecord;
+	import com.worlize.interactivity.view.SoundPlayer;
 	import com.worlize.model.PreferencesManager;
 	import com.worlize.model.RoomDefinition;
 	import com.worlize.model.SimpleAvatarStore;
@@ -31,19 +43,6 @@ package com.worlize.interactivity.rpc
 	import mx.collections.ArrayCollection;
 	import mx.controls.Alert;
 	import mx.rpc.events.FaultEvent;
-	
-	import com.worlize.interactivity.event.InteractivityEvent;
-	import com.worlize.interactivity.event.InteractivitySecurityErrorEvent;
-	import com.worlize.interactivity.event.WorlizeCommEvent;
-	import com.worlize.interactivity.iptscrae.IptEventHandler;
-	import com.worlize.interactivity.iptscrae.IptInteractivityController;
-	import com.worlize.interactivity.model.InteractivityConfig;
-	import com.worlize.interactivity.model.CurrentRoom;
-	import com.worlize.interactivity.model.Hotspot;
-	import com.worlize.interactivity.model.InteractivityUser;
-	import com.worlize.interactivity.model.RoomHistoryManager;
-	import com.worlize.interactivity.record.ChatRecord;
-	import com.worlize.interactivity.view.SoundPlayer;
 	
 	import org.openpalace.iptscrae.IptEngineEvent;
 	import org.openpalace.iptscrae.IptTokenList;
@@ -128,6 +127,9 @@ package com.worlize.interactivity.rpc
 		
 		[Bindable]
 		public var roomHistoryManager:RoomHistoryManager;
+		
+		[Bindable]
+		public var authoringAvailable:Boolean = false;
 		
 		private var temporaryUserFlags:int;
 		// We get the user flags before we have the current user
@@ -329,10 +331,11 @@ package com.worlize.interactivity.rpc
 			var service:WorlizeServiceClient = new WorlizeServiceClient();
 			service.addEventListener(WorlizeResultEvent.RESULT, function(event:WorlizeResultEvent):void {
 				if (event.resultJSON.success) {
-					var room:RoomDefinition = RoomDefinition.fromData(event.resultJSON.data);
+					var room:RoomDefinition = RoomDefinition.fromData(event.resultJSON.data.room_definition);
 					currentRoom.id = room.guid;
 					currentRoom.name = room.name;
 					currentRoom.backgroundFile = room.backgroundImageURL;
+					authoringAvailable = event.resultJSON.data.can_author;
 					
 					if (shouldInsertHistory) {
 						roomHistoryManager.addItem(currentRoom.id, currentRoom.name, currentWorld.name);
@@ -350,6 +353,8 @@ package com.worlize.interactivity.rpc
 						currentRoom.hotSpotsById[hotspot.id] = hotspot;
 						currentRoom.hotSpotsByGuid[hotspot.guid] = hotspot;
 					}
+					
+					
 				}
 				else {
 					disconnect();
