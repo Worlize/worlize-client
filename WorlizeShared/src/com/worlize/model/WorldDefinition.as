@@ -12,6 +12,8 @@ package com.worlize.model
 		public var name:String;
 		public var guid:String;
 		
+		public var canCreateNewRoom:Boolean;
+		
 		public var roomList:RoomList;
 		
 		public var ownerGuid:String;
@@ -32,6 +34,7 @@ package com.worlize.model
 				this.name = event.resultJSON.data.name;
 				this.guid = event.resultJSON.data.guid;
 				this.ownerGuid = event.resultJSON.data.owner.guid;
+				this.canCreateNewRoom = event.resultJSON.data.can_create_new_room;
 				if (!this.roomList) {
 					this.roomList = new RoomList();
 				}

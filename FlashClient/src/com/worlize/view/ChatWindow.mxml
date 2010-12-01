@@ -253,29 +253,31 @@
 	</s:HGroup>
 	
 	<s:HGroup
-		bottom="3" right="3">
+		bottom="3" right="3"
+		verticalAlign="middle">
+		<mx:Image toolTip="Create New Space"
+				  source="@Embed(source='src/assets/icons/icon_new_space.png')"
+				  visible="{client.currentWorld.canCreateNewRoom}"
+				  includeInLayout="{client.currentWorld.canCreateNewRoom}" />
 		<s:HGroup id="authorIcons" includeIn="authormode">
-			<s:Button label="New Hotspot" click="createHotspot()" />
-			
-			<mx:Image useHandCursor="true" buttonMode="true" 
-				toolTip="Worlz Settings" source="@Embed(source='src/assets/icons/icon_myworlz.png')" />
+			<mx:Image useHandCursor="true" buttonMode="true"
+				toolTip="Create new Door" source="@Embed(source='src/assets/icons/icon_author_hotspot.png')"
+				click="createHotspot()" />
 			<mx:Image useHandCursor="true" buttonMode="true"
 				toolTip="Backgrounds" source="@Embed(source='src/assets/icons/icon_author_bkg.png')"
 			    click="handleBackgroundsClick()" />
 			<mx:Image useHandCursor="true" buttonMode="true"
 				toolTip="Objects" source="@Embed(source='src/assets/icons/icon_author_object.png')"
 				click="handleObjectsClick()" />
-			<mx:Image useHandCursor="true" buttonMode="true"
-			    toolTip="Games" source="@Embed(source='src/assets/icons/icon_author_games.png')"
-				click="handleGamesClick()" />
-			<mx:Image useHandCursor="true" buttonMode="true"
-				toolTip="Media" source="@Embed(source='src/assets/icons/icon_author_media.png')"
-				click="handleMediaClick()" />
+			<mx:Image toolTip="Space Settings"
+				useHandCursor="true" buttonMode="true"
+				source="@Embed(source='src/assets/icons/icon_space_settings.png')"
+			  	visible="{client.canAuthor}" includeInLayout="{client.canAuthor}" />
 		</s:HGroup>
 		<mx:Image
 			toolTip="Author Mode"
-			visible="{client.authoringAvailable}"
-			includeInLayout="{client.authoringAvailable}"
+			visible="{client.canAuthor}"
+			includeInLayout="{client.canAuthor}"
 			useHandCursor="true" buttonMode="true"
 			source="@Embed(source='src/assets/icons/icon_authormode_grey.png')"
 			source.authormode="@Embed(source='src/assets/icons/icon_authormode_red.png')"

@@ -129,7 +129,7 @@ package com.worlize.interactivity.rpc
 		public var roomHistoryManager:RoomHistoryManager;
 		
 		[Bindable]
-		public var authoringAvailable:Boolean = false;
+		public var canAuthor:Boolean = false;
 		
 		private var temporaryUserFlags:int;
 		// We get the user flags before we have the current user
@@ -335,7 +335,7 @@ package com.worlize.interactivity.rpc
 					currentRoom.id = room.guid;
 					currentRoom.name = room.name;
 					currentRoom.backgroundFile = room.backgroundImageURL;
-					authoringAvailable = event.resultJSON.data.can_author;
+					canAuthor = event.resultJSON.data.can_author;
 					
 					if (shouldInsertHistory) {
 						roomHistoryManager.addItem(currentRoom.id, currentRoom.name, currentWorld.name);
