@@ -26,6 +26,7 @@ package com.worlize.model.locker
 		public var count:int;
 		public var emptySpaces:int;
 		public var backgroundInstances:ArrayCollection = new ArrayCollection();
+		private var backgroundInstanceMap:Object = {};
 		
 		public var state:String = STATE_INIT; 
 
@@ -42,6 +43,7 @@ package com.worlize.model.locker
 				var instance:BackgroundImageInstance = BackgroundImageInstance(backgroundInstances.getItemAt(i));
 				if (instance.guid == notification.deletedInstanceGuid) {
 					backgroundInstances.removeItemAt(i);
+					delete backgroundInstances[instance.guid];
 					addEmptySlot();
 					updateCount();
 					return;
@@ -55,6 +57,7 @@ package com.worlize.model.locker
 				if (instance.emptySpace) {
 					backgroundInstances.removeItemAt(i);
 					backgroundInstances.addItemAt(notification.backgroundInstance, i);
+					backgroundInstanceMap[instance.guid] = instance;
 					updateCount();
 					return;
 				}
@@ -70,6 +73,15 @@ package com.worlize.model.locker
 			state = STATE_LOADING;
 		}
 		
+		public function updateItems(newItems:Array):void {
+			for each (var newData:Object in newItems) {
+				var instance:BackgroundImageInstance = backgroundInstanceMap[newData.guid];
+				if (instance) {
+					instance.updateData(newData); 
+				}
+			}
+		}
+		
 		private function handleLoadResult(event:WorlizeResultEvent):void {
 			var result:Object = event.resultJSON;
 			var asset:BackgroundImageInstance;
@@ -79,6 +91,7 @@ package com.worlize.model.locker
 				for each (var rawData:Object in result.data) {
 					asset = BackgroundImageInstance.fromData(rawData);
 					backgroundInstances.addItem(asset);
+					backgroundInstanceMap[asset.guid] = asset;
 				}
 				capacity = result.capacity;
 				count = result.count;

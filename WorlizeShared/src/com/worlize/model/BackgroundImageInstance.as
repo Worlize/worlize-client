@@ -28,6 +28,19 @@ package com.worlize.model
 			return object;
 		}
 		
+		public function updateData(data:Object):void {
+			guid = data.guid;
+			backgroundImageAsset = BackgroundImageAsset.fromData(data.background);
+			if (data.room) {
+				room = new RoomListEntry();
+				room.name = data.room.name;
+				room.guid = data.room.guid;
+			}
+			else {
+				room = null;
+			}
+		}
+		
 		public function requestDelete():void {
 			var client:WorlizeServiceClient = new WorlizeServiceClient();
 			client.addEventListener(WorlizeResultEvent.RESULT, handleDeleteResult);

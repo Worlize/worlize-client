@@ -1,6 +1,14 @@
 package com.worlize.interactivity.model
 {
 	import com.worlize.command.CreateHotspotCommand;
+	import com.worlize.interactivity.event.ChatEvent;
+	import com.worlize.interactivity.event.RoomEvent;
+	import com.worlize.interactivity.util.WorlizeTextUtil;
+	import com.worlize.interactivity.view.RoomView;
+	import com.worlize.model.BackgroundImageInstance;
+	import com.worlize.rpc.HTTPMethod;
+	import com.worlize.rpc.WorlizeResultEvent;
+	import com.worlize.rpc.WorlizeServiceClient;
 	
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
@@ -9,11 +17,8 @@ package com.worlize.interactivity.model
 	import flash.utils.Timer;
 	
 	import mx.collections.ArrayCollection;
-	
-	import com.worlize.interactivity.event.ChatEvent;
-	import com.worlize.interactivity.event.RoomEvent;
-	import com.worlize.interactivity.util.WorlizeTextUtil;
-	import com.worlize.interactivity.view.RoomView;
+	import mx.controls.Alert;
+	import mx.rpc.events.FaultEvent;
 
 	[Event(name="chatLogUpdated")]
 	[Event(name="chat",type="com.worlize.interactivity.event.ChatEvent")]

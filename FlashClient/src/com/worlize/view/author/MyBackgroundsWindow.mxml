@@ -17,20 +17,30 @@
 		<![CDATA[
 			import com.worlize.control.BackgroundUploader;
 			import com.worlize.control.Uploader;
+			import com.worlize.interactivity.rpc.InteractivityClient;
+			import com.worlize.model.BackgroundImageAsset;
+			import com.worlize.model.BackgroundImageInstance;
 			import com.worlize.model.PreferencesManager;
 			import com.worlize.model.locker.BackgroundsLocker;
+			import com.worlize.rpc.HTTPMethod;
+			import com.worlize.rpc.WorlizeResultEvent;
+			import com.worlize.rpc.WorlizeServiceClient;
 			import com.worlize.view.itemrenderers.BackgroundLockerItemRenderer;
 			
 			import flex.utils.spark.resize.ResizeManager;
 			
+			import mx.binding.utils.ChangeWatcher;
 			import mx.controls.Alert;
 			import mx.events.CloseEvent;
+			import mx.events.ListEvent;
 			import mx.events.MoveEvent;
 			import mx.events.ResizeEvent;
 			import mx.graphics.SolidColor;
 			import mx.managers.PopUpManager;
 			import mx.managers.SystemManager;
+			import mx.rpc.events.FaultEvent;
 			
+			import spark.events.IndexChangeEvent;
 			import spark.events.TitleWindowBoundsEvent;
 			import spark.primitives.Rect;
 			private static var _open:Boolean = false;
@@ -111,6 +121,28 @@
 					Alert.show("You don't have enough empty spaces.  Either delete some existing backgrounds or purchase more space.", "Insufficient Space"); 
 				}
 			}
+			
+			private function handleBackgroundChange(event:IndexChangeEvent):void {
+				var backgroundInstance:BackgroundImageInstance = backgroundImagesList.selectedItem;
+				var roomId:String = InteractivityClient.getInstance().currentRoom.id;
+				
+				var client:WorlizeServiceClient = new WorlizeServiceClient();
+				client.addEventListener(WorlizeResultEvent.RESULT, function(event:WorlizeResultEvent):void {
+					if (event.resultJSON.success) {
+						backgroundsLocker.updateItems(event.resultJSON.data.updated_background_instances);
+						backgroundImagesList.selectedIndex = -1;
+					}
+					else {
+						Alert.show("Unable to set background: " + event.resultJSON.message);
+					}
+				});
+				client.addEventListener(FaultEvent.FAULT, function(event:FaultEvent):void {
+					Alert.show("Unable to set room background.");
+				});
+				client.send("/rooms/" + roomId + "/set_background.json", HTTPMethod.POST, {
+					background_instance_guid: backgroundInstance.guid
+				});
+			}
 		]]>
 	</fx:Script>
 	
@@ -140,6 +172,7 @@
 	<s:List top="40" right="10" left="10" bottom="10"
 			id="backgroundImagesList" dataProvider="{backgroundsLocker.backgroundInstances}"
 			borderVisible="false"
+			change="handleBackgroundChange(event)"
 			itemRenderer="com.worlize.view.itemrenderers.BackgroundLockerItemRenderer">
 		<s:layout>
 			<s:TileLayout verticalGap="10" horizontalGap="10" />

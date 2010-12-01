@@ -3,6 +3,7 @@
 				xmlns:s="library://ns.adobe.com/flex/spark" 
 				xmlns:mx="library://ns.adobe.com/flex/mx"
 				width="135" height="82"
+				click="handleClick(event)"
 				xmlns:components="com.worlize.view.components.*">
 	
 	<fx:Script>
@@ -11,9 +12,12 @@
 			import com.worlize.model.BackgroundImageAsset;
 			import com.worlize.model.BackgroundImageInstance;
 			
+			import mx.binding.utils.ChangeWatcher;
 			import mx.controls.Alert;
 			import mx.events.CloseEvent;
 			import mx.events.FlexEvent;
+			import mx.events.PropertyChangeEvent;
+			
 			private function requestDelete():void {
 				BackgroundImageInstance(data).requestDelete();
 			}
@@ -42,11 +46,21 @@
 				event.preventDefault(); 
 			}
 			
+			private function handleClick(event:MouseEvent):void {
+				if (BackgroundImageInstance(data).room !== null) {
+					event.preventDefault();
+					event.stopImmediatePropagation();
+				}
+			}
+			
 			/**
 			 *  @private
 			 *  Storage for the data property.
 			 */
 			private var _data:Object;
+			
+			private var emptySpaceWatcher:ChangeWatcher;
+			private var inUseWatcher:ChangeWatcher;
 			
 			[Bindable("dataChange")]
 			override public function get data():Object
@@ -59,16 +73,45 @@
 			 */
 			override public function set data(value:Object):void
 			{
+				if (_data === value) { return; }
+				if (_data) {
+					// remove old change watchers
+					removeWatchers();
+				}
 				_data = value;
-				if (_data && _data.emptySpace) {
+				if (_data) {
+					// add change watchers
+					addWatchers(); 
+				}
+				handleDataStateChanged();
+				dispatchEvent(new FlexEvent(FlexEvent.DATA_CHANGE));
+			}
+			
+			private function handleDataStateChanged(event:Event = null):void {
+				if (_data === null) {
 					this.enabled = false;
-					this.currentState = "emptySpace";
 				}
 				else {
-					this.enabled = true;
-					this.currentState = "normal";
+					if (_data.emptySpace) {
+						this.enabled = false;
+					}
+					else if (_data.room) {
+						this.enabled = false;
+					}
+					else {
+						this.enabled = true;
+					}
 				}
-				dispatchEvent(new FlexEvent(FlexEvent.DATA_CHANGE));
+			}
+			
+			private function removeWatchers():void {
+				emptySpaceWatcher.unwatch();
+				inUseWatcher.unwatch();
+			}
+			
+			private function addWatchers():void {
+				emptySpaceWatcher = ChangeWatcher.watch(_data, 'emptySpace', handleDataStateChanged);
+				inUseWatcher = ChangeWatcher.watch(_data, 'room', handleDataStateChanged);
 			}
 		]]>
 	</fx:Script>
@@ -77,7 +120,6 @@
 		<s:State name="normal" />
 		<s:State name="hovered" stateGroups="active" />
 		<s:State name="selected" stateGroups="active" />
-		<s:State name="emptySpace" />
 	</s:states>
 	
 	
@@ -90,9 +132,12 @@
 		</s:fill>
 	</s:Rect>
 	
-	<components:BackgroundLockerThumbnail excludeFrom="emptySpace" left="1" top="1" dataProvider="{data}" />
+	<components:BackgroundLockerThumbnail visible="{!data.emptySpace}" left="1" top="1" dataProvider="{data}" />
 	
-	<s:Label includeIn="emptySpace" horizontalCenter="0" verticalCenter="0" text="Empty" />
+	<s:Label visible="{data.emptySpace}" horizontalCenter="0" verticalCenter="0" text="Empty" />
+	<s:Label visible="{data.room}" width="95%"  textAlign="center"
+			 fontFamily="PTSansNarrowBold" color="#000"
+			 horizontalCenter="0" verticalCenter="0" text="Used in: {data.room.name}" />
 	
 	<s:Rect left="0" top="0" right="0" bottom="0" includeIn="active">
 		<s:stroke>
