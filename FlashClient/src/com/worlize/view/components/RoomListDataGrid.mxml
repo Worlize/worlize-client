@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:DataGrid xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			 xmlns:s="library://ns.adobe.com/flex/spark" 
+			 xmlns:mx="library://ns.adobe.com/flex/mx"
+			 width="225" height="220"
+			 mouseDownOutside="handleMouseDownOutside()"
+			 change="handleChange(event)"
+			 dataProvider="{client.currentWorld.roomList.rooms}">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.interactivity.rpc.InteractivityClient;
+			import com.worlize.model.RoomListEntry;
+			
+			import mx.events.ListEvent;
+			import mx.managers.PopUpManager;
+			
+			public static var closedAt:Date;
+			
+			[Bindable]
+			private var client:InteractivityClient = InteractivityClient.getInstance();
+			
+			private function handleMouseDownOutside():void {
+				close();
+			}
+			
+			private function handleChange(event:ListEvent):void {
+				client.gotoRoom(RoomListEntry(selectedItem).guid);
+				close();
+			}
+			
+			public function close():void {
+				closedAt = new Date();
+				PopUpManager.removePopUp(this);
+			}
+		]]>
+	</fx:Script>
+	
+	<mx:columns>
+		<mx:DataGridColumn headerText="Space" dataField="name" width="175" />
+		<mx:DataGridColumn headerText="Users" dataField="userCount" width="50" />
+	</mx:columns>
+	
+</mx:DataGrid>
