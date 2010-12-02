@@ -213,6 +213,31 @@
 									verticalAlign="middle"/>
 			</s:layout>
 			
+			<mx:Image
+				id="backButton"
+				toolTip="Go Back"
+				buttonMode="{client.roomHistoryManager.canGoBack}" useHandCursor="{client.roomHistoryManager.canGoBack}"
+				alpha="{client.roomHistoryManager.canGoBack ? 1 : 0.5}"
+				click="client.roomHistoryManager.goBack();"
+				source="@Embed(source='src/assets/icons/icon_back.png')"
+				scaleContent="false"
+				verticalAlign="top"
+				horizontalAlign="left"
+				width="17"
+				height="17"
+				/>
+			<mx:Image
+				id="forwardButton"
+				toolTip="Go Forward"
+				buttonMode="{client.roomHistoryManager.canGoForward}" useHandCursor="{client.roomHistoryManager.canGoForward}"
+				alpha="{client.roomHistoryManager.canGoForward ? 1 : 0.5}"
+				click="client.roomHistoryManager.goForward();"
+				source="@Embed(source='src/assets/icons/icon_forward.png')"
+				scaleContent="false"
+				verticalAlign="top"
+				height="17" />
+			<mx:Spacer width="15" />
+			
 			<s:Label
 				id="worldTitle"
 				styleName="chatWindowWorldTitle"
@@ -246,24 +271,6 @@
 			
 		</s:Group>
 		
-		<mx:Image
-			id="backButton"
-			right="55" top="3"
-			toolTip="Go Back"
-			buttonMode="{client.roomHistoryManager.canGoBack}" useHandCursor="{client.roomHistoryManager.canGoBack}"
-			alpha="{client.roomHistoryManager.canGoBack ? 1 : 0.5}"
-			click="client.roomHistoryManager.goBack();"
-			source="@Embed(source='src/assets/icons/icon_back.png')"
-				  />
-		<mx:Image
-			id="forwardButton"
-			right="20" top="3"
-			toolTip="Go Forward"
-			buttonMode="{client.roomHistoryManager.canGoForward}" useHandCursor="{client.roomHistoryManager.canGoForward}"
-			alpha="{client.roomHistoryManager.canGoForward ? 1 : 0.5}"
-			click="client.roomHistoryManager.goForward();"
-			source="@Embed(source='src/assets/icons/icon_forward.png')" />
-		
 	</s:BorderContainer>
 	
 	
@@ -283,16 +290,20 @@
 			<s:SolidColor color="#f0f0f1" alpha="0.55" />
 		</s:fill>
 	</s:Rect>
-		
-	<s:HGroup
-		bottom="3" left="431"
-		id="lockerIcons" gap="3">
-		<mx:Image toolTip="Avatars Locker" source="@Embed(source='src/assets/icons/icon_avatar.png')"
-				  click="handleAvatarsClick()" />
-		<mx:Image toolTip="Props Locker" source="@Embed(source='src/assets/icons/icon_props.png')" 
-				  click="handlePropsClick()" />
-	</s:HGroup>
 	
+	<s:HGroup bottom="3" left="431" gap="6">
+		
+		<mx:Image useHandCursor="true" buttonMode="true"
+				  toolTip="Log Window"
+				  click="toggleLogWindow()"
+				  source="@Embed(source='src/assets/icons/icon_log.png')" />
+		
+		<mx:Image useHandCursor="true" buttonMode="true"
+				  toolTip="Avatars Locker" source="@Embed(source='src/assets/icons/icon_mylocker.png')"
+				  click="handleAvatarsClick()" />
+	
+	</s:HGroup>
+
 	<s:HGroup
 		bottom="3" right="3">
 		<s:HGroup id="authorIcons" includeIn="authormode"
@@ -329,10 +340,10 @@
 	</s:HGroup>
 	
 	<code:PromptingTextInput
-		bottom="3" height="21" left="13"
+		bottom="3" height="21" left="3"
 		focusRect="false"
 		focusAlpha="0"
-		width="411"
+		width="421"
 		prompt="Type here to chat..."
 		borderVisible="false"
 	 	fontStyle="{client.currentRoom.selectedUser ? 'italic' : 'normal'}"
@@ -340,12 +351,6 @@
 		paddingTop="1"
 		enabled="{client.connected}"
 		id="chatBox" keyDown="handleChatKeyDown(event);" maxChars="254"/>
-	
-	<mx:Image
-		bottom="3" left="2"
-		toolTip="Log Window"
-		click="toggleLogWindow()"
-		source="@Embed(source='src/assets/icons/icon_log.png')" />
 	
 	<s:Label includeIn="connecting"
 			 color="#AAAAAA" fontSize="15"
