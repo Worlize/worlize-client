@@ -469,13 +469,18 @@
 				if (room.backgroundFile == null) {
 					return;
 				}
-				backgroundImage.source = room.backgroundFile;
+				if (backgroundImage.source == room.backgroundFile) {
+					handleBackgroundLoadComplete();
+				}
+				else {
+					backgroundImage.source = room.backgroundFile;
+				}
 				if (backgroundImage.content) {
 					backgroundImage.visible = true;
 				}
 			}
 			
-			private function handleBackgroundLoadComplete(event:Event):void {
+			private function handleBackgroundLoadComplete(event:Event=null):void {
 				if (InteractivityConfig.fadeBackgroundImages) { 
 					var fade:Fade = new Fade(roomFader);
 					fade.duration = 200;

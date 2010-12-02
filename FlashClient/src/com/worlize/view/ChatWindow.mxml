@@ -194,6 +194,9 @@
 				if (RoomListDataGrid.closedAt && RoomListDataGrid.closedAt.valueOf() > (new Date()).valueOf() - 200) {
 					return;
 				} 
+				if (client.currentWorld.guid) {
+					client.currentWorld.load(client.currentWorld.guid);
+				}
 				var roomList:RoomListDataGrid = new RoomListDataGrid();
 				roomList.x = stage.mouseX + 15;
 				roomList.y = stage.mouseY + 15;
@@ -347,7 +350,7 @@
 		prompt="Type here to chat..."
 		borderVisible="false"
 	 	fontStyle="{client.currentRoom.selectedUser ? 'italic' : 'normal'}"
-		paddingLeft="15"
+		paddingLeft="4"
 		paddingTop="1"
 		enabled="{client.connected}"
 		id="chatBox" keyDown="handleChatKeyDown(event);" maxChars="254"/>

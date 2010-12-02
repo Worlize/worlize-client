@@ -5,6 +5,7 @@ package com.worlize.interactivity.rpc
 	import com.worlize.command.GotoRoomCommand;
 	import com.worlize.event.AuthorModeNotification;
 	import com.worlize.event.GotoRoomResultEvent;
+	import com.worlize.event.NotificationCenter;
 	import com.worlize.interactivity.event.InteractivityEvent;
 	import com.worlize.interactivity.event.InteractivitySecurityErrorEvent;
 	import com.worlize.interactivity.event.WorlizeCommEvent;
@@ -21,6 +22,7 @@ package com.worlize.interactivity.rpc
 	import com.worlize.model.RoomDefinition;
 	import com.worlize.model.SimpleAvatarStore;
 	import com.worlize.model.WorldDefinition;
+	import com.worlize.notification.RoomChangeNotification;
 	import com.worlize.rpc.HTTPMethod;
 	import com.worlize.rpc.WorlizeComm;
 	import com.worlize.rpc.WorlizeResultEvent;
@@ -642,6 +644,8 @@ package com.worlize.interactivity.rpc
 			var client:WorlizeServiceClient = new WorlizeServiceClient();
 			client.addEventListener(WorlizeResultEvent.RESULT, function(event:WorlizeResultEvent):void {
 				if (event.resultJSON.success) {
+					var notification:RoomChangeNotification = new RoomChangeNotification(RoomChangeNotification.ROOM_ADDED);
+					NotificationCenter.postNotification(notification);
 					gotoRoom(event.resultJSON.data.room_guid);
 				}
 				else {

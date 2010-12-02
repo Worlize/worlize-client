@@ -1,5 +1,7 @@
 package com.worlize.model
 {
+	import com.worlize.event.NotificationCenter;
+	import com.worlize.notification.RoomChangeNotification;
 	import com.worlize.rpc.HTTPMethod;
 	import com.worlize.rpc.WorlizeResultEvent;
 	import com.worlize.rpc.WorlizeServiceClient;
@@ -20,6 +22,12 @@ package com.worlize.model
 		
 		public function WorldDefinition()
 		{
+			NotificationCenter.addListener(RoomChangeNotification.ROOM_DELETED, handleRoomListChanged);
+			NotificationCenter.addListener(RoomChangeNotification.ROOM_ADDED, handleRoomListChanged);
+		}
+		
+		private function handleRoomListChanged(notification:RoomChangeNotification):void {
+			load(guid);
 		}
 		
 		public function load(worldGuid:String):void {
