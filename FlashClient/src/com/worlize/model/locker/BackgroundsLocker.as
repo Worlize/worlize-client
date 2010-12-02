@@ -43,7 +43,7 @@ package com.worlize.model.locker
 				var instance:BackgroundImageInstance = BackgroundImageInstance(backgroundInstances.getItemAt(i));
 				if (instance.guid == notification.deletedInstanceGuid) {
 					backgroundInstances.removeItemAt(i);
-					delete backgroundInstances[instance.guid];
+					delete backgroundInstanceMap[instance.guid];
 					addEmptySlot();
 					updateCount();
 					return;
@@ -56,8 +56,9 @@ package com.worlize.model.locker
 				var instance:BackgroundImageInstance = BackgroundImageInstance(backgroundInstances.getItemAt(i));
 				if (instance.emptySpace) {
 					backgroundInstances.removeItemAt(i);
+					delete backgroundInstanceMap[instance.guid];
 					backgroundInstances.addItemAt(notification.backgroundInstance, i);
-					backgroundInstanceMap[instance.guid] = instance;
+					backgroundInstanceMap[notification.backgroundInstance.guid] = notification.backgroundInstance;
 					updateCount();
 					return;
 				}

@@ -246,11 +246,19 @@ package com.worlize.interactivity.rpc
 					case "naked":
 						handleNaked(data);
 						break;
+					case "goto_room":
+						handleGotoRoomMessage(data);
+						break;
 					default:
 						trace("Unhandled message: " + JSON.encode(event.message));
 						break;
 				}
 			}
+		}
+		
+		private function handleGotoRoomMessage(data:Object):void {
+			var guid:String = String(data);
+			gotoRoom(guid);
 		}
 		
 		private function handleNaked(data:Object):void {
@@ -627,6 +635,26 @@ package com.worlize.interactivity.rpc
 				return;
 			}
 			trace("TODO: Implement User List Request");
+		}
+		
+		public function createNewRoom(roomName:String = null):void {
+			var newRoomOptions:Object = {};
+			if (roomName) {
+				newRoomOptions['room_name'] = roomName;
+			}
+			var client:WorlizeServiceClient = new WorlizeServiceClient();
+			client.addEventListener(WorlizeResultEvent.RESULT, function(event:WorlizeResultEvent):void {
+				if (event.resultJSON.success) {
+					gotoRoom(event.resultJSON.data.room_guid);
+				}
+				else {
+					Alert.show("There was an error while trying to create the new space.", "Error");
+				}
+			});
+			client.addEventListener(FaultEvent.FAULT, function(event:FaultEvent):void {
+				Alert.show("There was an error while trying to create the new space.", "Error");
+			});
+			client.send("/worlds/" + currentWorld.guid + "/rooms.json", HTTPMethod.POST, newRoomOptions);
 		}
 		
 		private var leaveEventHandlers:Vector.<IptTokenList>;

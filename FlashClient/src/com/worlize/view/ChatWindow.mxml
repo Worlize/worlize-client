@@ -30,12 +30,14 @@
 			import com.worlize.event.AuthorModeNotification;
 			import com.worlize.event.NotificationCenter;
 			import com.worlize.interactivity.event.InteractivitySecurityErrorEvent;
+			import com.worlize.interactivity.event.RoomSelectedEvent;
 			import com.worlize.interactivity.iptscrae.command.CLIENTTYPECommand;
 			import com.worlize.interactivity.rpc.InteractivityClient;
 			import com.worlize.view.author.MyBackgroundsWindow;
 			import com.worlize.view.author.MyGamesWindow;
 			import com.worlize.view.author.MyMediaWindow;
 			import com.worlize.view.author.MyObjectsWindow;
+			import com.worlize.view.author.properties.RoomPropertiesWindow;
 			import com.worlize.view.windows.LogWindow;
 			
 			import flash.filters.BitmapFilterQuality;
@@ -181,6 +183,10 @@
 					LogWindow.open(systemManager.getSandboxRoot());
 				}
 			}
+			
+			private function handleSpaceSettingsClick():void {
+				RoomPropertiesWindow.toggleOpen(systemManager.getSandboxRoot());
+			}
 		]]>
 	</fx:Script>
 	
@@ -253,9 +259,15 @@
 	</s:HGroup>
 	
 	<s:HGroup
-		bottom="3" right="3"
-		verticalAlign="middle">
-		<s:HGroup id="authorIcons" includeIn="authormode">
+		bottom="3" right="3">
+		<s:HGroup id="authorIcons" includeIn="authormode"
+				  verticalAlign="middle">
+			<mx:Image toolTip="Create New Space"
+					  click="client.createNewRoom()"
+					  source="@Embed(source='src/assets/icons/icon_new_space.png')"
+					  visible="{client.currentWorld.canCreateNewRoom}"
+					  includeInLayout="{client.currentWorld.canCreateNewRoom}" />
+			<mx:Spacer width="10" />
 			<mx:Image useHandCursor="true" buttonMode="true"
 				toolTip="Create new Door" source="@Embed(source='src/assets/icons/icon_author_hotspot.png')"
 				click="createHotspot()" />
@@ -266,14 +278,10 @@
 				toolTip="Objects" source="@Embed(source='src/assets/icons/icon_author_object.png')"
 				click="handleObjectsClick()" />
 			<mx:Image toolTip="Space Settings"
+				click="handleSpaceSettingsClick()"
 				useHandCursor="true" buttonMode="true"
 				source="@Embed(source='src/assets/icons/icon_space_settings.png')"
 			  	visible="{client.canAuthor}" includeInLayout="{client.canAuthor}" />
-			<mx:Image toolTip="Create New Space"
-					  click="client.createNewRoom()"
-					  source="@Embed(source='src/assets/icons/icon_new_space.png')"
-					  visible="{client.currentWorld.canCreateNewRoom}"
-					  includeInLayout="{client.currentWorld.canCreateNewRoom}" />
 		</s:HGroup>
 		<mx:Image
 			toolTip="Author Mode"

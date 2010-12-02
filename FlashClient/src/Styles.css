@@ -34,13 +34,17 @@ global {
 
 s|Label {
 	fontFamily: Tuffy;
-	fontSize: 14pt;
+	fontSize: 14px;
 }
 
 s|TextInput {
 	fontFamily: Tuffy;
-	contentBackgroundColor: #f3ecdd;
-	color: #413b2a;
+	contentBackgroundColor: #f2f2f2;
+	color: #858585;
+}
+
+s|TextInput.big {
+	fontSize: 18px;	
 }
 
 .topNavButton {

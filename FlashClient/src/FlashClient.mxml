@@ -30,6 +30,7 @@
 			import com.worlize.rpc.HTTPMethod;
 			import com.worlize.rpc.WorlizeResultEvent;
 			import com.worlize.rpc.WorlizeServiceClient;
+			import com.worlize.state.AuthorModeState;
 			import com.worlize.view.MarketplaceWindow;
 			import com.worlize.view.author.AuthorModePropertiesWindow;
 			
@@ -81,6 +82,8 @@
 				NotificationCenter.addListener(AuthorModeNotification.SELECTED_ITEM_CHANGED, handleAuthorSelectedItemChanged);
 			}
 			
+			private var authorMode:Boolean = false;
+			
 			private function handleAuthorDisabled(notification:AuthorModeNotification):void {
 				hideAuthorPropertiesWindow();
 			}
@@ -125,7 +128,12 @@
 			}
 			
 			private function handleConnectComplete(event:InteractivityEvent):void {
-				chatWindow.currentState = "connected";
+				if (AuthorModeState.getInstance().enabled) {
+					chatWindow.currentState = "authormode";
+				}
+				else {
+					chatWindow.currentState = "connected";
+				}
 			}
 			
 			private function handleConnectFailed(event:InteractivityEvent):void {
