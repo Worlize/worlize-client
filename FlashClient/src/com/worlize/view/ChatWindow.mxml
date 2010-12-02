@@ -255,10 +255,6 @@
 	<s:HGroup
 		bottom="3" right="3"
 		verticalAlign="middle">
-		<mx:Image toolTip="Create New Space"
-				  source="@Embed(source='src/assets/icons/icon_new_space.png')"
-				  visible="{client.currentWorld.canCreateNewRoom}"
-				  includeInLayout="{client.currentWorld.canCreateNewRoom}" />
 		<s:HGroup id="authorIcons" includeIn="authormode">
 			<mx:Image useHandCursor="true" buttonMode="true"
 				toolTip="Create new Door" source="@Embed(source='src/assets/icons/icon_author_hotspot.png')"
@@ -273,6 +269,11 @@
 				useHandCursor="true" buttonMode="true"
 				source="@Embed(source='src/assets/icons/icon_space_settings.png')"
 			  	visible="{client.canAuthor}" includeInLayout="{client.canAuthor}" />
+			<mx:Image toolTip="Create New Space"
+					  click="client.createNewRoom()"
+					  source="@Embed(source='src/assets/icons/icon_new_space.png')"
+					  visible="{client.currentWorld.canCreateNewRoom}"
+					  includeInLayout="{client.currentWorld.canCreateNewRoom}" />
 		</s:HGroup>
 		<mx:Image
 			toolTip="Author Mode"
