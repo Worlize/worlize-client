@@ -144,9 +144,7 @@
 			private function handleMouseDown(event:MouseEvent):void {
 				var authorModeState:AuthorModeState = AuthorModeState.getInstance();
 				if (authorModeState.enabled) {
-					event.stopImmediatePropagation();
 					authorModeState.selectedItem = null;
-					return;
 				}
 				updateSelfPosition();
 				sendCurrentPositionToServer();

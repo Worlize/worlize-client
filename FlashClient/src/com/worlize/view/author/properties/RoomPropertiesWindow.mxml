@@ -20,8 +20,10 @@
 	
 	<fx:Script>
 		<![CDATA[
+			import com.worlize.event.NotificationCenter;
 			import com.worlize.interactivity.rpc.InteractivityClient;
 			import com.worlize.model.PreferencesManager;
+			import com.worlize.notification.RoomChangeNotification;
 			import com.worlize.rpc.HTTPMethod;
 			import com.worlize.rpc.WorlizeResultEvent;
 			import com.worlize.rpc.WorlizeServiceClient;
@@ -132,7 +134,13 @@
 			private function actuallyDeleteRoom():void {
 				var serviceClient:WorlizeServiceClient = new WorlizeServiceClient();
 				serviceClient.addEventListener(WorlizeResultEvent.RESULT, function(event:WorlizeResultEvent):void {
-					if (!event.resultJSON.success) {
+					if (event.resultJSON.success) {
+						var notification:RoomChangeNotification = new RoomChangeNotification(RoomChangeNotification.ROOM_DELETED);
+						notification.roomGuid = client.currentRoom.id;
+						NotificationCenter.postNotification(notification);
+						close();
+					}
+					else { 
 						Alert.show("Unable to delete room: " + event.resultJSON.description, "Error");
 					}
 				});

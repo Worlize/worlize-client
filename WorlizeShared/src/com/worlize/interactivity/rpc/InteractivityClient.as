@@ -92,8 +92,6 @@ package com.worlize.interactivity.rpc
 		[Bindable]
 		public var connecting:Boolean = false;
 		[Bindable]
-		public var serverName:String = "No Server";
-		[Bindable]
 		public var population:int = 0;
 		[Bindable]
 		public var userList:ArrayCollection = new ArrayCollection();
@@ -419,7 +417,6 @@ package com.worlize.interactivity.rpc
 			currentRoom.showAvatars = true;
 			currentRoom.id = null;
 			population = 0;
-			serverName = "No Connection"
 			userList.removeAll();
 		}
 		

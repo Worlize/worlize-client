@@ -76,6 +76,12 @@ s|TextInput.big {
 	fontSize: 14pt;
 }
 
+.chatWindowVisitorsTitle {
+	color: #0c9dea;
+	fontFamily: PTSansNarrowBold;
+	fontSize: 14pt;
+}
+
 mx1|ToolTip {
 	fontFamily: PTSansNarrowBold;
 	fontSize: 14pt;

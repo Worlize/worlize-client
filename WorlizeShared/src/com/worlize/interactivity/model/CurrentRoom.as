@@ -31,7 +31,7 @@ package com.worlize.interactivity.model
 	public class CurrentRoom extends EventDispatcher
 	{
 		public var id:String;
-		public var name:String = "Not Connected";
+		public var name:String = "Connecting";
 		public var backgroundFile:String;
 		public var users:ArrayCollection = new ArrayCollection();
 		public var usersHash:Object = {};

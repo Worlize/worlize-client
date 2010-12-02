@@ -8,6 +8,8 @@
 						  windowIcon="@Embed('assets/icons/large/w_icon_backgrounds.png')"
 						  minWidth="525" minHeight="415"
 						  creationComplete="handleCreationComplete()"
+						  addedToStage="handleAddedToStage(event)"
+						  removedFromStage="handleRemovedFromStage(event)"
 						  width="525" height="415">
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
@@ -17,11 +19,14 @@
 		<![CDATA[
 			import com.worlize.control.BackgroundUploader;
 			import com.worlize.control.Uploader;
+			import com.worlize.event.AuthorModeNotification;
+			import com.worlize.event.NotificationCenter;
 			import com.worlize.interactivity.rpc.InteractivityClient;
 			import com.worlize.model.BackgroundImageAsset;
 			import com.worlize.model.BackgroundImageInstance;
 			import com.worlize.model.PreferencesManager;
 			import com.worlize.model.locker.BackgroundsLocker;
+			import com.worlize.notification.RoomChangeNotification;
 			import com.worlize.rpc.HTTPMethod;
 			import com.worlize.rpc.WorlizeResultEvent;
 			import com.worlize.rpc.WorlizeServiceClient;
@@ -44,7 +49,7 @@
 			import spark.events.TitleWindowBoundsEvent;
 			import spark.primitives.Rect;
 			private static var _open:Boolean = false;
-			private static var _instance:WorlizeWindow;
+			private static var _instance:MyBackgroundsWindow;
 			
 			[Bindable]
 			private var uploader:BackgroundUploader = new BackgroundUploader();
@@ -110,6 +115,27 @@
 			}
 			
 			private function handleCreationComplete():void {
+				NotificationCenter.addListener(AuthorModeNotification.AUTHOR_DISABLED, handleAuthorModeDisabled);
+				loadData();
+			}
+			
+			private function handleAuthorModeDisabled(notification:AuthorModeNotification):void {
+				close();
+			}
+			
+			private function handleAddedToStage(event:Event):void {
+				NotificationCenter.addListener(RoomChangeNotification.ROOM_DELETED, handleRoomDeleted);
+			}
+			
+			private function handleRemovedFromStage(event:Event):void {
+				NotificationCenter.removeListener(RoomChangeNotification.ROOM_DELETED, handleRoomDeleted);
+			}				
+			
+			private function handleRoomDeleted(notification:RoomChangeNotification):void {
+				loadData();
+			}
+			
+			public function loadData():void {
 				backgroundsLocker.load();
 			}
 			

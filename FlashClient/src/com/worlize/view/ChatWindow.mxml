@@ -38,12 +38,14 @@
 			import com.worlize.view.author.MyMediaWindow;
 			import com.worlize.view.author.MyObjectsWindow;
 			import com.worlize.view.author.properties.RoomPropertiesWindow;
+			import com.worlize.view.components.RoomListDataGrid;
 			import com.worlize.view.windows.LogWindow;
 			
 			import flash.filters.BitmapFilterQuality;
 			
 			import mx.binding.utils.ChangeWatcher;
 			import mx.events.PropertyChangeEvent;
+			import mx.managers.PopUpManager;
 			[Bindable]
 			public var client:InteractivityClient; 
 			
@@ -187,6 +189,13 @@
 			private function handleSpaceSettingsClick():void {
 				RoomPropertiesWindow.toggleOpen(systemManager.getSandboxRoot());
 			}
+			
+			private function showRoomList():void {
+				var roomList:RoomListDataGrid = new RoomListDataGrid();
+				roomList.x = stage.mouseX + 15;
+				roomList.y = stage.mouseY + 15;
+				PopUpManager.addPopUp(roomList, systemManager.getSandboxRoot());
+			}
 		]]>
 	</fx:Script>
 	
@@ -197,18 +206,40 @@
 		
 		<s:Group left="0" top="0">
 			<s:layout>
-				<s:HorizontalLayout gap="15" paddingTop="5" paddingLeft="6" />
+				<s:HorizontalLayout gap="3" paddingTop="3" paddingLeft="6"
+									verticalAlign="middle"/>
 			</s:layout>
 			
 			<s:Label
 				id="worldTitle"
 				styleName="chatWindowWorldTitle"
-				text="{client.serverName.toUpperCase()}" />
+				text="{client.currentWorld.name}" />
+			
+			<mx:Spacer width="20" />
 			
 			<s:Label
+				click="showRoomList()"
 				id="roomTitle"
 				styleName="chatWindowWorldTitle"
 				text="{client.currentRoom.name}" />
+			
+			<mx:Image source="@Embed(source='src/assets/icons/icon_room_list_dropdown.png')"
+					  click="showRoomList()"
+					  scaleContent="false"
+					  verticalAlign="top"
+					  width="15" height="17" />
+			
+			<mx:Spacer width="12" />
+			
+			<s:Label
+				styleName="chatWindowVisitorsTitle"
+				text="Visitors: {client.currentRoom.users.length}" />
+				
+			<mx:Image source="@Embed(source='src/assets/icons/icon_visitor_list_dropdown.png')"
+					  scaleContent="false"
+					  verticalAlign="top"
+					  width="15" height="17" />
+			
 		</s:Group>
 		
 		<mx:Image

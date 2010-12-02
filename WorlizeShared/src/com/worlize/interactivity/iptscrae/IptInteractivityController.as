@@ -310,7 +310,7 @@ package com.worlize.interactivity.iptscrae
 		
 		public function getServerName():String
 		{
-			return client.serverName;
+			return client.currentWorld.name;
 		}
 		
 		public function statusMessage(message:String):void
