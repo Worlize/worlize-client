@@ -191,6 +191,9 @@
 			}
 			
 			private function showRoomList():void {
+				if (RoomListDataGrid.closedAt && RoomListDataGrid.closedAt.valueOf() > (new Date()).valueOf() - 200) {
+					return;
+				} 
 				var roomList:RoomListDataGrid = new RoomListDataGrid();
 				roomList.x = stage.mouseX + 15;
 				roomList.y = stage.mouseY + 15;
@@ -221,6 +224,7 @@
 				click="showRoomList()"
 				id="roomTitle"
 				styleName="chatWindowWorldTitle"
+				toolTip="Click for Space List"
 				text="{client.currentRoom.name}" />
 			
 			<mx:Image source="@Embed(source='src/assets/icons/icon_room_list_dropdown.png')"
