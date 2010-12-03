@@ -649,11 +649,11 @@ package com.worlize.interactivity.rpc
 					gotoRoom(event.resultJSON.data.room_guid);
 				}
 				else {
-					Alert.show("There was an error while trying to create the new space.", "Error");
+					Alert.show("There was an error while trying to create the new area.", "Error");
 				}
 			});
 			client.addEventListener(FaultEvent.FAULT, function(event:FaultEvent):void {
-				Alert.show("There was an error while trying to create the new space.", "Error");
+				Alert.show("There was an error while trying to create the new area.", "Error");
 			});
 			client.send("/worlds/" + currentWorld.guid + "/rooms.json", HTTPMethod.POST, newRoomOptions);
 		}

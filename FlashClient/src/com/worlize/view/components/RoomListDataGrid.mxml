@@ -40,7 +40,7 @@
 	</fx:Script>
 	
 	<mx:columns>
-		<mx:DataGridColumn headerText="Space" dataField="name" width="175" />
+		<mx:DataGridColumn headerText="Area" dataField="name" width="175" />
 		<mx:DataGridColumn headerText="Users" dataField="userCount" width="50" />
 	</mx:columns>
 	

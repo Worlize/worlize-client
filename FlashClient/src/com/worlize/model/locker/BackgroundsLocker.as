@@ -24,7 +24,7 @@ package com.worlize.model.locker
 		
 		public var capacity:int;
 		public var count:int;
-		public var emptySpaces:int;
+		public var emptySlots:int;
 		public var backgroundInstances:ArrayCollection = new ArrayCollection();
 		private var backgroundInstanceMap:Object = {};
 		
@@ -54,7 +54,7 @@ package com.worlize.model.locker
 		private function handleBackgroundUploaded(notification:BackgroundImageNotification):void {
 			for (var i:int = 0, len:int = backgroundInstances.length; i < len; i++) {
 				var instance:BackgroundImageInstance = BackgroundImageInstance(backgroundInstances.getItemAt(i));
-				if (instance.emptySpace) {
+				if (instance.emptySlot) {
 					backgroundInstances.removeItemAt(i);
 					delete backgroundInstanceMap[instance.guid];
 					backgroundInstances.addItemAt(notification.backgroundInstance, i);
@@ -96,8 +96,8 @@ package com.worlize.model.locker
 				}
 				capacity = result.capacity;
 				count = result.count;
-				emptySpaces = capacity - count;
-				for (var i:int = 0; i < emptySpaces; i++) {
+				emptySlots = capacity - count;
+				for (var i:int = 0; i < emptySlots; i++) {
 					addEmptySlot();
 				}
 				state = STATE_READY;
@@ -111,17 +111,17 @@ package com.worlize.model.locker
 		private function updateCount():void {
 			var count:int = 0;
 			for (var i:int = 0, len:int = backgroundInstances.length; i < len; i++) {
-				if (!BackgroundImageInstance(backgroundInstances.getItemAt(i)).emptySpace) {
+				if (!BackgroundImageInstance(backgroundInstances.getItemAt(i)).emptySlot) {
 					count ++;
 				}
 			}
 			this.count = count;
-			emptySpaces = capacity - this.count;
+			emptySlots = capacity - this.count;
 		}
 		
 		private function addEmptySlot():void {
 			var asset:BackgroundImageInstance = new BackgroundImageInstance();
-			asset.emptySpace = true;
+			asset.emptySlot = true;
 			backgroundInstances.addItem(asset);
 		}
 		

@@ -3,10 +3,10 @@
 								 xmlns:s="library://ns.adobe.com/flex/spark" 
 								 xmlns:mx="library://ns.adobe.com/flex/mx"
 								 xmlns:components="com.worlize.view.components.*"
-								 title="Space Settings"
+								 title="Area Settings"
 								 titleBarColor="#c9c9c9"
 								 titleTextColor="#7d8487"
-								 windowIcon="@Embed('assets/icons/large/w_icon_space_settings.png')"
+								 windowIcon="@Embed('assets/icons/large/w_icon_room_settings.png')"
 								 resizable="false"
 								 creationComplete="handleCreationComplete()"
 								 width="340" height="165">
@@ -117,7 +117,7 @@
 			}
 			
 			private function deleteRoom():void {
-				Alert.show("Are you sure you wish to delete this space?", "Delete Space",
+				Alert.show("Are you sure you wish to delete this area?", "Delete Area",
 							Alert.YES | Alert.NO,
 							null,
 							handleDeleteConfirmationClose,
@@ -162,7 +162,7 @@
 	<mx:Spacer height="100%" />
 	
 	<s:HGroup width="100%">
-		<s:Button label="Delete Space" click="deleteRoom()" />
+		<s:Button label="Delete Area" click="deleteRoom()" />
 		<mx:Spacer width="100%" />
 		<s:Button label="Cancel" click="close()" />
 		<s:Button label="Save" click="save()" />

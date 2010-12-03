@@ -14,7 +14,7 @@ package com.worlize.model
 		public var backgroundImageAsset:BackgroundImageAsset;
 		public var guid:String;
 		public var room:RoomListEntry;
-		public var emptySpace:Boolean = false;
+		public var emptySlot:Boolean = false;
 		
 		public static function fromData(data:Object):BackgroundImageInstance {
 			var object:BackgroundImageInstance = new BackgroundImageInstance();

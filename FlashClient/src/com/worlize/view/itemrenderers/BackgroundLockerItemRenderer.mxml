@@ -59,7 +59,7 @@
 			 */
 			private var _data:Object;
 			
-			private var emptySpaceWatcher:ChangeWatcher;
+			private var emptySlotWatcher:ChangeWatcher;
 			private var inUseWatcher:ChangeWatcher;
 			
 			[Bindable("dataChange")]
@@ -92,7 +92,7 @@
 					this.enabled = false;
 				}
 				else {
-					if (_data.emptySpace) {
+					if (_data.emptySlot) {
 						this.enabled = false;
 					}
 					else if (_data.room) {
@@ -105,12 +105,12 @@
 			}
 			
 			private function removeWatchers():void {
-				emptySpaceWatcher.unwatch();
+				emptySlotWatcher.unwatch();
 				inUseWatcher.unwatch();
 			}
 			
 			private function addWatchers():void {
-				emptySpaceWatcher = ChangeWatcher.watch(_data, 'emptySpace', handleDataStateChanged);
+				emptySlotWatcher = ChangeWatcher.watch(_data, 'emptySlot', handleDataStateChanged);
 				inUseWatcher = ChangeWatcher.watch(_data, 'room', handleDataStateChanged);
 			}
 		]]>
@@ -132,9 +132,9 @@
 		</s:fill>
 	</s:Rect>
 	
-	<components:BackgroundLockerThumbnail visible="{!data.emptySpace}" left="1" top="1" dataProvider="{data}" />
+	<components:BackgroundLockerThumbnail visible="{!data.emptySlot}" left="1" top="1" dataProvider="{data}" />
 	
-	<s:Label visible="{data.emptySpace}" horizontalCenter="0" verticalCenter="0" text="Empty" />
+	<s:Label visible="{data.emptySlot}" horizontalCenter="0" verticalCenter="0" text="Empty" />
 	<s:Label visible="{data.room}" width="95%"  textAlign="center"
 			 fontFamily="PTSansNarrowBold" color="#000"
 			 horizontalCenter="0" verticalCenter="0" text="Used in: {data.room.name}" />

@@ -140,11 +140,11 @@
 			}
 			
 			private function uploadBackground():void {
-				if (backgroundsLocker.emptySpaces > 0) {
+				if (backgroundsLocker.emptySlots > 0) {
 					uploader.browse();
 				}
 				else {
-					Alert.show("You don't have enough empty spaces.  Either delete some existing backgrounds or purchase more space.", "Insufficient Space"); 
+					Alert.show("You don't have enough empty slots.  Either delete some existing backgrounds or purchase more slots.", "Insufficient Space"); 
 				}
 			}
 			

@@ -186,7 +186,7 @@
 				}
 			}
 			
-			private function handleSpaceSettingsClick():void {
+			private function handleAreaSettingsClick():void {
 				RoomPropertiesWindow.toggleOpen(systemManager.getSandboxRoot());
 			}
 			
@@ -252,7 +252,7 @@
 				click="showRoomList()"
 				id="roomTitle"
 				styleName="chatWindowWorldTitle"
-				toolTip="Click for Space List"
+				toolTip="Click for Area List"
 				text="{client.currentRoom.name}" />
 			
 			<mx:Image source="@Embed(source='src/assets/icons/icon_room_list_dropdown.png')"
@@ -311,9 +311,9 @@
 		bottom="3" right="3">
 		<s:HGroup id="authorIcons" includeIn="authormode"
 				  verticalAlign="middle">
-			<mx:Image toolTip="Create New Space"
+			<mx:Image toolTip="Create New Area"
 					  click="client.createNewRoom()"
-					  source="@Embed(source='src/assets/icons/icon_new_space.png')"
+					  source="@Embed(source='src/assets/icons/icon_new_room.png')"
 					  visible="{client.currentWorld.canCreateNewRoom}"
 					  includeInLayout="{client.currentWorld.canCreateNewRoom}" />
 			<mx:Spacer width="10" />
@@ -326,10 +326,10 @@
 			<mx:Image useHandCursor="true" buttonMode="true"
 				toolTip="Objects" source="@Embed(source='src/assets/icons/icon_author_object.png')"
 				click="handleObjectsClick()" />
-			<mx:Image toolTip="Space Settings"
-				click="handleSpaceSettingsClick()"
+			<mx:Image toolTip="Area Settings"
+				click="handleAreaSettingsClick()"
 				useHandCursor="true" buttonMode="true"
-				source="@Embed(source='src/assets/icons/icon_space_settings.png')"
+				source="@Embed(source='src/assets/icons/icon_room_settings.png')"
 			  	visible="{client.canAuthor}" includeInLayout="{client.canAuthor}" />
 		</s:HGroup>
 		<mx:Image
