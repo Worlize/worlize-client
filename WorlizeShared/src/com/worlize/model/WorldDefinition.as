@@ -16,7 +16,8 @@ package com.worlize.model
 		
 		public var canCreateNewRoom:Boolean;
 		
-		public var roomList:RoomList;
+		public var roomList:RoomList = new RoomList();
+		public var userList:UserList = new UserList();
 		
 		public var ownerGuid:String;
 		
@@ -34,7 +35,8 @@ package com.worlize.model
 			var client:WorlizeServiceClient = new WorlizeServiceClient();
 			client.addEventListener(WorlizeResultEvent.RESULT, handleResult);
 			client.addEventListener(FaultEvent.FAULT, handleFault);
-			client.send('/worlds/' + worldGuid + ".json", HTTPMethod.GET); 
+			client.send('/worlds/' + worldGuid + ".json", HTTPMethod.GET);
+			userList.load(worldGuid);
 		}
 		
 		private function handleResult(event:WorlizeResultEvent):void {
@@ -43,9 +45,6 @@ package com.worlize.model
 				this.guid = event.resultJSON.data.guid;
 				this.ownerGuid = event.resultJSON.data.owner.guid;
 				this.canCreateNewRoom = event.resultJSON.data.can_create_new_room;
-				if (!this.roomList) {
-					this.roomList = new RoomList();
-				}
 				this.roomList.updateFromData(event.resultJSON.data.rooms);
 				trace("Got updated worlz definition");
 			}

@@ -11,12 +11,6 @@ package com.worlize.model
 	{
 		public var rooms:ArrayCollection = new ArrayCollection();
 		
-		public static function fromData(data:Array):RoomList {
-			var roomList:RoomList = new RoomList();
-			roomList.updateFromData(data);
-			return roomList;
-		}
-		
 		public function updateFromData(data:Array):void {
 			rooms.disableAutoUpdate();
 			rooms.removeAll();

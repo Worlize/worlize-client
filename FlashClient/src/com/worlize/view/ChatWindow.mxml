@@ -39,6 +39,7 @@
 			import com.worlize.view.author.MyObjectsWindow;
 			import com.worlize.view.author.properties.RoomPropertiesWindow;
 			import com.worlize.view.components.RoomListDataGrid;
+			import com.worlize.view.components.UserListDataGrid;
 			import com.worlize.view.windows.LogWindow;
 			
 			import flash.filters.BitmapFilterQuality;
@@ -202,6 +203,17 @@
 				roomList.y = stage.mouseY + 15;
 				PopUpManager.addPopUp(roomList, systemManager.getSandboxRoot());
 			}
+			
+			private function showUserList():void {
+				if (UserListDataGrid.closedAt && UserListDataGrid.closedAt.valueOf() > (new Date()).valueOf() - 200) {
+					return;
+				}
+				client.currentWorld.userList.load();
+				var userList:UserListDataGrid = new UserListDataGrid();
+				userList.x = stage.mouseX + 15;
+				userList.y = stage.mouseY + 15;
+				PopUpManager.addPopUp(userList, systemManager.getSandboxRoot());
+			}
 		]]>
 	</fx:Script>
 	
@@ -264,10 +276,13 @@
 			<mx:Spacer width="12" />
 			
 			<s:Label
+				click="showUserList()"
 				styleName="chatWindowVisitorsTitle"
+				toolTip="Click for User List"
 				text="Visitors: {client.currentRoom.users.length}" />
 				
 			<mx:Image source="@Embed(source='src/assets/icons/icon_visitor_list_dropdown.png')"
+					  click="showUserList()"
 					  scaleContent="false"
 					  verticalAlign="top"
 					  width="15" height="17" />
