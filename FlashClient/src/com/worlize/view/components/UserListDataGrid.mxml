@@ -5,6 +5,7 @@
 			 dataProvider="{client.currentWorld.userList.users}"
 			 change="handleChange(event)"
 			 mouseDownOutside="handleMouseDownOutside(event)"
+			 width="325" height="220"
 			 >
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
@@ -27,8 +28,10 @@
 			}
 			
 			private function handleChange(event:ListEvent):void {
-				client.gotoRoom(UserListEntry(selectedItem).roomGuid);
-				close();
+				if (selectedItem) {
+					client.gotoRoom(UserListEntry(selectedItem).roomGuid);
+					close();
+				}
 			}
 			
 			public function close():void {

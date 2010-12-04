@@ -28,8 +28,10 @@
 			}
 			
 			private function handleChange(event:ListEvent):void {
-				client.gotoRoom(RoomListEntry(selectedItem).guid);
-				close();
+				if (selectedItem) {
+					client.gotoRoom(RoomListEntry(selectedItem).guid);
+					close();
+				}
 			}
 			
 			public function close():void {
