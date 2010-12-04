@@ -326,14 +326,15 @@
 		bottom="3" right="3">
 		<s:HGroup id="authorIcons" includeIn="authormode"
 				  verticalAlign="middle">
-			<mx:Image toolTip="Create New Area"
+			<mx:Image useHandCursor="true" buttonMode="true"
+					  toolTip="Create New Area"
 					  click="client.createNewRoom()"
 					  source="@Embed(source='src/assets/icons/icon_new_room.png')"
 					  visible="{client.currentWorld.canCreateNewRoom}"
 					  includeInLayout="{client.currentWorld.canCreateNewRoom}" />
 			<mx:Spacer width="10" />
 			<mx:Image useHandCursor="true" buttonMode="true"
-				toolTip="Create new Door" source="@Embed(source='src/assets/icons/icon_author_hotspot.png')"
+				toolTip="Create new Door" source="@Embed(source='src/assets/icons/icon_author_door.png')"
 				click="createHotspot()" />
 			<mx:Image useHandCursor="true" buttonMode="true"
 				toolTip="Backgrounds" source="@Embed(source='src/assets/icons/icon_author_bkg.png')"

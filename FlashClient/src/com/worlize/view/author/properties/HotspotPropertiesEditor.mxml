@@ -10,16 +10,16 @@
 	<fx:Script>
 		<![CDATA[
 			import com.worlize.command.SetHotspotDestinationCommand;
+			import com.worlize.interactivity.model.Hotspot;
+			import com.worlize.interactivity.rpc.InteractivityClient;
 			import com.worlize.model.RoomList;
 			import com.worlize.model.RoomListEntry;
+			import com.worlize.state.AuthorModeState;
 			
 			import flash.utils.setTimeout;
 			
 			import mx.collections.ArrayCollection;
 			import mx.utils.OnDemandEventDispatcher;
-			
-			import com.worlize.interactivity.model.Hotspot;
-			import com.worlize.interactivity.rpc.InteractivityClient;
 			
 			import spark.events.IndexChangeEvent;
 			
@@ -89,6 +89,12 @@
 				command.execute(client.currentRoom.id, hotspot.guid, destString);
 			}
 
+			private function handleCloseClick():void {
+				var authorModeState:AuthorModeState = AuthorModeState.getInstance();
+				if (authorModeState.enabled) {
+					authorModeState.selectedItem = null;
+				}
+			}
 		]]>
 	</fx:Script>
 	
@@ -108,8 +114,15 @@
 	
 	<mx:Spacer height="10" />
 	
-	<s:Button
-		width="100%"
-		label="Delete" click="handleDeleteClick()" />
+	<s:HGroup width="100%">
+		<s:Button
+			width="100%"
+			label="Delete" click="handleDeleteClick()" />
+		
+		<s:Button
+			width="100%"
+			label="Close" click="handleCloseClick()" />
+	</s:HGroup>
+	
 		
 </s:Group>

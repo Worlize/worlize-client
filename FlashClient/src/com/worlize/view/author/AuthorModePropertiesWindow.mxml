@@ -5,7 +5,7 @@
 								 xmlns:components="com.worlize.view.components.*"
 								 xmlns:properties="com.worlize.view.author.properties.*"
 								 title="Properties"
-								 title.hotspot="Hotspot Properties"
+								 title.hotspot="Door Properties"
 								 currentState="noItemSelected"
 								 creationComplete="handleCreationComplete()"
 								 width="200" minHeight="60" maxHeight="300">
