@@ -15,10 +15,16 @@
 	
 	<fx:Script>
 		<![CDATA[
+			import com.worlize.control.InWorldObjectUploader;
+			import com.worlize.event.AuthorModeNotification;
+			import com.worlize.event.NotificationCenter;
 			import com.worlize.model.PreferencesManager;
+			import com.worlize.model.locker.InWorldObjectLocker;
+			import com.worlize.view.itemrenderers.InWorldObjectLockerItemRenderer;
 			
 			import flex.utils.spark.resize.ResizeManager;
 			
+			import mx.controls.Alert;
 			import mx.events.CloseEvent;
 			import mx.events.MoveEvent;
 			import mx.events.ResizeEvent;
@@ -30,6 +36,12 @@
 			import spark.primitives.Rect;
 			private static var _open:Boolean = false;
 			private static var _instance:WorlizeWindow;
+			
+			[Bindable]
+			private var inWorldObjectLocker:InWorldObjectLocker = new InWorldObjectLocker();
+			
+			[Bindable]
+			private var uploader:InWorldObjectUploader = new InWorldObjectUploader();
 			
 			public static function toggleOpen(parent:DisplayObject):void {
 				if (_open) {
@@ -89,12 +101,24 @@
 			}
 			
 			private function handleCreationComplete():void {
-				for (var i:int = 0; i < 60; i++) {
-					var rect:Rect = new Rect();
-					rect.width = rect.height = 80;
-					var color:uint = 0xCCCCCC + Math.floor(Math.random()*0x333333);
-					rect.fill = new SolidColor(color);
-					pictureContainer.addElement(rect);
+				NotificationCenter.addListener(AuthorModeNotification.AUTHOR_DISABLED, handleAuthorModeDisabled);
+				loadData();
+			}
+			
+			private function handleAuthorModeDisabled(notification:AuthorModeNotification):void {
+				close();
+			}
+			
+			private function loadData():void {
+				inWorldObjectLocker.load();
+			}
+			
+			private function uploadObject():void {
+				if (inWorldObjectLocker.emptySlots > 0) {
+					uploader.browse();
+				}
+				else {
+					Alert.show("You don't have enough empty slots.  Either delete some existing objects or purchase more slots.", "Insufficient Space"); 
 				}
 			}
 		]]>
@@ -103,19 +127,34 @@
 	
 	
 	<components:controlBarContent>
-		<s:Button label="I'm in the control bar!" />
-		<s:Button label="Me too!" />
+		<components:CapacityButton
+			line1="Capacity: {inWorldObjectLocker.capacity}"
+			line2="Current: {inWorldObjectLocker.count}"
+			toolTip="Click to add more locker capacity"/>
 	</components:controlBarContent>
 	
-	<s:Scroller top="10" left="10" right="10" bottom="10">
-		<s:Group id="pictureContainer">
-			<s:layout>
-				<s:TileLayout verticalGap="10" horizontalGap="10" />
-			</s:layout>
-			
-		</s:Group>
-	</s:Scroller>
+	<s:HGroup right="10" top="5" gap="10" verticalAlign="middle">
+		<components:UploadProgressIndicator
+			uploader="{uploader}" />
+		
+		<mx:LinkButton
+			id="uploadButton"
+			click="uploadObject()"
+			enabled="{uploader.state == Uploader.STATE_READY}"
+			styleName="lockerNavButton"
+			color="#2b9610"
+			icon="@Embed(source='src/assets/icons/icon_upload.png')"
+			label="Upload" />
+	</s:HGroup>
 	
 	
+	<s:List top="40" right="10" left="10" bottom="10"
+			id="inWorldObjectsList" dataProvider="{inWorldObjectLocker.instances}"
+			borderVisible="false"
+			itemRenderer="com.worlize.view.itemrenderers.InWorldObjectLockerItemRenderer">
+		<s:layout>
+			<s:TileLayout verticalGap="10" horizontalGap="10" />
+		</s:layout>
+	</s:List>	
 	
 </components:WorlizeWindow>

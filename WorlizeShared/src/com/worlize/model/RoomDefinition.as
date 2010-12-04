@@ -8,7 +8,6 @@ package com.worlize.model
 		public var guid:String;
 		public var world:WorldDefinition;
 		public var backgroundImageURL:String;
-		public var objectInstances:Vector.<ObjectInstance> = new Vector.<ObjectInstance>();
 		public var hotspots:Vector.<Hotspot> = new Vector.<Hotspot>();
 		
 		public function RoomDefinition()

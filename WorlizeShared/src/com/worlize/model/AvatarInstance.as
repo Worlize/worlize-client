@@ -7,6 +7,7 @@ package com.worlize.model
 		public var avatar:SimpleAvatar;
 		public var guid:String;
 		public var userGuid:String;
+		public var emptySlot:Boolean = false;
 		
 		public static function fromData(data:Object):AvatarInstance {
 			var avatarInstance:AvatarInstance = new AvatarInstance();

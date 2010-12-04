@@ -1,8 +1,10 @@
 package com.worlize.model.locker
 {
+	import com.worlize.event.NotificationCenter;
 	import com.worlize.model.AvatarInstance;
 	import com.worlize.model.SimpleAvatar;
 	import com.worlize.model.SimpleAvatarStore;
+	import com.worlize.notification.AvatarNotification;
 	import com.worlize.rpc.HTTPMethod;
 	import com.worlize.rpc.WorlizeResultEvent;
 	import com.worlize.rpc.WorlizeServiceClient;
@@ -21,13 +23,66 @@ package com.worlize.model.locker
 		public static const STATE_READY:String = "ready";
 		public static const STATE_ERROR:String = "error";
 		
+		
+		public var capacity:int;
+		public var count:int;
+		public var emptySlots:int;
+
 		public var avatarInstances:ArrayCollection = new ArrayCollection();
+		private var avatarInstanceMap:Object = {};
 		
 		public var state:String = STATE_INIT; 
 		
 		public function AvatarLocker(target:IEventDispatcher=null)
 		{
 			super(target);
+			NotificationCenter.addListener(AvatarNotification.AVATAR_INSTANCE_DELETED, handleAvatarDeleted);
+			NotificationCenter.addListener(AvatarNotification.AVATAR_UPLOADED, handleAvatarUploaded);
+		}
+		
+		private function handleAvatarDeleted(notification:AvatarNotification):void {
+			for (var i:int = 0, len:int = avatarInstances.length; i < len; i++) {
+				var instance:AvatarInstance = AvatarInstance(avatarInstances.getItemAt(i));
+				if (instance.guid == notification.deletedInstanceGuid) {
+					avatarInstances.removeItemAt(i);
+					delete avatarInstanceMap[instance.guid];
+					addEmptySlot();
+					updateCount();
+					return;
+				}
+			}
+		}
+		
+		private function handleAvatarUploaded(notification:AvatarNotification):void {
+			for (var i:int = 0, len:int = avatarInstances.length; i < len; i++) {
+				var instance:AvatarInstance = AvatarInstance(avatarInstances.getItemAt(i));
+				if (instance.emptySlot) {
+					avatarInstances.removeItemAt(i);
+					delete avatarInstanceMap[instance.guid];
+					avatarInstances.addItemAt(notification.avatarInstance, i);
+					avatarInstanceMap[notification.avatarInstance.guid] = notification.avatarInstance;
+					updateCount();
+					return;
+				}
+			}
+			avatarInstances.addItem(notification.avatarInstance);
+		}
+		
+		private function addEmptySlot():void {
+			var instance:AvatarInstance = new AvatarInstance();
+			instance.emptySlot = true;
+			avatarInstances.addItem(instance);
+		}
+		
+		private function updateCount():void {
+			var count:int = 0;
+			for (var i:int = 0, len:int = avatarInstances.length; i < len; i++) {
+				if (!AvatarInstance(avatarInstances.getItemAt(i)).emptySlot) {
+					count ++;
+				}
+			}
+			this.count = count;
+			emptySlots = capacity - this.count;
 		}
 		
 		public function load():void {
@@ -46,6 +101,12 @@ package com.worlize.model.locker
 					var avatarInstance:AvatarInstance = AvatarInstance.fromData(data);
 					avatarInstances.addItem(avatarInstance);
 					simpleAvatarStore.injectAvatar(avatarInstance.avatar);
+				}
+				capacity = event.resultJSON.capacity;
+				count = event.resultJSON.count;
+				emptySlots = capacity - count;
+				for (var i:int = 0; i < emptySlots; i++) {
+					addEmptySlot();
 				}
 				state = STATE_READY;
 			}

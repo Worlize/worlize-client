@@ -8,6 +8,9 @@
     <classEntry path="com.worlize.notification.RoomChangeNotification"/>
     <classEntry path="com.worlize.model.UserList"/>
     <classEntry path="com.worlize.model.UserListEntry"/>
+    <classEntry path="com.worlize.model.InWorldObjectInstance"/>
+    <classEntry path="com.worlize.model.InWorldObject"/>
+    <classEntry path="com.worlize.notification.InWorldObjectNotification"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

@@ -16,7 +16,14 @@
 			public function set dataProvider(newValue:AvatarInstance):void {
 				if (_dataProvider !== newValue) {
 					_dataProvider = newValue;
-					source = _dataProvider.avatar.thumbnailURL;
+					if (_dataProvider === null ||
+						_dataProvider.emptySlot) {
+						visible = false;
+					}
+					else {
+						source = _dataProvider.avatar.thumbnailURL;
+						visible = true;
+					}
 					dispatchEvent(new Event('dataProviderChanged'));
 				}
 			}

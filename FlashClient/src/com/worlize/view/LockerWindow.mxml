@@ -34,6 +34,7 @@
 			import flex.utils.spark.resize.ResizeManager;
 			
 			import mx.binding.utils.ChangeWatcher;
+			import mx.controls.Alert;
 			import mx.events.CloseEvent;
 			import mx.events.IndexChangedEvent;
 			import mx.events.MoveEvent;
@@ -124,27 +125,15 @@
 				avatarLocker.load();
 				
 				avatarUploader.addEventListener(StateChangeEvent.CURRENT_STATE_CHANGE, handleUploadStateChange);
-				
-				NotificationCenter.addListener(AvatarNotification.AVATAR_UPLOADED, handleAvatarUploaded);
-				NotificationCenter.addListener(AvatarNotification.AVATAR_INSTANCE_DELETED, handleAvatarDeleted);
-			}
-			
-			private function handleAvatarUploaded(notification:AvatarNotification):void {
-				avatarLocker.avatarInstances.addItemAt(notification.avatarInstance, 0);
-			}
-			
-			private function handleAvatarDeleted(notification:AvatarNotification):void {
-				for (var i:int = 0; i < avatarLocker.avatarInstances.length; i++) {
-					var avatarInstance:AvatarInstance = AvatarInstance(avatarLocker.avatarInstances.getItemAt(i));
-					if (avatarInstance.guid == notification.deletedInstanceGuid) {
-						avatarLocker.avatarInstances.removeItemAt(i);
-						return;
-					}
-				}
 			}
 			
 			private function uploadAvatar():void {
-				avatarUploader.browse();
+				if (avatarLocker.emptySlots > 0) {
+					avatarUploader.browse();
+				}
+				else {
+					Alert.show("You don't have enough empty slots.  Either delete some existing avatars or purchase more slots.", "Insufficient Space"); 
+				}
 			}
 			
 			private function handleUploadStateChange(event:StateChangeEvent):void {
@@ -169,7 +158,8 @@
 	<components:controlBarContent>
 		<components:CapacityButton
 			fillColor="#81734b"
-			line1="Capacity: 100" line2="Current: 98" />
+			line1="Capacity: {avatarLocker.capacity}"
+			line2="Current: {avatarLocker.count}" />
 		<mx:Spacer width="20" />
 		<mx:LinkButton
 			styleName="topNavButton"
