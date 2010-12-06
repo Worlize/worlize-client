@@ -1,5 +1,6 @@
 package com.worlize.model
 {
+	[Bindable]
 	public class InWorldObject
 	{
 		public var guid:String;

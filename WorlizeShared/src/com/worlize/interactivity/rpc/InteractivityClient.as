@@ -38,6 +38,7 @@ package com.worlize.interactivity.rpc
 	import flash.net.XMLSocket;
 	import flash.system.LoaderContext;
 	import flash.utils.ByteArray;
+	import flash.utils.Dictionary;
 	import flash.utils.Endian;
 	import flash.utils.Timer;
 	import flash.utils.setTimeout;
@@ -93,10 +94,6 @@ package com.worlize.interactivity.rpc
 		public var connected:Boolean = false;
 		[Bindable]
 		public var connecting:Boolean = false;
-		[Bindable]
-		public var population:int = 0;
-		[Bindable]
-		public var userList:ArrayCollection = new ArrayCollection();
 		[Bindable]
 		public var currentRoom:CurrentRoom = new CurrentRoom();
 		
@@ -189,6 +186,7 @@ package com.worlize.interactivity.rpc
 		
 		private function handleDisconnected(event:WorlizeCommEvent):void {
 			trace("Disconnected");
+			resetState();
 		}
 		
 		private function handleIncomingMessage(event:WorlizeCommEvent):void {
@@ -249,10 +247,46 @@ package com.worlize.interactivity.rpc
 					case "goto_room":
 						handleGotoRoomMessage(data);
 						break;
+					case "new_object":
+						handleNewObject(data);
+						break;
+					case "object_moved":
+						handleObjectMoved(data);
+						break;
+					case "object_updated": // dest changed
+						handleObjectUpdated(data);
+						break;
+					case "object_removed":
+						handleObjectRemoved(data);
+						break;
 					default:
 						trace("Unhandled message: " + JSON.encode(event.message));
 						break;
 				}
+			}
+		}
+		
+		private function handleNewObject(data:Object):void {
+			if (data.room == currentRoom.id && data.object) {
+				currentRoom.addObject(data.object.guid, data.object.x, data.object.y, data.object.fullsize_url);
+			}
+		}
+		
+		private function handleObjectMoved(data:Object):void {
+			if (data.room == currentRoom.id && data.object) {
+				currentRoom.moveObject(data.object.guid, data.object.x, data.object.y);
+			}
+		}
+		
+		private function handleObjectUpdated(data:Object):void {
+			if (data.room == currentRoom.id && data.object) {
+				currentRoom.updateObject(data.object.guid, data.object.dest);
+			}
+		}
+		
+		private function handleObjectRemoved(data:Object):void {
+			if (data.room == currentRoom.id && data.guid) {
+				currentRoom.removeObject(data.guid);
 			}
 		}
 		
@@ -362,7 +396,12 @@ package com.worlize.interactivity.rpc
 						currentRoom.hotSpotsByGuid[hotspot.guid] = hotspot;
 					}
 					
-					
+					// In-World Objects
+					currentRoom.inWorldObjects.removeAll();
+					currentRoom.inWorldObjectsByGuid = new Dictionary();
+					for each (var objectData:Object in room.objects) {
+						currentRoom.addObject(objectData.guid, objectData.x, objectData.y, objectData.fullsize_url, objectData.dest);
+					}			
 				}
 				else {
 					disconnect();
@@ -418,8 +457,6 @@ package com.worlize.interactivity.rpc
 			currentRoom.drawLayerHistory = new Vector.<uint>();
 			currentRoom.showAvatars = true;
 			currentRoom.id = null;
-			population = 0;
-			userList.removeAll();
 		}
 		
 		// ***************************************************************
@@ -626,14 +663,12 @@ package com.worlize.interactivity.rpc
 			if (!connected) {
 				return;
 			}
-			trace("TODO: Implement Room List Request");
 		}
 		
 		public function requestUserList():void {
 			if (!connected) {
 				return;
 			}
-			trace("TODO: Implement User List Request");
 		}
 		
 		public function createNewRoom(roomName:String = null):void {

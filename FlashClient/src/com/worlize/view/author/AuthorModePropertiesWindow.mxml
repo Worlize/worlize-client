@@ -6,6 +6,7 @@
 								 xmlns:properties="com.worlize.view.author.properties.*"
 								 title="Properties"
 								 title.hotspot="Door Properties"
+								 title.inWorldObject="Object Properties"
 								 currentState="noItemSelected"
 								 creationComplete="handleCreationComplete()"
 								 width="200" minHeight="60" maxHeight="300">
@@ -16,6 +17,7 @@
 	<components:states>
 		<s:State name="noItemSelected" />
 		<s:State name="hotspot" />
+		<s:State name="inWorldObject" />
 	</components:states>
 	
 	<fx:Script>
@@ -23,6 +25,7 @@
 			import com.worlize.event.AuthorModeNotification;
 			import com.worlize.event.NotificationCenter;
 			import com.worlize.interactivity.model.Hotspot;
+			import com.worlize.model.InWorldObjectInstance;
 			import com.worlize.state.AuthorModeState;
 			
 			[Bindable]
@@ -40,6 +43,11 @@
 			private function updatePanelForCurrentItem():void {
 				if (authorModeState.selectedItem is Hotspot) {
 					currentState = "hotspot";
+					hotspotPropertiesEditor.hotspot = Hotspot(authorModeState.selectedItem);
+				}
+				else if (authorModeState.selectedItem is InWorldObjectInstance) {
+					currentState = "inWorldObject";
+					inWorldObjectPropertiesEditor.inWorldObjectInstance = InWorldObjectInstance(authorModeState.selectedItem);
 				}
 				else {
 					currentState = "noItemSelected";
@@ -54,7 +62,10 @@
 				 verticalCenter="0" horizontalCenter="0"/>
 	</s:Group>
 	
-	<properties:HotspotPropertiesEditor includeIn="hotspot" width="100%"
-										hotspot="{Hotspot(authorModeState.selectedItem)}" />
+	<properties:HotspotPropertiesEditor id="hotspotPropertiesEditor"
+										includeIn="hotspot" width="100%" />
+	
+	<properties:InWorldObjectPropertiesEditor id="inWorldObjectPropertiesEditor"
+											  includeIn="inWorldObject" width="100%" />
 	
 </components:WorlizeFloatingPanel>

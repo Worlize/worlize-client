@@ -2,6 +2,7 @@
 <s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
 				xmlns:s="library://ns.adobe.com/flex/spark" 
 				xmlns:mx="library://ns.adobe.com/flex/mx"
+				mouseDown="handleMouseDown(event)"
 				width="82" height="82" xmlns:components="com.worlize.view.components.*">
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
@@ -13,8 +14,10 @@
 			
 			import mx.binding.utils.ChangeWatcher;
 			import mx.controls.Alert;
+			import mx.core.DragSource;
 			import mx.events.CloseEvent;
 			import mx.events.FlexEvent;
+			import mx.managers.DragManager;
 			
 			/**
 			 *  @private
@@ -23,7 +26,7 @@
 			private var _data:Object;
 			
 			private var emptySlotWatcher:ChangeWatcher;
-			
+						
 			[Bindable("dataChange")]
 			override public function get data():Object
 			{
@@ -100,6 +103,30 @@
 			private function requestDelete():void {
 				InWorldObjectInstance(data).requestDelete();
 			}
+			
+			private function handleMouseDown(event:MouseEvent):void {
+				if (InWorldObjectInstance(data).room === null) {
+					systemManager.getSandboxRoot().addEventListener(MouseEvent.MOUSE_UP, handleStageMouseUp);
+					addEventListener(MouseEvent.MOUSE_MOVE, handleMouseMove);
+				}
+			}
+			
+			private function handleStageMouseUp(event:MouseEvent):void {
+				systemManager.getSandboxRoot().removeEventListener(MouseEvent.MOUSE_UP, handleStageMouseUp);
+				removeEventListener(MouseEvent.MOUSE_MOVE, handleMouseMove);
+			}
+			
+			private function handleMouseMove(event:MouseEvent):void {
+				if (event.buttonDown) {
+					var dragSource:DragSource = new DragSource();
+					dragSource.addData({
+						startMouseX: event.stageX,
+						startMouseY: event.stageY,
+						guid: data.guid
+					}, 'objectFromLocker');
+					DragManager.doDrag(this, dragSource, event);
+				}
+			}
 		]]>
 	</fx:Script>
 	
@@ -121,6 +148,20 @@
 	<components:InWorldObjectThumbnailView left="1" top="1" dataProvider="{data}" />
 	
 	<s:Label visible="{data.emptySlot}" horizontalCenter="0" verticalCenter="0" text="Empty" />
+	
+	<!-- Item in use... -->
+	<s:Rect left="0" top="0" right="0" bottom="0" visible="{data.room}">
+		<s:fill>
+			<s:SolidColor color="#CCCCCC" alpha="0.5" />
+		</s:fill>
+	</s:Rect>
+	
+	<s:Label visible="{data.room}"
+			 width="95%"  textAlign="center"
+			 fontFamily="PTSansNarrowBold" color="#000"
+			 horizontalCenter="0" verticalCenter="0"
+			 text="Used in: {data.room.name}" />
+	<!-- End: Item in use... -->
 	
 	<s:Rect left="0" top="0" right="0" bottom="0" includeIn="active">
 		<s:stroke>

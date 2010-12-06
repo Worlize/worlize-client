@@ -1,11 +1,16 @@
 package com.worlize.interactivity.model
 {
 	import com.worlize.command.CreateHotspotCommand;
+	import com.worlize.event.NotificationCenter;
 	import com.worlize.interactivity.event.ChatEvent;
 	import com.worlize.interactivity.event.RoomEvent;
 	import com.worlize.interactivity.util.WorlizeTextUtil;
 	import com.worlize.interactivity.view.RoomView;
 	import com.worlize.model.BackgroundImageInstance;
+	import com.worlize.model.InWorldObject;
+	import com.worlize.model.InWorldObjectInstance;
+	import com.worlize.model.RoomListEntry;
+	import com.worlize.notification.InWorldObjectNotification;
 	import com.worlize.rpc.HTTPMethod;
 	import com.worlize.rpc.WorlizeResultEvent;
 	import com.worlize.rpc.WorlizeServiceClient;
@@ -48,6 +53,8 @@ package com.worlize.interactivity.model
 		public var drawFrontCommands:ArrayCollection = new ArrayCollection();
 		public var drawBackCommands:ArrayCollection = new ArrayCollection();
 		public var drawLayerHistory:Vector.<uint> = new Vector.<uint>();
+		public var inWorldObjects:ArrayCollection = new ArrayCollection();
+		public var inWorldObjectsByGuid:Object = {};
 		public var _selectedUser:InteractivityUser;
 		public var selfUserId:String = null;
 		public var roomView:RoomView;
@@ -69,6 +76,58 @@ package com.worlize.interactivity.model
 		{
 			lastMessageTimer.addEventListener(TimerEvent.TIMER, handleLastMessageTimer);
 			statusDisappearTimer.addEventListener(TimerEvent.TIMER, handleStatusDisappearTimer);
+		}
+		
+		public function addObject(guid:String, x:int, y:int, fullsizeURL:String, dest:String = null):void {
+			var inWorldObjectInstance:InWorldObjectInstance = new InWorldObjectInstance();
+			inWorldObjectInstance.guid = guid;
+			inWorldObjectInstance.x = x;
+			inWorldObjectInstance.y = y;
+			inWorldObjectInstance.dest = dest;
+			inWorldObjectInstance.inWorldObject = new InWorldObject();
+			inWorldObjectInstance.inWorldObject.fullsizeURL = fullsizeURL;
+			var roomListEntry:RoomListEntry = new RoomListEntry();
+			roomListEntry.guid = id;
+			roomListEntry.name = name;
+			inWorldObjectInstance.room = roomListEntry;
+			
+			inWorldObjects.addItem(inWorldObjectInstance);
+			inWorldObjectsByGuid[inWorldObjectInstance.guid] = inWorldObjectInstance;
+			
+			var notification:InWorldObjectNotification =
+				new InWorldObjectNotification(InWorldObjectNotification.IN_WORLD_OBJECT_ADDED_TO_ROOM);
+			notification.instanceGuid = guid;
+			notification.room = roomListEntry;
+			NotificationCenter.postNotification(notification);
+		}
+		
+		public function removeObject(guid:String):void {
+			var inWorldObjectInstance:InWorldObjectInstance = inWorldObjectsByGuid[guid];
+			if (inWorldObjectInstance) {
+				var index:int = inWorldObjects.getItemIndex(inWorldObjectInstance);
+				if (index != -1) {
+					inWorldObjects.removeItemAt(index);
+					var notification:InWorldObjectNotification =
+						new InWorldObjectNotification(InWorldObjectNotification.IN_WORLD_OBJECT_REMOVED_FROM_ROOM);
+					notification.instanceGuid = guid;
+					NotificationCenter.postNotification(notification);
+				}
+			}
+		}
+		
+		public function moveObject(guid:String, x:int, y:int):void {
+			var inWorldObjectInstance:InWorldObjectInstance = inWorldObjectsByGuid[guid];
+			if (inWorldObjectInstance) {
+				inWorldObjectInstance.x = x;
+				inWorldObjectInstance.y = y;
+			}
+		}
+		
+		public function updateObject(guid:String, dest:String):void {
+			var inWorldObjectInstance:InWorldObjectInstance = inWorldObjectsByGuid[guid];
+			if (inWorldObjectInstance) {
+				inWorldObjectInstance.dest = dest;
+			}
 		}
 		
 		[Bindable(event="selectedUserChanged")]

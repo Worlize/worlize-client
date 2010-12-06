@@ -4,8 +4,11 @@
 	width="950" height="570"
 	clipAndEnableScrolling="true"
 	currentState="normal"
+	creationComplete="handleCreationComplete()"
 	xmlns:view="com.worlize.interactivity.view.*"
-	creationComplete="handleCreationComplete()" xmlns:s="library://ns.adobe.com/flex/spark" xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:mx1="library://ns.adobe.com/flex/mx">
+	xmlns:s="library://ns.adobe.com/flex/spark"
+	xmlns:fx="http://ns.adobe.com/mxml/2009"
+	xmlns:mx1="library://ns.adobe.com/flex/mx">
 
 	<s:layout>
 		<s:BasicLayout />
@@ -22,6 +25,16 @@
 	
 	<fx:Script>
 		<![CDATA[
+			import com.worlize.interactivity.event.ChatEvent;
+			import com.worlize.interactivity.event.InteractivitySecurityErrorEvent;
+			import com.worlize.interactivity.event.RoomEvent;
+			import com.worlize.interactivity.model.ChatMessage;
+			import com.worlize.interactivity.model.CurrentRoom;
+			import com.worlize.interactivity.model.Hotspot;
+			import com.worlize.interactivity.model.InteractivityConfig;
+			import com.worlize.interactivity.model.InteractivityUser;
+			import com.worlize.interactivity.rpc.InteractivityClient;
+			import com.worlize.model.RoomDefinition;
 			import com.worlize.state.AuthorModeState;
 			
 			import mx.binding.utils.ChangeWatcher;
@@ -34,16 +47,6 @@
 			import mx.events.EffectEvent;
 			import mx.events.PropertyChangeEvent;
 			import mx.managers.DragManager;
-			
-			import com.worlize.interactivity.event.ChatEvent;
-			import com.worlize.interactivity.event.RoomEvent;
-			import com.worlize.interactivity.event.InteractivitySecurityErrorEvent;
-			import com.worlize.interactivity.model.ChatMessage;
-			import com.worlize.interactivity.model.InteractivityConfig;
-			import com.worlize.interactivity.model.CurrentRoom;
-			import com.worlize.interactivity.model.Hotspot;
-			import com.worlize.interactivity.model.InteractivityUser;
-			import com.worlize.interactivity.rpc.InteractivityClient;
 			
 			import spark.effects.Animate;
 			import spark.effects.Fade;
@@ -94,8 +97,35 @@
 			}
 			
 			private function handleCreationComplete():void {
-				this.addEventListener(MouseEvent.MOUSE_DOWN, handleMouseDown);
+				addEventListener(MouseEvent.MOUSE_DOWN, handleMouseDown);
+				addEventListener(DragEvent.DRAG_ENTER, handleDragEnter);
+				addEventListener(DragEvent.DRAG_DROP, handleDragDrop);
+				addEventListener(DragEvent.DRAG_OVER, handleDragOver);
 			}
+			
+			private function handleDragEnter(event:DragEvent):void {
+				if (event.dragSource.hasFormat('objectFromLocker') ||
+					event.dragSource.hasFormat('objectInRoom'))
+				{
+					DragManager.acceptDragDrop(event.target as IUIComponent);
+				}
+			}
+			
+			private function handleDragDrop(event:DragEvent):void {
+				if (event.dragSource.hasFormat('objectFromLocker')) {
+					var objectData:Object = event.dragSource.dataForFormat('objectFromLocker');
+					var roomDefinition:RoomDefinition = new RoomDefinition();
+					roomDefinition.guid = room.id;
+					roomDefinition.addObjectInstance(objectData, mouseX, mouseY);
+				}
+			}
+			
+			private function handleDragOver(event:DragEvent):void {
+				if (event.dragSource.hasFormat('objectFromLocker')) {
+					DragManager.showFeedback(DragManager.MOVE);
+				}
+			}
+				
 			
 			private function handleUserMoved(event:RoomEvent):void {
 				
@@ -533,6 +563,9 @@
 			 includeIn="unableToLoadBackground"
 			 textAlign="center"
 			 verticalCenter="0" horizontalCenter="0" />
+	
+	<view:InWorldObjectLayer id="inWorldObjectLayer" inWorldObjects="{room.inWorldObjects}" 
+							 top="0" left="0" right="0" bottom="0" />
 	
 	<view:HotspotView id="hotSpotCanvas" room="{room}"
 							securityError="handleSecurityError()"

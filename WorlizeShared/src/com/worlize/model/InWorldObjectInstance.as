@@ -13,20 +13,23 @@ package com.worlize.model
 	{
 		public var inWorldObject:InWorldObject;
 		public var guid:String;
+		public var x:int;
+		public var y:int;
+		public var room:RoomListEntry;
+		public var dest:String;
 		public var emptySlot:Boolean = false;
 		
 		public static function fromData(data:Object):InWorldObjectInstance {
 			var object:InWorldObjectInstance = new InWorldObjectInstance();
 			object.guid = data.guid;
 			object.inWorldObject = InWorldObject.fromData(data.in_world_object);
+			if (data.room) {
+				object.room = new RoomListEntry();
+				object.room.name = data.room.name;
+				object.room.guid = data.room.guid;
+			}
 			object.emptySlot = false;
 			return object;
-		}
-		
-		public function updateData(data:Object):void {
-			guid = data.guid;
-			inWorldObject  = InWorldObject.fromData(data.in_world_object);
-			emptySlot = false;
 		}
 		
 		public function requestDelete():void {

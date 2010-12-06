@@ -189,7 +189,6 @@ package com.worlize.interactivity.view
 		private var lastMousePos:Point = new Point(-1, -1);
 		
 		private function handleAuthorEnterFrame(event:Event):void {
-			var globalPos:Point;
 			mousePos.x = stage.mouseX;
 			mousePos.y = stage.mouseY;
 			

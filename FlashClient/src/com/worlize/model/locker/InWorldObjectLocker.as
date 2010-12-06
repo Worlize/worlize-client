@@ -41,6 +41,22 @@ package com.worlize.model.locker
 			super(target);
 			NotificationCenter.addListener(InWorldObjectNotification.IN_WORLD_OBJECT_UPLOADED, handleInWorldObjectUploaded);
 			NotificationCenter.addListener(InWorldObjectNotification.IN_WORLD_OBJECT_DELETED, handleInWorldObjectDeleted);
+			NotificationCenter.addListener(InWorldObjectNotification.IN_WORLD_OBJECT_ADDED_TO_ROOM, handleInWorldObjectAddedToRoom);
+			NotificationCenter.addListener(InWorldObjectNotification.IN_WORLD_OBJECT_REMOVED_FROM_ROOM, handleInWorldObjectRemovedFromRoom);
+		}
+
+		private function handleInWorldObjectAddedToRoom(notification:InWorldObjectNotification):void {
+			var instance:InWorldObjectInstance = instanceMap[notification.instanceGuid];
+			if (instance) {
+				instance.room = notification.room;
+			}
+		}
+		
+		private function handleInWorldObjectRemovedFromRoom(notification:InWorldObjectNotification):void {
+			var instance:InWorldObjectInstance = instanceMap[notification.instanceGuid];
+			if (instance) {
+				instance.room = null;
+			}
 		}
 		
 		private function handleInWorldObjectDeleted(notification:InWorldObjectNotification):void {
@@ -77,15 +93,6 @@ package com.worlize.model.locker
 			client.addEventListener(FaultEvent.FAULT, handleFault);
 			client.send('/locker/in_world_objects.json', HTTPMethod.GET);
 			state = STATE_LOADING;
-		}
-		
-		public function updateItems(newItems:Array):void {
-			for each (var newData:Object in newItems) {
-				var instance:InWorldObjectInstance = instanceMap[newData.guid];
-				if (instance) {
-					instance.updateData(newData); 
-				}
-			}
 		}
 		
 		private function handleLoadResult(event:WorlizeResultEvent):void {

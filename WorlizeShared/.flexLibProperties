@@ -11,6 +11,8 @@
     <classEntry path="com.worlize.model.InWorldObjectInstance"/>
     <classEntry path="com.worlize.model.InWorldObject"/>
     <classEntry path="com.worlize.notification.InWorldObjectNotification"/>
+    <classEntry path="com.worlize.interactivity.view.InWorldObjectView"/>
+    <classEntry path="com.worlize.interactivity.view.InWorldObjectLayer"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>
