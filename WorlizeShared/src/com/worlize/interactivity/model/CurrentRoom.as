@@ -269,7 +269,7 @@ package com.worlize.interactivity.model
 			if (shouldDisplayMessage(message) && message.length > 0) {
 				recordChat("<b>*** " + WorlizeTextUtil.htmlEscape(message), "</b>\n");
 				dispatchEvent(new Event('chatLogUpdated'));
-				var event:ChatEvent = new ChatEvent(ChatEvent.ROOM_MESSAGE, message);
+				var event:ChatEvent = new ChatEvent(ChatEvent.ROOM_MESSAGE, "@0,35 " + message);
 				dispatchEvent(event);
 			}
 		}

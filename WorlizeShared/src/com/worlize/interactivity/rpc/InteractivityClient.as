@@ -225,6 +225,9 @@ package com.worlize.interactivity.rpc
 					case "room_definition_updated":
 						handleRoomDefinitionUpdated(data);
 						break;
+					case "global_msg":
+						handleGlobalMessage(data);
+						break;
 					case "new_hotspot":
 						handleNewHotspot(data);
 						break;
@@ -946,6 +949,10 @@ package com.worlize.interactivity.rpc
 			chatQueue.push(chatRecord);
 			processChatQueue();
 //			trace("Got xtalk from userID " + referenceId + ": " + chatstr);
+		}
+		
+		private function handleGlobalMessage(data:Object):void {
+			currentRoom.roomMessage(String(data));
 		}
 		
 		private function handleMove(data:Object):void {
