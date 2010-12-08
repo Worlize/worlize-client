@@ -45,6 +45,7 @@ package com.worlize.interactivity.rpc
 	
 	import mx.collections.ArrayCollection;
 	import mx.controls.Alert;
+	import mx.events.CloseEvent;
 	import mx.rpc.events.FaultEvent;
 	
 	import org.openpalace.iptscrae.IptEngineEvent;
@@ -115,8 +116,6 @@ package com.worlize.interactivity.rpc
 		
 		private var recentLogonUserIds:ArrayCollection = new ArrayCollection();
 		
-		private var _userName:String = "OpenPalace User";
-		
 		private var worlizeComm:WorlizeComm = WorlizeComm.getInstance();
 		
 		[Bindable]
@@ -128,21 +127,10 @@ package com.worlize.interactivity.rpc
 		[Bindable]
 		public var canAuthor:Boolean = false;
 		
+		private var expectingDisconnect:Boolean = false;
+		
 		private var temporaryUserFlags:int;
 		// We get the user flags before we have the current user
-		
-		[Bindable(event="userNameChange")]
-		public function get userName():String {
-			return _userName;
-		}
-		
-		public function set userName(newValue:String):void {
-			if (newValue.length > 31) {
-				newValue = newValue.slice(0, 31); 
-			}
-			_userName = newValue;
-			dispatchEvent(new Event('userNameChange'));
-		}
 		
 		// States
 		public static const STATE_DISCONNECTED:int = 0;
@@ -185,8 +173,22 @@ package com.worlize.interactivity.rpc
 		}
 		
 		private function handleDisconnected(event:WorlizeCommEvent):void {
-			trace("Disconnected");
-			resetState();
+			if (expectingDisconnect) {
+				// do nothing
+			}
+			else {
+				trace("Disconnected");
+				resetState();
+				Alert.show( "The connection to the server has been lost.  Press OK to reconnect.",
+						    "Connection Lost",
+						    Alert.OK,
+						    null,
+						  	function(event:CloseEvent):void {
+								worlizeComm.connect();
+							}
+				);
+			}
+			expectingDisconnect = false;
 		}
 		
 		private function handleIncomingMessage(event:WorlizeCommEvent):void {
@@ -418,6 +420,7 @@ package com.worlize.interactivity.rpc
 		private function handleHandshakeResponse(data:Object):void {
 			if (data.success) {
 				connected = true;
+				expectingDisconnect = false;
 				var event:InteractivityEvent = new InteractivityEvent(InteractivityEvent.CONNECT_COMPLETE);
 				dispatchEvent(event);
 				currentRoom.selfUserId = id;
@@ -452,11 +455,14 @@ package com.worlize.interactivity.rpc
 			currentRoom.hotSpotsAboveEverything.removeAll();
 			currentRoom.hotSpotsAboveNametags.removeAll();
 			currentRoom.hotSpotsAboveNothing.removeAll();
+			currentRoom.hotSpotsByGuid = {};
+			currentRoom.hotSpotsById = {};
 			currentRoom.drawBackCommands.removeAll();
 			currentRoom.drawFrontCommands.removeAll();
 			currentRoom.drawLayerHistory = new Vector.<uint>();
+			currentRoom.inWorldObjects.removeAll();
+			currentRoom.inWorldObjectsByGuid = {};
 			currentRoom.showAvatars = true;
-			currentRoom.id = null;
 		}
 		
 		// ***************************************************************
@@ -469,14 +475,11 @@ package com.worlize.interactivity.rpc
 		}
 		
 		public function disconnect():void {
+			expectingDisconnect = true;
 			worlizeComm.disconnect();
 			resetState();
 		}
 		
-		public function changeName(newName:String):void {
-			userName = newName;
-		}
-
 		public function roomChat(message:String):void {
 			if (!connected || message == null || message.length == 0) {
 				return;
@@ -658,18 +661,6 @@ package com.worlize.interactivity.rpc
 			
 			return;
 		}
-				
-		public function requestRoomList():void {
-			if (!connected) {
-				return;
-			}
-		}
-		
-		public function requestUserList():void {
-			if (!connected) {
-				return;
-			}
-		}
 		
 		public function createNewRoom(roomName:String = null):void {
 			var newRoomOptions:Object = {};
@@ -744,21 +735,11 @@ package com.worlize.interactivity.rpc
 			
 			var gotoRoomCommand:GotoRoomCommand = new GotoRoomCommand();
 			gotoRoomCommand.addEventListener(GotoRoomResultEvent.GOTO_ROOM_RESULT, function(event:GotoRoomResultEvent):void {
-				// Reset the room state
-				currentRoom.selectedUser = null;
-				currentRoom.removeAllUsers();
-				currentRoom.hotSpots.removeAll();
-				currentRoom.hotSpotsAboveAvatars.removeAll();
-				currentRoom.hotSpotsAboveEverything.removeAll();
-				currentRoom.hotSpotsAboveNametags.removeAll();
-				currentRoom.hotSpotsAboveNothing.removeAll();
-				currentRoom.drawBackCommands.removeAll();
-				currentRoom.drawFrontCommands.removeAll();
-				currentRoom.drawLayerHistory = new Vector.<uint>();
-				currentRoom.showAvatars = true;
-				currentRoom.backgroundFile = null;
+				resetState();
 
 				worlizeComm.interactivitySession = event.interactivitySession;
+				
+				expectingDisconnect = true;
 				worlizeComm.disconnect();
 				worlizeComm.connect();
 			});
@@ -824,10 +805,6 @@ package com.worlize.interactivity.rpc
 				// Signon handlers
 				setTimeout(function():void {
 					if (needToRunSignonHandlers) {
-						
-						// download the room/user lists when you first log on.
-						requestRoomList();
-						requestUserList();
 						
 						iptInteractivityController.triggerHotspotEvents(IptEventHandler.TYPE_SIGNON);
 						needToRunSignonHandlers = false;

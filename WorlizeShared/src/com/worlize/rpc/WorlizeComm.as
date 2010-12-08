@@ -10,6 +10,9 @@ package com.worlize.rpc
 	import flash.events.IEventDispatcher;
 	import flash.external.ExternalInterface;
 	
+	[Event(type="com.worlize.interactivity.event.WorlizeCommEvent",name="message")]
+	[Event(type="com.worlize.interactivity.event.WorlizeCommEvent",name="connected")]
+	[Event(type="com.worlize.interactivity.event.WorlizeCommEvent",name="disconnected")]
 	public class WorlizeComm extends EventDispatcher
 	{
 		private static var _instance:WorlizeComm;
