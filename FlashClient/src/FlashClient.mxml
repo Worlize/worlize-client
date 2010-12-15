@@ -28,11 +28,13 @@
 			import com.worlize.interactivity.rpc.InteractivityClient;
 			import com.worlize.model.CurrentUser;
 			import com.worlize.rpc.HTTPMethod;
+			import com.worlize.rpc.WorlizeComm;
 			import com.worlize.rpc.WorlizeResultEvent;
 			import com.worlize.rpc.WorlizeServiceClient;
 			import com.worlize.state.AuthorModeState;
 			import com.worlize.view.MarketplaceWindow;
 			import com.worlize.view.author.AuthorModePropertiesWindow;
+			import com.worlize.view.windows.FriendsWindow;
 			
 			import mx.binding.utils.ChangeWatcher;
 			import mx.controls.Alert;
@@ -41,6 +43,9 @@
 			import mx.managers.PopUpManager;
 			[Bindable]
 			public var client:InteractivityClient = InteractivityClient.getInstance();
+			
+			[Bindable]
+			private var worlizeComm:WorlizeComm = WorlizeComm.getInstance();
 			
 			[Bindable]
 			private var worlizeUser:CurrentUser = CurrentUser.getInstance(); 
@@ -149,7 +154,9 @@
 				client.disconnect();
 			}
 			
-
+			private function handleFriendsClick():void {
+				FriendsWindow.open(systemManager.getSandboxRoot());
+			}
 		]]>
 	</fx:Script>
 
@@ -173,11 +180,13 @@
 				styleName="topNavButton"
 				color="#0C9dea"
 				icon="@Embed(source='src/assets/icons/icon_myworlz.png')"
+				click="client.gotoRoom(worlizeComm.currentUser.worldEntrance)"
 				label="MY WORLZ" />
 			<mx:LinkButton
 				styleName="topNavButton"
 				color="#1076a4"
 				icon="@Embed(source='src/assets/icons/icon_friends.png')"
+				click="handleFriendsClick()"
 				label="FRIENDS" />
 			<mx:LinkButton
 				styleName="topNavButton"

@@ -4,6 +4,7 @@
 								 xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:components="com.worlize.view.components.*"
 								 width="600" height="250"
 								 title="Chat Log"
+								 showTitle="true"
 								 resizable="true"
 								 showCloseButton="true"
 								 creationComplete="handleCreationComplete()">

@@ -742,6 +742,10 @@ package com.worlize.interactivity.rpc
 
 				worlizeComm.interactivitySession = event.interactivitySession;
 				
+				if (currentWorld.guid != worlizeComm.interactivitySession.worldGuid) {
+					currentWorld.load(worlizeComm.interactivitySession.worldGuid);
+				} 
+				
 				expectingDisconnect = true;
 				worlizeComm.disconnect();
 				worlizeComm.connect();

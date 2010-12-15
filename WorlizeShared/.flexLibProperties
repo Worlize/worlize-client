@@ -13,6 +13,8 @@
     <classEntry path="com.worlize.notification.InWorldObjectNotification"/>
     <classEntry path="com.worlize.interactivity.view.InWorldObjectView"/>
     <classEntry path="com.worlize.interactivity.view.InWorldObjectLayer"/>
+    <classEntry path="com.worlize.model.FriendsList"/>
+    <classEntry path="com.worlize.model.FriendsListEntry"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

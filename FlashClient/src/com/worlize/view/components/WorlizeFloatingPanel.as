@@ -10,6 +10,7 @@ package com.worlize.view.components
 	[Style(name="titleBarColor", type="uint", format="Color", inherit="no", theme="spark")]
 	[Style(name="titleTextColor", type="uint", format="Color", inherit="no", theme="spark")]
 	[Style(name="titleBarHeight", type="uint", inherit="no", theme="spark")]
+	[Style(name="showTitle", type="Boolean", inherit="yes", theme="spark")]
 	[Style(name="windowIcon", type="Class", inherit="no", theme="spark")]
 	[Style(name="showCloseButton", type="Boolean", theme="spark")]
 	
@@ -33,6 +34,7 @@ package com.worlize.view.components
 					this.titleBarColor = 0xCCCCCC;
 					this.titleTextColor = 0x888888;
 					this.titleBarHeight = 12;
+					this.showTitle = true;
 				};
 				FlexGlobals.topLevelApplication.styleManager.setStyleDeclaration("WorlizeFloatingPanel", myStyles, true);
 			}

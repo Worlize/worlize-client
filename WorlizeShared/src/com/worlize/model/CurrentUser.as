@@ -35,6 +35,8 @@ package com.worlize.model
 		public var email:String;
 		public var birthday:Date;
 		public var state:String;
+		public var remainingInvites:int;
+		public var worldEntrance:String;
 		
 		public static function getInstance():CurrentUser {
 			if (_instance === null) {
@@ -69,6 +71,8 @@ package com.worlize.model
 				username = data.username;
 				firstName = data.first_name;
 				lastName = data.last_name;
+				remainingInvites = data.remaining_invites;
+				worldEntrance = data.world_entrance;
 			}
 		}
 		

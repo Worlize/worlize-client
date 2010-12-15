@@ -160,6 +160,8 @@ in accordance with the terms of the license agreement accompanying it.
 					<s:Label id="titleDisplay" maxDisplayedLines="1"
 							 fontFamily="PTSansNarrowBold" fontSize="15"
 							 top="{getStyle('titleBarHeight')}"
+							 includeInLayout="{getStyle('showTitle')}"
+							 visible="{getStyle('showTitle')}"
 							 left="0" right="0"
 							 paddingTop="8" paddingRight="6" paddingLeft="6" paddingBottom="8" />
 					
