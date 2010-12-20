@@ -7,15 +7,21 @@
 								 showTitle="false"
 								 showCloseButton="false"
 								 mouseDownOutside="handleMouseDownOutside(event)"
-								 width="275" minHeight="200" maxHeight="400" xmlns:code="http://code.google.com/p/flexlib/">
+								 width="375" minHeight="200" maxHeight="400" xmlns:code="http://code.google.com/p/flexlib/">
 	
 	<fx:Script>
 		<![CDATA[
 			import com.worlize.model.FriendsList;
+			import com.worlize.model.FriendsListEntry;
+			import com.worlize.model.PendingFriendsListEntry;
+			import com.worlize.view.itemrenderers.FriendListItemRenderer;
+			import com.worlize.view.itemrenderers.PendingFriendInvitationItemRenderer;
 			
 			import mx.events.CloseEvent;
 			import mx.managers.PopUpManager;
 			import mx.utils.object_proxy;
+			
+			import spark.skins.spark.DefaultItemRenderer;
 			
 			private static var _open:Boolean = false;
 			private static var _instance:FriendsWindow;
@@ -62,6 +68,18 @@
 					closedAt = new Date();
 				}
 			}
+			
+			private function selectFriendsListItemRenderer(item:Object):ClassFactory {
+				if (item is FriendsListEntry) {
+					return new ClassFactory(FriendListItemRenderer);
+				}
+				else if (item is PendingFriendsListEntry) {
+					return new ClassFactory(PendingFriendInvitationItemRenderer);
+				}
+				else {
+					return new ClassFactory(DefaultItemRenderer);
+				}
+			}
 
 		]]>
 	</fx:Script>
@@ -73,9 +91,13 @@
 	
 	
 	<s:VGroup width="100%" minHeight="300" maxHeight="500" gap="0">
-		<s:List width="100%" height="100%" dataProvider="{friendsList.friends}"
-				itemRenderer="com.worlize.view.itemrenderers.FriendListItemRenderer"
-				borderVisible="false"/>
+		<s:DataGroup enabled="{friendsList.state == FriendsList.STATE_READY}"
+				width="100%" height="100%" dataProvider="{friendsList.friends}"
+				itemRendererFunction="selectFriendsListItemRenderer">
+			<s:layout>
+				<s:VerticalLayout gap="0" />
+			</s:layout>
+		</s:DataGroup>
 		<!--
 		<components:PendingFriendInvitationsList />
 		

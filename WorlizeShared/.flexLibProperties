@@ -15,6 +15,8 @@
     <classEntry path="com.worlize.interactivity.view.InWorldObjectLayer"/>
     <classEntry path="com.worlize.model.FriendsList"/>
     <classEntry path="com.worlize.model.FriendsListEntry"/>
+    <classEntry path="com.worlize.model.PendingFriendsListEntry"/>
+    <classEntry path="com.worlize.notification.FriendsNotification"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

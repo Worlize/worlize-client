@@ -69,17 +69,19 @@
 			  gap="3"
 			  paddingBottom="3" paddingTop="6" paddingLeft="3" paddingRight="3">
 		
-		<s:Label width="100%" fontFamily="PTSansNarrowBold" fontSize="16" text="Invite a Friend" />
-		
-		<s:Label
-			includeIn="normal"
-			width="100%" fontFamily="Arial"
-			text="You have {currentUser.remainingInvites} {currentUser.remainingInvites == 1 ? 'invitation' : 'invitations'} remaining." fontSize="11" />
-		
-		<s:Label
-			includeIn="noInvitationsRemaining"
-			width="100%" fontFamily="Arial"
-			text="You have no invitations remaining." fontSize="11" />
+		<s:HGroup width="100%" verticalAlign="bottom">
+			<s:Label fontFamily="PTSansNarrowBold" fontSize="16" text="Invite a Friend" />
+			
+			<s:Label
+				includeIn="normal"
+				width="100%" fontFamily="Arial"
+				text="You have {currentUser.remainingInvites} {currentUser.remainingInvites == 1 ? 'invitation' : 'invitations'} remaining." fontSize="11" />
+			
+			<s:Label
+				includeIn="noInvitationsRemaining"
+				width="100%" fontFamily="Arial"
+				text="You have no invitations remaining." fontSize="11" />
+		</s:HGroup>
 		
 		<s:Label width="100%" fontFamily="Arial" id="invitationResultText"
 				 visible="false" includeInLayout="false" />

@@ -9,23 +9,27 @@
 			import com.worlize.interactivity.rpc.InteractivityClient;
 			import com.worlize.model.FriendsList;
 			import com.worlize.model.FriendsListEntry;
+			import com.worlize.model.PendingFriendsListEntry;
 			import com.worlize.view.windows.FriendsWindow;
 			
 			import mx.collections.ArrayCollection;
 			import mx.controls.Alert;
+			import mx.controls.Menu;
+			import mx.controls.menuClasses.MenuListData;
 			import mx.events.FlexEvent;
+			import mx.events.MenuEvent;
 			
 			[Bindable]
 			private var client:InteractivityClient = InteractivityClient.getInstance();
 			
 			[Bindable]
-			private var _data:FriendsListEntry;
+			private var _data:PendingFriendsListEntry;
 			
 			[Bindable(event='dataChange')]
 			override public function set data(newValue:Object):void {
 				if (_data !== newValue) {
-					if (newValue is FriendsListEntry) {
-						_data = FriendsListEntry(newValue);
+					if (newValue is PendingFriendsListEntry) {
+						_data = PendingFriendsListEntry(newValue);
 					}
 					else {
 						_data = null;
@@ -37,9 +41,20 @@
 				return _data;
 			}
 			
+			private function ignoreFriend():void {
+				PendingFriendsListEntry(data).rejectFriendship();
+			}
+			private function acceptFriend():void {
+				PendingFriendsListEntry(data).acceptFriendShip();
+			}
 		]]>
 	</fx:Script>
-		
+	
+	<s:Rect left="0" right="0" top="0" bottom="0">
+		<s:fill>
+			<s:SolidColor color="#EEFFEE" />
+		</s:fill>
+	</s:Rect>
 	
 	<s:Rect width="42" height="42"
 			top="2" left="2">
@@ -54,25 +69,24 @@
 	<mx:Image width="40" height="40" top="3" left="3" 
 			  source="@Embed(source='src/assets/icons/unknown_user.png')" />
 	
-	<mx:Image id="onlineDot" left="48" verticalCenter="0" width="13" height="13"
-			  visible="{_data.online}"
-			  source="@Embed(source='src/assets/icons/dot-online.png')" />
+	<s:HGroup left="48" right="3" verticalCenter="0" verticalAlign="middle">
+		<s:VGroup width="100%">
+			<s:Label fontFamily="Arial" width="100%"
+					 text="New Friend Request!" />
+			<s:Label fontFamily="Arial" width="100%"
+					 text="{_data.userName}" />
+		</s:VGroup>
 	
-	<mx:Image id="offlineDot" left="48" verticalCenter="0" width="13" height="13"
-			  visible="{!_data.online}"
-			  source="@Embed(source='src/assets/icons/dot-offline.png')" />
-	
-	
-	<s:HGroup left="64" right="3" verticalCenter="0" verticalAlign="middle">
-		<s:Label fontFamily="Arial" width="100%"
-				 text="{_data.userName}" />
-
 		<s:Button
-			label="Visit Worlz"
-			click="client.gotoRoom(_data.worldEntrance); FriendsWindow.close()" />
+			label="Ignore"
+			click="ignoreFriend(); FriendsWindow.close()" />
+		
+		<s:Button
+			label="Accept"
+			click="acceptFriend(); FriendsWindow.close()" />
 		
 	</s:HGroup>
 	
-				
+	
 	
 </s:ItemRenderer>
