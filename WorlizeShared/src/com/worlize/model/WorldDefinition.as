@@ -32,6 +32,7 @@ package com.worlize.model
 		}
 		
 		public function load(worldGuid:String):void {
+			if (worldGuid === null) { return; }
 			var client:WorlizeServiceClient = new WorlizeServiceClient();
 			client.addEventListener(WorlizeResultEvent.RESULT, handleResult);
 			client.addEventListener(FaultEvent.FAULT, handleFault);
