@@ -141,11 +141,11 @@
 						close();
 					}
 					else { 
-						Alert.show("Unable to delete room: " + event.resultJSON.description, "Error");
+						Alert.show("Unable to delete area: " + event.resultJSON.description, "Error");
 					}
 				});
 				serviceClient.addEventListener(FaultEvent.FAULT, function(event:FaultEvent):void {
-					Alert.show("Unable to delete room: Communication Error", "Error");
+					Alert.show("Unable to delete area: Communication Error", "Error");
 				});
 				serviceClient.send('/rooms/' + client.currentRoom.id + '.json', HTTPMethod.DELETE);
 			}
