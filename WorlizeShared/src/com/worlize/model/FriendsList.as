@@ -41,6 +41,11 @@ package com.worlize.model
 			if (_instance !== null) {
 				throw new Error("You may only create one instance of FriendsList");
 			}
+			
+			var sort:Sort = new Sort();
+			sort.compareFunction = compareFunction;
+			friends.sort = sort;
+			
 			NotificationCenter.addListener(FriendsNotification.FRIEND_REQUEST_ACCEPTED, handleFriendRequestAccepted);
 			NotificationCenter.addListener(FriendsNotification.FRIEND_REQUEST_REJECTED, handleFriendRequestRejected);
 		}
@@ -114,9 +119,6 @@ package com.worlize.model
 						var pendingFriendEntry:PendingFriendsListEntry = PendingFriendsListEntry.fromData(pendingFriendData);
 						friends.addItem(pendingFriendEntry);
 					}
-					var sort:Sort = new Sort();
-					sort.compareFunction = compareFunction;
-					friends.sort = sort;
 					friends.refresh();
 				}
 				state = STATE_READY;

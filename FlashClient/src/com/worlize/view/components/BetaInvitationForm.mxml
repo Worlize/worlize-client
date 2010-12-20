@@ -40,6 +40,12 @@
 					email: inviteEmailField.text
 				});
 			}
+			
+			private function handleTextInputKeyDown(event:KeyboardEvent):void {
+				if (event.keyCode == Keyboard.ENTER) {
+					handleInviteClick();
+				}
+			}
 		]]>
 	</fx:Script>
 	
@@ -84,11 +90,12 @@
 		</s:HGroup>
 		
 		<s:Label width="100%" fontFamily="Arial" id="invitationResultText"
+				 fontStyle="italic" fontSize="11"
 				 visible="false" includeInLayout="false" />
 		
 		<s:HGroup width="100%" includeIn="normal">
 			<code:PromptingTextInput
-				width="100%"
+				width="100%" keyDown="handleTextInputKeyDown(event)"
 				id="inviteEmailField" prompt="friend@example.com" />
 			<s:Button label="Invite" click="handleInviteClick()" />
 		</s:HGroup>	

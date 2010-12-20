@@ -34,6 +34,12 @@ package com.worlize.model
 			return userName;
 		}
 		
+		public function get capitalizedUsername():String {
+			var result:String = userName.charAt(0).toLocaleUpperCase();
+			result += userName.slice(1).toLocaleLowerCase();
+			return result;
+		}
+		
 		public function rejectFriendship():void {
 			var client:WorlizeServiceClient = new WorlizeServiceClient();
 			client.addEventListener(WorlizeResultEvent.RESULT, function(event:WorlizeResultEvent):void {

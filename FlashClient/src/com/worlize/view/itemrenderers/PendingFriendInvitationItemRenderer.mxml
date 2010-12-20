@@ -72,18 +72,16 @@
 	<s:HGroup left="48" right="3" verticalCenter="0" verticalAlign="middle">
 		<s:VGroup width="100%">
 			<s:Label fontFamily="Arial" width="100%"
-					 text="New Friend Request!" />
-			<s:Label fontFamily="Arial" width="100%"
-					 text="{_data.userName}" />
+					 text="{_data.capitalizedUsername} wants to be your friend!" />
 		</s:VGroup>
 	
 		<s:Button
 			label="Ignore"
-			click="ignoreFriend(); FriendsWindow.close()" />
+			click="ignoreFriend();" />
 		
 		<s:Button
 			label="Accept"
-			click="acceptFriend(); FriendsWindow.close()" />
+			click="acceptFriend();" />
 		
 	</s:HGroup>
 	
