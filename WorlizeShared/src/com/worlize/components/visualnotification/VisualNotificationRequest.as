@@ -16,7 +16,9 @@ package com.worlize.components.visualnotification
 		
 		internal var timer:Timer;
 		
-		public function VisualNotificationRequest(text:String, title:String = null, callback:Function = null, duration:int = 5000)
+		internal var closing:Boolean = false;
+		
+		public function VisualNotificationRequest(text:String, title:String = null, callback:Function = null, duration:int = 6000)
 		{
 			this.title = title;
 			this.text = text;

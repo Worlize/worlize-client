@@ -31,16 +31,33 @@ package com.worlize.components.visualnotification
 			activeNotifications.push(notification);
 			notification.timer = new Timer(notification.duration, 1);
 			notification.timer.addEventListener(TimerEvent.TIMER, function(event:TimerEvent):void {
-				var hideEvent:VisualNotificationEvent = new VisualNotificationEvent(VisualNotificationEvent.HIDE_NOTIFICATION);
-				hideEvent.notification = notification;
-				dispatchEvent(hideEvent);
-				var index:int = activeNotifications.indexOf(notification);
-				activeNotifications.splice(index, 1);
+				closeNotification(notification);
 			});
+			notification.timer.start();
+			
+			// Default to close the notification when clicked
+			var originalClickCallback:Function = notification.clickCallback;
+			notification.clickCallback = function():void {
+				closeNotification(notification);
+				if (originalClickCallback !== null) {
+					originalClickCallback();
+				}
+			};
 			
 			var showEvent:VisualNotificationEvent = new VisualNotificationEvent(VisualNotificationEvent.SHOW_NOTIFICATION);
 			showEvent.notification = notification;
 			dispatchEvent(showEvent);
+		}
+		
+		public function closeNotification(notification:VisualNotificationRequest):void {
+			if (notification.closing) { return; }
+			notification.closing = true;
+			notification.timer.stop();
+			var hideEvent:VisualNotificationEvent = new VisualNotificationEvent(VisualNotificationEvent.HIDE_NOTIFICATION);
+			hideEvent.notification = notification;
+			dispatchEvent(hideEvent);
+			var index:int = activeNotifications.indexOf(notification);
+			activeNotifications.splice(index, 1);	
 		}
 	}
 }

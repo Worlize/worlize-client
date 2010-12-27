@@ -5,8 +5,13 @@
 		 creationComplete="handleCreationComplete()">
 	<fx:Script>
 		<![CDATA[
+			import mx.events.EffectEvent;
+			
+			import spark.effects.Fade;
 			
 			private var manager:VisualNotificationManager = VisualNotificationManager.getInstance();
+			
+			private var displayElementsByNotificationRequest:Dictionary = new Dictionary();
 			
 			private function handleCreationComplete():void {
 				manager.addEventListener(VisualNotificationEvent.SHOW_NOTIFICATION, handleShowNotification);
@@ -14,19 +19,44 @@
 			}
 			
 			private function handleShowNotification(event:VisualNotificationEvent):void {
-				
+				var notificationDisplay:VisualNotificationDisplay = new VisualNotificationDisplay();
+				notificationDisplay.setStyle('skinClass', Class(VisualNotificationDisplaySkin));
+				notificationDisplay.notification = event.notification;
+				displayElementsByNotificationRequest[event.notification] = notificationDisplay;
+				addElementAt(notificationDisplay, 0);
+				var showEffect:Fade = new Fade(notificationDisplay);
+				showEffect.alphaFrom = 0;
+				showEffect.alphaTo = 1;
+				showEffect.duration = 500;
+				showEffect.play();
 			}
 			
 			private function handleHideNotification(event:VisualNotificationEvent):void {
-				
+				var notificationDisplay:VisualNotificationDisplay = displayElementsByNotificationRequest[event.notification];
+				if (notificationDisplay) {
+					var hideEffect:Fade = new Fade(notificationDisplay);
+					hideEffect.alphaFrom = 1;
+					hideEffect.alphaTo = 0;
+					hideEffect.duration = 500;
+					hideEffect.addEventListener(EffectEvent.EFFECT_END, function(event:EffectEvent):void {
+						removeElement(notificationDisplay);
+						delete displayElementsByNotificationRequest[notificationDisplay.notification];						
+					});
+					hideEffect.play();
+				}
 			}
-			
 		]]>
 	</fx:Script>
 	
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
+
+	<s:layout>
+		<s:VerticalLayout gap="10" horizontalAlign="right"
+						  paddingLeft="15" paddingRight="15"
+						  paddingTop="15" paddingBottom="15" />
+	</s:layout>
 	
 	
 </s:Group>
