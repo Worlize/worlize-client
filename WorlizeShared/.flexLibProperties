@@ -23,6 +23,7 @@
     <classEntry path="com.worlize.components.visualnotification.VisualNotificationEvent"/>
     <classEntry path="com.worlize.components.visualnotification.VisualNotificationDisplaySkin"/>
     <classEntry path="com.worlize.components.visualnotification.VisualNotificationDisplay"/>
+    <classEntry path="com.worlize.interactivity.iptscrae.command.NOTIFICATIONCommand"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

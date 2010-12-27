@@ -1,15 +1,17 @@
 package com.worlize.interactivity.iptscrae
 {
-	import flash.external.ExternalInterface;
-	import flash.geom.Point;
-	import flash.utils.setTimeout;
-	
+	import com.worlize.components.visualnotification.VisualNotificationManager;
+	import com.worlize.components.visualnotification.VisualNotificationRequest;
 	import com.worlize.interactivity.model.CurrentRoom;
 	import com.worlize.interactivity.model.Hotspot;
 	import com.worlize.interactivity.model.InteractivityUser;
 	import com.worlize.interactivity.rpc.InteractivityClient;
 	import com.worlize.interactivity.util.WorlizeColorUtil;
 	import com.worlize.interactivity.view.SoundPlayer;
+	
+	import flash.external.ExternalInterface;
+	import flash.geom.Point;
+	import flash.utils.setTimeout;
 	
 	import org.openpalace.iptscrae.IptAlarm;
 	import org.openpalace.iptscrae.IptEngineEvent;
@@ -38,6 +40,13 @@ package com.worlize.interactivity.iptscrae
 		
 		private function handleTrace(event:IptEngineEvent):void {
 			logResult(event.message);
+		}
+		
+		public function notification(text:String, title:String):void {
+			var notification:VisualNotificationRequest = new VisualNotificationRequest();
+			notification.text = text;
+			notification.title = title;
+			VisualNotificationManager.getInstance().showNotification(notification);
 		}
 		
 		public function logError(message:String):void {

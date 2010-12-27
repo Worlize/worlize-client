@@ -32,6 +32,7 @@ package com.worlize.interactivity.iptscrae
 			"NBRDOORS": NBRDOORSCommand,
 			"NBRROOMUSERS": NBRROOMUSERSCommand,
 			"NBRSPOTS": NBRSPOTSCommand,
+			"NOTIFICATION": NOTIFICATIONCommand,
 			"POSX": POSXCommand,
 			"POSY": POSYCommand,
 			"PRIVATEMSG": PRIVATEMSGCommand,
