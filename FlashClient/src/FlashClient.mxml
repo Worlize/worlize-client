@@ -8,7 +8,7 @@
 	creationComplete="handleCreationComplete()"
 	xmlns:code="http://code.google.com/p/flexlib/"
 	xmlns:view="com.worlize.interactivity.view.*"
-	xmlns:local="*" xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:view1="com.worlize.view.*" xmlns:components="com.worlize.view.components.*">
+	xmlns:local="*" xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:view1="com.worlize.view.*" xmlns:components="com.worlize.view.components.*" xmlns:visualnotification="com.worlize.components.visualnotification.*">
 	<s:layout>
 		<s:BasicLayout/>
 	</s:layout>
@@ -230,5 +230,7 @@
 		</s:HGroup>
 
 	</s:HGroup>
+	
+	<visualnotification:VisualNotifier top="20" left="0" right="0" bottom="0" />
 	
 </s:Application>

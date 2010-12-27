@@ -21,6 +21,8 @@
     <classEntry path="com.worlize.components.visualnotification.VisualNotificationManager"/>
     <classEntry path="com.worlize.components.visualnotification.VisualNotifier"/>
     <classEntry path="com.worlize.components.visualnotification.VisualNotificationEvent"/>
+    <classEntry path="com.worlize.components.visualnotification.VisualNotificationDisplaySkin"/>
+    <classEntry path="com.worlize.components.visualnotification.VisualNotificationDisplay"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

@@ -85,7 +85,7 @@ package com.worlize.model
 		private function compareFunction(a:Object, b:Object, fields:Array = null):int {
 			var result:int = 0;
 			var i:int = 0;
-			var propList:Array = fields ? fields : ['userName'];
+			var propList:Array = fields ? fields : ['username'];
 			var len:int = propList.length;
 			var propName:String;
 			

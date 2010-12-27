@@ -3,6 +3,8 @@ package com.worlize.interactivity.rpc
 	import com.adobe.net.URI;
 	import com.adobe.serialization.json.JSON;
 	import com.worlize.command.GotoRoomCommand;
+	import com.worlize.components.visualnotification.VisualNotificationManager;
+	import com.worlize.components.visualnotification.VisualNotificationRequest;
 	import com.worlize.event.AuthorModeNotification;
 	import com.worlize.event.GotoRoomResultEvent;
 	import com.worlize.event.NotificationCenter;
@@ -18,6 +20,7 @@ package com.worlize.interactivity.rpc
 	import com.worlize.interactivity.model.RoomHistoryManager;
 	import com.worlize.interactivity.record.ChatRecord;
 	import com.worlize.interactivity.view.SoundPlayer;
+	import com.worlize.model.FriendsList;
 	import com.worlize.model.PreferencesManager;
 	import com.worlize.model.RoomDefinition;
 	import com.worlize.model.SimpleAvatarStore;
@@ -131,6 +134,8 @@ package com.worlize.interactivity.rpc
 		
 		private var temporaryUserFlags:int;
 		// We get the user flags before we have the current user
+		
+		public var notificationManager:VisualNotificationManager = VisualNotificationManager.getInstance();
 		
 		// States
 		public static const STATE_DISCONNECTED:int = 0;
@@ -264,11 +269,45 @@ package com.worlize.interactivity.rpc
 					case "object_removed":
 						handleObjectRemoved(data);
 						break;
+					case "friend_removed":
+						handleFriendRemoved(data);
+						break;
+					case "friend_added":
+						handleFriendAdded(data);
+						break;
+					case "new_friend_request":
+						handleNewFriendRequest(data);
+						break;
 					default:
 						trace("Unhandled message: " + JSON.encode(event.message));
 						break;
 				}
 			}
+		}
+		
+		private function handleFriendRemoved(data:Object):void {
+			var notification:VisualNotificationRequest = new VisualNotificationRequest(
+				data.user.username + " has been removed from your friends list.",
+				"Friend Removed"
+			);
+			notificationManager.showNotification(notification);
+		}
+		
+		private function handleFriendAdded(data:Object):void {
+			var notification:VisualNotificationRequest = new VisualNotificationRequest(
+				data.user.username + " has been added to your friends list!",
+				"Friendship Confirmed!"
+			);
+			notificationManager.showNotification(notification);
+		}
+		
+		private function handleNewFriendRequest(data:Object):void {
+			var notification:VisualNotificationRequest = new VisualNotificationRequest(
+				"You have received a friend request from " + data.user.username +".  " +
+				"View your friends list to confirm your new friendship.",
+				"Friend Request"
+			);
+			notificationManager.showNotification(notification);
 		}
 		
 		private function handleNewObject(data:Object):void {
@@ -975,13 +1014,7 @@ package com.worlize.interactivity.rpc
 			var user:InteractivityUser = currentRoom.getUserById(data.user);
 			user.color = data.color;
 		}
-		
-		private function handleUserRename(data:Object):void {
-			var user:InteractivityUser = currentRoom.getUserById(data.user);
-			var userName:String = data.username;
-			user.name = userName;
-		}
-		
+				
 		private function handleUserLeaving(data:Object):void {
 			var userId:String = String(data);
 			if (currentRoom.getUserById(userId) != null) {
