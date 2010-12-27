@@ -13,9 +13,8 @@
     <application path="TestFloatingPanel.mxml"/>
     <application path="TestBubble.mxml"/>
     <application path="FlashClient.mxml"/>
+    <application path="VisualNotificationTester.mxml"/>
   </applications>
   <modules/>
   <buildCSSFiles/>
 </actionScriptProperties>
-
-

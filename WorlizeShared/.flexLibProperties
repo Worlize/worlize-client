@@ -17,6 +17,10 @@
     <classEntry path="com.worlize.model.FriendsListEntry"/>
     <classEntry path="com.worlize.model.PendingFriendsListEntry"/>
     <classEntry path="com.worlize.notification.FriendsNotification"/>
+    <classEntry path="com.worlize.components.visualnotification.VisualNotificationRequest"/>
+    <classEntry path="com.worlize.components.visualnotification.VisualNotificationManager"/>
+    <classEntry path="com.worlize.components.visualnotification.VisualNotifier"/>
+    <classEntry path="com.worlize.components.visualnotification.VisualNotificationEvent"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>
