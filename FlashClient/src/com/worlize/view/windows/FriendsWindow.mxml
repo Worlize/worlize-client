@@ -38,6 +38,16 @@
 				return _open;
 			}
 			
+			
+			private static var lockCounter:int = 0;
+			public static function lockOpen():void {
+				lockCounter ++;
+			}
+			
+			public static function releaseLock():void {
+				lockCounter --;
+			}
+			
 			public static function open(parent:DisplayObject):void {
 				if (closedAt && closedAt.valueOf() > (new Date()).valueOf() - 200) {
 					return;
@@ -61,7 +71,8 @@
 			}
 			
 			public static function close():void {
-				if (_open && _instance) {
+				if (_open && _instance && lockCounter <= 0) {
+					lockCounter = 0;
 					PopUpManager.removePopUp(_instance);
 					_open = false;
 					_instance = null;

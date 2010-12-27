@@ -13,7 +13,10 @@
 			
 			import mx.collections.ArrayCollection;
 			import mx.controls.Alert;
+			import mx.controls.Menu;
+			import mx.events.CloseEvent;
 			import mx.events.FlexEvent;
+			import mx.events.MenuEvent;
 			
 			[Bindable]
 			private var client:InteractivityClient = InteractivityClient.getInstance();
@@ -26,6 +29,7 @@
 				if (_data !== newValue) {
 					if (newValue is FriendsListEntry) {
 						_data = FriendsListEntry(newValue);
+						updateMenu();
 					}
 					else {
 						_data = null;
@@ -37,6 +41,57 @@
 				return _data;
 			}
 			
+			private function visitFriend(data:FriendsListEntry):void {
+				client.gotoRoom(data.worldEntrance);
+				FriendsWindow.close();
+			}
+			
+			private var menu:Menu;
+			
+			private function updateMenu():void {
+				if (menu) {
+					menu.removeEventListener(MenuEvent.ITEM_CLICK, handleMenuItemClick);
+				}	
+				var menuData:Array = [
+					{ type: 'normal', label: 'Invite ' + _data.username + ' to come here.', action: 'invite' },
+					{ type: 'normal', label: 'Request to join ' + _data.username + '.', action: 'requestToJoin' },
+					{ type: 'separator' },
+					{ type: 'normal', label: 'Unfriend', action: 'unfriend' }
+				];
+				menu = Menu.createMenu(null, menuData, true);
+				menu.addEventListener(MenuEvent.ITEM_CLICK, handleMenuItemClick);
+				popUpButton.popUp = menu;
+			}
+			
+			private function handleMenuItemClick(event:MenuEvent):void {
+				if (!event.item || !event.item.action) { return; }
+				switch (event.item.action) {
+					case "invite":
+						break;
+					case "requestToJoin":
+						break;
+					case "unfriend":
+						unfriend();
+						break;
+					default:
+						break;
+				}
+			}
+			
+			private function unfriend():void {
+				FriendsWindow.lockOpen();
+				Alert.show("Are you sure you want to remove " + _data.username + " from your friends list?",
+						   "Unfriend " + _data.username,
+						   Alert.YES | Alert.NO,
+						   null,
+						   function(event:CloseEvent):void {
+							   if (event.detail == Alert.YES) {
+								   _data.unfriend();
+							   }
+							   FriendsWindow.releaseLock();
+						   }
+				);
+			}
 		]]>
 	</fx:Script>
 		
@@ -67,10 +122,9 @@
 		<s:Label fontFamily="Arial" width="100%"
 				 text="{_data.username}" />
 
-		<s:Button
-			label="Visit Worlz"
-			click="client.gotoRoom(_data.worldEntrance); FriendsWindow.close()" />
-		
+		<mx:PopUpButton id="popUpButton" label="Visit Worlz"
+						click="visitFriend(_data)" />
+				
 	</s:HGroup>
 	
 				
