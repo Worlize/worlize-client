@@ -43,7 +43,7 @@
 	
 	
 	<mx:columns>
-		<mx:DataGridColumn headerText="Username" dataField="userName" />
+		<mx:DataGridColumn headerText="Username" dataField="username" />
 		<mx:DataGridColumn headerText="Area" dataField="roomName" />
 	</mx:columns>
 </mx:DataGrid>

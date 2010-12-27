@@ -8,22 +8,24 @@ package com.worlize.model
 	
 	import mx.collections.ArrayCollection;
 	import mx.controls.Alert;
+	import mx.events.FlexEvent;
 	import mx.rpc.events.FaultEvent;
 
 	[Bindable]
 	public class PendingFriendsListEntry
 	{
-		public var userName:String;
+		private var _username:String;
+		
 		public var guid:String;
 		public var mutualFriends:ArrayCollection = new ArrayCollection();
 		
 		public static function fromData(data:Object):PendingFriendsListEntry {
 			var instance:PendingFriendsListEntry = new PendingFriendsListEntry();
-			instance.userName = data.username;
+			instance.username = data.username;
 			instance.guid = data.guid;
 			for each (var mutualFriendData:Object in data.mutual_friends) {
 				var mutualFriend:FriendsListEntry = new FriendsListEntry();
-				mutualFriend.userName = mutualFriendData.username;
+				mutualFriend.username = mutualFriendData.username;
 				mutualFriend.guid = mutualFriendData.guid;
 				instance.mutualFriends.addItem(mutualFriend);
 			}
@@ -31,12 +33,24 @@ package com.worlize.model
 		}
 		
 		public function toString():String {
-			return userName;
+			return username;
 		}
 		
+		[Bindable(event='usernameChange')]
+		public function set username(newValue:String):void {
+			if (_username != newValue) {
+				_username = newValue;
+				dispatchEvent(new FlexEvent('usernameChange'));
+			}
+		}
+		public function get username():String {
+			return _username;
+		}
+		
+		[Bindable(event='usernameChange')]
 		public function get capitalizedUsername():String {
-			var result:String = userName.charAt(0).toLocaleUpperCase();
-			result += userName.slice(1).toLocaleLowerCase();
+			var result:String = _username.charAt(0).toLocaleUpperCase();
+			result += _username.slice(1).toLocaleLowerCase();
 			return result;
 		}
 		
@@ -48,7 +62,7 @@ package com.worlize.model
 				NotificationCenter.postNotification(notification);
 			});
 			client.addEventListener(FaultEvent.FAULT, function(event:FaultEvent):void {
-				Alert.show("There was an known error while rejecting the pending friend request from " + userName);
+				Alert.show("There was an known error while rejecting the pending friend request from " + username);
 			});
 			client.send("/friends/" + guid + "/reject_friendship", HTTPMethod.POST);
 		}
@@ -60,7 +74,7 @@ package com.worlize.model
 				NotificationCenter.postNotification(notification);
 			});
 			client.addEventListener(FaultEvent.FAULT, function(event:FaultEvent):void {
-				Alert.show("There was an known error while accepting the pending friend request from " + userName);
+				Alert.show("There was an known error while accepting the pending friend request from " + username);
 			});
 			client.send("/friends/" + guid + "/accept_friendship", HTTPMethod.POST);
 		}
