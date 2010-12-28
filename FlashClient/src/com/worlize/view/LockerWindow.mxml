@@ -187,8 +187,10 @@
 				color.props="#000000"
 				click="currentState = 'props';"
 				label="Props" />
-			<mx:Spacer width="100%" />
 			-->
+			
+			<mx:Spacer width="100%" />
+			
 			<components:UploadProgressIndicator
 				uploader="{avatarUploader}" />
 			
