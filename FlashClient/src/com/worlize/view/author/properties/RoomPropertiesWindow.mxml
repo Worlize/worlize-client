@@ -20,6 +20,7 @@
 	
 	<fx:Script>
 		<![CDATA[
+			import com.worlize.event.AuthorModeNotification;
 			import com.worlize.event.NotificationCenter;
 			import com.worlize.interactivity.rpc.InteractivityClient;
 			import com.worlize.model.PreferencesManager;
@@ -94,7 +95,11 @@
 			}
 			
 			private function handleCreationComplete():void {
-				
+				NotificationCenter.addListener(AuthorModeNotification.AUTHOR_DISABLED, handleAuthorModeDisabled);
+			}
+			
+			private function handleAuthorModeDisabled(event:AuthorModeNotification):void {
+				close();
 			}
 			
 			private function save():void {

@@ -2,11 +2,10 @@ package com.worlize.state
 {
 	import com.worlize.event.AuthorModeNotification;
 	import com.worlize.event.NotificationCenter;
+	import com.worlize.interactivity.model.Hotspot;
 	
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
-	
-	import com.worlize.interactivity.model.Hotspot;
 
 	public class AuthorModeState extends EventDispatcher
 	{
@@ -30,6 +29,20 @@ package com.worlize.state
 				_instance = new AuthorModeState();
 			}
 			return _instance;
+		}
+		
+		public function enableAuthorMode():void {
+			if (!enabled) {
+				var notification:AuthorModeNotification = new AuthorModeNotification(AuthorModeNotification.AUTHOR_ENABLED);
+				NotificationCenter.postNotification(notification);
+			}
+		}
+		
+		public function disableAuthorMode():void {
+			if (enabled) {
+				var notification:AuthorModeNotification = new AuthorModeNotification(AuthorModeNotification.AUTHOR_DISABLED);
+				NotificationCenter.postNotification(notification);
+			}
 		}
 		
 		[Bindable(event="selectedItemChanged")]

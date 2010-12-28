@@ -3,8 +3,8 @@ package com.worlize.interactivity.rpc
 	import com.adobe.net.URI;
 	import com.adobe.serialization.json.JSON;
 	import com.worlize.command.GotoRoomCommand;
-	import com.worlize.components.visualnotification.VisualNotificationManager;
 	import com.worlize.components.visualnotification.VisualNotification;
+	import com.worlize.components.visualnotification.VisualNotificationManager;
 	import com.worlize.event.AuthorModeNotification;
 	import com.worlize.event.GotoRoomResultEvent;
 	import com.worlize.event.NotificationCenter;
@@ -483,6 +483,10 @@ package com.worlize.interactivity.rpc
 					currentRoom.name = room.name;
 					currentRoom.backgroundFile = room.backgroundImageURL;
 					canAuthor = event.resultJSON.data.can_author;
+					if (AuthorModeState.getInstance().enabled && !canAuthor) {
+						var authorModeNotificaton:AuthorModeNotification = new AuthorModeNotification(AuthorModeNotification.AUTHOR_DISABLED);
+						NotificationCenter.postNotification(authorModeNotificaton);
+					}
 					
 					if (shouldInsertHistory) {
 						roomHistoryManager.addItem(currentRoom.id, currentRoom.name, currentWorld.name);
