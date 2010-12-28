@@ -179,6 +179,7 @@
 				color.avatars="#000000"
 				click="currentState = 'avatars';"
 				label="Avatars" />
+			<!--
 			<mx:LinkButton
 				styleName="lockerNavButton"
 				icon="@Embed(source='src/assets/icons/icon_props.png')"
@@ -187,7 +188,7 @@
 				click="currentState = 'props';"
 				label="Props" />
 			<mx:Spacer width="100%" />
-			
+			-->
 			<components:UploadProgressIndicator
 				uploader="{avatarUploader}" />
 			
