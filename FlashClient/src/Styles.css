@@ -1,7 +1,6 @@
 /* CSS file */
 @namespace s "library://ns.adobe.com/flex/spark";
-@namespace mx "library://ns.adobe.com/flex/halo";
-@namespace mx1 "library://ns.adobe.com/flex/mx";
+@namespace mx "library://ns.adobe.com/flex/mx";
 
 @font-face {
 	src: url("assets/fonts/PT_Sans_Narrow_Bold.ttf");
@@ -82,14 +81,22 @@ s|TextInput.big {
 	fontSize: 14pt;
 }
 
-mx1|ToolTip {
+mx|ToolTip {
 	fontFamily: PTSansNarrowBold;
 	fontSize: 14pt;
 	backgroundColor: #FFFFFF;
 	cornerRadius: 0;
 }
 
-mx1|ProgressBar {
+mx|ProgressBar {
 	chrome-color: #333333;
 	color: #BBBBBB;
+}
+
+mx|Menu {
+	text-align: left;
+	paddingTop: 2px;
+	paddingBottom: 2px;
+	paddingLeft: 5px;
+	paddingRight: 5px;
 }

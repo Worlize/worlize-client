@@ -4,6 +4,11 @@
 				xmlns:mx="library://ns.adobe.com/flex/mx"
 				height="47" width="100%" autoDrawBackground="false">
 	
+	<s:states>
+		<s:State name="normal" />
+		<s:State name="hovered" />
+	</s:states>
+	
 	<fx:Script>
 		<![CDATA[
 			import com.worlize.interactivity.rpc.InteractivityClient;
@@ -52,12 +57,14 @@
 				if (menu) {
 					menu.removeEventListener(MenuEvent.ITEM_CLICK, handleMenuItemClick);
 				}	
-				var menuData:Array = [
-					{ type: 'normal', label: 'Invite ' + _data.username + ' to come here.', action: 'invite' },
-					{ type: 'normal', label: 'Request to join ' + _data.username + '.', action: 'requestToJoin' },
-					{ type: 'separator' },
-					{ type: 'normal', label: 'Unfriend', action: 'unfriend' }
-				];
+				var menuData:Array = [];
+				if (_data.online) {
+					menuData.push({ type: 'normal', label: 'Invite ' + _data.username + ' to join you', action: 'invite' });
+					menuData.push({ type: 'normal', label: 'Request permission to join ' + _data.username, action: 'requestToJoin' });
+					menuData.push({ type: 'separator' });
+				}
+				menuData.push({ type: 'normal', label: 'Remove Friend', action: 'unfriend' });
+				
 				menu = Menu.createMenu(null, menuData, true);
 				menu.addEventListener(MenuEvent.ITEM_CLICK, handleMenuItemClick);
 				popUpButton.popUp = menu;
@@ -67,8 +74,10 @@
 				if (!event.item || !event.item.action) { return; }
 				switch (event.item.action) {
 					case "invite":
+						inviteFriend();
 						break;
 					case "requestToJoin":
+						requestToJoin();
 						break;
 					case "unfriend":
 						unfriend();
@@ -76,6 +85,14 @@
 					default:
 						break;
 				}
+			}
+			
+			private function inviteFriend():void {
+				_data.invite();
+			}
+			
+			private function requestToJoin():void {
+				_data.requestToJoin();
 			}
 			
 			private function unfriend():void {
@@ -94,7 +111,12 @@
 			}
 		]]>
 	</fx:Script>
-		
+	
+	<s:Rect left="0" right="0" bottom="0" top="0">
+		<s:fill>
+			<s:SolidColor color="#FFFFFF" color.hovered="#e6e3db" />	
+		</s:fill>
+	</s:Rect>
 	
 	<s:Rect width="42" height="42"
 			top="2" left="2">
@@ -118,8 +140,8 @@
 			  source="@Embed(source='src/assets/icons/dot-offline.png')" />
 	
 	
-	<s:HGroup left="64" right="3" verticalCenter="0" verticalAlign="middle">
-		<s:Label fontFamily="Arial" width="100%"
+	<s:HGroup left="68" right="3" verticalCenter="0" verticalAlign="middle">
+		<s:Label fontFamily="Tuffy" width="100%"
 				 text="{_data.username}" />
 
 		<mx:PopUpButton id="popUpButton" label="Visit Worlz"

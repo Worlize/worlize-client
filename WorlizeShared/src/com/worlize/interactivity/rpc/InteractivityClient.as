@@ -21,6 +21,7 @@ package com.worlize.interactivity.rpc
 	import com.worlize.interactivity.record.ChatRecord;
 	import com.worlize.interactivity.view.SoundPlayer;
 	import com.worlize.model.FriendsList;
+	import com.worlize.model.FriendsListEntry;
 	import com.worlize.model.PreferencesManager;
 	import com.worlize.model.RoomDefinition;
 	import com.worlize.model.SimpleAvatarStore;
@@ -278,10 +279,70 @@ package com.worlize.interactivity.rpc
 					case "new_friend_request":
 						handleNewFriendRequest(data);
 						break;
+					case "invitation_to_join_friend":
+						handleInvitationToJoinFriend(data);
+						break;
+					case "request_permission_to_join":
+						handleRequestPermissionToJoin(data);
+						break;
+					case "permission_to_join_granted":
+						handlePermissionToJoinGranted(data);
+						break;
 					default:
 						trace("Unhandled message: " + JSON.encode(event.message));
 						break;
 				}
+			}
+		}
+		
+		private function handleInvitationToJoinFriend(data:Object):void {
+			if (data.room_guid === currentRoom.id) { return; }
+			Alert.show(data.user.username + " has invited you to come to \"" + data.room_name + "\" at " + data.world_name + ".  Would you like to teleport to " + data.user.username + "'s current location?",
+				"Invitation from " + data.user.username,
+				Alert.YES | Alert.NO | Alert.NONMODAL,
+				null,
+				function(event:CloseEvent):void {
+					if (event.detail == Alert.YES) {
+						gotoRoom(data.room_guid);
+					}
+				},
+				null,
+				Alert.YES
+			);
+		}
+		
+		private function handleRequestPermissionToJoin(data:Object):void {
+			var friend:FriendsListEntry = new FriendsListEntry();
+			friend.username = data.user.username;
+			friend.guid = data.user.guid;
+			friend.online = true;
+			
+			var token:String = data.invitation_token;
+			
+			Alert.show(data.user.username + " has requested permission to join you.  Would you like " + data.user.username + " to be teleported to your current location?",
+						"Request from " + data.user.username,
+						Alert.YES | Alert.NO | Alert.NONMODAL,
+						null,
+						function(event:CloseEvent):void {
+							if (event.detail == Alert.YES) {
+								friend.grantPermissionToJoin(token);
+							}
+						},
+						null,
+						Alert.YES
+			);
+		}
+		
+		private function handlePermissionToJoinGranted(data:Object):void {
+			var friendsList:FriendsList = FriendsList.getInstance();
+			if (friendsList.invitationTokenIsValid(data.invitation_token)) {
+				friendsList.consumeInvitationToken(data.invitation_token);
+				var notification:VisualNotificationRequest = new VisualNotificationRequest(
+					"Your request to join " + data.user.username + " was granted.  You are being teleported to their current location.",
+					"Request Granted"
+				);
+				notification.show();
+				gotoRoom(data.room_guid);
 			}
 		}
 		

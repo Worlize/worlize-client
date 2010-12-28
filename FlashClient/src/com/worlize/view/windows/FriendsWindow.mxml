@@ -7,7 +7,7 @@
 								 showTitle="false"
 								 showCloseButton="false"
 								 mouseDownOutside="handleMouseDownOutside(event)"
-								 width="375" minHeight="200" maxHeight="400" xmlns:code="http://code.google.com/p/flexlib/">
+								 width="300" minHeight="200" maxHeight="400" xmlns:code="http://code.google.com/p/flexlib/">
 	
 	<fx:Script>
 		<![CDATA[

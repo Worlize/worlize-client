@@ -28,6 +28,8 @@ package com.worlize.model
 		[Bindable]
 		public var friends:ArrayCollection = new ArrayCollection();
 		
+		private var invitationTokens:Object = {};
+		
 		public static function getInstance():FriendsList {
 			if (_instance === null) {
 				_instance = new FriendsList();
@@ -48,6 +50,32 @@ package com.worlize.model
 			
 			NotificationCenter.addListener(FriendsNotification.FRIEND_REQUEST_ACCEPTED, handleFriendRequestAccepted);
 			NotificationCenter.addListener(FriendsNotification.FRIEND_REQUEST_REJECTED, handleFriendRequestRejected);
+		}
+		
+		public function registerInvitationToken(token:String):void {
+			invitationTokens[token] = true;
+		}
+		
+		public function consumeInvitationToken(token:String):void {
+			delete invitationTokens[token];
+		}
+		
+		public function invitationTokenIsValid(token:String):Boolean {
+			if (invitationTokens[token]) {
+				return true;
+			}
+			return false;
+		}
+		
+		public function getFriendsListEntryByGuid(guid:String):FriendsListEntry {
+			for (var i:int = 0; i < friends.length; i++) {
+				var entry:Object = friends.getItemAt(i);
+				if (entry is PendingFriendsListEntry) { continue; }
+				if (FriendsListEntry(entry).guid == guid) {
+					return FriendsListEntry(entry);
+				}
+			}
+			return null;
 		}
 		
 		private function handleFriendRequestAccepted(notification:FriendsNotification):void {

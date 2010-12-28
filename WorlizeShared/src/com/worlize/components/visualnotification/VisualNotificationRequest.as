@@ -25,5 +25,9 @@ package com.worlize.components.visualnotification
 			this.clickCallback = callback;
 			this.duration = duration;
 		}
+		
+		public function show():void {
+			VisualNotificationManager.getInstance().showNotification(this);
+		}
 	}
 }
