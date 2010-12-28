@@ -1,7 +1,7 @@
 package com.worlize.interactivity.iptscrae
 {
 	import com.worlize.components.visualnotification.VisualNotificationManager;
-	import com.worlize.components.visualnotification.VisualNotificationRequest;
+	import com.worlize.components.visualnotification.VisualNotification;
 	import com.worlize.interactivity.model.CurrentRoom;
 	import com.worlize.interactivity.model.Hotspot;
 	import com.worlize.interactivity.model.InteractivityUser;
@@ -43,7 +43,7 @@ package com.worlize.interactivity.iptscrae
 		}
 		
 		public function notification(text:String, title:String):void {
-			var notification:VisualNotificationRequest = new VisualNotificationRequest();
+			var notification:VisualNotification = new VisualNotification();
 			notification.text = text;
 			notification.title = title;
 			VisualNotificationManager.getInstance().showNotification(notification);

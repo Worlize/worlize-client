@@ -4,7 +4,7 @@ package com.worlize.interactivity.rpc
 	import com.adobe.serialization.json.JSON;
 	import com.worlize.command.GotoRoomCommand;
 	import com.worlize.components.visualnotification.VisualNotificationManager;
-	import com.worlize.components.visualnotification.VisualNotificationRequest;
+	import com.worlize.components.visualnotification.VisualNotification;
 	import com.worlize.event.AuthorModeNotification;
 	import com.worlize.event.GotoRoomResultEvent;
 	import com.worlize.event.NotificationCenter;
@@ -337,7 +337,7 @@ package com.worlize.interactivity.rpc
 			var friendsList:FriendsList = FriendsList.getInstance();
 			if (friendsList.invitationTokenIsValid(data.invitation_token)) {
 				friendsList.consumeInvitationToken(data.invitation_token);
-				var notification:VisualNotificationRequest = new VisualNotificationRequest(
+				var notification:VisualNotification = new VisualNotification(
 					"Your request to join " + data.user.username + " was granted.  You are being teleported to their current location.",
 					"Request Granted"
 				);
@@ -347,7 +347,7 @@ package com.worlize.interactivity.rpc
 		}
 		
 		private function handleFriendRemoved(data:Object):void {
-			var notification:VisualNotificationRequest = new VisualNotificationRequest(
+			var notification:VisualNotification = new VisualNotification(
 				data.user.username + " has been removed from your friends list.",
 				"Friend Removed"
 			);
@@ -355,7 +355,7 @@ package com.worlize.interactivity.rpc
 		}
 		
 		private function handleFriendAdded(data:Object):void {
-			var notification:VisualNotificationRequest = new VisualNotificationRequest(
+			var notification:VisualNotification = new VisualNotification(
 				data.user.username + " has been added to your friends list!",
 				"Friendship Confirmed!"
 			);
@@ -363,7 +363,7 @@ package com.worlize.interactivity.rpc
 		}
 		
 		private function handleNewFriendRequest(data:Object):void {
-			var notification:VisualNotificationRequest = new VisualNotificationRequest(
+			var notification:VisualNotification = new VisualNotification(
 				"You have received a friend request from " + data.user.username +".  " +
 				"View your friends list to confirm your new friendship.",
 				"Friend Request"

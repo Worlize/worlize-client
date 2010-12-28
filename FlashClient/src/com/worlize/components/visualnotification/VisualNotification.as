@@ -2,7 +2,7 @@ package com.worlize.components.visualnotification
 {
 	import flash.utils.Timer;
 
-	public class VisualNotificationRequest
+	public class VisualNotification
 	{
 		[Bindable]
 		public var title:String;
@@ -18,7 +18,7 @@ package com.worlize.components.visualnotification
 		
 		internal var closing:Boolean = false;
 		
-		public function VisualNotificationRequest(text:String = null, title:String = null, callback:Function = null, duration:int = 6000)
+		public function VisualNotification(text:String = null, title:String = null, callback:Function = null, duration:int = 6000)
 		{
 			this.title = title;
 			this.text = text;

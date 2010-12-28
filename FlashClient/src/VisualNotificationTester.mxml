@@ -7,11 +7,11 @@
 	<fx:Script>
 		<![CDATA[
 			import com.worlize.components.visualnotification.VisualNotificationManager;
-			import com.worlize.components.visualnotification.VisualNotificationRequest;
+			import com.worlize.components.visualnotification.VisualNotification;
 			
 			import mx.controls.Alert;
 			private function postNotification():void {
-				var notification:VisualNotificationRequest = new VisualNotificationRequest(
+				var notification:VisualNotification = new VisualNotification(
 					notificationText.text,
 					notificationTitle.text,
 					handleNotificationClick,

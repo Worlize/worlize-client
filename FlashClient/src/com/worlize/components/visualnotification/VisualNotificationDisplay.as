@@ -28,16 +28,16 @@ package com.worlize.components.visualnotification
 		[SkinPart(required="false")]
 		public var closeButton:ButtonBase;
 		
-		private var _notification:VisualNotificationRequest;
+		private var _notification:VisualNotification;
 		
 		[Bindable(event="notificationChange")]
-		public function set notification(newValue:VisualNotificationRequest):void {
+		public function set notification(newValue:VisualNotification):void {
 			if (_notification !== newValue) {
 				_notification = newValue;
 				dispatchEvent(new FlexEvent("notificationChange"));
 			}
 		}
-		public function get notification():VisualNotificationRequest {
+		public function get notification():VisualNotification {
 			return _notification;
 		}
 		

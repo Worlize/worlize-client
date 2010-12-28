@@ -1,7 +1,7 @@
 package com.worlize.model
 {
 	import com.worlize.components.visualnotification.VisualNotificationManager;
-	import com.worlize.components.visualnotification.VisualNotificationRequest;
+	import com.worlize.components.visualnotification.VisualNotification;
 	import com.worlize.rpc.HTTPMethod;
 	import com.worlize.rpc.WorlizeResultEvent;
 	import com.worlize.rpc.WorlizeServiceClient;
@@ -55,7 +55,7 @@ package com.worlize.model
 			var client:WorlizeServiceClient = new WorlizeServiceClient();
 			client.addEventListener(WorlizeResultEvent.RESULT, function(event:WorlizeResultEvent):void {
 				if (event.resultJSON.success) {
-					var notification:VisualNotificationRequest = new VisualNotificationRequest(
+					var notification:VisualNotification = new VisualNotification(
 						"You have requested permission to join " + username + " at their current location.",
 						"Request Sent"
 					);
@@ -77,7 +77,7 @@ package com.worlize.model
 			var client:WorlizeServiceClient = new WorlizeServiceClient();
 			client.addEventListener(WorlizeResultEvent.RESULT, function(event:WorlizeResultEvent):void {
 				if (event.resultJSON.success) {
-					var notification:VisualNotificationRequest = new VisualNotificationRequest(
+					var notification:VisualNotification = new VisualNotification(
 						"You have invited " + username + " to join you.",
 						"Invitation Sent"
 					);
@@ -97,7 +97,7 @@ package com.worlize.model
 			var client:WorlizeServiceClient = new WorlizeServiceClient();
 			client.addEventListener(WorlizeResultEvent.RESULT, function(event:WorlizeResultEvent):void {
 				if (event.resultJSON.success) {
-					var notification:VisualNotificationRequest = new VisualNotificationRequest(
+					var notification:VisualNotification = new VisualNotification(
 						"You have granted permission to " + username + " to join you at your current location.",
 						"Permission Granted"
 					);

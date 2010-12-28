@@ -27,7 +27,7 @@ package com.worlize.components.visualnotification
 			}
 		}
 		
-		public function showNotification(notification:VisualNotificationRequest):void {
+		public function showNotification(notification:VisualNotification):void {
 			activeNotifications.push(notification);
 			notification.timer = new Timer(notification.duration, 1);
 			notification.timer.addEventListener(TimerEvent.TIMER, function(event:TimerEvent):void {
@@ -49,7 +49,7 @@ package com.worlize.components.visualnotification
 			dispatchEvent(showEvent);
 		}
 		
-		public function closeNotification(notification:VisualNotificationRequest):void {
+		public function closeNotification(notification:VisualNotification):void {
 			if (notification.closing) { return; }
 			notification.closing = true;
 			notification.timer.stop();
