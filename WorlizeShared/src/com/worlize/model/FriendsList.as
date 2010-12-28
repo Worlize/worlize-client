@@ -155,7 +155,7 @@ package com.worlize.model
 				Alert.show("There was an unknown error while loading the friends list.", "Error");
 				state = STATE_READY;
 			});
-			client.send('/friends', HTTPMethod.GET);
+			client.send('/friends.json', HTTPMethod.GET);
 		}	
 	}
 }

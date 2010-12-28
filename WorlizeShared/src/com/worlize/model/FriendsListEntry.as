@@ -45,7 +45,7 @@ package com.worlize.model
 			client.addEventListener(FaultEvent.FAULT, function(event:FaultEvent):void {
 				Alert.show("There was a fault encoutered when attempting to unfriend '" + username + "'");
 			});
-			client.send("/friends/" + guid, HTTPMethod.DELETE);
+			client.send("/friends/" + guid + ".json", HTTPMethod.DELETE);
 		}
 		
 		public function requestToJoin():void {
@@ -68,7 +68,7 @@ package com.worlize.model
 			client.addEventListener(FaultEvent.FAULT, function(event:FaultEvent):void {
 				Alert.show("There was a fault encountered when attempting to request permission to join '" + username + "'");
 			});
-			client.send("/friends/" + guid + "/request_to_join", HTTPMethod.POST, {
+			client.send("/friends/" + guid + "/request_to_join.json", HTTPMethod.POST, {
 				invitation_token: requestToken
 			});
 		}
@@ -90,7 +90,7 @@ package com.worlize.model
 			client.addEventListener(FaultEvent.FAULT, function(event:FaultEvent):void {
 				Alert.show("There was a fault encountered when attempting to invite '" + username + "'");
 			});
-			client.send("/friends/" + guid + "/invite_to_join", HTTPMethod.POST);
+			client.send("/friends/" + guid + "/invite_to_join.json", HTTPMethod.POST);
 		}
 		
 		public function grantPermissionToJoin(invitationToken:String):void {
@@ -110,7 +110,7 @@ package com.worlize.model
 			client.addEventListener(FaultEvent.FAULT, function(event:FaultEvent):void {
 				Alert.show("There was a fault encountered when attempting to grant permission to join '" + username + "'");
 			});
-			client.send("/friends/" + guid + "/grant_permission_to_join", HTTPMethod.POST, {
+			client.send("/friends/" + guid + "/grant_permission_to_join.json", HTTPMethod.POST, {
 				invitation_token: invitationToken
 			});
 		}
