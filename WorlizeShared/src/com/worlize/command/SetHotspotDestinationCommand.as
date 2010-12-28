@@ -12,7 +12,7 @@ package com.worlize.command
 		public function execute(roomGuid:String, hotspotGuid:String, destGuid:String):void {
 			var client:WorlizeServiceClient = new WorlizeServiceClient();
 			client.addEventListener(FaultEvent.FAULT, handleFault);
-			client.send("/rooms/" + roomGuid + "/hotspots/" + hotspotGuid, HTTPMethod.PUT, {
+			client.send("/rooms/" + roomGuid + "/hotspots/" + hotspotGuid + ".json", HTTPMethod.PUT, {
 				dest: destGuid
 			});
 		}

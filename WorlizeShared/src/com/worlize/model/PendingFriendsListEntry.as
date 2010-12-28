@@ -64,7 +64,7 @@ package com.worlize.model
 			client.addEventListener(FaultEvent.FAULT, function(event:FaultEvent):void {
 				Alert.show("There was an known error while rejecting the pending friend request from " + username);
 			});
-			client.send("/friends/" + guid + "/reject_friendship", HTTPMethod.POST);
+			client.send("/friends/" + guid + "/reject_friendship.json", HTTPMethod.POST);
 		}
 		public function acceptFriendShip():void {
 			var client:WorlizeServiceClient = new WorlizeServiceClient();
@@ -76,7 +76,7 @@ package com.worlize.model
 			client.addEventListener(FaultEvent.FAULT, function(event:FaultEvent):void {
 				Alert.show("There was an known error while accepting the pending friend request from " + username);
 			});
-			client.send("/friends/" + guid + "/accept_friendship", HTTPMethod.POST);
+			client.send("/friends/" + guid + "/accept_friendship.json", HTTPMethod.POST);
 		}
 	}
 }

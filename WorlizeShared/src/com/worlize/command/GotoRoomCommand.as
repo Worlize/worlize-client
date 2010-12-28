@@ -23,7 +23,7 @@ package com.worlize.command
 			var client:WorlizeServiceClient = new WorlizeServiceClient();
 			client.addEventListener(WorlizeResultEvent.RESULT, handleResult);
 			client.addEventListener(FaultEvent.FAULT, handleFault);
-			client.send('/rooms/' + roomGuid + '/enter', HTTPMethod.POST);
+			client.send('/rooms/' + roomGuid + '/enter.json', HTTPMethod.POST);
 		}
 		
 		private function handleResult(event:WorlizeResultEvent):void {

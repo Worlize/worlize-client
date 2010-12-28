@@ -28,7 +28,7 @@ package com.worlize.command
 			if (points) {
 				params['points'] = JSON.encode(points);
 			}
-			client.send("/rooms/" + roomGuid + "/hotspots/" + hotspotGuid, HTTPMethod.PUT, params);
+			client.send("/rooms/" + roomGuid + "/hotspots/" + hotspotGuid + ".json", HTTPMethod.PUT, params);
 		} 
 		
 		private function handleResult(event:WorlizeResultEvent):void {
