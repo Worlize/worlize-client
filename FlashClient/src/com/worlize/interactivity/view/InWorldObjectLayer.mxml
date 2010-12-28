@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 creationComplete="handleCreationComplete()"
+		 clipAndEnableScrolling="true">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.event.AuthorModeNotification;
+			import com.worlize.event.NotificationCenter;
+			import com.worlize.model.InWorldObjectInstance;
+			
+			import mx.collections.ArrayCollection;
+			import mx.events.CollectionEvent;
+			import mx.events.CollectionEventKind;
+			import mx.events.FlexEvent;
+			
+			private var viewsByInWorldObjectInstance:Dictionary = new Dictionary();
+			private var _inWorldObjects:ArrayCollection;
+			
+			[Bindable(event='inWorldObjectsChanged')]
+			public function set inWorldObjects(newValue:ArrayCollection):void {
+				if (_inWorldObjects !== newValue) {
+					if (_inWorldObjects !== null) {
+						_inWorldObjects.removeEventListener(CollectionEvent.COLLECTION_CHANGE, handleInWorldObjectsChange);
+					}
+					_inWorldObjects = newValue;
+					_inWorldObjects.addEventListener(CollectionEvent.COLLECTION_CHANGE, handleInWorldObjectsChange);
+					dispatchEvent(new FlexEvent('inWorldObjectsChanged'));
+				}
+			}
+			public function get inWorldObjects():ArrayCollection {
+				return _inWorldObjects;
+			}
+			
+			private function handleInWorldObjectsChange(event:CollectionEvent):void {
+				var inWorldObjectInstance:InWorldObjectInstance;
+				var view:InWorldObjectView;
+				if (event.kind == CollectionEventKind.ADD) {
+					for each (inWorldObjectInstance in event.items) {
+						view = new InWorldObjectView();
+						view.inWorldObjectInstance = inWorldObjectInstance;
+						viewsByInWorldObjectInstance[inWorldObjectInstance] = view;
+						addElement(view);
+					}
+				}
+				else if (event.kind == CollectionEventKind.REMOVE) {
+					for each (inWorldObjectInstance in event.items) {
+						view = viewsByInWorldObjectInstance[inWorldObjectInstance];
+						if (view) {
+							removeElement(view);
+							delete viewsByInWorldObjectInstance[inWorldObjectInstance];
+						}
+					}
+				}
+				else if (event.kind == CollectionEventKind.RESET) {
+					removeAllElements();
+					viewsByInWorldObjectInstance = new Dictionary();
+				}
+			}
+			
+			private function handleCreationComplete():void {
+				NotificationCenter.addListener(AuthorModeNotification.AUTHOR_ENABLED, handleAuthorEnabled);
+				NotificationCenter.addListener(AuthorModeNotification.AUTHOR_DISABLED, handleAuthorDisabled);
+				NotificationCenter.addListener(AuthorModeNotification.SELECTED_ITEM_CHANGED, handleSelectedItemChanged);
+			}
+			
+			private function handleAuthorEnabled(notification:AuthorModeNotification):void {
+				
+			}
+			private function handleAuthorDisabled(notification:AuthorModeNotification):void {
+				for (var i:int = 0; i < numElements; i++) {
+					var view:InWorldObjectView = InWorldObjectView(getElementAt(i));
+					view.alpha = 1.0;
+				}
+			}
+			private function handleSelectedItemChanged(notification:AuthorModeNotification):void {
+				for (var i:int = 0; i < numElements; i++) {
+					var view:InWorldObjectView =
+						InWorldObjectView(getElementAt(i));
+					if (view.inWorldObjectInstance === notification.newValue) {
+						view.alpha = 0.5;
+					}
+					else {
+						view.alpha = 1.0;
+					}
+				}
+			}
+		]]>
+	</fx:Script>
+</s:Group>

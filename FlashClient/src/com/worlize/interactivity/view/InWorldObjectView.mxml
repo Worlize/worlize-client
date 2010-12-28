@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Image xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" 
+		  xmlns:mx="library://ns.adobe.com/flex/mx"
+		  source="{inWorldObjectInstance.inWorldObject.fullsizeURL}"
+		  creationComplete="handleCreationComplete()"
+		  addedToStage="handleAddedToStage()"
+		  removedFromStage="handleRemovedFromStage()"
+		  mouseDown="handleMouseDown(event)"
+		  mouseOver="handleMouseOver(event)"
+		  mouseOut="handleMouseOut(event)"
+		  x="{inWorldObjectInstance.x - (width/2)}"
+		  y="{inWorldObjectInstance.y - (height/2)}">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.event.AuthorModeNotification;
+			import com.worlize.event.NotificationCenter;
+			import com.worlize.interactivity.rpc.InteractivityClient;
+			import com.worlize.model.InWorldObjectInstance;
+			import com.worlize.model.RoomDefinition;
+			import com.worlize.state.AuthorModeState;
+			
+			import mx.events.FlexEvent;
+			[Bindable]
+			public var inWorldObjectInstance:InWorldObjectInstance;
+			
+			[Bindable]
+			private var _authorMode:Boolean = false;
+			
+			private var dragging:Boolean = false;
+			
+			private var startPoint:Point;
+			private var startMousePos:Point;
+			private var mousePos:Point;
+			
+			[Bindable(event="authorModeChanged")]
+			public function set authorMode(newValue:Boolean):void {
+				if (_authorMode != newValue) {
+					_authorMode = newValue;
+					dispatchEvent(new FlexEvent('authorModeChanged'));
+				}
+			}
+			public function get authorMode():Boolean {
+				return _authorMode;
+			}
+			
+			private function handleCreationComplete():void {
+				
+			}
+			
+			private function handleAddedToStage():void {
+				NotificationCenter.addListener(AuthorModeNotification.AUTHOR_ENABLED, handleAuthorModeEnabled);
+				NotificationCenter.addListener(AuthorModeNotification.AUTHOR_DISABLED, handleAuthorModeDisabled);
+				authorMode = AuthorModeState.getInstance().enabled;
+			}
+			
+			private function handleRemovedFromStage():void {
+				NotificationCenter.removeListener(AuthorModeNotification.AUTHOR_ENABLED, handleAuthorModeEnabled);
+				NotificationCenter.removeListener(AuthorModeNotification.AUTHOR_DISABLED, handleAuthorModeDisabled);
+			}
+			
+			private function handleAuthorModeEnabled(notification:AuthorModeNotification):void {
+				authorMode = true;
+			}
+			
+			private function handleAuthorModeDisabled(notification:AuthorModeNotification):void {
+				authorMode = false;
+			}
+			
+			private function handleMouseOver(event:MouseEvent):void {
+				if (_authorMode) {
+					Mouse.cursor = MouseCursor.HAND;
+				}
+				else if (inWorldObjectInstance.dest) {
+					Mouse.cursor = MouseCursor.BUTTON;
+				}
+			}
+			
+			private function handleMouseOut(event:MouseEvent):void {
+				if (_authorMode || inWorldObjectInstance.dest) {
+					Mouse.cursor = MouseCursor.ARROW;
+				}
+			}
+			
+			private function handleMouseDown(event:MouseEvent):void {
+				if (_authorMode) {
+					dragging = true;
+					systemManager.getSandboxRoot().addEventListener(MouseEvent.MOUSE_UP, handleStageMouseUp);
+					systemManager.getSandboxRoot().addEventListener(MouseEvent.MOUSE_MOVE, handleStageMouseMove);
+					event.stopImmediatePropagation();
+					AuthorModeState.getInstance().selectedItem = this.inWorldObjectInstance;
+					startPoint = new Point(inWorldObjectInstance.x, inWorldObjectInstance.y);
+					startMousePos = new Point(stage.mouseX, stage.mouseY);
+					mousePos = new Point(stage.mouseX, stage.mouseY);
+				}
+				else if (inWorldObjectInstance.dest) {
+					InteractivityClient.getInstance().gotoRoom(inWorldObjectInstance.dest);
+				}
+			}
+			
+			private function handleStageMouseUp(event:MouseEvent):void {
+				dragging = false;
+				systemManager.getSandboxRoot().removeEventListener(MouseEvent.MOUSE_UP, handleStageMouseUp);
+				systemManager.getSandboxRoot().removeEventListener(MouseEvent.MOUSE_MOVE, handleStageMouseMove);
+				
+				if (startPoint.x != inWorldObjectInstance.x ||
+					startPoint.y != inWorldObjectInstance.y)
+				{
+					var roomDefinition:RoomDefinition = new RoomDefinition();
+					roomDefinition.guid = inWorldObjectInstance.room.guid 
+					roomDefinition.moveObjectInstance(inWorldObjectInstance.guid, inWorldObjectInstance.x, inWorldObjectInstance.y);
+				}
+			}
+			
+			private function handleStageMouseMove(event:MouseEvent):void {
+				if (dragging) {
+					mousePos.x = stage.mouseX;
+					mousePos.y = stage.mouseY;
+					
+					var destx:int = startPoint.x + (mousePos.x - startMousePos.x);
+					var desty:int = startPoint.y + (mousePos.y - startMousePos.y);
+					
+					if (destx < 0) {
+						destx = 0;
+					}
+					if (desty < 0) {
+						desty = 0;
+					}
+					if (destx > 950) {
+						destx = 950;
+					}
+					if (desty > (570-26)) {
+						desty = 570-26;
+					}
+					
+					inWorldObjectInstance.x = destx;
+					inWorldObjectInstance.y = desty;
+				}
+			}
+		]]>
+	</fx:Script>
+</mx:Image>
