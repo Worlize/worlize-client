@@ -131,6 +131,9 @@ package com.worlize.interactivity.rpc
 		[Bindable]
 		public var canAuthor:Boolean = false;
 		
+		[Bindable]
+		public var friendsList:FriendsList = FriendsList.getInstance();
+		
 		private var expectingDisconnect:Boolean = false;
 		
 		private var temporaryUserFlags:int;
@@ -276,6 +279,9 @@ package com.worlize.interactivity.rpc
 					case "friend_added":
 						handleFriendAdded(data);
 						break;
+					case "friend_request_accepted":
+						handleFriendRequestAccepted(data);
+						break;
 					case "new_friend_request":
 						handleNewFriendRequest(data);
 						break;
@@ -347,11 +353,14 @@ package com.worlize.interactivity.rpc
 		}
 		
 		private function handleFriendRemoved(data:Object):void {
-			var notification:VisualNotification = new VisualNotification(
-				data.user.username + " has been removed from your friends list.",
-				"Friend Removed"
-			);
-			notificationManager.showNotification(notification);
+			if (data.show_notification) {
+				var notification:VisualNotification = new VisualNotification(
+					data.user.username + " has been removed from your friends list.",
+					"Friend Removed"
+				);
+				notificationManager.showNotification(notification);
+			}
+			friendsList.removeFriendFromListByGuid(data.user.guid);
 		}
 		
 		private function handleFriendAdded(data:Object):void {
@@ -360,6 +369,11 @@ package com.worlize.interactivity.rpc
 				"Friendship Confirmed!"
 			);
 			notificationManager.showNotification(notification);
+		}
+		
+		private function handleFriendRequestAccepted(data:Object):void {
+			var friend:FriendsListEntry = FriendsListEntry.fromData(data.user);
+			friendsList.friends.addItem(friend);
 		}
 		
 		private function handleNewFriendRequest(data:Object):void {

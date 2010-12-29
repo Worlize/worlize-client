@@ -114,7 +114,7 @@
 	
 	<s:Rect left="0" right="0" bottom="0" top="0">
 		<s:fill>
-			<s:SolidColor color="#FFFFFF" color.hovered="#e6e3db" />	
+			<s:SolidColor color="#FFFFFF" />	
 		</s:fill>
 	</s:Rect>
 	
@@ -131,12 +131,19 @@
 	<mx:Image width="40" height="40" top="3" left="3" 
 			  source="@Embed(source='src/assets/icons/unknown_user.png')" />
 	
+	
+	<!-- In this circumstance we can't use the visible property because of a
+	     Flex bug.  The item renderer has its data property set to null when
+	     it's being recycled, which happens when the renderer is not on the
+	     stage.  Changing the visibility depends on the component having an
+	     active reference to the stage
+	-->
 	<mx:Image id="onlineDot" left="48" verticalCenter="0" width="13" height="13"
-			  visible="{_data.online}"
+			  alpha="{_data.online ? 1.0 : 0.0}"
 			  source="@Embed(source='src/assets/icons/dot-online.png')" />
 	
 	<mx:Image id="offlineDot" left="48" verticalCenter="0" width="13" height="13"
-			  visible="{!_data.online}"
+			  alpha="{_data.online ? 0.0 : 1.0}"
 			  source="@Embed(source='src/assets/icons/dot-offline.png')" />
 	
 	

@@ -1,5 +1,6 @@
 package com.worlize.model
 {
+	import com.worlize.event.FriendsListEvent;
 	import com.worlize.event.NotificationCenter;
 	import com.worlize.notification.FriendsNotification;
 	import com.worlize.rpc.HTTPMethod;
@@ -13,6 +14,7 @@ package com.worlize.model
 	import mx.collections.Sort;
 	import mx.collections.SortField;
 	import mx.controls.Alert;
+	import mx.events.FlexEvent;
 	import mx.rpc.events.FaultEvent;
 	
 	public class FriendsList extends EventDispatcher
@@ -22,11 +24,25 @@ package com.worlize.model
 		public static const STATE_READY:String = "ready";
 		public static const STATE_LOADING:String = "loading";
 		
-		[Bindable]
-		public var state:String = STATE_READY; 
+		private var _state:String = STATE_READY;
+		
+		[Bindable(event="stateChange")]
+		public function set state(newValue:String):void {
+			if (_state !== newValue) {
+				_state = newValue;
+				dispatchEvent(new FlexEvent('stateChange'));
+			}
+		}
+		public function get state():String {
+			return _state;
+		}
 		
 		[Bindable]
 		public var friends:ArrayCollection = new ArrayCollection();
+		
+		[Bindable]
+		public var friendRequests:ArrayCollection = new ArrayCollection();
+		
 		
 		private var invitationTokens:Object = {};
 		
@@ -45,13 +61,27 @@ package com.worlize.model
 			}
 			
 			var sort:Sort = new Sort();
-			sort.compareFunction = compareFunction;
+			sort.fields = [
+				new SortField('online', false, true),
+				new SortField('username', true)
+			];
 			friends.sort = sort;
+			
+			sort = new Sort();
+			sort.fields = [
+				new SortField('username', true)
+			];
+			friendRequests.sort = sort;
 			
 			NotificationCenter.addListener(FriendsNotification.FRIEND_REQUEST_ACCEPTED, handleFriendRequestAccepted);
 			NotificationCenter.addListener(FriendsNotification.FRIEND_REQUEST_REJECTED, handleFriendRequestRejected);
+			
+			load();
 		}
 		
+		/* Invitation tokens prevent someone from wisking you away
+		   to a place of their choosing if you didn't request to join them
+		*/
 		public function registerInvitationToken(token:String):void {
 			invitationTokens[token] = true;
 		}
@@ -70,12 +100,21 @@ package com.worlize.model
 		public function getFriendsListEntryByGuid(guid:String):FriendsListEntry {
 			for (var i:int = 0; i < friends.length; i++) {
 				var entry:Object = friends.getItemAt(i);
-				if (entry is PendingFriendsListEntry) { continue; }
 				if (FriendsListEntry(entry).guid == guid) {
 					return FriendsListEntry(entry);
 				}
 			}
 			return null;
+		}
+		
+		public function removeFriendFromListByGuid(guid:String):void {
+			for (var i:int = 0; i < friends.length; i++) {
+				var entry:FriendsListEntry = FriendsListEntry(friends.getItemAt(i));
+				if (entry.guid == guid) {
+					friends.removeItemAt(i);
+					return;
+				}
+			}
 		}
 		
 		private function handleFriendRequestAccepted(notification:FriendsNotification):void {
@@ -86,68 +125,44 @@ package com.worlize.model
 			load();
 		}
 		
-		private function compareValues(a:Object, b:Object):int {
-			if (a == null && b == null)
-				return 0;
-			
-			if (a == null)
-				return 1;
-			
-			if (b == null)
-				return -1;
-			
-			if (a is String && b is String) {
-				a = String(a).toLocaleUpperCase();
-				b = String(b).toLocaleUpperCase();
-			}
-			
-			if (a < b)
-				return -1;
-			
-			if (a > b)
-				return 1;
-			
-			return 0;
-		}
-		
-		private function compareFunction(a:Object, b:Object, fields:Array = null):int {
-			var result:int = 0;
-			var i:int = 0;
-			var propList:Array = fields ? fields : ['username'];
-			var len:int = propList.length;
-			var propName:String;
-			
-			if (a is PendingFriendsListEntry && b is FriendsListEntry) {
-				return -1;
-			}
-			else if (a is FriendsListEntry && b is PendingFriendsListEntry) {
-				return 1;
-			}
-			
-			while (result == 0 && (i < len))
-			{
-				propName = propList[i];
-				result = compareValues(a[propName], b[propName]);
-				i++;
-			}
-			return result;
-		}
-		
 		public function load():void {
 			state = STATE_LOADING;
 			var client:WorlizeServiceClient = new WorlizeServiceClient();
 			client.addEventListener(WorlizeResultEvent.RESULT, function(event:WorlizeResultEvent):void {
 				if (event.resultJSON.success) {
-					friends.removeAll();
+					var seenGuids:Object = {};
+					
 					for each (var friendData:Object in event.resultJSON.data.friends) {
-						var entry:FriendsListEntry = FriendsListEntry.fromData(friendData);
-						friends.addItem(entry);
+						seenGuids[friendData.guid] = true;
+						var entry:FriendsListEntry = getFriendsListEntryByGuid(friendData.guid);
+						if (entry) {
+							entry.updateFromData(friendData);
+						}
+						else {
+							entry = FriendsListEntry.fromData(friendData);
+							friends.addItem(entry);
+						}
 					}
+					
+					// Remove any unknown items from the old list
+					for each (friendData in friends) {
+						if (!seenGuids[FriendsListEntry(friendData).guid]) {
+							var index:int = friends.getItemIndex(friendData);
+							if (index != -1) {
+								friends.removeItemAt(index);
+							}
+						}
+					}
+					
+					friendRequests.removeAll();
 					for each (var pendingFriendData:Object in event.resultJSON.data.pending_friends) {
 						var pendingFriendEntry:PendingFriendsListEntry = PendingFriendsListEntry.fromData(pendingFriendData);
-						friends.addItem(pendingFriendEntry);
+						friendRequests.addItem(pendingFriendEntry);
 					}
 					friends.refresh();
+					friendRequests.refresh();
+					var completeEvent:FriendsListEvent = new FriendsListEvent(FriendsListEvent.LOAD_COMPLETE);
+					dispatchEvent(completeEvent);
 				}
 				state = STATE_READY;
 			});

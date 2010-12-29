@@ -28,23 +28,31 @@
 			import com.worlize.interactivity.event.ChatEvent;
 			import com.worlize.interactivity.event.InteractivitySecurityErrorEvent;
 			import com.worlize.interactivity.event.RoomEvent;
+			import com.worlize.interactivity.iptscrae.command.CLIENTTYPECommand;
 			import com.worlize.interactivity.model.ChatMessage;
 			import com.worlize.interactivity.model.CurrentRoom;
 			import com.worlize.interactivity.model.Hotspot;
 			import com.worlize.interactivity.model.InteractivityConfig;
 			import com.worlize.interactivity.model.InteractivityUser;
 			import com.worlize.interactivity.rpc.InteractivityClient;
+			import com.worlize.model.FriendsList;
+			import com.worlize.model.FriendsListEntry;
 			import com.worlize.model.RoomDefinition;
+			import com.worlize.model.userSearch.UserSearchResultLineItem;
 			import com.worlize.state.AuthorModeState;
 			
 			import mx.binding.utils.ChangeWatcher;
 			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.controls.Menu;
 			import mx.core.DragSource;
 			import mx.core.FlexBitmap;
 			import mx.core.IUIComponent;
 			import mx.core.IVisualElement;
+			import mx.events.CloseEvent;
 			import mx.events.DragEvent;
 			import mx.events.EffectEvent;
+			import mx.events.MenuEvent;
 			import mx.events.PropertyChangeEvent;
 			import mx.managers.DragManager;
 			
@@ -221,18 +229,77 @@
 
 			private function handleAvatarMouseDown(event:MouseEvent):void {
 				if (event.currentTarget is Avatar) {
-					var user:InteractivityUser = Avatar(event.currentTarget).user;
-					trace("Clicked avatar " + user.id + " - self is " + room.selfUserId);
-					if (user.isSelf) {
-						room.selectedUser = null;
-					}
-					else if (room.selectedUser != user) {
-						room.selectedUser = user;
-					}
-					else if (room.selectedUser == user) {
-						room.selectedUser = null;
-					}
 					event.stopPropagation();
+					
+					var user:InteractivityUser = Avatar(event.currentTarget).user;
+					if (user.id == room.selfUserId) {
+						return;
+					}
+					
+					var menuData:Array = [];
+					if (room.selectedUser != user) {
+						menuData.push({ type: 'normal', label: 'Whisper to ' + user.name, action: 'whisper', user: user});
+					}
+					else {
+						menuData.push({ type: 'normal', label: 'Stop whispering to ' + user.name, action: 'stopWhispering', user: user});
+					}
+					
+					if (FriendsList.getInstance().getFriendsListEntryByGuid(user.id)) {
+						// already friends...
+						menuData.push({ type: 'normal', label: 'Remove ' + user.name + ' as friend', action: 'removeFriend', user: user});
+					}
+					else {
+						menuData.push({ type: 'normal', label: 'Add ' + user.name + ' as friend', action: 'addFriend', user: user}); 
+					}
+					
+					var menu:Menu = Menu.createMenu(null, menuData, true);
+					menu.addEventListener(MenuEvent.ITEM_CLICK, handleUserContextMenuItemClick);
+					menu.show(stage.mouseX, stage.mouseY);
+					
+//					else if (room.selectedUser != user) {
+//						room.selectedUser = user;
+//					}
+//					else if (room.selectedUser == user) {
+//						room.selectedUser = null;
+//					}
+				}
+			}
+			
+			private function handleUserContextMenuItemClick(event:MenuEvent):void {
+				var interactivityUser:InteractivityUser;
+				switch (event.item.action) {
+					case "whisper":
+						interactivityUser = InteractivityUser(event.item.user);
+						room.selectedUser = interactivityUser;
+						break;
+					case "stopWhispering":
+						room.selectedUser = null;
+						break;
+					case "removeFriend":
+						interactivityUser = InteractivityUser(event.item.user);
+						var friend:FriendsListEntry = FriendsList.getInstance().getFriendsListEntryByGuid(interactivityUser.id);
+						if (friend) {
+							Alert.show("Are you sure you want to remove " + friend.username + " from your friends list?",
+								"Unfriend " + friend.username,
+								Alert.YES | Alert.NO,
+								null,
+								function(event:CloseEvent):void {
+									if (event.detail == Alert.YES) {
+										friend.unfriend();
+									}
+								}
+							);
+						}
+						break;
+					case "addFriend":
+						interactivityUser = InteractivityUser(event.item.user);
+						var userSearchResult:UserSearchResultLineItem = new UserSearchResultLineItem();
+						userSearchResult.username = interactivityUser.name;
+						userSearchResult.guid = interactivityUser.id;
+						userSearchResult.addAsFriend();
+						break;
+					default:
+						break;
 				}
 			}
 			

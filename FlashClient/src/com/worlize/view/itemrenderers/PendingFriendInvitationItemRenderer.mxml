@@ -57,7 +57,7 @@
 		
 	<s:Rect left="0" right="0" bottom="0" top="0">
 		<s:fill>
-			<s:SolidColor color="#d2ebbe" color.hovered="#e6e3db" />	
+			<s:SolidColor color="#d2ebbe" />	
 		</s:fill>
 	</s:Rect>
 	
@@ -77,7 +77,7 @@
 	<s:HGroup left="48" right="3" verticalCenter="0" verticalAlign="middle">
 		<s:VGroup width="100%">
 			<s:Label fontFamily="Arial" width="100%"
-					 text="{_data.capitalizedUsername} wants to be your friend!" />
+					 text="{_data.capitalizedUsername}" />
 		</s:VGroup>
 	
 		<s:Button

@@ -7,8 +7,10 @@
 								 showTitle="false"
 								 showCloseButton="false"
 								 mouseDownOutside="handleMouseDownOutside(event)"
+								 creationComplete="handleCreationComplete()"
+								 removedFromStage="handleRemovedFromStage()"
 								 currentState="myFriends"
-								 width="300" minHeight="200" maxHeight="400" xmlns:code="http://code.google.com/p/flexlib/" xmlns:layout="flexlib.scheduling.scheduleClasses.layout.*">
+								 width="300" xmlns:code="http://code.google.com/p/flexlib/" xmlns:layout="flexlib.scheduling.scheduleClasses.layout.*" xmlns:controls="controls.*">
 	
 	<components:states>
 		<s:State name="myFriends" />
@@ -17,15 +19,16 @@
 	
 	<fx:Script>
 		<![CDATA[
+			import com.worlize.event.FriendsListEvent;
 			import com.worlize.model.FriendsList;
 			import com.worlize.model.FriendsListEntry;
 			import com.worlize.model.PendingFriendsListEntry;
 			import com.worlize.view.itemrenderers.FriendListItemRenderer;
 			import com.worlize.view.itemrenderers.PendingFriendInvitationItemRenderer;
+			import com.worlize.view.skins.DynamicHeightListSkin;
 			
 			import mx.events.CloseEvent;
 			import mx.managers.PopUpManager;
-			import mx.utils.object_proxy;
 			
 			import spark.skins.spark.DefaultItemRenderer;
 			
@@ -35,6 +38,33 @@
 			
 			[Bindable]
 			private var friendsList:FriendsList = FriendsList.getInstance();
+						
+			private function handleCreationComplete():void {
+				friendsList.addEventListener('stateChange', handleFriendsListStateChange);
+				if (friendsList.state == FriendsList.STATE_LOADING) {
+					loadingSpinner.visible = true;
+					loadingSpinner.play();
+				}
+			}
+			
+			private function handleRemovedFromStage():void {
+				friendsList.removeEventListener('stateChange', handleFriendsListStateChange);
+				loadingSpinner.visible = false;
+				loadingSpinner.stop();
+			}
+			
+			private function handleFriendsListStateChange(event:Event):void {
+				if (friendsList.state == FriendsList.STATE_LOADING) {
+					trace("Showing spinner.");
+					loadingSpinner.visible = true;
+					loadingSpinner.play();
+				}
+				else {
+					trace("Hiding spinner.");
+					loadingSpinner.stop();
+					loadingSpinner.visible = false;
+				}
+			}
 			
 			private function handleMouseDownOutside(event:MouseEvent):void {
 				FriendsWindow.close();
@@ -43,7 +73,6 @@
 			public static function get isOpen():Boolean {
 				return _open;
 			}
-			
 			
 			private static var lockCounter:int = 0;
 			public static function lockOpen():void {
@@ -86,18 +115,6 @@
 				}
 			}
 			
-			private function selectFriendsListItemRenderer(item:Object):ClassFactory {
-				if (item is FriendsListEntry) {
-					return new ClassFactory(FriendListItemRenderer);
-				}
-				else if (item is PendingFriendsListEntry) {
-					return new ClassFactory(PendingFriendInvitationItemRenderer);
-				}
-				else {
-					return new ClassFactory(DefaultItemRenderer);
-				}
-			}
-
 		]]>
 	</fx:Script>
 	
@@ -107,21 +124,31 @@
 	</fx:Declarations>
 	
 	<s:VGroup width="100%" gap="0">
-		<s:HGroup gap="0"
+		<s:HGroup gap="0" width="100%"
 				  paddingBottom="3" paddingTop="3"
-				  paddingLeft="1" paddingRight="1">
+				  paddingLeft="1" paddingRight="5"
+				  verticalAlign="middle">
 			<mx:LinkButton
 				styleName="friendsNavButton"
-				color="#c18a13"
-				color.myFriends="#000000"
+				color="#000000"
+				color.myFriends="#c18a13"
 				click="currentState = 'myFriends';"
 				label="My Friends" />
 			<mx:LinkButton
 				styleName="friendsNavButton"
-				color="#c18a13"
-				color.findFriends="#000000"
+				color="#000000"
+				color.findFriends="#c18a13"
 				click="currentState = 'findFriends';"
 				label="Search" />
+			<mx:Spacer width="100%" />
+			<controls:Spinner id="loadingSpinner"
+							  visible="false"
+							  autoPlay="false"
+							  mouseEnabled="false"
+							  mouseChildren="false"
+							  size="19" numTicks="9"
+							  tickWidth="2" speed="600"
+							  fadeSpeed="600" tickColor="#444444" />
 		</s:HGroup>
 		<s:Line width="100%">
 			<s:stroke>
@@ -129,19 +156,89 @@
 			</s:stroke>
 		</s:Line>
 		
-		<s:List height="250" width="100%" includeIn="myFriends"
-				dataProvider="{friendsList.friends}"
-				borderVisible="false"
-				itemRendererFunction="selectFriendsListItemRenderer" />
+		<s:VGroup width="100%" includeIn="myFriends" gap="0">
+
+			<s:VGroup width="100%" gap="0"
+					  visible="{friendsList.friendRequests.length > 0}"
+					  includeInLayout="{friendsList.friendRequests.length > 0}">
+				<s:Group width="100%">
+					<s:Rect top="0" left="0" right="0" bottom="0">
+						<s:fill>
+							<s:SolidColor color="#8dc85d" />
+						</s:fill>
+					</s:Rect>
+					<s:Label left="6" top="8" bottom="6"
+							 fontFamily="PTSansNarrowBold"
+							 fontSize="14" color="#000000"
+							 text="Friend Requests" />
+				</s:Group>
+				
+				<components:DynamicHeightList
+					width="100%"
+					dataProvider="{friendsList.friendRequests}"
+					maxRowCount="3"
+					borderVisible="false"
+					itemRenderer="com.worlize.view.itemrenderers.PendingFriendInvitationItemRenderer" />
+			</s:VGroup>
+			
+			<s:VGroup width="100%" gap="0"
+					  visible="{friendsList.friends.length > 0}"
+					  includeInLayout="{friendsList.friends.length > 0}">
+
+				<s:Group width="100%">
+					<s:Rect top="0" left="0" right="0" bottom="0">
+						<s:fill>
+							<s:SolidColor color="#90d1ee" />
+						</s:fill>
+					</s:Rect>
+					<s:Label left="6" top="8" bottom="6"
+							 fontFamily="PTSansNarrowBold"
+							 fontSize="14" color="#000000"
+							 text="My Friends" />
+				</s:Group>
+				
+				<components:DynamicHeightList
+					width="100%"
+					maxRowCount="5"
+					dataProvider="{friendsList.friends}"
+					borderVisible="false"
+					itemRenderer="com.worlize.view.itemrenderers.FriendListItemRenderer" />
+			</s:VGroup>
+			
+			<s:VGroup width="100%" height="100"
+					  visible="{friendsList.friends.length == 0 &amp;&amp; friendsList.friendRequests.length == 0 &amp;&amp; friendsList.state != FriendsList.STATE_LOADING}"
+					  includeInLayout="{friendsList.friends.length == 0 &amp;&amp; friendsList.friendRequests.length == 0 &amp;&amp; friendsList.state != FriendsList.STATE_LOADING}"
+					  verticalAlign="middle"
+					  horizontalAlign="center">
+				<s:Label fontFamily="PTSansNarrowBold"
+						 fontSize="18"
+						 color="#555555"
+						 text="You have no friends" />
+				<s:Label fontFamily="Arial"
+						 fontSize="11"
+						 fontStyle="italic"
+						 color="#666666"
+						 text="(Click 'Search' above to find some.)" />
+			</s:VGroup>
+		</s:VGroup>
 		
-		<components:FindUsersComponent includeIn="findFriends"
-										 width="100%" height="250" />
-		
-		<!--
-		<components:PendingFriendInvitationsList />
-		
-		<s:List itemRenderer="FriendListItemRenderer" />
-		-->
+		<s:VGroup includeIn="findFriends" width="100%" gap="0">
+			<s:Group width="100%">
+				<s:Rect top="0" left="0" right="0" bottom="0">
+					<s:fill>
+						<s:SolidColor color="#e2c879" />
+					</s:fill>
+				</s:Rect>
+				<s:Label left="6" top="8" bottom="6"
+						 fontFamily="PTSansNarrowBold"
+						 fontSize="14" color="#000000"
+						 text="Search for Friends" />
+			</s:Group>
+			
+			<components:FindUsersComponent includeIn="findFriends"
+										   width="100%" />
+		</s:VGroup>
+				
 		<components:BetaInvitationForm width="100%" />
 	</s:VGroup>
 	

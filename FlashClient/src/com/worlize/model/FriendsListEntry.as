@@ -28,6 +28,13 @@ package com.worlize.model
 			return instance;
 		}
 		
+		public function updateFromData(data:Object):void {
+			this.username = data.username;
+			this.guid = data.guid;
+			this.online = data.online;
+			this.worldEntrance = data.world_entrance;
+		}
+		
 		public function toString():String {
 			return username;
 		}

@@ -62,7 +62,7 @@ package com.worlize.model
 				NotificationCenter.postNotification(notification);
 			});
 			client.addEventListener(FaultEvent.FAULT, function(event:FaultEvent):void {
-				Alert.show("There was an known error while rejecting the pending friend request from " + username);
+				Alert.show("There was an unknown error while rejecting the pending friend request from " + username);
 			});
 			client.send("/friends/" + guid + "/reject_friendship.json", HTTPMethod.POST);
 		}

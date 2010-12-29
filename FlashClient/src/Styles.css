@@ -1,6 +1,7 @@
 /* CSS file */
 @namespace s "library://ns.adobe.com/flex/spark";
 @namespace mx "library://ns.adobe.com/flex/mx";
+@namespace components "com.worlize.view.components.*";
 
 @font-face {
 	src: url("assets/fonts/PT_Sans_Narrow_Bold.ttf");
@@ -19,6 +20,10 @@
 	fontFamily: Tuffy;
 	fontWeight: bold;
 	embedAsCFF: true;
+}
+
+components|DynamicHeightList {
+	skinClass: ClassReference("com.worlize.view.skins.DynamicHeightListSkin"); 
 }
 
 s|Button s|Label, s|DropDownList s|Label {

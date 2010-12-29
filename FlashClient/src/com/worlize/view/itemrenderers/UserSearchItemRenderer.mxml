@@ -49,7 +49,7 @@
 	
 	<s:Rect left="0" right="0" bottom="0" top="0">
 		<s:fill>
-			<s:SolidColor color="#FFFFFF" color.hovered="#e6e3db" />	
+			<s:SolidColor color="#FFFFFF" />	
 		</s:fill>
 	</s:Rect>
 	
@@ -78,6 +78,15 @@
 				 visible="{_data.hasPendingRequest}"
 				 includeInLayout="{_data.hasPendingRequest}"
 				 text="Request Sent" />
+		
+		<s:Label fontFamily="Arial"
+				 fontSize="11"
+				 fontStyle="italic"
+				 color="#666666"
+				 paddingRight="5"
+				 visible="{_data.isFriend}"
+				 includeInLayout="{_data.isFriend}"
+				 text="Already Friends" />
 		
 		<s:Button label="Add as Friend" click="addAsFriend()"
 				  visible="{!_data.hasPendingRequest &amp;&amp; !_data.isFriend}"
