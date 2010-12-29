@@ -2,7 +2,7 @@
 <s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
 				xmlns:s="library://ns.adobe.com/flex/spark" 
 				xmlns:mx="library://ns.adobe.com/flex/mx"
-				height="47" width="100%" autoDrawBackground="false">
+				height="47" autoDrawBackground="false">
 	
 	<s:states>
 		<s:State name="normal" />
@@ -141,7 +141,7 @@
 	
 	
 	<s:HGroup left="68" right="3" verticalCenter="0" verticalAlign="middle">
-		<s:Label fontFamily="Tuffy" width="100%"
+		<s:Label fontFamily="Arial" width="100%"
 				 text="{_data.username}" />
 
 		<mx:PopUpButton id="popUpButton" label="Visit Worlz"

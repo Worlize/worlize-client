@@ -69,6 +69,19 @@ s|TextInput.big {
 	rollOverColor: #e6e3dc;
 }
 
+.friendsNavButton {
+	fontFamily: Tuffy;
+	fontSize: 13pt;
+	fontWeight: bold;
+	paddingTop: 0px;
+	paddingBottom: 1px;
+	paddingLeft: 7px;
+	paddingRight: 7px;
+	cornerRadius: 14px;
+	rollOverColor: #e6e3dc;
+}
+
+
 .chatWindowWorldTitle {
 	color: #1076a4;
 	fontFamily: PTSansNarrowBold;

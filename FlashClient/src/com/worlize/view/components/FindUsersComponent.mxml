@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="400" height="300" xmlns:code="http://code.google.com/p/flexlib/"
+		 creationComplete="handleCreationComplete()" xmlns:controls="controls.*">
+	
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.model.userSearch.UserSearch;
+			import com.worlize.view.itemrenderers.UserSearchItemRenderer;
+			[Bindable]
+			private var userSearch:UserSearch = new UserSearch();
+			
+			private var searchTimer:Timer = new Timer(300, 1);
+			
+			private function handleCreationComplete():void {
+				searchTimer.addEventListener(TimerEvent.TIMER, handleSearchTimer);
+				userSearch.addEventListener('stateChange', handleUserSearchStateChange);
+			}
+			
+			private function handleUserSearchStateChange(event:Event):void {
+				if (userSearch.state === UserSearch.STATE_LOADING) {
+					loadingSpinner.visible = true;
+					loadingSpinner.play();
+				}
+				else {
+					loadingSpinner.stop();
+					loadingSpinner.visible = false;
+				}
+			}
+			
+			private function handleSearchKeyUp(event:KeyboardEvent):void {
+				searchTimer.start();
+			}
+			
+			private function handleSearchKeyDown(event:KeyboardEvent):void {
+				searchTimer.stop();
+				searchTimer.reset();
+				if (event.keyCode == Keyboard.ENTER) {
+					performSearch();
+				}
+			}
+			
+			private function handleSearchTimer(event:TimerEvent):void {
+				performSearch();
+			}
+			
+			private function performSearch():void {
+				if (searchBox.text.length < 1) {
+					userSearch.clearResults();
+				}
+				else {
+					userSearch.search(searchBox.text);
+				}
+			}
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<s:layout>
+		<s:VerticalLayout gap="0" />
+	</s:layout>
+	
+	<s:Group width="100%">
+		<s:Rect top="0" left="0" right="0" bottom="0">
+			<s:fill>
+				<s:SolidColor color="#FFFFFF" />
+			</s:fill>
+		</s:Rect>
+		
+		<code:PromptingTextInput id="searchBox"
+								 prompt="Search"
+								 focusRect="false"
+								 focusAlpha="0"
+								 top="2" left="2" right="2" bottom="2"
+								 keyUp="handleSearchKeyUp(event)"
+								 keyDown="handleSearchKeyDown(event)" />
+
+		<controls:Spinner id="loadingSpinner"
+						  visible="false"
+						  autoPlay="false"
+						  mouseEnabled="false"
+						  mouseChildren="false"
+						  right="4" top="4"
+						  size="19" numTicks="9"
+						  tickWidth="2" speed="600"
+						  fadeSpeed="600" tickColor="#444444" />
+	</s:Group>
+
+	<s:Line width="100%">
+		<s:stroke>
+			<s:SolidColorStroke weight="1" color="#DDDDDD" />
+		</s:stroke>
+	</s:Line>
+	
+	<s:List dataProvider="{userSearch.results}" width="100%" height="100%"
+			itemRenderer="com.worlize.view.itemrenderers.UserSearchItemRenderer"
+			borderVisible="false"/>
+	
+</s:Group>

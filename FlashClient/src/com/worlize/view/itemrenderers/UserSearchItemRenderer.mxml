@@ -2,7 +2,7 @@
 <s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
 				xmlns:s="library://ns.adobe.com/flex/spark" 
 				xmlns:mx="library://ns.adobe.com/flex/mx"
-				height="47" autoDrawBackground="false">
+				height="47" width="100%" autoDrawBackground="false">
 	
 	<s:states>
 		<s:State name="normal" />
@@ -11,30 +11,24 @@
 	
 	<fx:Script>
 		<![CDATA[
-			import com.worlize.interactivity.rpc.InteractivityClient;
-			import com.worlize.model.FriendsList;
-			import com.worlize.model.FriendsListEntry;
-			import com.worlize.model.PendingFriendsListEntry;
+			import com.worlize.model.userSearch.UserSearchResultLineItem;
 			import com.worlize.view.windows.FriendsWindow;
 			
 			import mx.collections.ArrayCollection;
 			import mx.controls.Alert;
 			import mx.controls.Menu;
-			import mx.controls.menuClasses.MenuListData;
+			import mx.events.CloseEvent;
 			import mx.events.FlexEvent;
 			import mx.events.MenuEvent;
 			
 			[Bindable]
-			private var client:InteractivityClient = InteractivityClient.getInstance();
-			
-			[Bindable]
-			private var _data:PendingFriendsListEntry;
+			private var _data:UserSearchResultLineItem;
 			
 			[Bindable(event='dataChange')]
 			override public function set data(newValue:Object):void {
 				if (_data !== newValue) {
-					if (newValue is PendingFriendsListEntry) {
-						_data = PendingFriendsListEntry(newValue);
+					if (newValue is UserSearchResultLineItem) {
+						_data = UserSearchResultLineItem(newValue);
 					}
 					else {
 						_data = null;
@@ -46,18 +40,16 @@
 				return _data;
 			}
 			
-			private function ignoreFriend():void {
-				PendingFriendsListEntry(data).rejectFriendship();
+			private function addAsFriend():void {
+				_data.addAsFriend();
 			}
-			private function acceptFriend():void {
-				PendingFriendsListEntry(data).acceptFriendShip();
-			}
+			
 		]]>
 	</fx:Script>
-		
+	
 	<s:Rect left="0" right="0" bottom="0" top="0">
 		<s:fill>
-			<s:SolidColor color="#d2ebbe" color.hovered="#e6e3db" />	
+			<s:SolidColor color="#FFFFFF" color.hovered="#e6e3db" />	
 		</s:fill>
 	</s:Rect>
 	
@@ -74,20 +66,22 @@
 	<mx:Image width="40" height="40" top="3" left="3" 
 			  source="@Embed(source='src/assets/icons/unknown_user.png')" />
 	
-	<s:HGroup left="48" right="3" verticalCenter="0" verticalAlign="middle">
-		<s:VGroup width="100%">
-			<s:Label fontFamily="Arial" width="100%"
-					 text="{_data.capitalizedUsername} wants to be your friend!" />
-		</s:VGroup>
-	
-		<s:Button
-			label="Ignore"
-			click="ignoreFriend();" />
+	<s:HGroup left="52" right="3" verticalCenter="0" verticalAlign="middle">
+		<s:Label fontFamily="Arial" width="100%"
+				 text="{_data.username}" />
 		
-		<s:Button
-			label="Accept"
-			click="acceptFriend();" />
+		<s:Label fontFamily="Arial"
+				 fontSize="11"
+				 fontStyle="italic"
+				 color="#666666"
+				 paddingRight="5"
+				 visible="{_data.hasPendingRequest}"
+				 includeInLayout="{_data.hasPendingRequest}"
+				 text="Request Sent" />
 		
+		<s:Button label="Add as Friend" click="addAsFriend()"
+				  visible="{!_data.hasPendingRequest &amp;&amp; !_data.isFriend}"
+				  includeInLayout="{!_data.hasPendingRequest &amp;&amp; !_data.isFriend}"/>
 	</s:HGroup>
 	
 	

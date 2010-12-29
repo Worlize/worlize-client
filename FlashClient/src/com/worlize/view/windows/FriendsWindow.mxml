@@ -7,7 +7,13 @@
 								 showTitle="false"
 								 showCloseButton="false"
 								 mouseDownOutside="handleMouseDownOutside(event)"
-								 width="300" minHeight="200" maxHeight="400" xmlns:code="http://code.google.com/p/flexlib/">
+								 currentState="myFriends"
+								 width="300" minHeight="200" maxHeight="400" xmlns:code="http://code.google.com/p/flexlib/" xmlns:layout="flexlib.scheduling.scheduleClasses.layout.*">
+	
+	<components:states>
+		<s:State name="myFriends" />
+		<s:State name="findFriends" />
+	</components:states>
 	
 	<fx:Script>
 		<![CDATA[
@@ -100,17 +106,36 @@
 
 	</fx:Declarations>
 	
-	
-	<s:VGroup width="100%" minHeight="300" maxHeight="500" gap="0">
-		<s:Scroller height="250" width="100%">
-			<s:DataGroup enabled="{friendsList.state == FriendsList.STATE_READY}"
-						 dataProvider="{friendsList.friends}"
-						 itemRendererFunction="selectFriendsListItemRenderer">
-				<s:layout>
-					<s:VerticalLayout gap="0" />
-				</s:layout>
-			</s:DataGroup>	
-		</s:Scroller>
+	<s:VGroup width="100%" gap="0">
+		<s:HGroup gap="0"
+				  paddingBottom="3" paddingTop="3"
+				  paddingLeft="1" paddingRight="1">
+			<mx:LinkButton
+				styleName="friendsNavButton"
+				color="#c18a13"
+				color.myFriends="#000000"
+				click="currentState = 'myFriends';"
+				label="My Friends" />
+			<mx:LinkButton
+				styleName="friendsNavButton"
+				color="#c18a13"
+				color.findFriends="#000000"
+				click="currentState = 'findFriends';"
+				label="Search" />
+		</s:HGroup>
+		<s:Line width="100%">
+			<s:stroke>
+				<s:SolidColorStroke weight="1" color="#DDDDDD" />
+			</s:stroke>
+		</s:Line>
+		
+		<s:List height="250" width="100%" includeIn="myFriends"
+				dataProvider="{friendsList.friends}"
+				borderVisible="false"
+				itemRendererFunction="selectFriendsListItemRenderer" />
+		
+		<components:FindUsersComponent includeIn="findFriends"
+										 width="100%" height="250" />
 		
 		<!--
 		<components:PendingFriendInvitationsList />

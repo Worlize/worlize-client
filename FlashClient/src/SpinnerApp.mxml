@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application
+	xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:controls="controls.*"
+	
+	width="800" height="500"
+	layout="horizontal"
+	paddingTop="50" paddingLeft="50" paddingRight="50" paddingBottom="50"
+	backgroundColor="#000000" color="#dddddd"
+	creationComplete="spinner.play()" viewSourceURL="srcview/index.html">
+	
+	
+	<mx:Binding destination="size.value" source="spinner.size" />
+	<mx:Binding source="size.value" destination="spinner.size" />
+	<mx:Binding destination="numTicks.value" source="spinner.numTicks" />
+	<mx:Binding source="numTicks.value" destination="spinner.numTicks" />
+	<mx:Binding destination="tickWidth.value" source="spinner.tickWidth" />
+	<mx:Binding source="tickWidth.value" destination="spinner.tickWidth" />
+	<mx:Binding destination="speed.value" source="spinner.speed" />
+	<mx:Binding source="speed.value" destination="spinner.speed" />
+	<mx:Binding destination="fadeSpeed.value" source="spinner.fadeSpeed" />
+	<mx:Binding source="fadeSpeed.value" destination="spinner.fadeSpeed" />
+	
+	
+	<mx:Script>
+		<![CDATA[
+			private function toggleSpinner():void {
+				if (spinner.isPlaying) {
+					spinner.stop();
+					spinnerCtrl.label = "Start";
+				} else {
+					spinner.play();
+					spinnerCtrl.label = "Stop";
+				}
+			}
+		]]>
+	</mx:Script>
+	
+	
+	<mx:VBox width="50%" height="100%">
+		<mx:VBox height="100%" width="100%">
+			<mx:Label text="Spinner" fontSize="18"/>
+			<mx:Text width="300" color="#d0d0d0">
+				<mx:text>A Flex component similar to the many "spinner.gif"s that are used on Web 2.0 pages. This is a sort of indeterminate progress indicator that can be used to demonstrate to the user that something is happening.</mx:text>
+			</mx:Text>
+		</mx:VBox>
+	
+		<mx:VBox height="100%" width="100%" horizontalAlign="center" verticalAlign="middle">
+			<mx:Button id="spinnerCtrl" label="Stop" click="toggleSpinner()"/>
+			
+			<mx:Form width="400">
+				<mx:FormItem label="Size">
+					<mx:HSlider id="size" value="30" minimum="10" maximum="200" snapInterval="1"/>
+				</mx:FormItem>
+			
+				<mx:FormItem label="Number of Ticks">
+					<mx:HSlider id="numTicks" value="12" minimum="1" maximum="30" snapInterval="1"/>
+				</mx:FormItem>
+			
+				<mx:FormItem label="Tick Width">
+					<mx:HSlider id="tickWidth" value="3" minimum="-1" maximum="18" snapInterval="1"/>
+				</mx:FormItem>
+				
+				<mx:FormItem label="Speed">
+					<mx:HSlider id="speed" value="1000" minimum="100" maximum="6000" snapInterval="100"/>
+				</mx:FormItem>
+			
+				<mx:FormItem label="Fade Speed">
+					<mx:HSlider id="fadeSpeed" value="600" minimum="100" maximum="{speed.value}" snapInterval="100"/>
+				</mx:FormItem>
+				
+				<mx:FormItem label="Tick Color">
+					<mx:ColorPicker id="tickColor" selectedColor="#66aaff" change="spinner.setStyle('tickColor', event.color);"/>
+				</mx:FormItem>
+			</mx:Form>
+		</mx:VBox>
+	</mx:VBox>
+	
+	<mx:Box width="50%" height="100%" horizontalAlign="center" verticalAlign="middle">
+		<controls:Spinner id="spinner" tickColor="#66aaff"/>
+	</mx:Box>
+</mx:Application>
