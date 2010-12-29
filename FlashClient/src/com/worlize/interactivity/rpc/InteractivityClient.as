@@ -216,6 +216,9 @@ package com.worlize.interactivity.rpc
 					case "say":
 						handleReceiveTalk(data);
 						break;
+					case "whisper":
+						handleReceiveWhisper(data);
+						break;
 					case "move":
 						handleMove(data);
 						break;
