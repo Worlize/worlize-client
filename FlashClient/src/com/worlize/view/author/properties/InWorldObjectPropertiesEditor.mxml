@@ -80,6 +80,8 @@
 				var roomDefinition:RoomDefinition = new RoomDefinition();
 				roomDefinition.guid = client.currentRoom.id;
 				roomDefinition.deleteObjectInstance(inWorldObjectInstance.guid);
+				var authorModeState:AuthorModeState = AuthorModeState.getInstance();
+				authorModeState.selectedItem = null;
 			}
 			
 			protected function handleDestinationChange(event:IndexChangeEvent):void

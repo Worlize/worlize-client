@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 width="100%" xmlns:code="http://code.google.com/p/flexlib/">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.interactivity.rpc.InteractivityClient;
+			import com.worlize.model.YouTubePlayerDefinition;
+			import com.worlize.state.AuthorModeState;
+			
+			import mx.controls.Alert;
+			[Bindable]
+			public var youTubePlayerDefinition:YouTubePlayerDefinition;
+			
+			
+			private function removePlayer():void {
+				youTubePlayerDefinition.removePlayer();
+				var authorModeState:AuthorModeState = AuthorModeState.getInstance();
+				authorModeState.selectedItem = null;
+			}
+			
+			private function close():void {
+				AuthorModeState.getInstance().selectedItem = null;
+			}
+			
+			private function save():void {
+				try {
+					youTubePlayerDefinition.data.videoURL = defaultYouTubeURLTextBox.text;
+				}
+				catch(e:Error) {
+					Alert.show(e.message, "Error");
+					return;
+				}
+				youTubePlayerDefinition.data.autoPlay = autoPlayCheckbox.selected;
+				youTubePlayerDefinition.data.allowUsersToShare = visitorsMayShareCheckbox.selected;
+				
+				youTubePlayerDefinition.saveUpdatedData();
+				close();
+			}
+		]]>
+	</fx:Script>
+	
+	<s:layout>
+		<s:VerticalLayout
+			gap="3"
+			paddingBottom="10" paddingLeft="10"
+			paddingRight="10" paddingTop="10" />
+	</s:layout>
+	
+	<s:Label text="Default Video URL:" />
+	<code:PromptingTextInput prompt="Paste YouTube URL Here"
+							 width="100%"
+							 text="{youTubePlayerDefinition.data.videoURL}"
+							 id="defaultYouTubeURLTextBox" />
+	
+	<s:CheckBox label="Auto-play" id="autoPlayCheckbox"
+				selected="{youTubePlayerDefinition.data.autoPlay}" />
+	
+	<s:CheckBox label="Visitors may share videos" id="visitorsMayShareCheckbox"
+				selected="{youTubePlayerDefinition.data.allowUsersToShare}" />
+	
+	<s:HGroup horizontalAlign="right" width="100%">
+		<s:Button label="Delete" click="removePlayer()" />
+		<s:Button label="Save" click="save()" />
+	</s:HGroup>
+	
+</s:Group>

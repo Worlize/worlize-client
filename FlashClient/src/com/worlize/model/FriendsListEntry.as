@@ -43,7 +43,7 @@ package com.worlize.model
 			var client:WorlizeServiceClient = new WorlizeServiceClient();
 			client.addEventListener(WorlizeResultEvent.RESULT, function(event:WorlizeResultEvent):void {
 				if (event.resultJSON.success) {
-					FriendsList.getInstance().load();
+					FriendsList.getInstance().removeFriendFromListByGuid(guid);
 				}
 				else {
 					Alert.show("There was an unknown error when attempting to unfriend '" + username + "'");

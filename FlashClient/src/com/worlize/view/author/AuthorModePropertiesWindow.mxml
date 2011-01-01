@@ -7,6 +7,7 @@
 								 title="Properties"
 								 title.hotspot="Door Properties"
 								 title.inWorldObject="Object Properties"
+								 title.youTubePlayer="YouTube Properties"
 								 showTitle="true"
 								 currentState="noItemSelected"
 								 creationComplete="handleCreationComplete()"
@@ -19,6 +20,7 @@
 		<s:State name="noItemSelected" />
 		<s:State name="hotspot" />
 		<s:State name="inWorldObject" />
+		<s:State name="youTubePlayer" />
 	</components:states>
 	
 	<fx:Script>
@@ -27,6 +29,7 @@
 			import com.worlize.event.NotificationCenter;
 			import com.worlize.interactivity.model.Hotspot;
 			import com.worlize.model.InWorldObjectInstance;
+			import com.worlize.model.YouTubePlayerDefinition;
 			import com.worlize.state.AuthorModeState;
 			
 			[Bindable]
@@ -50,6 +53,10 @@
 					currentState = "inWorldObject";
 					inWorldObjectPropertiesEditor.inWorldObjectInstance = InWorldObjectInstance(authorModeState.selectedItem);
 				}
+				else if (authorModeState.selectedItem is YouTubePlayerDefinition) {
+					currentState = "youTubePlayer";
+					youTubePlayerPropertiesEditor.youTubePlayerDefinition = YouTubePlayerDefinition(authorModeState.selectedItem);
+				}
 				else {
 					currentState = "noItemSelected";
 				}
@@ -68,5 +75,8 @@
 	
 	<properties:InWorldObjectPropertiesEditor id="inWorldObjectPropertiesEditor"
 											  includeIn="inWorldObject" width="100%" />
+	
+	<properties:YouTubePlayerProperties id="youTubePlayerPropertiesEditor"
+										includeIn="youTubePlayer" width="100%" />
 	
 </components:WorlizeFloatingPanel>

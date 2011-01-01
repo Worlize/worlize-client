@@ -10,7 +10,9 @@ package com.worlize.interactivity.model
 	import com.worlize.model.InWorldObject;
 	import com.worlize.model.InWorldObjectInstance;
 	import com.worlize.model.RoomListEntry;
+	import com.worlize.model.YouTubePlayerDefinition;
 	import com.worlize.notification.InWorldObjectNotification;
+	import com.worlize.notification.YouTubePlayerNotification;
 	import com.worlize.rpc.HTTPMethod;
 	import com.worlize.rpc.WorlizeResultEvent;
 	import com.worlize.rpc.WorlizeServiceClient;
@@ -55,6 +57,8 @@ package com.worlize.interactivity.model
 		public var drawLayerHistory:Vector.<uint> = new Vector.<uint>();
 		public var inWorldObjects:ArrayCollection = new ArrayCollection();
 		public var inWorldObjectsByGuid:Object = {};
+		public var youtubePlayers:ArrayCollection = new ArrayCollection();
+		public var youtubePlayersByGuid:Object = {};
 		public var _selectedUser:InteractivityUser;
 		public var selfUserId:String = null;
 		public var roomView:RoomView;
@@ -76,6 +80,41 @@ package com.worlize.interactivity.model
 		{
 			lastMessageTimer.addEventListener(TimerEvent.TIMER, handleLastMessageTimer);
 			statusDisappearTimer.addEventListener(TimerEvent.TIMER, handleStatusDisappearTimer);
+		}
+		
+		public function resetYoutubePlayers():void {
+			youtubePlayers.removeAll();
+			youtubePlayersByGuid = {};
+		}
+		
+		public function addYoutubePlayer(playerDefinition:YouTubePlayerDefinition):void {
+			youtubePlayers.addItem(playerDefinition);
+			youtubePlayersByGuid[playerDefinition.guid] = playerDefinition;
+			
+			var notification:YouTubePlayerNotification = new YouTubePlayerNotification(YouTubePlayerNotification.ADDED_TO_ROOM);
+			notification.roomGuid = this.id;
+			notification.playerDefinition = playerDefinition;
+			NotificationCenter.postNotification(notification);
+		}
+		
+		public function removeYoutubePlayer(guid:String):void {
+			var playerDefinition:YouTubePlayerDefinition = youtubePlayersByGuid[guid];
+			if (playerDefinition) {
+				var index:int = youtubePlayers.getItemIndex(playerDefinition);
+				if (index != -1) {
+					youtubePlayers.removeItemAt(index);
+				}
+				delete youtubePlayersByGuid[guid];
+			}
+		}
+		
+		public function getYoutubePlayerByGuid(guid:String):YouTubePlayerDefinition {
+			return YouTubePlayerDefinition(youtubePlayersByGuid[guid]);
+		}
+		
+		public function resetInWorldObjects():void {
+			inWorldObjects.removeAll();
+			inWorldObjectsByGuid = {};
 		}
 		
 		public function addObject(guid:String, x:int, y:int, fullsizeURL:String, dest:String = null):void {
@@ -152,6 +191,22 @@ package com.worlize.interactivity.model
 			var command:CreateHotspotCommand = new CreateHotspotCommand();
 			command.currentRoom = this;
 			command.execute(this.id);
+		}
+		
+		public function createYoutubePlayer():void {
+			var client:WorlizeServiceClient = new WorlizeServiceClient();
+			client.addEventListener(WorlizeResultEvent.RESULT, function(event:WorlizeResultEvent):void {
+				// New player shows up in response to an event broadcast
+				// to the room by the server.
+				if (!event.resultJSON.success) {
+					Alert.show("There was an error while tring to create a new embedded YouTube player: " +
+								event.resultJSON.description, "Error");
+				}
+			});
+			client.addEventListener(FaultEvent.FAULT, function(event:FaultEvent):void {
+				Alert.show("There was a fault encountered while trying to create a new embedded YouTube player.", "Error");
+			});
+			client.send("/rooms/" + this.id + "/youtube_players.json", HTTPMethod.POST);
 		}
 		
 		private function shouldDisplayMessage(message:String):Boolean {

@@ -51,6 +51,14 @@ s|TextInput.big {
 	fontSize: 18px;	
 }
 
+s|TextInput.YouTubeURLField {
+	contentBackgroundColor: #333333;
+	color: #FFFFFF;
+	font-family: Arial;
+	font-weight: normal;
+	font-size: 11pt;
+}
+
 .topNavButton {
 	fontFamily: PTSansNarrowBold;
 	fontSize: 14pt;

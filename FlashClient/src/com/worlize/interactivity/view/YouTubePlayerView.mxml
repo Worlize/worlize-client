@@ -1,0 +1,603 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 mouseDown="handleMouseDown(event)"
+		 x="{youTubePlayerDefinition.x-3}"
+		 y="{youTubePlayerDefinition.y-3}"
+		 clipAndEnableScrolling="true"
+		 addedToStage="handleAddedToStage()"
+		 removedFromStage="handleRemovedFromStage()"
+		 creationComplete="handleCreationComplete()"
+		 mouseOver="handleMouseOver(event)"
+		 mouseOut="handleMouseOut(event)"
+		 currentState="normal" xmlns:code="http://code.google.com/p/flexlib/" xmlns:youtube="com.worlize.components.youtube.*">
+	<s:states>
+		<s:State name="normal" />
+		<s:State name="authorNotSelected" stateGroups="authorModeEnabled"/>
+		<s:State name="authorSelected" stateGroups="authorModeEnabled"/>
+	</s:states>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.components.youtube.IYouTubePlayer;
+			import com.worlize.components.youtube.YouTubePlayerError;
+			import com.worlize.components.youtube.YouTubePlayerEvent;
+			import com.worlize.components.youtube.YouTubePlayerState;
+			import com.worlize.interactivity.event.WorlizeYouTubeEvent;
+			import com.worlize.interactivity.rpc.InteractivityClient;
+			import com.worlize.model.YouTubePlayerDefinition;
+			import com.worlize.rpc.HTTPMethod;
+			import com.worlize.rpc.WorlizeResultEvent;
+			import com.worlize.rpc.WorlizeServiceClient;
+			import com.worlize.state.AuthorModeState;
+			
+			import mx.binding.utils.ChangeWatcher;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.events.SandboxMouseEvent;
+			import mx.rpc.events.FaultEvent;
+			
+			import org.osmf.events.TimeEvent;
+			
+			private var _youTubePlayerDefinition:YouTubePlayerDefinition;
+						
+			private static const CHROME_HEIGHT:int = 48;
+			
+			private var _authorMode:Boolean = false;
+			private var _authorModeSelected:Boolean = false;
+			
+			private var dragging:Boolean = false;
+			private var startPoint:Point;
+			private var startMousePos:Point;
+			private var mousePos:Point;
+			
+			private var playHeadTimer:Timer = new Timer(1000, 0);
+			
+			[Bindable]
+			private var interactivityClient:InteractivityClient = InteractivityClient.getInstance();
+			
+			private var defaultVideoWatcher:ChangeWatcher;
+
+			[Bindable(event="youTubePlayerDefinitionChange")]
+			public function set youTubePlayerDefinition(newValue:YouTubePlayerDefinition):void {
+				if (_youTubePlayerDefinition !== newValue) {
+					if (_youTubePlayerDefinition) {
+						removePlayerDefinitionEventListeners();
+					}
+					_youTubePlayerDefinition = newValue;
+					addPlayerDefinitionEventListeners();
+					dispatchEvent(new FlexEvent("youTubePlayerDefinitionChange"));
+				}
+			}
+			public function get youTubePlayerDefinition():YouTubePlayerDefinition {
+				return _youTubePlayerDefinition;
+			}
+			
+			private function addPlayerDefinitionEventListeners():void {
+				_youTubePlayerDefinition.addEventListener(WorlizeYouTubeEvent.LOAD_VIDEO_REQUESTED, handleLoadVideoRequested);
+				_youTubePlayerDefinition.addEventListener(WorlizeYouTubeEvent.PLAY_REQUESTED, handlePlayRequested);
+				_youTubePlayerDefinition.addEventListener(WorlizeYouTubeEvent.STOP_REQUESTED, handleStopRequested);
+				_youTubePlayerDefinition.addEventListener(WorlizeYouTubeEvent.PAUSE_REQUESTED, handlePauseRequested);
+				_youTubePlayerDefinition.addEventListener(WorlizeYouTubeEvent.SEEK_REQUESTED, handleSeekRequested);
+				_youTubePlayerDefinition.addEventListener(WorlizeYouTubeEvent.PLAYER_LOCKED, handlePlayerLocked);
+				_youTubePlayerDefinition.addEventListener(WorlizeYouTubeEvent.PLAYER_UNLOCKED, handlePlayerUnlocked);
+			}
+			
+			private function removePlayerDefinitionEventListeners():void {
+				_youTubePlayerDefinition.removeEventListener(WorlizeYouTubeEvent.LOAD_VIDEO_REQUESTED, handleLoadVideoRequested);
+				_youTubePlayerDefinition.removeEventListener(WorlizeYouTubeEvent.PLAY_REQUESTED, handlePlayRequested);
+				_youTubePlayerDefinition.removeEventListener(WorlizeYouTubeEvent.STOP_REQUESTED, handleStopRequested);
+				_youTubePlayerDefinition.removeEventListener(WorlizeYouTubeEvent.PAUSE_REQUESTED, handlePauseRequested);
+				_youTubePlayerDefinition.removeEventListener(WorlizeYouTubeEvent.SEEK_REQUESTED, handleSeekRequested);
+				_youTubePlayerDefinition.removeEventListener(WorlizeYouTubeEvent.PLAYER_LOCKED, handlePlayerLocked);
+				_youTubePlayerDefinition.addEventListener(WorlizeYouTubeEvent.PLAYER_UNLOCKED, handlePlayerUnlocked);
+			}
+			
+			private function handleCreationComplete():void {
+				playHeadTimer.addEventListener(TimerEvent.TIMER, handleUpdatePlayHead);
+			}
+
+			private function handleMouseOver(event:MouseEvent):void {
+				if (_authorMode) {
+					Mouse.cursor = MouseCursor.HAND;
+				}
+			}
+			
+			private function handleMouseOut(event:MouseEvent):void {
+				Mouse.cursor = MouseCursor.ARROW;
+			}
+			
+			private function handleAddedToStage():void {
+				defaultVideoWatcher = ChangeWatcher.watch(this, ['youTubePlayerDefinition', 'data', 'videoId'], handleDefaultVideoChange);
+			}
+			
+			private function handleRemovedFromStage():void {
+				defaultVideoWatcher.unwatch();
+				defaultVideoWatcher = null;
+				if (player.state != YouTubePlayerState.UNINITIALIZED) {
+					player.destroy();
+				}
+			}
+			
+			[Bindable(event="authorModeChange")]
+			public function set authorMode(newValue:Boolean):void {
+				if (_authorMode != newValue) {
+					_authorMode = newValue;
+					if (_authorMode) {
+						currentState = 'authorNotSelected';
+					}
+					else {
+						_authorModeSelected = false;
+						dragging = false;
+						systemManager.getSandboxRoot().removeEventListener(MouseEvent.MOUSE_MOVE, handleDraggingStageMouseMove);
+						systemManager.getSandboxRoot().removeEventListener(MouseEvent.MOUSE_UP, handleDraggingStageMouseUp);
+						currentState = 'normal';
+					}
+					dispatchEvent(new FlexEvent('authorModeChange'));
+				}
+			}
+			public function get authorMode():Boolean {
+				return _authorMode;
+			}
+			
+			[Bindable(event="authorModeSelectedChange")]
+			public function set authorModeSelected(newValue:Boolean):void {
+				if (_authorModeSelected != newValue) {
+					_authorModeSelected = newValue;
+					if (_authorModeSelected && _authorMode) {
+						currentState = 'authorSelected';
+					}
+					else if (!_authorModeSelected && _authorMode) {
+						currentState = 'authorNotSelected';
+					}
+					else {
+						currentState = 'normal';
+					}
+					dispatchEvent(new FlexEvent('authorModeSelectedChange'));
+				}
+			}
+			public function get authorModeSelected():Boolean {
+				return _authorModeSelected;
+			}
+			
+			private function handleMouseDown(event:MouseEvent):void {
+				event.stopImmediatePropagation();
+				if (_authorMode) {
+					dragging = true;
+					startPoint = new Point(youTubePlayerDefinition.x, youTubePlayerDefinition.y);
+					startMousePos = new Point(stage.mouseX, stage.mouseY);
+					mousePos = new Point(stage.mouseX, stage.mouseY);
+					AuthorModeState.getInstance().selectedItem = this.youTubePlayerDefinition;
+					systemManager.getSandboxRoot().addEventListener(MouseEvent.MOUSE_MOVE, handleDraggingStageMouseMove);
+					systemManager.getSandboxRoot().addEventListener(MouseEvent.MOUSE_UP, handleDraggingStageMouseUp);
+				}
+			}
+			
+			private function handleDraggingStageMouseMove(event:MouseEvent):void {
+				if (dragging) {
+					mousePos.x = stage.mouseX;
+					mousePos.y = stage.mouseY;
+					
+					var destx:int = startPoint.x + (mousePos.x - startMousePos.x);
+					var desty:int = startPoint.y + (mousePos.y - startMousePos.y);
+					
+					if (destx < 3) {
+						destx = 3;
+					}
+					if (desty < 3) {
+						desty = 3;
+					}
+					if (destx + width > 950) {
+						destx = 950 - width;
+					}
+					if (desty + height > (570-26)) {
+						desty = 570 - 26 - height;
+					}
+					
+					youTubePlayerDefinition.x = destx;
+					youTubePlayerDefinition.y = desty;
+				}
+			}
+			
+			private function handleDraggingStageMouseUp(event:MouseEvent):void {
+				dragging = false;
+				systemManager.getSandboxRoot().removeEventListener(MouseEvent.MOUSE_MOVE, handleDraggingStageMouseMove);
+				systemManager.getSandboxRoot().removeEventListener(MouseEvent.MOUSE_UP, handleDraggingStageMouseUp);
+				
+				if (startPoint.x != youTubePlayerDefinition.x ||
+					startPoint.y != youTubePlayerDefinition.y)
+				{
+					youTubePlayerDefinition.saveUpdatedPositionAndDimensions();
+				}
+			}
+			
+//			private function handleResizeMouseDown(event:MouseEvent):void {
+//				// TODO: Make this resizable
+//			}
+			
+			private function handleDefaultVideoChange(event:Event):void {
+				if (youTubePlayerDefinition.data.videoId === null) { return; }
+				if (youTubePlayerDefinition.data.autoPlay) {
+					player.loadVideoById(youTubePlayerDefinition.data.videoId);
+				}
+				else {
+					player.cueVideoById(youTubePlayerDefinition.data.videoId);
+				}
+			}
+			
+			private function loadYouTubeURL():void {
+				try {
+					var videoId:String = player.getVideoIdFromUrl(youTubeURLField.text);
+					youTubeURLField.text = "";
+					playVideoForRoom(videoId);
+				}
+				catch (error:Error) {
+					Alert.show(error.message, "Invalid URL");
+				}
+			}
+			
+			private function playVideoForRoom(videoId:String):void {
+				sharingControls.enabled = false;
+				var client:WorlizeServiceClient = new WorlizeServiceClient();
+				client.addEventListener(WorlizeResultEvent.RESULT, function(event:WorlizeResultEvent):void {
+					sharingControls.enabled = true;
+					if (event.resultJSON['error']) {
+						if (event.resultJSON['error']['code'] == 404) {
+							Alert.show("The specified video could not be found on YouTube", "Video Not Found");
+						}
+						else {
+							Alert.show("YouTube Data API error " + event.resultJSON['error']['code'] +
+								": \"" + event.resultJSON['error']['message'] + "\" encountered while trying to load video metadata.", "Error");
+						}
+						return;
+					}
+					var title:String = event.resultJSON['data']['title'];
+					var duration:int = event.resultJSON['data']['duration'];
+					interactivityClient.youTubeLoad(youTubePlayerDefinition.guid, videoId, duration, title, true);
+				});
+				client.addEventListener(FaultEvent.FAULT, function(event:FaultEvent):void {
+					Alert.show("Unable to get video metadata from YouTube", "Error");
+					sharingControls.enabled = true;
+				});
+				client.send("http://gdata.youtube.com/feeds/api/videos/" + videoId, HTTPMethod.GET, {
+					v: "2",
+					alt: "jsonc"
+				});
+			}
+			
+			private function handleURLFieldKeyDown(event:KeyboardEvent):void {
+				if (event.keyCode == Keyboard.ENTER) {
+					loadYouTubeURL();
+				}
+			}
+			
+			private function handleTextFieldMouseUp(event:MouseEvent):void {
+				if (!dragging) {
+					event.stopImmediatePropagation();
+				}
+			}
+			
+			private function handlePlayerReady(event:YouTubePlayerEvent):void {
+				player.setSize(youTubePlayerDefinition.width, youTubePlayerDefinition.height);
+				if (youTubePlayerDefinition.data.videoId) {
+					if (youTubePlayerDefinition.data.autoPlay) {
+						IYouTubePlayer(player).loadVideoById(youTubePlayerDefinition.data.videoId);
+					}
+					else {
+						IYouTubePlayer(player).cueVideoById(youTubePlayerDefinition.data.videoId);
+					}
+				}
+			}
+			
+			private function handleUpdatePlayHead(event:TimerEvent):void {
+				playHead.value = player.getCurrentTime();
+			}
+			
+			private function handlePlayHeadChange(event:Event):void {
+				var community:Boolean = youTubePlayerDefinition.data.allowUsersToShare;
+				if (community) {
+					interactivityClient.youTubeSeek(youTubePlayerDefinition.guid, playHead.value);
+				}
+				else {
+					IYouTubePlayer(player).seekTo(playHead.value);
+				}
+			}
+			
+			private function handlePlayHeadMouseDown(event:MouseEvent):void {
+				playHeadTimer.stop();
+			}
+			
+			private function handlePlayHeadMouseUp(event:MouseEvent):void {
+				if (player.state == YouTubePlayerState.PLAYING) {
+					playHeadTimer.start();
+				}
+			}
+			
+			private function handlePlayerStateChange(event:YouTubePlayerEvent):void {
+				switch (event.newState) {
+					case YouTubePlayerState.PLAYING:
+						embeddingDisabledMessage.visible = false;
+						playHead.maximum = player.getDuration();
+						playHeadTimer.start();
+						playButton.enabled = true;
+						playButton.label = "Pause";
+						playHead.enabled = true;
+						break;
+					case YouTubePlayerState.ENDED:
+						playHeadTimer.stop();
+						playButton.enabled = true;
+						playButton.label = "Restart";
+						playHead.enabled = false;
+						break;
+					case YouTubePlayerState.BUFFERING:
+						playHeadTimer.stop();
+						playButton.enabled = false;
+						playButton.label = "Play";
+						playHead.enabled = false;
+						break;
+					case YouTubePlayerState.PAUSED:
+						playHead.maximum = player.getDuration();
+						playHeadTimer.stop();
+						playButton.enabled = true;
+						playButton.label = "Play";
+						playHead.enabled = true;
+						break;
+					case YouTubePlayerState.UNSTARTED:
+						playHeadTimer.stop();
+						playButton.label = "Play";
+						muteButton.enabled = true;
+						break;
+					case YouTubePlayerState.VIDEO_CUED:
+						embeddingDisabledMessage.visible = false;
+						playHeadTimer.stop();
+						playHead.maximum = player.getDuration();
+						playButton.enabled = true;
+						playButton.label = "Play";
+						playHead.enabled = true;
+						muteButton.enabled = true;
+						break;
+				}
+			}
+			
+			// For playback controls, broadcast events to room if its a
+			// community player, otherwise just do it locally.
+			
+			private function handlePlayClick():void {
+				var community:Boolean = youTubePlayerDefinition.data.allowUsersToShare;
+				if (player.state == YouTubePlayerState.PLAYING) {
+					if (community) {
+						interactivityClient.youTubePause(youTubePlayerDefinition.guid);
+					}
+					else {
+						player.pauseVideo();
+					}
+				}
+				else if (player.state == YouTubePlayerState.ENDED) {
+					if (community) {
+						playVideoForRoom(player.lastPlayedVideoId);
+					}
+					else {
+						player.loadVideoById(youTubePlayerDefinition.data.videoId);
+					}
+				}
+				else {
+					if (community) {
+						interactivityClient.youTubePlay(youTubePlayerDefinition.guid);
+					}
+					else {
+						player.playVideo();
+					}
+				}
+			}
+			
+			private function handleStopClick():void {
+				var community:Boolean = youTubePlayerDefinition.data.allowUsersToShare;
+				player.stopVideo();
+			}
+
+			// mute is always local only.
+			private function handleMuteClick():void {
+				if (player.isMuted()) {
+					player.unMute();
+					muteButton.label = "Mute";
+				}
+				else {
+					player.mute();
+					muteButton.label = "Unmute";
+				}
+			}
+			
+			private function handleLoadVideoRequested(event:WorlizeYouTubeEvent):void {
+				if (event.autoPlay) {
+					player.loadVideoById(event.videoId);
+				}
+				else {
+					player.cueVideoById(event.videoId);
+				}
+			}
+			
+			private function handlePlayRequested(event:WorlizeYouTubeEvent):void {
+				if (player.state != YouTubePlayerState.UNINITIALIZED) {
+					player.playVideo();
+				}
+			}
+			
+			private function handleStopRequested(event:WorlizeYouTubeEvent):void {
+				if (player.state != YouTubePlayerState.UNINITIALIZED) {
+					player.stopVideo();
+				}
+			}
+			
+			private function handlePauseRequested(event:WorlizeYouTubeEvent):void {
+				if (player.state != YouTubePlayerState.UNINITIALIZED) {
+					player.pauseVideo();
+				}
+			}
+			
+			private function handleSeekRequested(event:WorlizeYouTubeEvent):void {
+				if (player.state != YouTubePlayerState.UNINITIALIZED) {
+					player.seekTo(event.seekTo);
+					playHead.maximum = Math.max(event.seekTo, playHead.maximum);
+					playHead.value = event.seekTo;
+				}
+			}
+			
+			private function handlePlayerLocked(event:WorlizeYouTubeEvent):void {
+				trace("locked");
+			}
+			
+			private function handlePlayerUnlocked(event:WorlizeYouTubeEvent):void {
+				trace("unlocked");
+			}
+				
+			private function formatSecondsToTime(value:int):String {
+				var minutes:String = String(int(value/60));
+				var seconds:String = String(int(value%60));
+				
+				if (minutes.length == 1) {
+					minutes = "0" + minutes;
+				}
+				if (seconds.length == 1) {
+					seconds = "0" + seconds;
+				}
+				
+				return minutes + ":" + seconds;
+			}
+			
+			private function unlockPlayer():void {
+				
+			}
+			
+			private function handleYouTubePlayerError(error:YouTubePlayerEvent):void {
+				if (error.errorCode == YouTubePlayerError.PLAYBACK_RESTRICTED_1 ||
+					error.errorCode == YouTubePlayerError.PLAYBACK_RESTRICTED_2) {
+					embeddingDisabledMessage.visible = true;
+					playHeadTimer.stop();
+					playHead.value = 0;
+					playButton.enabled = false;
+					playButton.label = "Play";
+					playHead.enabled = false;
+				}
+			}
+		]]>
+	</fx:Script>
+	
+	<!--
+	<s:Group id="resizeHandle" includeIn="authorModeEnabled" mouseDown="handleResizeMouseDown(event)"
+			 bottom="-2" right="-2" width="5" height="5">
+		<s:Rect>
+			<s:stroke>
+				<s:SolidColorStroke weight="1" color="#000000" />
+			</s:stroke>
+			<s:fill>
+				<s:SolidColor color="#FFFFFF" />
+			</s:fill>
+		</s:Rect>
+	</s:Group>
+	-->
+	
+	<s:Rect top="0" left="0" right="0" bottom="0" radiusX="5">
+		<s:fill>
+			<s:SolidColor color="#333333" alpha="0.8" />
+		</s:fill>
+		<s:stroke>
+			<s:SolidColorStroke weight="1" color="#000000" joints="round" />
+		</s:stroke>
+	</s:Rect>
+	
+	<s:VGroup top="3" left="3" right="3" bottom="3">
+		<s:Group width="{youTubePlayerDefinition.width}"
+				 height="{youTubePlayerDefinition.height}">
+			<youtube:YouTubePlayer id="player"
+								   top="0" left="0"
+								   stateChange="handlePlayerStateChange(event)"
+								   ready="handlePlayerReady(event)"
+								   error="handleYouTubePlayerError(event)" />
+			<s:Label text="Embedded sharing has been disabled by this video's creator."
+					 id="embeddingDisabledMessage"
+					 mouseEnabled="false"
+					 mouseChildren="false"
+					 visible="false"
+					 verticalCenter="0" horizontalCenter="0"
+					 fontFamily="PTSansNarrowBold"
+					 color="#DDDDDD"
+					 fontSize="15" />
+		</s:Group>
+		
+		<s:HGroup id="playbackControls"
+				  width="100%" height="24"
+				  verticalAlign="middle" top="0">
+			<s:Button label="Play" id="playButton" click="handlePlayClick()" enabled="false" />
+			<s:HSlider id="playHead" width="100%"
+					   liveDragging="false"
+					   enabled="false"
+					   change="handlePlayHeadChange(event)"
+					   mouseDown="handlePlayHeadMouseDown(event)"
+					   dataTipFormatFunction="formatSecondsToTime"
+					   mouseUp="handlePlayHeadMouseUp(event)" />
+			<s:Button label="Mute" id="muteButton" click="handleMuteClick()"
+					  enabled="false" />
+		</s:HGroup>
+		
+		<s:Group width="100%"
+				 visible="{youTubePlayerDefinition.data.allowUsersToShare}"
+				 includeInLayout="{youTubePlayerDefinition.data.allowUsersToShare}">
+			<s:HGroup id="sharingControls"
+					  width="100%" height="24"
+					  visible="{!youTubePlayerDefinition.locked}"
+					  includeInLayout="{!youTubePlayerDefinition.locked}"
+					  verticalAlign="middle">
+				<s:Label text="YouTube URL:"
+						 fontFamily="Arial"
+						 fontSize="11"
+						 color="#FFFFFF"
+						 fontWeight="bold" />
+				<s:TextInput id="youTubeURLField"
+							 focusRect="false"
+							 mouseUp="handleTextFieldMouseUp(event)"
+							 focusAlpha="0"
+							 width="100%" height="100%"
+							 keyDown="handleURLFieldKeyDown(event)"
+							 styleName="YouTubeURLField" />
+				<s:Button height="20" label="Load" click="loadYouTubeURL()" />
+			</s:HGroup>
+			
+			<s:HGroup id="sharingControlsLocked"
+					  width="100%" height="24"
+					  visible="{youTubePlayerDefinition.lockedBy.userGuid != interactivityClient.currentUser.id}"
+					  includeInLayout="{youTubePlayerDefinition.lockedBy.userGuid != interactivityClient.currentUser.id}"
+					  verticalAlign="middle">
+				<s:Label text="{youTubePlayerDefinition.lockedBy.username} has the controls."
+						 fontFamily="Arial"
+						 fontSize="11"
+						 color="#FFFFFF"
+						 fontWeight="normal" />
+			</s:HGroup>
+			
+			<s:HGroup id="sharingControlsLockedByMe"
+					  width="100%" height="24"
+					  visible="false"
+					  includeInLayout="false"
+					  verticalAlign="middle">
+				<s:Label text="You have the controls." />
+				<mx:Spacer width="100%" />
+				<s:Button height="20" label="Unlock" click="unlockPlayer()" />
+			</s:HGroup>
+		</s:Group>
+		
+	</s:VGroup>
+		
+	<s:Group width="100%" height="100%" includeIn="authorModeEnabled">
+		<s:Rect width="100%" height="100%" radiusX="5">
+			<s:fill>
+				<s:SolidColor color="#555555" alpha.authorNotSelected="0.5" alpha.authorSelected="0.7" />
+			</s:fill>
+		</s:Rect>	
+	</s:Group> 
+		
+</s:Group>

@@ -9,10 +9,10 @@
     <sourceAttachmentPath/>
   </compiler>
   <applications>
+    <application path="VisualNotificationTester.mxml"/>
     <application path="TestFloatingPanel.mxml"/>
     <application path="TestBubble.mxml"/>
     <application path="FlashClient.mxml"/>
-    <application path="VisualNotificationTester.mxml"/>
     <application path="SpinnerApp.mxml"/>
   </applications>
   <modules/>

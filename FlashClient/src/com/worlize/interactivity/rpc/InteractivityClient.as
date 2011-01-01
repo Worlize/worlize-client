@@ -25,7 +25,9 @@ package com.worlize.interactivity.rpc
 	import com.worlize.model.PreferencesManager;
 	import com.worlize.model.RoomDefinition;
 	import com.worlize.model.SimpleAvatarStore;
+	import com.worlize.model.UserListEntry;
 	import com.worlize.model.WorldDefinition;
+	import com.worlize.model.YouTubePlayerDefinition;
 	import com.worlize.notification.RoomChangeNotification;
 	import com.worlize.rpc.HTTPMethod;
 	import com.worlize.rpc.WorlizeComm;
@@ -297,10 +299,111 @@ package com.worlize.interactivity.rpc
 					case "permission_to_join_granted":
 						handlePermissionToJoinGranted(data);
 						break;
+					case "youtube_player_added":
+						handleYouTubePlayerAdded(data);
+						break;
+					case "youtube_player_moved":
+						handleYouTubePlayerMoved(data);
+						break;
+					case "youtube_player_data_updated":
+						handleYouTubePlayerDataUpdated(data);
+						break;
+					case "youtube_player_removed":
+						handleYouTubePlayerRemoved(data);
+						break;
+					case "youtube_load":
+						handleYouTubeLoad(data);
+						break;
+					case "youtube_pause":
+						handleYouTubePause(data);
+						break;
+					case "youtube_play":
+						handleYouTubePlay(data);
+						break;
+					case "youtube_stop":
+						handleYouTubeStop(data);
+						break;
+					case "youtube_seek":
+						handleYouTubeSeek(data);
+						break;
 					default:
 						trace("Unhandled message: " + JSON.encode(event.message));
 						break;
 				}
+			}
+		}
+		
+		private function handleYouTubePause(data:Object):void {
+			var player:YouTubePlayerDefinition = currentRoom.getYoutubePlayerByGuid(data.player);
+			if (player) {
+				player.pauseRequested();
+			}
+		}
+		
+		private function handleYouTubePlay(data:Object):void {
+			var player:YouTubePlayerDefinition = currentRoom.getYoutubePlayerByGuid(data.player);
+			if (player) {
+				player.playRequested();
+			}
+		}
+		
+		private function handleYouTubeStop(data:Object):void {
+			var player:YouTubePlayerDefinition = currentRoom.getYoutubePlayerByGuid(data.player);
+			if (player) {
+				player.stopRequested();
+			}	
+		}
+		
+		private function handleYouTubeSeek(data:Object):void {
+			var player:YouTubePlayerDefinition = currentRoom.getYoutubePlayerByGuid(data.player);
+			if (player) {
+				player.seekRequested(data.seek_to);
+			}
+		}			
+		
+		private function handleYouTubePlayerAdded(data:Object):void {
+			if (data.room != currentRoom.id) { return; }
+			var player:YouTubePlayerDefinition = YouTubePlayerDefinition.fromData(data.player);
+			player.roomGuid = data.room;
+			currentRoom.addYoutubePlayer(player);
+		}
+		
+		private function handleYouTubePlayerMoved(data:Object):void {
+			if (data.room != currentRoom.id) { return; }
+			var player:YouTubePlayerDefinition = currentRoom.getYoutubePlayerByGuid(data.player.guid);
+			if (player) {
+				player.x = data.player.x;
+				player.y = data.player.y;
+				player.setSize(data.player.width, data.player.height);
+			}
+		}
+		
+		private function handleYouTubePlayerDataUpdated(data:Object):void {
+			if (data.room != currentRoom.id) { return; }
+			var player:YouTubePlayerDefinition = currentRoom.getYoutubePlayerByGuid(data.player.guid);
+			player.data.updateData(data.player.data);
+		}
+		
+		private function handleYouTubePlayerRemoved(data:Object):void {
+			if (data.room != currentRoom.id) { return; }
+			currentRoom.removeYoutubePlayer(data.guid);
+		}
+		
+		private function handleYouTubeLoad(data:Object):void {
+			if (data.room != currentRoom.id) { return; }
+			var player:YouTubePlayerDefinition = currentRoom.getYoutubePlayerByGuid(data.player);
+			
+			// Load implies lock..
+			var interactivityUser:InteractivityUser = currentRoom.getUserById(data.user);
+			if (user) {
+				var user:UserListEntry = new UserListEntry();
+				user.username = interactivityUser.name;
+				user.userGuid = interactivityUser.id;
+				player.lockPlayerRequested(user, data.duration);
+			}
+			
+			if (player && data.video_id) {
+				player.loadVideoRequested(data.video_id, data.title, data.auto_play);
 			}
 		}
 		
@@ -523,11 +626,17 @@ package com.worlize.interactivity.rpc
 					}
 					
 					// In-World Objects
-					currentRoom.inWorldObjects.removeAll();
-					currentRoom.inWorldObjectsByGuid = new Dictionary();
+					currentRoom.resetInWorldObjects();
 					for each (var objectData:Object in room.objects) {
 						currentRoom.addObject(objectData.guid, objectData.x, objectData.y, objectData.fullsize_url, objectData.dest);
-					}			
+					}
+					
+					// YouTube Players
+					currentRoom.resetYoutubePlayers();
+					for each (var youtubePlayerDefinition:YouTubePlayerDefinition in room.youtubePlayers) {
+						currentRoom.addYoutubePlayer(youtubePlayerDefinition);
+					}
+					
 				}
 				else {
 					disconnect();
@@ -602,6 +711,56 @@ package com.worlize.interactivity.rpc
 			expectingDisconnect = true;
 			worlizeComm.disconnect();
 			resetState();
+		}
+		
+		public function youTubeLoad(playerGuid:String, videoId:String, duration:int, title:String, autoPlay:Boolean = true):void {
+			worlizeComm.send({
+				msg: "youtube_load",
+				data: {
+					player: playerGuid,
+					video_id: videoId,
+					auto_play: autoPlay,
+					duration: duration,
+					title: title
+				}
+			});
+		}
+		
+		public function youTubeStop(playerGuid:String):void {
+			worlizeComm.send({
+				msg: "youtube_stop",
+				data: {
+					player: playerGuid
+				}
+			});
+		}
+		
+		public function youTubePause(playerGuid:String):void {
+			worlizeComm.send({
+				msg: "youtube_pause",
+				data: {
+					player: playerGuid
+				}
+			});
+		}
+		
+		public function youTubeSeek(playerGuid:String, seekTo:int):void {
+			worlizeComm.send({
+				msg: "youtube_seek",
+				data: {
+					player: playerGuid,
+					seek_to: seekTo
+				}
+			});
+		}
+		
+		public function youTubePlay(playerGuid:String):void {
+			worlizeComm.send({
+				msg: "youtube_play",
+				data: {
+					player: playerGuid
+				}
+			});
 		}
 		
 		public function roomChat(message:String):void {

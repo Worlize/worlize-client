@@ -634,6 +634,8 @@
 	<view:InWorldObjectLayer id="inWorldObjectLayer" inWorldObjects="{room.inWorldObjects}" 
 							 top="0" left="0" right="0" bottom="0" />
 	
+	<view:YouTubePlayersLayer youTubePlayerDefinitions="{room.youtubePlayers}" />
+	
 	<view:HotspotView id="hotSpotCanvas" room="{room}"
 							securityError="handleSecurityError()"
 							hotSpots="{room.hotSpotsAboveNothing}" top="0" right="0" bottom="0" left="0"

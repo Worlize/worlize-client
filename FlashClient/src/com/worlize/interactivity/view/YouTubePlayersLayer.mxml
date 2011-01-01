@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 creationComplete="handleCreationComplete()">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.event.AuthorModeNotification;
+			import com.worlize.event.NotificationCenter;
+			import com.worlize.model.YouTubePlayerDefinition;
+			import com.worlize.state.AuthorModeState;
+			
+			import mx.collections.ArrayCollection;
+			import mx.events.CollectionEvent;
+			import mx.events.CollectionEventKind;
+			import mx.events.FlexEvent;
+			private var viewsByYouTubeDefinition:Dictionary = new Dictionary();
+			private var _youTubeDefinitions:ArrayCollection = new ArrayCollection();
+			
+			[Bindable(event='youTubePlayerDefinitionsChange')]
+			public function set youTubePlayerDefinitions(newValue:ArrayCollection):void {
+				if (_youTubeDefinitions !== newValue) {
+					if (_youTubeDefinitions !== null) {
+						_youTubeDefinitions.removeEventListener(CollectionEvent.COLLECTION_CHANGE, handleYouTubeDefinitionsChange);
+					}
+					_youTubeDefinitions = newValue;
+					_youTubeDefinitions.addEventListener(CollectionEvent.COLLECTION_CHANGE, handleYouTubeDefinitionsChange);
+					dispatchEvent(new FlexEvent('youTubePlayerDefinitionsChange'));
+				}
+			}
+			public function get youTubePlayerDefinitions():ArrayCollection {
+				return _youTubeDefinitions;
+			}
+			
+			private function handleYouTubeDefinitionsChange(event:CollectionEvent):void {
+				var youTubePlayerDefinition:YouTubePlayerDefinition;
+				var view:YouTubePlayerView;
+				if (event.kind == CollectionEventKind.ADD) {
+					var authorModeState:AuthorModeState = AuthorModeState.getInstance();
+					for each (youTubePlayerDefinition in event.items) {
+						view = new YouTubePlayerView();
+						view.youTubePlayerDefinition = youTubePlayerDefinition;
+						viewsByYouTubeDefinition[youTubePlayerDefinition] = view;
+						view.authorMode = authorModeState.enabled;
+						addElement(view);
+					}
+				}
+				else if (event.kind == CollectionEventKind.REMOVE) {
+					for each (youTubePlayerDefinition in event.items) {
+						view = viewsByYouTubeDefinition[youTubePlayerDefinition];
+						if (view) {
+							removeElement(view);
+							delete viewsByYouTubeDefinition[youTubePlayerDefinition];
+						}
+					}
+				}
+				else if (event.kind == CollectionEventKind.RESET) {
+					removeAllElements();
+					viewsByYouTubeDefinition = new Dictionary();
+				}
+			}
+			
+			private function handleCreationComplete():void {
+				NotificationCenter.addListener(AuthorModeNotification.AUTHOR_ENABLED, handleAuthorEnabled);
+				NotificationCenter.addListener(AuthorModeNotification.AUTHOR_DISABLED, handleAuthorDisabled);
+				NotificationCenter.addListener(AuthorModeNotification.SELECTED_ITEM_CHANGED, handleSelectedItemChanged);
+			}
+			
+			private function handleAuthorEnabled(notification:AuthorModeNotification):void {
+				for (var i:int = 0; i < numElements; i ++) {
+					var view:YouTubePlayerView = YouTubePlayerView(getElementAt(i));
+					view.authorMode = true;
+				}
+			}
+			
+			private function handleAuthorDisabled(notification:AuthorModeNotification):void {
+				for (var i:int = 0; i < numElements; i ++) {
+					var view:YouTubePlayerView = YouTubePlayerView(getElementAt(i));
+					view.authorMode = false;
+				}
+			}
+			
+			private function handleSelectedItemChanged(notification:AuthorModeNotification):void {
+				for (var i:int = 0; i < numElements; i++) {
+					var view:YouTubePlayerView = YouTubePlayerView(getElementAt(i));
+					if (view.youTubePlayerDefinition === notification.newValue) {
+						view.authorModeSelected = true;
+					}
+					else {
+						view.authorModeSelected = false;
+					}
+				}
+			}
+
+		]]>
+	</fx:Script>
+</s:Group>

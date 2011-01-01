@@ -1,5 +1,6 @@
 package com.worlize.model
 {
+	[Bindable]
 	public class UserListEntry
 	{
 		public var userGuid:String;
