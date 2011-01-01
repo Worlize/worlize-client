@@ -28,9 +28,11 @@
 			import com.worlize.components.youtube.YouTubePlayerError;
 			import com.worlize.components.youtube.YouTubePlayerEvent;
 			import com.worlize.components.youtube.YouTubePlayerState;
+			import com.worlize.event.NotificationCenter;
 			import com.worlize.interactivity.event.WorlizeYouTubeEvent;
 			import com.worlize.interactivity.rpc.InteractivityClient;
 			import com.worlize.model.YouTubePlayerDefinition;
+			import com.worlize.notification.ConnectionNotification;
 			import com.worlize.rpc.HTTPMethod;
 			import com.worlize.rpc.WorlizeResultEvent;
 			import com.worlize.rpc.WorlizeServiceClient;
@@ -113,15 +115,21 @@
 			}
 			
 			private function handleAddedToStage():void {
+				NotificationCenter.addListener(ConnectionNotification.DISCONNECTED, handleDisconnected, false, 0, true); // weak ref
 				defaultVideoWatcher = ChangeWatcher.watch(this, ['youTubePlayerDefinition', 'data', 'videoId'], handleDefaultVideoChange);
 			}
 			
 			private function handleRemovedFromStage():void {
+				NotificationCenter.removeListener(ConnectionNotification.DISCONNECTED, handleDisconnected);
 				defaultVideoWatcher.unwatch();
 				defaultVideoWatcher = null;
 				if (player.state != YouTubePlayerState.UNINITIALIZED) {
 					player.destroy();
 				}
+			}
+			
+			private function handleDisconnected(notification:ConnectionNotification):void {
+				player.stopVideo();
 			}
 			
 			[Bindable(event="authorModeChange")]

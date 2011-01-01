@@ -28,6 +28,7 @@ package com.worlize.interactivity.rpc
 	import com.worlize.model.UserListEntry;
 	import com.worlize.model.WorldDefinition;
 	import com.worlize.model.YouTubePlayerDefinition;
+	import com.worlize.notification.ConnectionNotification;
 	import com.worlize.notification.RoomChangeNotification;
 	import com.worlize.rpc.HTTPMethod;
 	import com.worlize.rpc.WorlizeComm;
@@ -190,6 +191,8 @@ package com.worlize.interactivity.rpc
 			else {
 				trace("Disconnected");
 				resetState();
+				var notification:ConnectionNotification = new ConnectionNotification(ConnectionNotification.DISCONNECTED);
+				NotificationCenter.postNotification(notification);
 				Alert.show( "The connection to the server has been lost.  Press OK to reconnect.",
 						    "Connection Lost",
 						    Alert.OK,
@@ -656,6 +659,8 @@ package com.worlize.interactivity.rpc
 				expectingDisconnect = false;
 				var event:InteractivityEvent = new InteractivityEvent(InteractivityEvent.CONNECT_COMPLETE);
 				dispatchEvent(event);
+				var notification:ConnectionNotification = new ConnectionNotification(ConnectionNotification.CONNECTION_ESTABLISHED);
+				NotificationCenter.postNotification(notification);
 				currentRoom.selfUserId = id;
 			}
 			else {
