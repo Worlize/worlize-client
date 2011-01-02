@@ -147,7 +147,9 @@
 			
 			private function handleAvatarSelectionChanged(event:IndexChangeEvent):void {
 				var selectedAvatarInstance:AvatarInstance = avatarLocker.avatarInstances.getItemAt(event.newIndex) as AvatarInstance;
-				InteractivityClient.getInstance().setSimpleAvatar(selectedAvatarInstance.avatar.guid);
+				if (selectedAvatarInstance && selectedAvatarInstance.avatar) {
+					InteractivityClient.getInstance().setSimpleAvatar(selectedAvatarInstance.avatar.guid);
+				}
 			}
 
 		]]>
