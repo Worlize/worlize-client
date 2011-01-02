@@ -70,6 +70,8 @@
 			private var forcingPng:Boolean = false;
 			private var forcingJpeg:Boolean = false;
 			
+			private var currentMenu:Menu;
+			
 			[Bindable(event="roomChanged")]
 			public function get room():CurrentRoom {
 				return _room;
@@ -231,6 +233,10 @@
 				if (event.currentTarget is Avatar) {
 					event.stopPropagation();
 					
+					if (currentMenu) {
+						currentMenu.hide();
+					}
+					
 					var user:InteractivityUser = Avatar(event.currentTarget).user;
 					if (user.id == room.selfUserId) {
 						return;
@@ -244,24 +250,13 @@
 						menuData.push({ type: 'normal', label: 'Stop whispering to ' + user.name, action: 'stopWhispering', user: user});
 					}
 					
-					if (FriendsList.getInstance().getFriendsListEntryByGuid(user.id)) {
-						// already friends...
-						menuData.push({ type: 'normal', label: 'Remove ' + user.name + ' as friend', action: 'removeFriend', user: user});
-					}
-					else {
+					if (!FriendsList.getInstance().getFriendsListEntryByGuid(user.id)) {
 						menuData.push({ type: 'normal', label: 'Add ' + user.name + ' as friend', action: 'addFriend', user: user}); 
 					}
 					
-					var menu:Menu = Menu.createMenu(null, menuData, true);
-					menu.addEventListener(MenuEvent.ITEM_CLICK, handleUserContextMenuItemClick);
-					menu.show(stage.mouseX, stage.mouseY);
-					
-//					else if (room.selectedUser != user) {
-//						room.selectedUser = user;
-//					}
-//					else if (room.selectedUser == user) {
-//						room.selectedUser = null;
-//					}
+					currentMenu = Menu.createMenu(null, menuData, true);
+					currentMenu.addEventListener(MenuEvent.ITEM_CLICK, handleUserContextMenuItemClick, false, 0, true);
+					currentMenu.show(stage.mouseX, stage.mouseY);
 				}
 			}
 			
