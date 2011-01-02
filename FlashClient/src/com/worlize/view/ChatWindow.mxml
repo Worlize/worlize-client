@@ -346,14 +346,14 @@
 				toolTip="Create new Door" source="@Embed(source='src/assets/icons/icon_author_door.png')"
 				click="createHotspot()" />
 			<mx:Image useHandCursor="true" buttonMode="true"
-				toolTip="Add YouTube Player" source="@Embed(source='src/assets/icons/icon_author_media.png')"
-				click="createYoutubePlayer()" />
-			<mx:Image useHandCursor="true" buttonMode="true"
 				toolTip="Backgrounds" source="@Embed(source='src/assets/icons/icon_author_bkg.png')"
 			    click="handleBackgroundsClick()" />
 			<mx:Image useHandCursor="true" buttonMode="true"
 				toolTip="Objects" source="@Embed(source='src/assets/icons/icon_author_object.png')"
 				click="handleObjectsClick()" />
+			<mx:Image useHandCursor="true" buttonMode="true"
+					  toolTip="Add YouTube Player" source="@Embed(source='src/assets/icons/YouTubeIcon.png')"
+					  click="createYoutubePlayer()" />
 			<mx:Image toolTip="Area Settings"
 				click="handleAreaSettingsClick()"
 				useHandCursor="true" buttonMode="true"
