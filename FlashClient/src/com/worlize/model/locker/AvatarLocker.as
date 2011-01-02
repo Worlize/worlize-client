@@ -4,7 +4,10 @@ package com.worlize.model.locker
 	import com.worlize.model.AvatarInstance;
 	import com.worlize.model.SimpleAvatar;
 	import com.worlize.model.SimpleAvatarStore;
+	import com.worlize.model.gifts.Gift;
+	import com.worlize.model.gifts.GiftType;
 	import com.worlize.notification.AvatarNotification;
+	import com.worlize.notification.GiftNotification;
 	import com.worlize.rpc.HTTPMethod;
 	import com.worlize.rpc.WorlizeResultEvent;
 	import com.worlize.rpc.WorlizeServiceClient;
@@ -23,6 +26,7 @@ package com.worlize.model.locker
 		public static const STATE_READY:String = "ready";
 		public static const STATE_ERROR:String = "error";
 		
+		private static var _instance:AvatarLocker;
 		
 		public var capacity:int;
 		public var count:int;
@@ -36,8 +40,19 @@ package com.worlize.model.locker
 		public function AvatarLocker(target:IEventDispatcher=null)
 		{
 			super(target);
+			if (_instance !== null) {
+				throw new Error("You may only create one AvatarLocker instance.");
+			}
 			NotificationCenter.addListener(AvatarNotification.AVATAR_INSTANCE_DELETED, handleAvatarDeleted);
 			NotificationCenter.addListener(AvatarNotification.AVATAR_UPLOADED, handleAvatarUploaded);
+			NotificationCenter.addListener(GiftNotification.GIFT_ACCEPTED, handleGiftAccepted);
+		}
+		
+		public static function getInstance():AvatarLocker {
+			if (_instance === null) {
+				_instance = new AvatarLocker();
+			}
+			return _instance;
 		}
 		
 		private function handleAvatarDeleted(notification:AvatarNotification):void {
@@ -54,18 +69,36 @@ package com.worlize.model.locker
 		}
 		
 		private function handleAvatarUploaded(notification:AvatarNotification):void {
+			avatarInstanceMap[notification.avatarInstance.guid] = notification.avatarInstance;
 			for (var i:int = 0, len:int = avatarInstances.length; i < len; i++) {
 				var instance:AvatarInstance = AvatarInstance(avatarInstances.getItemAt(i));
 				if (instance.emptySlot) {
 					avatarInstances.removeItemAt(i);
 					delete avatarInstanceMap[instance.guid];
 					avatarInstances.addItemAt(notification.avatarInstance, i);
-					avatarInstanceMap[notification.avatarInstance.guid] = notification.avatarInstance;
 					updateCount();
 					return;
 				}
 			}
 			avatarInstances.addItem(notification.avatarInstance);
+		}
+		
+		private function handleGiftAccepted(notification:GiftNotification):void {
+			if (notification.gift.type !== GiftType.AVATAR) { return; }
+			var newAvatarInstance:AvatarInstance = AvatarInstance.fromData(notification.gift.item);
+			avatarInstanceMap[newAvatarInstance.guid] = newAvatarInstance;
+			
+			for (var i:int = 0, len:int = avatarInstances.length; i < len; i++) {
+				var instance:AvatarInstance = AvatarInstance(avatarInstances.getItemAt(i));
+				if (instance.emptySlot) {
+					avatarInstances.removeItemAt(i);
+					delete avatarInstanceMap[instance.guid];
+					avatarInstances.addItemAt(newAvatarInstance, i);
+					updateCount();
+					return;
+				}
+			}
+			avatarInstances.addItem(newAvatarInstance);
 		}
 		
 		private function addEmptySlot():void {

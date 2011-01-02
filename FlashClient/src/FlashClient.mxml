@@ -35,6 +35,7 @@
 			import com.worlize.view.MarketplaceWindow;
 			import com.worlize.view.author.AuthorModePropertiesWindow;
 			import com.worlize.view.windows.FriendsWindow;
+			import com.worlize.view.windows.GiftsWindow;
 			
 			import mx.binding.utils.ChangeWatcher;
 			import mx.controls.Alert;
@@ -157,6 +158,10 @@
 			private function handleFriendsClick():void {
 				FriendsWindow.open(systemManager.getSandboxRoot());
 			}
+			
+			private function handleGiftsClick():void {
+				GiftsWindow.open(systemManager.getSandboxRoot());
+			}
 		]]>
 	</fx:Script>
 
@@ -197,6 +202,7 @@
 				styleName="topNavButton"
 				color="#9e1F63"
 				icon="@Embed(source='src/assets/icons/icon_gifts.png')"
+				click="handleGiftsClick()"
 				label="GIFTS" />
 			<mx:LinkButton
 				styleName="topNavButton"

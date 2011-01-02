@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<components:WorlizeWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+								 xmlns:s="library://ns.adobe.com/flex/spark"
+								 titleBarColor="#b6578a"
+								 titleTextColor="#63153f"
+								 title="Send a Gift"
+								 resizable="false"
+								 windowIcon="@Embed('assets/icons/large/w_icon_gifts.png')"
+								 xmlns:mx="library://ns.adobe.com/flex/mx"
+								 xmlns:components="com.worlize.view.components.*"
+								 close="handleClose(event)"
+								 width="300" height="450">
+	<components:layout>
+		<s:VerticalLayout gap="10"
+						  paddingTop="10" paddingLeft="10"
+						  paddingRight="10" paddingBottom="10" />
+	</components:layout>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.components.visualnotification.VisualNotification;
+			import com.worlize.model.FriendsListEntry;
+			import com.worlize.model.gifts.IGiftable;
+			
+			import mx.events.CloseEvent;
+			import mx.events.ListEvent;
+			import mx.managers.PopUpManager;
+			
+			import spark.components.PopUpAnchor;
+			import spark.events.IndexChangeEvent;
+			
+			[Bindable]
+			public var giftable:IGiftable;
+			
+			[Bindable]
+			public var recipient:FriendsListEntry;
+			
+			public static function launch(root:DisplayObject, giftable:IGiftable):void {
+				var window:SendGiftWindow = new SendGiftWindow();
+				window.giftable = giftable;
+				PopUpManager.addPopUp(window, root, true);
+				PopUpManager.centerPopUp(window);
+			}
+			
+			private function close():void {
+				giftable = null;
+				recipient = null;
+				PopUpManager.removePopUp(this);
+			}
+			
+			private function handleClose(event:CloseEvent):void {
+				close();
+			}
+			
+			private function handleFriendChange(event:IndexChangeEvent):void {
+				recipient = FriendsListEntry(friendPicker.selectedItem);
+			}
+			
+			private function handleSendGiftClick():void {
+				if (recipient) {
+					giftable.sendAsGift(recipient, function(error:Boolean, data:Object):void {
+						if (!error) {
+							var notification:VisualNotification = new VisualNotification(
+								"Your gift to " + recipient.username + " has been sent!",
+								"Gift sent!"
+							);
+							notification.show();
+							close();
+						}
+					});
+				}
+			}
+		]]>
+	</fx:Script>
+	
+	
+	<s:Label text="Select a recipient:" />
+	
+	<components:FriendPicker id="friendPicker"
+							 width="100%" height="100%"
+							 change="handleFriendChange(event)" />
+
+	<s:HGroup horizontalAlign="right" width="100%">
+
+		<s:Button label="Cancel" click="close()" />
+		<s:Button enabled="{Boolean(recipient)}" label="Send Gift" click="handleSendGiftClick()" />
+		
+	</s:HGroup>
+		
+</components:WorlizeWindow>

@@ -1,14 +1,22 @@
 package com.worlize.model
 {
 	import com.worlize.command.DeleteAvatarInstanceCommand;
+	import com.worlize.components.visualnotification.VisualNotification;
+	import com.worlize.model.gifts.IGiftable;
+	import com.worlize.rpc.HTTPMethod;
+	import com.worlize.rpc.WorlizeResultEvent;
+	import com.worlize.rpc.WorlizeServiceClient;
 	
 	import flash.events.EventDispatcher;
+	
+	import mx.controls.Alert;
+	import mx.rpc.events.FaultEvent;
 
 	[Event(name="avatarLoaded",type="com.worlize.event.AvatarEvent")]
 	[Event(name="avatarError",type="com.worlize.event.AvatarEvent")]
 	
 	[Bindable]
-	public class SimpleAvatar extends EventDispatcher
+	public class SimpleAvatar extends EventDispatcher implements IGiftable
 	{
 		public var name:String;
 		public var ready:Boolean = false;
@@ -35,6 +43,26 @@ package com.worlize.model
 			var avatarDefinition:SimpleAvatar = new SimpleAvatar();
 			avatarDefinition.fromData(data);
 			return avatarDefinition;
+		}
+		
+		public function sendAsGift(recipient:FriendsListEntry, callback:Function=null):void {
+			var client:WorlizeServiceClient = new WorlizeServiceClient();
+			client.addEventListener(WorlizeResultEvent.RESULT, function(event:WorlizeResultEvent):void {
+				if (event.resultJSON.success) {
+					callback(false, event.resultJSON);
+				}
+				else {
+					callback(true, event.resultJSON);
+					Alert.show(event.resultJSON.description, "Error");
+				}
+			});
+			client.addEventListener(FaultEvent.FAULT, function(event:FaultEvent):void {
+				callback(true, null);
+				Alert.show("There was a fault encountered while attempting to send a gift to " + recipient.username + ".", "Error");
+			});
+			client.send("/avatars/" + guid + "/send_as_gift.json", HTTPMethod.POST, {
+				recipient_guid: recipient.guid
+			});
 		}
 	}
 }

@@ -7,7 +7,6 @@
 								 showTitle="false"
 								 showCloseButton="false"
 								 mouseDownOutside="handleMouseDownOutside(event)"
-								 creationComplete="handleCreationComplete()"
 								 removedFromStage="handleRemovedFromStage()"
 								 currentState="myFriends"
 								 width="300" xmlns:code="http://code.google.com/p/flexlib/" xmlns:layout="flexlib.scheduling.scheduleClasses.layout.*" xmlns:controls="controls.*">
@@ -28,6 +27,7 @@
 			import com.worlize.view.skins.DynamicHeightListSkin;
 			
 			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;
 			
 			import spark.skins.spark.DefaultItemRenderer;
@@ -36,19 +36,30 @@
 			private static var _instance:FriendsWindow;
 			private static var closedAt:Date;
 			
-			[Bindable]
-			private var friendsList:FriendsList = FriendsList.getInstance();
-						
-			private function handleCreationComplete():void {
-				friendsList.addEventListener('stateChange', handleFriendsListStateChange);
-				if (friendsList.state == FriendsList.STATE_LOADING) {
-					loadingSpinner.visible = true;
-					loadingSpinner.play();
+			private var _friendsList:FriendsList;
+			
+			[Bindable(event="friendsListChange")]
+			public function set friendsList(newValue:FriendsList):void {
+				if (_friendsList !== newValue) {
+					if (_friendsList) {
+						_friendsList.removeEventListener('stateChange', handleFriendsListStateChange);
+					}
+					_friendsList = newValue;
+					if (_friendsList) {
+						_friendsList.addEventListener('stateChange', handleFriendsListStateChange);
+						if (friendsList.state == FriendsList.STATE_LOADING) {
+							loadingSpinner.visible = true;
+							loadingSpinner.play();
+						}
+					}
+					dispatchEvent(new FlexEvent("friendsListChange"));
 				}
+			}
+			public function get friendsList():FriendsList {
+				return _friendsList;
 			}
 			
 			private function handleRemovedFromStage():void {
-				friendsList.removeEventListener('stateChange', handleFriendsListStateChange);
 				loadingSpinner.visible = false;
 				loadingSpinner.stop();
 			}
@@ -97,8 +108,9 @@
 					_instance.addEventListener(CloseEvent.CLOSE, function(event:CloseEvent):void {
 						close();
 					});
-					_instance.friendsList.load();
 					PopUpManager.addPopUp(_instance, parent);
+					_instance.friendsList = FriendsList.getInstance();
+					_instance.friendsList.load();
 					_instance.x = 130;
 					_instance.y = 30;
 					_open = true;
@@ -108,6 +120,7 @@
 			public static function close():void {
 				if (_open && _instance && lockCounter <= 0) {
 					lockCounter = 0;
+					_instance.friendsList = null;
 					PopUpManager.removePopUp(_instance);
 					_open = false;
 					_instance = null;

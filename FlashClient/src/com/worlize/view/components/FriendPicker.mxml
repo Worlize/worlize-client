@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:List xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark" 
+		xmlns:mx="library://ns.adobe.com/flex/mx"
+		dataProvider="{friendsList.friends}"
+		itemRenderer="com.worlize.view.itemrenderers.FriendPickerItemRenderer"
+		width="200" height="200">
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.model.FriendsList;
+			import com.worlize.view.itemrenderers.FriendPickerItemRenderer;
+			
+			[Bindable]
+			private var friendsList:FriendsList = FriendsList.getInstance();
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+</s:List>

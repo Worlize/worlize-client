@@ -51,7 +51,7 @@
 			private static var _instance:WorlizeWindow;
 			
 			[Bindable]
-			private var avatarLocker:AvatarLocker = new AvatarLocker();
+			private var avatarLocker:AvatarLocker = AvatarLocker.getInstance();
 			
 			[Bindable]
 			private var avatarUploader:AvatarUploader = new AvatarUploader();

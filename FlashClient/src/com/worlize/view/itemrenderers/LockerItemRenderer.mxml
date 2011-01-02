@@ -10,6 +10,8 @@
 			import com.worlize.interactivity.rpc.InteractivityClient;
 			import com.worlize.model.AvatarInstance;
 			import com.worlize.model.SimpleAvatar;
+			import com.worlize.model.gifts.Gift;
+			import com.worlize.view.windows.SendGiftWindow;
 			
 			import mx.binding.utils.ChangeWatcher;
 			import mx.controls.Alert;
@@ -103,6 +105,13 @@
 				event.stopImmediatePropagation();
 				event.preventDefault();
 			}
+			
+			private function handleGiftClick(event:MouseEvent):void {
+				event.stopImmediatePropagation();
+				
+				var avatar:SimpleAvatar = AvatarInstance(data).avatar;
+				SendGiftWindow.launch(systemManager.getSandboxRoot(), avatar);
+			}
 		]]>
 	</fx:Script>
 	
@@ -136,6 +145,12 @@
 			<s:SolidColor color="#ffe49b" alpha="0.3" alpha.selected="0.4" />
 		</s:fill>
 	</s:Rect>
+	
+	<mx:Image source="@Embed(source='../../../../assets/icons/icon_gifts.png')"
+			  toolTip="Send as Gift" useHandCursor="true"
+			  includeIn="active" bottom="4" right="30"
+			  mouseDown="stopPropagation(event)"
+			  click="handleGiftClick(event)" />
 	
 	<mx:Image source="@Embed(source='../../../../assets/icons/icon_delete.png')"
 			  toolTip="Delete" useHandCursor="true"

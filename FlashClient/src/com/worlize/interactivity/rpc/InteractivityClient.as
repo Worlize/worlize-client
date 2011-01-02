@@ -28,6 +28,8 @@ package com.worlize.interactivity.rpc
 	import com.worlize.model.UserListEntry;
 	import com.worlize.model.WorldDefinition;
 	import com.worlize.model.YouTubePlayerDefinition;
+	import com.worlize.model.gifts.Gift;
+	import com.worlize.model.gifts.GiftsList;
 	import com.worlize.notification.ConnectionNotification;
 	import com.worlize.notification.RoomChangeNotification;
 	import com.worlize.rpc.HTTPMethod;
@@ -136,6 +138,9 @@ package com.worlize.interactivity.rpc
 		
 		[Bindable]
 		public var friendsList:FriendsList = FriendsList.getInstance();
+		
+		[Bindable]
+		public var giftsList:GiftsList = GiftsList.getInstance();
 		
 		private var expectingDisconnect:Boolean = false;
 		
@@ -329,11 +334,24 @@ package com.worlize.interactivity.rpc
 					case "youtube_seek":
 						handleYouTubeSeek(data);
 						break;
+					case "gift_received":
+						handleGiftReceived(data);
+						break;
 					default:
 						trace("Unhandled message: " + JSON.encode(event.message));
 						break;
 				}
 			}
+		}
+		
+		private function handleGiftReceived(data:Object):void {
+			var gift:Gift = Gift.fromData(data.gift);
+			GiftsList.getInstance().addGift(gift);
+			var notification:VisualNotification = new VisualNotification(
+				"You've received a gift from " + gift.sender.username + "!  Click \"Gifts\" at the top of the screen to accept it!",
+				"Gift Received!"
+			);
+			notification.show();
 		}
 		
 		private function handleYouTubePause(data:Object):void {
