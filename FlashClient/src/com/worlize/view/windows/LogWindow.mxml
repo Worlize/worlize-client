@@ -3,6 +3,7 @@
 								 xmlns:s="library://ns.adobe.com/flex/spark" 
 								 xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:components="com.worlize.view.components.*"
 								 width="600" height="250"
+								 minWidth="200" minHeight="150"
 								 title="Chat Log"
 								 showTitle="true"
 								 resizable="true"
