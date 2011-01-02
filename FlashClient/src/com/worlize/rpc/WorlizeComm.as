@@ -37,7 +37,7 @@ package com.worlize.rpc
 		}
 		
 		public function send(message:Object):void {
-			ExternalInterface.call('worlizeSend', message);
+			ExternalInterface.call('worlizeSend', encodeURIComponent(JSON.encode(message)));
 		}
 		
 		public function connect():void {
@@ -65,9 +65,14 @@ package com.worlize.rpc
 			trace("Cookies: " + JSON.encode(config.cookies));
 		}
 		
-		private function handleMessage(message:Object):void {
+		private function handleMessage(message:String):void {
 			var event:WorlizeCommEvent = new WorlizeCommEvent(WorlizeCommEvent.MESSAGE);
-			event.message = message;
+			try {
+				event.message = JSON.decode(decodeURIComponent(message));
+			}
+			catch (e:Error) {
+				event.message = null;
+			}
 			dispatchEvent(event);
 		}
 		
