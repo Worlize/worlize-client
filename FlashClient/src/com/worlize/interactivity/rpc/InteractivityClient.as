@@ -790,7 +790,7 @@ package com.worlize.interactivity.rpc
 			if (!connected || message == null || message.length == 0) {
 				return;
 			}
-			trace("Saying: " + message);
+//			trace("Saying: " + message);
 
 			worlizeComm.send({
 				msg: "say",

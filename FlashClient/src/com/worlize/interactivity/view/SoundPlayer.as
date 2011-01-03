@@ -15,72 +15,72 @@ package com.worlize.interactivity.view
 		
 		private var client:InteractivityClient = InteractivityClient.getInstance();
 		
-		[Embed(source="assets/sounds/amen.mp3")]
-		private static const amen:Class;
-		
-		[Embed(source="assets/sounds/applause.mp3")]
-		private static const applause:Class;
-		
-		[Embed(source="assets/sounds/belch.mp3")]
-		private static const belch:Class;
-		
-		[Embed(source="assets/sounds/boom.mp3")]
-		private static const boom:Class;
-		
-		[Embed(source="assets/sounds/Chime.mp3")]
-		private static const chime:Class;
-		
-		[Embed(source="assets/sounds/crunch.mp3")]
-		private static const crunch:Class;
-		
-		[Embed(source="assets/sounds/debut.mp3")]
-		private static const debut:Class;
-		
-		[Embed(source="assets/sounds/DoorClose.mp3")]
-		private static const doorClose:Class;
-		
-		[Embed(source="assets/sounds/DoorOpen.mp3")]
-		private static const doorOpen:Class;
-		
-		[Embed(source="assets/sounds/Fader.mp3")]
-		private static const fader:Class;
-		
-		[Embed(source="assets/sounds/fazein.mp3")]
-		private static const fazein:Class;
-		
-		[Embed(source="assets/sounds/guffaw.mp3")]
-		private static const guffaw:Class;
-		
-		[Embed(source="assets/sounds/kiss.mp3")]
-		private static const kiss:Class;
-		
-		[Embed(source="assets/sounds/no.mp3")]
-		private static const no:Class;
-		
-		[Embed(source="assets/sounds/pop.mp3")]
-		private static const pop:Class;
-		
-		[Embed(source="assets/sounds/teehee.mp3")]
-		private static const teehee:Class;
-		
-		[Embed(source="assets/sounds/yes.mp3")]
-		private static const yes:Class;
+//		[Embed(source="assets/sounds/amen.mp3")]
+//		private static const amen:Class;
+//		
+//		[Embed(source="assets/sounds/applause.mp3")]
+//		private static const applause:Class;
+//		
+//		[Embed(source="assets/sounds/belch.mp3")]
+//		private static const belch:Class;
+//		
+//		[Embed(source="assets/sounds/boom.mp3")]
+//		private static const boom:Class;
+//		
+//		[Embed(source="assets/sounds/Chime.mp3")]
+//		private static const chime:Class;
+//		
+//		[Embed(source="assets/sounds/crunch.mp3")]
+//		private static const crunch:Class;
+//		
+//		[Embed(source="assets/sounds/debut.mp3")]
+//		private static const debut:Class;
+//		
+//		[Embed(source="assets/sounds/DoorClose.mp3")]
+//		private static const doorClose:Class;
+//		
+//		[Embed(source="assets/sounds/DoorOpen.mp3")]
+//		private static const doorOpen:Class;
+//		
+//		[Embed(source="assets/sounds/Fader.mp3")]
+//		private static const fader:Class;
+//		
+//		[Embed(source="assets/sounds/fazein.mp3")]
+//		private static const fazein:Class;
+//		
+//		[Embed(source="assets/sounds/guffaw.mp3")]
+//		private static const guffaw:Class;
+//		
+//		[Embed(source="assets/sounds/kiss.mp3")]
+//		private static const kiss:Class;
+//		
+//		[Embed(source="assets/sounds/no.mp3")]
+//		private static const no:Class;
+//		
+//		[Embed(source="assets/sounds/pop.mp3")]
+//		private static const pop:Class;
+//		
+//		[Embed(source="assets/sounds/teehee.mp3")]
+//		private static const teehee:Class;
+//		
+//		[Embed(source="assets/sounds/yes.mp3")]
+//		private static const yes:Class;
 		
 		private var soundMap:Object = {
-			amen: amen,
-			applause: applause,
-			belch: belch,
-			boom: boom,
-			chime: chime,
-			crunch: crunch,
-			debut: debut,
-			fazein: fazein,
-			guffaw: guffaw,
-			kiss: kiss,
-			no: no,
-			pop: pop,
-			teehee: teehee,
-			yes: yes
+//			amen: amen,
+//			applause: applause,
+//			belch: belch,
+//			boom: boom,
+//			chime: chime,
+//			crunch: crunch,
+//			debut: debut,
+//			fazein: fazein,
+//			guffaw: guffaw,
+//			kiss: kiss,
+//			no: no,
+//			pop: pop,
+//			teehee: teehee,
+//			yes: yes
 		};
 		
 		private static var _instance:SoundPlayer;
@@ -101,19 +101,19 @@ package com.worlize.interactivity.view
 		}
 		
 		public function playDoorLock():void {
-			playSoundAsset(SoundAsset(new doorClose()));
+//			playSoundAsset(SoundAsset(new doorClose()));
 		}
 		
 		public function playDoorUnlock():void {
-			playSoundAsset(SoundAsset(new doorOpen()));
+//			playSoundAsset(SoundAsset(new doorOpen()));
 		}
 		
 		public function playConnectionPing():void {
-			playSoundAsset(SoundAsset(new fader()));
+//			playSoundAsset(SoundAsset(new fader()));
 		}
 		
 		public function playWhisperBell():void {
-			playSoundAsset(SoundAsset(new chime()));
+//			playSoundAsset(SoundAsset(new chime()));
 		}
 		
 		private function playSoundAsset(soundAsset:SoundAsset):void {
@@ -126,15 +126,6 @@ package com.worlize.interactivity.view
 			if (sound != null) {
 				playSoundAsset(SoundAsset(new sound()));
 			}
-//			else {
-//				soundName = soundName.replace(/\.wav$/i, "");
-//				var request:URLRequest = new URLRequest(client.mediaServer + soundName.toLowerCase() + ".mp3");
-//				var soundFactory:Sound = new Sound();
-//				soundFactory.addEventListener(IOErrorEvent.IO_ERROR, handleIOError);
-//				soundFactory.load(request);
-//				var soundTransform:SoundTransform = new SoundTransform(1,0);
-//				var dynamicSound:SoundChannel = soundFactory.play(0,0,soundTransform);
-//			}
 		}
 		
 		private function handleIOError(error:IOErrorEvent):void {

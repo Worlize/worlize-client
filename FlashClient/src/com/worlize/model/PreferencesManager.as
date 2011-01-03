@@ -1,10 +1,13 @@
 package com.worlize.model
 {
 	import com.adobe.serialization.json.JSON;
+	import com.worlize.event.NotificationCenter;
+	import com.worlize.event.PreferencesEvent;
 	import com.worlize.rpc.HTTPMethod;
 	import com.worlize.rpc.WorlizeResultEvent;
 	import com.worlize.rpc.WorlizeServiceClient;
 	
+	import flash.events.EventDispatcher;
 	import flash.events.TimerEvent;
 	import flash.net.SharedObject;
 	import flash.utils.Timer;
@@ -13,9 +16,10 @@ package com.worlize.model
 	
 	import org.osmf.events.TimeEvent;
 	
-	public class PreferencesManager
+	public class PreferencesManager extends EventDispatcher
 	{
 		private static var _instance:PreferencesManager;
+		private var _initialized:Boolean = false;
 		private var prefs:Object = {};
 		private var timer:Timer = new Timer(100, 1);
 		
@@ -26,6 +30,10 @@ package com.worlize.model
 			}
 			timer.addEventListener(TimerEvent.TIMER, handleTimer);
 			load();
+		}
+		
+		public function get initialized():Boolean { 
+			return _initialized;
 		}
 		
 		public static function getInstance():PreferencesManager {
@@ -62,6 +70,10 @@ package com.worlize.model
 		
 		public function actuallySave():void {
 			var service:WorlizeServiceClient = new WorlizeServiceClient();
+			service.addEventListener(WorlizeResultEvent.RESULT, function(event:WorlizeResultEvent):void {
+				var saveEvent:PreferencesEvent = new PreferencesEvent(PreferencesEvent.PREFERENCES_SAVED);
+				dispatchEvent(saveEvent);
+			});
 			service.addEventListener(FaultEvent.FAULT, function(event:FaultEvent):void {
 				// do nothing
 			});
@@ -70,6 +82,13 @@ package com.worlize.model
 		
 		private function handleLoadResult(event:WorlizeResultEvent):void {
 			prefs = event.resultJSON;
+			if (!_initialized) {
+				_initialized = true;
+				var initEvent:PreferencesEvent = new PreferencesEvent(PreferencesEvent.PREFERENCES_INITIALIZED);
+				dispatchEvent(initEvent);
+			}
+			var loadEvent:PreferencesEvent = new PreferencesEvent(PreferencesEvent.PREFERENCES_LOADED);
+			dispatchEvent(loadEvent);
 		}
 	}
 }

@@ -60,9 +60,9 @@ package com.worlize.rpc
 				WorlizeServiceClient.cookies = config.cookies;
 				currentUser.load(config.user_guid);
 			}
-			trace("User Guid: " + interactivitySession.userGuid);
-			trace("Session Guid: " + interactivitySession.sessionGuid);
-			trace("Cookies: " + JSON.encode(config.cookies));
+//			trace("User Guid: " + interactivitySession.userGuid);
+//			trace("Session Guid: " + interactivitySession.sessionGuid);
+//			trace("Cookies: " + JSON.encode(config.cookies));
 		}
 		
 		private function handleMessage(message:String):void {
