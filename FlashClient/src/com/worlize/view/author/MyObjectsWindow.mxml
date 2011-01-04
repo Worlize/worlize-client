@@ -15,6 +15,7 @@
 	
 	<fx:Script>
 		<![CDATA[
+			import com.worlize.components.visualnotification.VisualNotification;
 			import com.worlize.control.InWorldObjectUploader;
 			import com.worlize.event.AuthorModeNotification;
 			import com.worlize.event.NotificationCenter;
@@ -121,6 +122,14 @@
 					Alert.show("You don't have enough empty slots.  Either delete some existing objects or purchase more slots.", "Insufficient Space"); 
 				}
 			}
+			
+			private function showComingSoon():void {
+				var notification:VisualNotification = new VisualNotification(
+					"In the not-so-distant future you will be able to use your coins and bucks to buy additional locker space!",
+					"Hang tight!"
+				);
+				notification.show();
+			}
 		]]>
 	</fx:Script>
 	
@@ -128,6 +137,7 @@
 	
 	<components:controlBarContent>
 		<components:CapacityButton
+			click="showComingSoon()"
 			line1="Capacity: {inWorldObjectLocker.capacity}"
 			line2="Current: {inWorldObjectLocker.count}"
 			toolTip="Click to add more locker capacity"/>

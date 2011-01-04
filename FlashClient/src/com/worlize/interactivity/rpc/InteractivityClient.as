@@ -23,6 +23,7 @@ package com.worlize.interactivity.rpc
 	import com.worlize.model.FriendsList;
 	import com.worlize.model.FriendsListEntry;
 	import com.worlize.model.PreferencesManager;
+	import com.worlize.model.PublicWorldsList;
 	import com.worlize.model.RoomDefinition;
 	import com.worlize.model.SimpleAvatarStore;
 	import com.worlize.model.UserListEntry;
@@ -141,6 +142,9 @@ package com.worlize.interactivity.rpc
 		
 		[Bindable]
 		public var giftsList:GiftsList = GiftsList.getInstance();
+		
+		[Bindable]
+		public var worldsList:PublicWorldsList = PublicWorldsList.getInstance();
 		
 		private var expectingDisconnect:Boolean = false;
 		

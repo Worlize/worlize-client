@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				xmlns:s="library://ns.adobe.com/flex/spark" 
+				xmlns:mx="library://ns.adobe.com/flex/mx"
+				height="36" autoDrawBackground="false">
+	
+	<s:states>
+		<s:State name="normal" />
+		<s:State name="hovered" />
+	</s:states>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.interactivity.rpc.InteractivityClient;
+			import com.worlize.model.WorldListEntry;
+			import com.worlize.view.windows.FriendsWindow;
+			import com.worlize.view.windows.WorldsWindow;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.controls.Menu;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.events.MenuEvent;
+			
+			[Bindable]
+			private var client:InteractivityClient = InteractivityClient.getInstance();
+			
+			private var _data:WorldListEntry;
+			
+			[Bindable(event='dataChange')]
+			override public function set data(newValue:Object):void {
+				if (_data !== newValue) {
+					if (newValue is WorldListEntry) {
+						_data = WorldListEntry(newValue);
+					}
+					else {
+						_data = null;
+					}
+					dispatchEvent(new FlexEvent('dataChange'));
+				}
+			}
+			override public function get data():Object {
+				return _data;
+			}
+			
+			private function visitWorld():void {
+				client.gotoRoom(_data.entrance);
+				WorldsWindow.close();
+			}
+		]]>
+	</fx:Script>
+	
+	<s:Rect left="0" right="0" bottom="0" top="0">
+		<s:fill>
+			<s:SolidColor color="#FFFFFF" />	
+		</s:fill>
+	</s:Rect>
+	
+	<s:HGroup left="6" right="6" verticalAlign="middle"
+			  height="100%">
+		<s:VGroup width="100%" paddingRight="10">
+			<s:Label fontFamily="PTSansNarrowBold" width="100%"
+					 color="#444444"
+					 fontSize="15" lineBreak="toFit"
+					 text="{WorldListEntry(data).name}" />
+			<!--
+			<s:Label fontFamily="Arial"
+					 color="#777777" fontStyle="italic"
+					 fontSize="12"
+					 text="Population: {WorldListEntry(data).population}" />
+			-->
+		</s:VGroup>
+		
+		<s:Button label="Visit Worlz" click="visitWorld();" />
+	</s:HGroup>
+	
+</s:ItemRenderer>

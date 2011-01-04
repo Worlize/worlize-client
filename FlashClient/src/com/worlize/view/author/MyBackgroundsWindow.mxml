@@ -17,6 +17,7 @@
 	
 	<fx:Script>
 		<![CDATA[
+			import com.worlize.components.visualnotification.VisualNotification;
 			import com.worlize.control.BackgroundUploader;
 			import com.worlize.control.Uploader;
 			import com.worlize.event.AuthorModeNotification;
@@ -169,6 +170,14 @@
 					background_instance_guid: backgroundInstance.guid
 				});
 			}
+			
+			private function showComingSoon():void {
+				var notification:VisualNotification = new VisualNotification(
+					"In the not-so-distant future you will be able to use your coins and bucks to buy additional locker space!",
+					"Hang tight!"
+				);
+				notification.show();
+			}
 		]]>
 	</fx:Script>
 	
@@ -176,6 +185,7 @@
 	
 	<components:controlBarContent>
 		<components:CapacityButton
+			click="showComingSoon()"
 			line1="Capacity: {backgroundsLocker.capacity}"
 			line2="Current: {backgroundsLocker.count}"
 			toolTip="Click to add more locker capacity"/>

@@ -40,6 +40,7 @@
 			import com.worlize.view.tutorial.Tutorial;
 			import com.worlize.view.windows.FriendsWindow;
 			import com.worlize.view.windows.GiftsWindow;
+			import com.worlize.view.windows.WorldsWindow;
 			
 			import mx.binding.utils.ChangeWatcher;
 			import mx.controls.Alert;
@@ -196,6 +197,10 @@
 				GiftsWindow.open(systemManager.getSandboxRoot());
 			}
 			
+			private function handleWorlzClick():void {
+				WorldsWindow.open(systemManager.getSandboxRoot());
+			}
+			
 			private function showComingSoon(message:String):void {
 				var notification:VisualNotification = new VisualNotification(message, "Hang tight!");
 				notification.show();
@@ -223,8 +228,8 @@
 				styleName="topNavButton"
 				color="#0C9dea"
 				icon="@Embed(source='src/assets/icons/icon_myworlz.png')"
-				click="client.gotoRoom(worlizeComm.currentUser.worldEntrance)"
-				label="MY WORLZ" />
+				click="handleWorlzClick()"
+				label="WORLZ" />
 			<mx:LinkButton
 				styleName="topNavButton"
 				color="#1076a4"

@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<components:WorlizeFloatingPanel xmlns:fx="http://ns.adobe.com/mxml/2009" 
+								 xmlns:s="library://ns.adobe.com/flex/spark" 
+								 xmlns:mx="library://ns.adobe.com/flex/mx"
+								 xmlns:components="com.worlize.view.components.*"
+								 titleBarColor="#0d9eeb"
+								 showTitle="false"
+								 showCloseButton="false"
+								 removedFromStage="handleRemovedFromStage()"
+								 mouseDownOutside="handleMouseDownOutside(event)"
+								 width="270" xmlns:layout="flexlib.scheduling.scheduleClasses.layout.*" xmlns:controls="controls.*">
+	
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.model.PublicWorldsList;
+			import com.worlize.view.itemrenderers.WorldListItemRenderer;
+			
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.states.State;
+			
+			private var _worldsList:PublicWorldsList;
+			
+			[Bindable(event="worldsListChange")]
+			public function set worldsList(newValue:PublicWorldsList):void {
+				if (_worldsList !== newValue) {
+					if (_worldsList) {
+						_worldsList.removeEventListener('stateChange', handleWorldsListStateChange);
+					}
+					_worldsList = newValue;
+					if (_worldsList) {
+						_worldsList.addEventListener('stateChange', handleWorldsListStateChange);
+						if (worldsList.state == PublicWorldsList.STATE_LOADING) {
+							loadingSpinner.visible = true;
+							loadingSpinner.play();
+						}
+					}
+					dispatchEvent(new FlexEvent("worldsListChange"));
+				}
+			}
+			public function get worldsList():PublicWorldsList {
+				return _worldsList;
+			}
+			
+			private static var _open:Boolean = false;
+			private static var _instance:WorldsWindow;
+			private static var closedAt:Date;
+			
+			private function handleWorldsListStateChange(event:Event):void {
+				if (worldsList.state == PublicWorldsList.STATE_LOADING) {
+					loadingSpinner.play();
+					loadingSpinner.visible = true;
+				}
+				else {
+					loadingSpinner.stop();
+					loadingSpinner.visible = false;
+				}
+			}
+			
+			private function handleRemovedFromStage():void {
+				loadingSpinner.visible = false;
+				loadingSpinner.stop();
+			}
+			
+			public static function get isOpen():Boolean {
+				return _open;
+			}
+			
+			private static var lockCounter:int = 0;
+			public static function lockOpen():void {
+				lockCounter ++;
+			}
+			
+			public static function releaseLock():void {
+				lockCounter --;
+			}
+			
+			public static function isLocked():Boolean {
+				return lockCounter > 0;
+			}
+			
+			private function handleMouseDownOutside(event:MouseEvent):void {
+				close();
+			}
+			
+			public static function open(parent:DisplayObject):void {
+				if (closedAt && closedAt.valueOf() > (new Date()).valueOf() - 200) {
+					return;
+				}
+				
+				if (_open) {
+					PopUpManager.bringToFront(_instance);
+					_instance.setFocus();
+				}
+				else {
+					_instance = new WorldsWindow();
+					_instance.addEventListener(CloseEvent.CLOSE, function(event:CloseEvent):void {
+						close();
+					});
+					PopUpManager.addPopUp(_instance, parent);
+					_instance.worldsList = PublicWorldsList.getInstance();
+					_instance.worldsList.load();
+					_instance.x = 15;
+					_instance.y = 30;
+					_open = true;
+				}
+			}
+			
+			public static function close():void {
+				if (_open && _instance && lockCounter <= 0) {
+					lockCounter = 0;
+					_instance.worldsList = null;
+					PopUpManager.removePopUp(_instance);
+					_open = false;
+					_instance = null;
+					closedAt = new Date();
+				}
+			}
+			
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<s:VGroup gap="0" width="100%">
+		<s:Group width="100%">
+			<s:Rect top="0" left="0" right="0" bottom="0">
+				<s:fill>
+					<s:SolidColor color="#8dd0f3" />
+				</s:fill>
+			</s:Rect>
+			<s:Label left="6" top="8" bottom="6"
+					 fontFamily="PTSansNarrowBold"
+					 fontSize="14" color="#000000"
+					 text="Worlz" />
+			<controls:Spinner id="loadingSpinner"
+							  right="5" verticalCenter="0"
+							  visible="false"
+							  autoPlay="false"
+							  mouseEnabled="false"
+							  mouseChildren="false"
+							  size="19" numTicks="9"
+							  tickWidth="2" speed="600"
+							  fadeSpeed="600" tickColor="#444444" />
+		</s:Group>
+		
+		<components:DynamicHeightList
+			width="100%"
+			focusEnabled="false"
+			dataProvider="{worldsList.list}"
+			maxRowCount="8"
+			borderVisible="false"
+			itemRenderer="com.worlize.view.itemrenderers.WorldListItemRenderer" />
+		
+	</s:VGroup>
+	
+</components:WorlizeFloatingPanel>
