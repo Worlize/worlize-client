@@ -20,6 +20,7 @@
 	<fx:Script>
 		<![CDATA[
 			import com.worlize.components.visualnotification.VisualNotification;
+			import com.worlize.control.Analytics;
 			import com.worlize.event.AuthorModeNotification;
 			import com.worlize.event.NotificationCenter;
 			import com.worlize.event.TutorialEvent;
@@ -41,6 +42,8 @@
 			import com.worlize.view.windows.FriendsWindow;
 			import com.worlize.view.windows.GiftsWindow;
 			import com.worlize.view.windows.WorldsWindow;
+			
+			import flash.sampler.getInvocationCount;
 			
 			import mx.binding.utils.ChangeWatcher;
 			import mx.controls.Alert;
@@ -64,12 +67,16 @@
 			private var authorPropertiesWindowShowing:Boolean = false;
 			private var authorPropertiesWindow:AuthorModePropertiesWindow;
 			
+			private var analytics:Analytics = Analytics.getInstance();
+			
 			private function handleApplicationComplete():void {
 				stage.addEventListener(KeyboardEvent.KEY_DOWN, handleStageKeyDown);
 				trace("Flash Player Version: " + Capabilities.version);
 				tutorialData = new TutorialData();
 				tutorialData.addEventListener(TutorialEvent.LAUNCH_TUTORIAL, handleLaunchTutorial);
 				tutorialData.addEventListener(TutorialEvent.CLOSE_TUTORIAL, handleCloseTutorial);
+				analytics.tracker.setDomainName(".worlize.com");
+				analytics.tracker.trackPageview("/enter");
 			}
 			
 			private function tutorialRequested():void {

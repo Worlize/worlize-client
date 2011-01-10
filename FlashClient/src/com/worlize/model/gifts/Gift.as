@@ -1,5 +1,6 @@
 package com.worlize.model.gifts
 {
+	import com.worlize.control.Analytics;
 	import com.worlize.event.NotificationCenter;
 	import com.worlize.model.SimpleAvatar;
 	import com.worlize.model.UserListEntry;
@@ -64,6 +65,7 @@ package com.worlize.model.gifts
 					var notification:GiftNotification = new GiftNotification(GiftNotification.GIFT_ACCEPTED);
 					notification.gift = gift;
 					NotificationCenter.postNotification(notification);
+					Analytics.getInstance().tracker.trackEvent('Gifts', 'Accept Gift');
 				}
 				else {
 					state = STATE_NEW;
@@ -87,6 +89,7 @@ package com.worlize.model.gifts
 					var notification:GiftNotification = new GiftNotification(GiftNotification.GIFT_REJECTED);
 					notification.gift = gift;
 					NotificationCenter.postNotification(notification);
+					Analytics.getInstance().tracker.trackEvent('Gifts', 'Reject Gift');
 				}
 				else {
 					state = STATE_NEW;
