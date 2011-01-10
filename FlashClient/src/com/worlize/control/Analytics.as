@@ -7,7 +7,7 @@ package com.worlize.control
 
 	public class Analytics
 	{
-		public static const VISUAL_DEBUG:Boolean = true;
+		public static const VISUAL_DEBUG:Boolean = false;
 		
 		public var tracker:GATracker;
 		private static var instance:Analytics;
