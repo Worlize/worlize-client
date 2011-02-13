@@ -44,7 +44,7 @@ package com.worlize.model
 		}
 		
 		private function handleDeleteResult(event:WorlizeResultEvent):void {
-			var notification:InWorldObjectNotification = new InWorldObjectNotification(InWorldObjectNotification.IN_WORLD_OBJECT_DELETED);
+			var notification:InWorldObjectNotification = new InWorldObjectNotification(InWorldObjectNotification.IN_WORLD_OBJECT_INSTANCE_DELETED);
 			notification.deletedInstanceGuid = guid;
 			NotificationCenter.postNotification(notification);
 		}

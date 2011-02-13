@@ -7,8 +7,8 @@ package com.worlize.notification
 	
 	public class InWorldObjectNotification extends Event
 	{
-		public static const IN_WORLD_OBJECT_UPLOADED:String = "inWorldObjectUploaded";
-		public static const IN_WORLD_OBJECT_DELETED:String = "inWorldObjectDeleted";
+		public static const IN_WORLD_OBJECT_INSTANCE_ADDED:String = "inWorldObjectInstanceAdded";
+		public static const IN_WORLD_OBJECT_INSTANCE_DELETED:String = "inWorldObjectInstanceDeleted";
 		public static const IN_WORLD_OBJECT_ADDED_TO_ROOM:String = "inWorldObjectAddedToRoom";
 		public static const IN_WORLD_OBJECT_REMOVED_FROM_ROOM:String = "inWorldObjectRemovedFromRoom";
 		

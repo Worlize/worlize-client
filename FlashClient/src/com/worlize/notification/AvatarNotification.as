@@ -6,7 +6,7 @@ package com.worlize.notification
 	
 	public class AvatarNotification extends Event
 	{
-		public static const AVATAR_UPLOADED:String = "newAvatarUploaded";
+		public static const AVATAR_INSTANCE_ADDED:String = "avatarInstanceAdded";
 		public static const AVATAR_INSTANCE_DELETED:String = "avatarInstanceDeleted";
 		
 		public var avatarInstance:AvatarInstance;

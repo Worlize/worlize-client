@@ -34,7 +34,7 @@ package com.worlize.model.locker
 		public function BackgroundsLocker(target:IEventDispatcher=null)
 		{
 			super(target);
-			NotificationCenter.addListener(BackgroundImageNotification.BACKGROUND_UPLOADED, handleBackgroundUploaded);
+			NotificationCenter.addListener(BackgroundImageNotification.BACKGROUND_INSTANCE_ADDED, handleBackgroundInstanceAdded);
 			NotificationCenter.addListener(BackgroundImageNotification.BACKGROUND_INSTANCE_DELETED, handleBackgroundDeleted);
 		}
 		
@@ -51,7 +51,7 @@ package com.worlize.model.locker
 			}
 		}
 		
-		private function handleBackgroundUploaded(notification:BackgroundImageNotification):void {
+		private function handleBackgroundInstanceAdded(notification:BackgroundImageNotification):void {
 			for (var i:int = 0, len:int = backgroundInstances.length; i < len; i++) {
 				var instance:BackgroundImageInstance = BackgroundImageInstance(backgroundInstances.getItemAt(i));
 				if (instance.emptySlot) {

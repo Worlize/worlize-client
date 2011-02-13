@@ -20,8 +20,11 @@ package com.worlize.interactivity.rpc
 	import com.worlize.interactivity.model.RoomHistoryManager;
 	import com.worlize.interactivity.record.ChatRecord;
 	import com.worlize.interactivity.view.SoundPlayer;
+	import com.worlize.model.AvatarInstance;
+	import com.worlize.model.BackgroundImageInstance;
 	import com.worlize.model.FriendsList;
 	import com.worlize.model.FriendsListEntry;
+	import com.worlize.model.InWorldObjectInstance;
 	import com.worlize.model.PreferencesManager;
 	import com.worlize.model.PublicWorldsList;
 	import com.worlize.model.RoomDefinition;
@@ -31,7 +34,10 @@ package com.worlize.interactivity.rpc
 	import com.worlize.model.YouTubePlayerDefinition;
 	import com.worlize.model.gifts.Gift;
 	import com.worlize.model.gifts.GiftsList;
+	import com.worlize.notification.AvatarNotification;
+	import com.worlize.notification.BackgroundImageNotification;
 	import com.worlize.notification.ConnectionNotification;
+	import com.worlize.notification.InWorldObjectNotification;
 	import com.worlize.notification.RoomChangeNotification;
 	import com.worlize.rpc.HTTPMethod;
 	import com.worlize.rpc.WorlizeComm;
@@ -341,11 +347,43 @@ package com.worlize.interactivity.rpc
 					case "gift_received":
 						handleGiftReceived(data);
 						break;
+					case "background_instance_added":
+						handleBackgroundInstanceAdded(data);
+						break;
+					case "avatar_instance_added":
+						handleAvatarInstanceAdded(data);
+						break;
+					case "in_world_object_instance_added":
+						handleInWorldObjectInstanceAdded(data);
+						break;
 					default:
 						trace("Unhandled message: " + JSON.encode(event.message));
 						break;
 				}
 			}
+		}
+		
+		private function handleInWorldObjectInstanceAdded(data:Object):void {
+			var inWorldObjectInstance:InWorldObjectInstance = InWorldObjectInstance.fromData(data);
+			
+			var notification:InWorldObjectNotification = new InWorldObjectNotification(InWorldObjectNotification.IN_WORLD_OBJECT_INSTANCE_ADDED);
+			notification.inWorldObjectInstance = inWorldObjectInstance;
+			NotificationCenter.postNotification(notification);
+		}
+		
+		private function handleAvatarInstanceAdded(data:Object):void {
+			var avatarInstance:AvatarInstance = AvatarInstance.fromData(data);
+			
+			var notification:AvatarNotification = new AvatarNotification(AvatarNotification.AVATAR_INSTANCE_ADDED);
+			notification.avatarInstance = avatarInstance;
+			NotificationCenter.postNotification(notification);
+		}
+		
+		private function handleBackgroundInstanceAdded(data:Object):void {
+			var backgroundInstance:BackgroundImageInstance = BackgroundImageInstance.fromData(data);
+			var notification:BackgroundImageNotification = new BackgroundImageNotification(BackgroundImageNotification.BACKGROUND_INSTANCE_ADDED);
+			notification.backgroundInstance = backgroundInstance;
+			NotificationCenter.postNotification(notification);
 		}
 		
 		private function handleGiftReceived(data:Object):void {

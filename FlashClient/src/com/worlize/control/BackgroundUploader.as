@@ -25,11 +25,14 @@ package com.worlize.control
 				if (response.success) {
 					var data:Object = response.data;
 					
-					var backgroundInstance:BackgroundImageInstance = BackgroundImageInstance.fromData(data);
+//					var backgroundInstance:BackgroundImageInstance = BackgroundImageInstance.fromData(data);
+
+					// We're now relying on the notification of a new instance
+					// added to the locker to come from the interactivity server. 
 					
-					var notification:BackgroundImageNotification = new BackgroundImageNotification(BackgroundImageNotification.BACKGROUND_UPLOADED);
-					notification.backgroundInstance = backgroundInstance;
-					NotificationCenter.postNotification(notification);
+//					var notification:BackgroundImageNotification = new BackgroundImageNotification(BackgroundImageNotification.BACKGROUND_INSTANCE_ADDED);
+//					notification.backgroundInstance = backgroundInstance;
+//					NotificationCenter.postNotification(notification);
 				}
 			}
 			catch(e:Error) {

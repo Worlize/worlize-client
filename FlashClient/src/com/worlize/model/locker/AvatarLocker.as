@@ -44,7 +44,7 @@ package com.worlize.model.locker
 				throw new Error("You may only create one AvatarLocker instance.");
 			}
 			NotificationCenter.addListener(AvatarNotification.AVATAR_INSTANCE_DELETED, handleAvatarDeleted);
-			NotificationCenter.addListener(AvatarNotification.AVATAR_UPLOADED, handleAvatarUploaded);
+			NotificationCenter.addListener(AvatarNotification.AVATAR_INSTANCE_ADDED, handleAvatarUploaded);
 			NotificationCenter.addListener(GiftNotification.GIFT_ACCEPTED, handleGiftAccepted);
 		}
 		

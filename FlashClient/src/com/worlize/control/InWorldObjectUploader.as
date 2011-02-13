@@ -25,11 +25,8 @@ package com.worlize.control
 				if (response.success) {
 					var data:Object = response.data;
 					
-					var inWorldObjectInstance:InWorldObjectInstance = InWorldObjectInstance.fromData(data);
-					
-					var notification:InWorldObjectNotification = new InWorldObjectNotification(InWorldObjectNotification.IN_WORLD_OBJECT_UPLOADED);
-					notification.inWorldObjectInstance = inWorldObjectInstance;
-					NotificationCenter.postNotification(notification);
+					// The server now notifies us of any object instances added
+					// to the locker via the interactivity server.
 				}
 			}
 			catch(e:Error) {

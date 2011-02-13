@@ -6,7 +6,7 @@ package com.worlize.notification
 
 	public class BackgroundImageNotification extends Event
 	{
-		public static const BACKGROUND_UPLOADED:String = "newBackgroundUploaded";
+		public static const BACKGROUND_INSTANCE_ADDED:String = "newBackgroundInstanceAdded";
 		public static const BACKGROUND_INSTANCE_DELETED:String = "backgroundInstanceDeleted";
 		
 		public var backgroundInstance:BackgroundImageInstance;

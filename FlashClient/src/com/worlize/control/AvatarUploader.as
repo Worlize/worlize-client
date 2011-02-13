@@ -40,12 +40,8 @@ package com.worlize.control
 				var response:Object = JSON.decode(event.data);
 				if (response.success) {
 					var data:Object = response.data;
-					
-					var avatarInstance:AvatarInstance = AvatarInstance.fromData(data);
-										
-					var notification:AvatarNotification = new AvatarNotification(AvatarNotification.AVATAR_UPLOADED);
-					notification.avatarInstance = avatarInstance;
-					NotificationCenter.postNotification(notification);
+					// We're notified of the new avatar via a message sent
+					// through the interactivity server...
 				}
 			}
 			catch(e:Error) {

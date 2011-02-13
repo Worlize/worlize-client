@@ -21,6 +21,7 @@
 		<![CDATA[
 			import com.worlize.components.visualnotification.VisualNotification;
 			import com.worlize.control.Analytics;
+			import com.worlize.control.Marketplace;
 			import com.worlize.event.AuthorModeNotification;
 			import com.worlize.event.NotificationCenter;
 			import com.worlize.event.TutorialEvent;
@@ -277,7 +278,7 @@
 				styleName="topNavButton"
 				color="#B58B0B"
 				icon="@Embed(source='src/assets/icons/icon_marketplace.png')"
-				click="showComingSoon('The marketplace is coming soon!');"
+				click="Marketplace.open();"
 				label="Marketplace" />
 			<mx:LinkButton
 				styleName="topNavButton"
