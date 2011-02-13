@@ -22,6 +22,7 @@ package com.worlize.interactivity.rpc
 	import com.worlize.interactivity.view.SoundPlayer;
 	import com.worlize.model.AvatarInstance;
 	import com.worlize.model.BackgroundImageInstance;
+	import com.worlize.model.CurrentUser;
 	import com.worlize.model.FriendsList;
 	import com.worlize.model.FriendsListEntry;
 	import com.worlize.model.InWorldObjectInstance;
@@ -37,6 +38,7 @@ package com.worlize.interactivity.rpc
 	import com.worlize.notification.AvatarNotification;
 	import com.worlize.notification.BackgroundImageNotification;
 	import com.worlize.notification.ConnectionNotification;
+	import com.worlize.notification.FinancialNotification;
 	import com.worlize.notification.InWorldObjectNotification;
 	import com.worlize.notification.RoomChangeNotification;
 	import com.worlize.rpc.HTTPMethod;
@@ -356,11 +358,24 @@ package com.worlize.interactivity.rpc
 					case "in_world_object_instance_added":
 						handleInWorldObjectInstanceAdded(data);
 						break;
+					case "balance_updated":
+						handleBalanceUpdated(data);
+						break;
 					default:
 						trace("Unhandled message: " + JSON.encode(event.message));
 						break;
 				}
 			}
+		}
+		
+		private function handleBalanceUpdated(data:Object):void {
+			var user:CurrentUser = CurrentUser.getInstance();
+			user.coins = data.coins;
+			user.bucks = data.bucks;
+			var notification:FinancialNotification = new FinancialNotification(FinancialNotification.FINANCIAL_BALANCE_CHANGE);
+			notification.coins = data.coins;
+			notification.bucks = data.bucks;
+			NotificationCenter.postNotification(notification);
 		}
 		
 		private function handleInWorldObjectInstanceAdded(data:Object):void {
