@@ -213,6 +213,15 @@
 				var notification:VisualNotification = new VisualNotification(message, "Hang tight!");
 				notification.show();
 			}
+			
+			private function openMarketplace():void {
+				if (Marketplace.marketplaceEnabled) {
+					Marketplace.open();
+				}
+				else {
+					showComingSoon("You will soon be able to buy premium backgrounds, avatars, and objects in the Marketplace!");
+				}
+			}
 		]]>
 	</fx:Script>
 
@@ -278,7 +287,7 @@
 				styleName="topNavButton"
 				color="#B58B0B"
 				icon="@Embed(source='src/assets/icons/icon_marketplace.png')"
-				click="Marketplace.open();"
+				click="openMarketplace()"
 				label="Marketplace" />
 			<mx:LinkButton
 				styleName="topNavButton"

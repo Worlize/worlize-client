@@ -2,6 +2,7 @@ package com.worlize.rpc
 {
 	import com.adobe.protocols.dict.events.ConnectedEvent;
 	import com.adobe.serialization.json.JSON;
+	import com.worlize.control.Marketplace;
 	import com.worlize.interactivity.event.WorlizeCommEvent;
 	import com.worlize.model.CurrentUser;
 	import com.worlize.model.InteractivitySession;
@@ -59,6 +60,7 @@ package com.worlize.rpc
 				WorlizeServiceClient.authenticityToken = config.authenticity_token;
 				WorlizeServiceClient.cookies = config.cookies;
 				currentUser.load(config.user_guid);
+				Marketplace.marketplaceEnabled = config.marketplace_enabled;
 			}
 //			trace("User Guid: " + interactivitySession.userGuid);
 //			trace("Session Guid: " + interactivitySession.sessionGuid);

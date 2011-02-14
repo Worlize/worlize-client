@@ -11,5 +11,8 @@ package com.worlize.control
 		public static function close():void {
 			ExternalInterface.call('closeMarketplace');
 		}
+		
+		[Bindable]
+		public static var marketplaceEnabled:Boolean = true;
 	}
 }
