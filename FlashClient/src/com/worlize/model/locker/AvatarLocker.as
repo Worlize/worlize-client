@@ -44,8 +44,7 @@ package com.worlize.model.locker
 				throw new Error("You may only create one AvatarLocker instance.");
 			}
 			NotificationCenter.addListener(AvatarNotification.AVATAR_INSTANCE_DELETED, handleAvatarDeleted);
-			NotificationCenter.addListener(AvatarNotification.AVATAR_INSTANCE_ADDED, handleAvatarUploaded);
-			NotificationCenter.addListener(GiftNotification.GIFT_ACCEPTED, handleGiftAccepted);
+			NotificationCenter.addListener(AvatarNotification.AVATAR_INSTANCE_ADDED, handleAvatarInstanceAdded);
 		}
 		
 		public static function getInstance():AvatarLocker {
@@ -68,7 +67,7 @@ package com.worlize.model.locker
 			}
 		}
 		
-		private function handleAvatarUploaded(notification:AvatarNotification):void {
+		private function handleAvatarInstanceAdded(notification:AvatarNotification):void {
 			avatarInstanceMap[notification.avatarInstance.guid] = notification.avatarInstance;
 			for (var i:int = 0, len:int = avatarInstances.length; i < len; i++) {
 				var instance:AvatarInstance = AvatarInstance(avatarInstances.getItemAt(i));
@@ -81,24 +80,6 @@ package com.worlize.model.locker
 				}
 			}
 			avatarInstances.addItem(notification.avatarInstance);
-		}
-		
-		private function handleGiftAccepted(notification:GiftNotification):void {
-			if (notification.gift.type !== GiftType.AVATAR) { return; }
-			var newAvatarInstance:AvatarInstance = AvatarInstance.fromData(notification.gift.item);
-			avatarInstanceMap[newAvatarInstance.guid] = newAvatarInstance;
-			
-			for (var i:int = 0, len:int = avatarInstances.length; i < len; i++) {
-				var instance:AvatarInstance = AvatarInstance(avatarInstances.getItemAt(i));
-				if (instance.emptySlot) {
-					avatarInstances.removeItemAt(i);
-					delete avatarInstanceMap[instance.guid];
-					avatarInstances.addItemAt(newAvatarInstance, i);
-					updateCount();
-					return;
-				}
-			}
-			avatarInstances.addItem(newAvatarInstance);
 		}
 		
 		private function addEmptySlot():void {
