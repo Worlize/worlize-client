@@ -39,7 +39,7 @@ package com.worlize.model.locker
 		public function InWorldObjectLocker(target:IEventDispatcher=null)
 		{
 			super(target);
-			NotificationCenter.addListener(InWorldObjectNotification.IN_WORLD_OBJECT_INSTANCE_ADDED, handleInWorldObjectUploaded);
+			NotificationCenter.addListener(InWorldObjectNotification.IN_WORLD_OBJECT_INSTANCE_ADDED, handleInWorldObjectAdded);
 			NotificationCenter.addListener(InWorldObjectNotification.IN_WORLD_OBJECT_INSTANCE_DELETED, handleInWorldObjectDeleted);
 			NotificationCenter.addListener(InWorldObjectNotification.IN_WORLD_OBJECT_ADDED_TO_ROOM, handleInWorldObjectAddedToRoom);
 			NotificationCenter.addListener(InWorldObjectNotification.IN_WORLD_OBJECT_REMOVED_FROM_ROOM, handleInWorldObjectRemovedFromRoom);
@@ -72,7 +72,7 @@ package com.worlize.model.locker
 			}
 		}
 		
-		private function handleInWorldObjectUploaded(notification:InWorldObjectNotification):void {
+		private function handleInWorldObjectAdded(notification:InWorldObjectNotification):void {
 			for (var i:int = 0, len:int = instances.length; i < len; i++) {
 				var instance:InWorldObjectInstance = InWorldObjectInstance(instances.getItemAt(i));
 				if (instance.emptySlot) {
