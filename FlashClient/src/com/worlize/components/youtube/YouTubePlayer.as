@@ -16,8 +16,9 @@ package com.worlize.components.youtube
 		
 		private var _playerState:int = YouTubePlayerState.UNINITIALIZED;
 		
-		private static var youTubeURLRegExp:RegExp = /^http:\/\/(?:www\.)?youtube.com\/(watch_popup\?v=|watch\?v=|v\/)([_\-\w]{11,12})/;
-		private static var youTubeVideoIdRegExp:RegExp = /[_\-\w]{11,12}/;
+		private static var youTubeURLRegExp:RegExp = /^(?:http:\/\/)?(?:www\.)?youtube.com\/(watch_popup\?v=|watch\?v=|v\/)([_\-\w]{11,12})/i;
+		private static var shortYouTubeUrlRegExp:RegExp = /^(?:http:\/\/)?youtu\.be\/([_\-\w]{11,12}).*$/i;
+		private static var youTubeVideoIdRegExp:RegExp = /^[_\-\w]{11,12}$/;
 		
 		public var lastPlayedVideoId:String;
 		
@@ -82,13 +83,23 @@ package com.worlize.components.youtube
 		}
 		
 		public function getVideoIdFromUrl(url:String):String {
+			var match:Array;
 			if (youTubeURLRegExp.test(url)) {
-				var match:Array = youTubeURLRegExp.exec(url);
+				match = youTubeURLRegExp.exec(url);
 				if (match) {
 					return String(match[2]);
 				}
 				else {
 					throw new Error("Unable to find the YouTube VideoId in the given URL");
+				}
+			}
+			else if (shortYouTubeUrlRegExp.test(url)) {
+				match = shortYouTubeUrlRegExp.exec(url);
+				if (match) {
+					return String(match[1]);
+				}
+				else {
+					throw new Error("Unable to find the YouTube VideoId in the given short URL");
 				}
 			}
 			else {

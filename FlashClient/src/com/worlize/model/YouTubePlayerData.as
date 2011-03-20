@@ -12,8 +12,9 @@ package com.worlize.model
 		private var _videoURL:String;
 		public var autoPlay:Boolean = true;
 		
-		private static var youTubeURLRegExp:RegExp = /^http:\/\/(?:www\.)?youtube.com\/(watch_popup\?v=|watch\?v=|v\/)([_\-\w]{11,12})/;
-		private static var youTubeVideoIdRegExp:RegExp = /[_\-\w]{11,12}/;
+		private static var youTubeURLRegExp:RegExp = /^(?:http:\/\/)?(?:www\.)?youtube.com\/(watch_popup\?v=|watch\?v=|v\/)([_\-\w]{11,12})/;
+		private static var shortYouTubeUrlRegExp:RegExp = /^(?:http:\/\/)?youtu\.be\/([_\-\w]{11,12}).*$/;
+		private static var youTubeVideoIdRegExp:RegExp = /^[_\-\w]{11,12}$/;
 		
 		public function updateData(data:Object):void {
 			if (data.videoId) {
@@ -62,7 +63,7 @@ package com.worlize.model
 			if (_videoId !== newValue) {
 				if (youTubeVideoIdRegExp.test(newValue)) {
 					_videoId = newValue;
-					_videoURL = "http://www.youtube.com/watch?v=" + _videoId;
+					_videoURL = "http://youtu.be/" + _videoId;
 					dispatchEvent(new FlexEvent("videoIdChange"));
 				}
 				else {
@@ -76,6 +77,7 @@ package com.worlize.model
 		
 		[Bindable(event="videoURLChange")]
 		public function set videoURL(newValue:String):void {
+			var match:Array;
 			if (_videoURL !== newValue) {
 				if (newValue == null || newValue.length == 0) {
 					_videoURL = null;
@@ -84,7 +86,7 @@ package com.worlize.model
 					dispatchEvent(new FlexEvent("videoIdChange"));
 				}
 				else if (youTubeURLRegExp.test(newValue)) {
-					var match:Array = youTubeURLRegExp.exec(newValue);
+					match = youTubeURLRegExp.exec(newValue);
 					if (match) {
 						_videoId = match[2];
 						_videoURL = newValue;
@@ -93,6 +95,18 @@ package com.worlize.model
 					}
 					else {
 						throw new Error("Unable to find the YouTube VideoId in the given URL");
+					}
+				}
+				else if (shortYouTubeUrlRegExp.test(newValue)) {
+					match = shortYouTubeUrlRegExp.exec(newValue);
+					if (match) {
+						_videoId = match[1];
+						_videoURL = newValue;
+						dispatchEvent(new FlexEvent("videoURLChange"));
+						dispatchEvent(new FlexEvent("videoIdChange"));
+					}
+					else {
+						throw new Error("Unable to find the YouTube VideoId in the given short URL");
 					}
 				}
 				else {
