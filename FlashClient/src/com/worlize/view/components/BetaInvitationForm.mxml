@@ -26,7 +26,6 @@
 						invitationResultText.visible = true;
 						invitationResultText.includeInLayout = true;
 						invitationResultText.text = event.resultJSON.description;
-						currentUser.remainingInvites = event.resultJSON.remaining_invites;
 						inviteEmailField.text = "";
 					}
 					else {
@@ -51,7 +50,6 @@
 	
 	<s:states>
 		<s:State name="normal" />
-		<s:State name="noInvitationsRemaining" />
 	</s:states>
 	
 	<fx:Declarations>
@@ -61,14 +59,12 @@
 	<s:Rect left="0" right="0" bottom="0" top="1">
 		<s:fill>
 			<s:SolidColor id="invitationBackgroundColor"
-						  color="#ece4bb"
-						  color.noInvitationsRemaining="#f7d7d1"/>
+						  color="#ece4bb"/>
 		</s:fill>
 	</s:Rect>
 	<s:Rect left="0" right="0" top="0" height="1">
 		<s:fill>
-			<s:SolidColor color="#dcd08c"
-						  color.noInvitationsRemaining="#e3aaa0"/>
+			<s:SolidColor color="#dcd08c"/>
 		</s:fill>
 	</s:Rect>
 	<s:VGroup width="100%"
@@ -77,16 +73,6 @@
 		
 		<s:HGroup width="100%" verticalAlign="bottom">
 			<s:Label fontFamily="PTSansNarrowBold" fontSize="16" text="Invite a Friend" />
-			
-			<s:Label
-				includeIn="normal"
-				width="100%" fontFamily="Arial"
-				text="You have {currentUser.remainingInvites} {currentUser.remainingInvites == 1 ? 'invitation' : 'invitations'} remaining." fontSize="11" />
-			
-			<s:Label
-				includeIn="noInvitationsRemaining"
-				width="100%" fontFamily="Arial"
-				text="You have no invitations remaining." fontSize="11" />
 		</s:HGroup>
 		
 		<s:Label width="100%" fontFamily="Arial" id="invitationResultText"
