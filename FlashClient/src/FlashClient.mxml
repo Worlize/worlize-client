@@ -33,7 +33,6 @@
 			import com.worlize.model.CurrentUser;
 			import com.worlize.model.tutorial.TutorialData;
 			import com.worlize.rpc.HTTPMethod;
-			import com.worlize.rpc.WorlizeComm;
 			import com.worlize.rpc.WorlizeResultEvent;
 			import com.worlize.rpc.WorlizeServiceClient;
 			import com.worlize.state.AuthorModeState;
@@ -53,9 +52,6 @@
 			import mx.managers.PopUpManager;
 			[Bindable]
 			public var client:InteractivityClient = InteractivityClient.getInstance();
-			
-			[Bindable]
-			private var worlizeComm:WorlizeComm = WorlizeComm.getInstance();
 			
 			[Bindable]
 			private var worlizeUser:CurrentUser = CurrentUser.getInstance(); 
