@@ -22,7 +22,6 @@
 	<fx:Script>
 		<![CDATA[
 			import com.worlize.components.visualnotification.VisualNotification;
-			import com.worlize.control.Analytics;
 			import com.worlize.model.FriendsListEntry;
 			import com.worlize.model.gifts.IGiftable;
 			
@@ -69,7 +68,7 @@
 								"Gift sent!"
 							);
 							notification.show();
-							Analytics.getInstance().tracker.trackEvent('Gifts', 'Send Gift');
+//							Analytics.getInstance().tracker.trackEvent('Gifts', 'Send Gift');
 							close();
 						}
 					});
