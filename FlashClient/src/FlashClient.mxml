@@ -21,6 +21,7 @@
 		<![CDATA[
 			import com.worlize.components.visualnotification.VisualNotification;
 			import com.worlize.control.Marketplace;
+			import com.worlize.control.VirtualCurrencyProducts;
 			import com.worlize.event.AuthorModeNotification;
 			import com.worlize.event.NotificationCenter;
 			import com.worlize.event.TutorialEvent;
@@ -216,6 +217,10 @@
 					showComingSoon("You will soon be able to buy premium backgrounds, avatars, and objects in the Marketplace!");
 				}
 			}
+			
+			private function showVirtualCurrencyProducts():void {
+				VirtualCurrencyProducts.show();
+			}
 		]]>
 	</fx:Script>
 
@@ -275,7 +280,7 @@
 				line1="Coins: {worlizeUser.coins}"
 				line2="Bucks: {worlizeUser.bucks}"
 				toolTip="Click to add coins or bucks"
-				click="showComingSoon('Soon you will be able to use virtual currency to buy things in the Marketplace!');"
+				click="showVirtualCurrencyProducts();"
 				/>
 			<mx:LinkButton
 				styleName="topNavButton"
