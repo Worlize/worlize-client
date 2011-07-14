@@ -5,6 +5,7 @@ package com.worlize.interactivity.rpc
 	import com.worlize.command.GotoRoomCommand;
 	import com.worlize.components.visualnotification.VisualNotification;
 	import com.worlize.components.visualnotification.VisualNotificationManager;
+	import com.worlize.control.VirtualCurrencyProducts;
 	import com.worlize.event.AuthorModeNotification;
 	import com.worlize.event.GotoRoomResultEvent;
 	import com.worlize.event.NotificationCenter;
@@ -361,11 +362,18 @@ package com.worlize.interactivity.rpc
 					case "balance_updated":
 						handleBalanceUpdated(data);
 						break;
+					case "payment_completed":
+						handlePaymentCompleted(data);
+						break;
 					default:
 						trace("Unhandled message: " + JSON.encode(event.message));
 						break;
 				}
 			}
+		}
+		
+		private function handlePaymentCompleted(data:Object):void {
+			VirtualCurrencyProducts.hide();
 		}
 		
 		private function handleBalanceUpdated(data:Object):void {
