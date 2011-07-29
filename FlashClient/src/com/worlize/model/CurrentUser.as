@@ -45,7 +45,7 @@ package com.worlize.model
 			}
 			return _instance;
 		}
-		
+
 		public function load(guid:String):void {
 			var client:WorlizeServiceClient = new WorlizeServiceClient();
 			client.addEventListener(WorlizeResultEvent.RESULT, handleResult);

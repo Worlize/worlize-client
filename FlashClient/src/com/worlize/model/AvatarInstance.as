@@ -6,6 +6,7 @@ package com.worlize.model
 	public class AvatarInstance
 	{
 		public var avatar:SimpleAvatar;
+		public var videoAvatar:VideoAvatar;
 		public var guid:String;
 		public var userGuid:String;
 		public var gifter:UserListEntry;

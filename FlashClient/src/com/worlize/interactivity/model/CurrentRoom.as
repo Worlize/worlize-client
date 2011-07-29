@@ -19,7 +19,10 @@ package com.worlize.interactivity.model
 	
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
+	import flash.events.NetStatusEvent;
+	import flash.events.SecurityErrorEvent;
 	import flash.events.TimerEvent;
+	import flash.net.NetConnection;
 	import flash.utils.Dictionary;
 	import flash.utils.Timer;
 	
@@ -65,6 +68,9 @@ package com.worlize.interactivity.model
 		public var dimLevel:Number = 1;
 		public var showAvatars:Boolean = true;
 		
+		private var videoServer:String;
+		public var netConnection:NetConnection;
+		
 		public var chatLog:String = "Welcome to Worlize<br>Chat log ready.<br>\n";
 		
 		public var lastMessage:String;
@@ -80,6 +86,25 @@ package com.worlize.interactivity.model
 		{
 			lastMessageTimer.addEventListener(TimerEvent.TIMER, handleLastMessageTimer);
 			statusDisappearTimer.addEventListener(TimerEvent.TIMER, handleStatusDisappearTimer);
+		}
+		
+		public function connectVideoServer(url:String):void {
+			if (netConnection && netConnection.connected) {
+				disconnectVideoServer();
+			}
+			netConnection = new NetConnection();
+			netConnection.addEventListener(NetStatusEvent.NET_STATUS, handleNetStatus);
+			netConnection.connect(url);
+		}
+		
+		private function handleNetStatus(event:NetStatusEvent):void {
+			trace("NetConnection: " + event.info.code + " (" + event.info.description + ")");
+		}
+		
+		public function disconnectVideoServer():void {
+			if (netConnection) {
+				netConnection.close();				
+			}
 		}
 		
 		public function resetYoutubePlayers():void {

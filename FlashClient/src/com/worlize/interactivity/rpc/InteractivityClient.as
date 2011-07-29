@@ -32,6 +32,7 @@ package com.worlize.interactivity.rpc
 	import com.worlize.model.RoomDefinition;
 	import com.worlize.model.SimpleAvatarStore;
 	import com.worlize.model.UserListEntry;
+	import com.worlize.model.VideoAvatar;
 	import com.worlize.model.WorldDefinition;
 	import com.worlize.model.YouTubePlayerDefinition;
 	import com.worlize.model.gifts.Gift;
@@ -281,6 +282,9 @@ package com.worlize.interactivity.rpc
 					case "set_simple_avatar":
 						handleSetSimpleAvatar(data);
 						break;
+					case "set_video_avatar":
+						handleSetVideoAvatar(data);
+						break;
 					case "naked":
 						handleNaked(data);
 						break;
@@ -365,11 +369,18 @@ package com.worlize.interactivity.rpc
 					case "payment_completed":
 						handlePaymentCompleted(data);
 						break;
+					case "set_video_server":
+						handleSetVideoServer(data);
+						break;
 					default:
 						trace("Unhandled message: " + JSON.encode(event.message));
 						break;
 				}
 			}
+		}
+		
+		private function handleSetVideoServer(data:Object):void {
+			currentRoom.connectVideoServer(data as String);
 		}
 		
 		private function handlePaymentCompleted(data:Object):void {
@@ -610,13 +621,31 @@ package com.worlize.interactivity.rpc
 			var user:InteractivityUser = currentRoom.getUserById(data.user);
 			if (user) {
 				user.simpleAvatar = null;
+				if (user.videoAvatar) {
+					user.videoAvatar.stop();
+					user.videoAvatar = null;
+				}
 			}
 		}
 		
 		private function handleSetSimpleAvatar(data:Object):void {
 			var user:InteractivityUser = currentRoom.getUserById(data.user);
 			if (user) {
+				if (user.videoAvatar) {
+					user.videoAvatar.stop();
+					user.videoAvatar = null;
+				}
 				user.simpleAvatar = SimpleAvatarStore.getInstance().getAvatar(data.avatar.guid);
+			}
+		}
+		
+		private function handleSetVideoAvatar(data:Object):void {
+			var user:InteractivityUser = currentRoom.getUserById(data.user);
+			if (user) {
+				user.simpleAvatar = null;
+				var videoAvatar:VideoAvatar = new VideoAvatar();
+				videoAvatar.play(user.id);
+				user.videoAvatar = videoAvatar;
 			}
 		}
 		
@@ -966,6 +995,11 @@ package com.worlize.interactivity.rpc
 		
 		public function naked():void {
 			currentUser.simpleAvatar = null;
+			currentUser.stopBroadcastingCamera();
+			if (currentUser.videoAvatar) {
+				currentUser.videoAvatar.stop();
+				currentUser.videoAvatar = null;
+			}
 			worlizeComm.send({
 				msg: "naked"
 			});
@@ -973,9 +1007,33 @@ package com.worlize.interactivity.rpc
 		
 		public function setSimpleAvatar(guid:String):void {
 			currentUser.simpleAvatar = SimpleAvatarStore.getInstance().getAvatar(guid);
+			currentUser.stopBroadcastingCamera();
+			if (currentUser.videoAvatar) {
+				currentUser.videoAvatar.stop();
+				currentUser.videoAvatar = null;
+			}
 			worlizeComm.send({
 				msg: "set_simple_avatar",
 				data: guid
+			});
+		}
+		
+		public function setVideoAvatar():void {
+			if (currentRoom.netConnection) {
+				trace("Enabling Webcam");
+				currentUser.broadcastCamera(currentRoom.netConnection);
+				currentUser.addEventListener('cameraPublishSuccess', handleCameraPublishSuccess);
+			}
+			else {
+				trace("Cannot enable webcam: Not connected to video server.");
+			}
+		}
+		
+		private function handleCameraPublishSuccess(event:Event):void {
+			currentUser.removeEventListener('cameraPublishSuccess', handleCameraPublishSuccess);
+			trace("Sending set_video_avatar message.");
+			worlizeComm.send({
+				msg: 'set_video_avatar'
 			});
 		}
 		
@@ -1168,6 +1226,11 @@ package com.worlize.interactivity.rpc
 			if (data.avatar) {
 				if (data.avatar.type == "simple") {
 					user.simpleAvatar = SimpleAvatarStore.getInstance().getAvatar(data.avatar.guid);
+				}
+				else if (data.avatar.type === "video") {
+//					var videoAvatar:VideoAvatar = new VideoAvatar();
+//					videoAvatar.play(user.id);
+//					user.videoAvatar = videoAvatar;
 				}
 			}
 			

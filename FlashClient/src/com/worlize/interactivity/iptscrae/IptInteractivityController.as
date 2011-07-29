@@ -1,7 +1,7 @@
 package com.worlize.interactivity.iptscrae
 {
-	import com.worlize.components.visualnotification.VisualNotificationManager;
 	import com.worlize.components.visualnotification.VisualNotification;
+	import com.worlize.components.visualnotification.VisualNotificationManager;
 	import com.worlize.interactivity.model.CurrentRoom;
 	import com.worlize.interactivity.model.Hotspot;
 	import com.worlize.interactivity.model.InteractivityUser;
@@ -9,6 +9,7 @@ package com.worlize.interactivity.iptscrae
 	import com.worlize.interactivity.util.WorlizeColorUtil;
 	import com.worlize.interactivity.view.SoundPlayer;
 	
+	import flash.events.Event;
 	import flash.external.ExternalInterface;
 	import flash.geom.Point;
 	import flash.utils.setTimeout;
@@ -402,6 +403,10 @@ package com.worlize.interactivity.iptscrae
 		public function setFace(faceId:int):void
 		{
 			client.setFace(faceId);
+		}
+		
+		public function enableWebcam():void {
+			client.setVideoAvatar();
 		}
 		
 		public function logMessage(message:String):void

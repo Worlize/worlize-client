@@ -10,6 +10,7 @@ package com.worlize.interactivity.iptscrae
 			"CLIENTTYPE": CLIENTTYPECommand,
 			"DEST": DESTCommand,
 			"DIMROOM": DIMROOMCommand,
+			"ENABLEWEBCAM": ENABLEWEBCAMCommand,
 			"GETSPOTLOC": GETSPOTLOCCommand,
 			"GLOBALMSG": GLOBALMSGCommand,
 			"GOTOROOM": GOTOROOMCommand,
