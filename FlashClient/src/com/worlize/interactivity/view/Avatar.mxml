@@ -15,6 +15,7 @@
 			import com.worlize.event.AvatarEvent;
 			import com.worlize.interactivity.model.InteractivityUser;
 			import com.worlize.interactivity.rpc.InteractivityClient;
+			import com.worlize.model.CurrentUser;
 			import com.worlize.model.SimpleAvatar;
 			
 			import mx.binding.utils.ChangeWatcher;
@@ -51,8 +52,7 @@
 			
 			private function handleCreationComplete():void {
 				ChangeWatcher.watch(this, ['user','simpleAvatar'], handleAvatarChanged);
-				ChangeWatcher.watch(this, ['user','videoAvatar','state'], handleAvatarChanged);
-				ChangeWatcher.watch(this, ['user','videoAvatar'], handleAvatarChanged);
+				ChangeWatcher.watch(this, ['user','videoAvatarStreamName'], handleAvatarChanged);
 				checkAvatar();
 			}
 			
@@ -61,11 +61,18 @@
 			}
 
 			private function checkAvatar():void {
-				if (user && user.simpleAvatar && !user.simpleAvatar.error) {
+				if (user && user.videoAvatarStreamName !== null) {
+					// Video avatar
 					user.showFace = false;
-					while (videoContainer.numChildren > 0) {
-						videoContainer.removeChildAt(0);
-					}
+					simpleAvatarImage.source = null;
+					simpleAvatarImage.visible = false;
+					simpleAvatarProgressBar.visible = false;
+					// Actual video playback is driven by data bindings
+				}
+				if (user && user.simpleAvatar && !user.simpleAvatar.error) {
+					// Simple avatar
+					
+					user.showFace = false;
 					if (user.simpleAvatar.ready) {
 						if (user.simpleAvatar.mediumURL != simpleAvatarImage.source) {
 							simpleAvatarImage.source = user.simpleAvatar.mediumURL;
@@ -77,26 +84,13 @@
 						user.simpleAvatar.addEventListener(AvatarEvent.AVATAR_ERROR, handleSimpleAvatarError);
 					}
 				}
-				else if (user && user.videoAvatar && user.videoAvatar.state === 'playing') {
-					user.showFace = false;
-					simpleAvatarImage.source = null;
-					simpleAvatarImage.visible = false;
-					simpleAvatarProgressBar.visible = false;
-					while (videoContainer.numChildren > 0) {
-						videoContainer.removeChildAt(0);
-					}
-					video = new Video(160, 120);
-					video.attachNetStream(user.videoAvatar.netStream);
-					videoContainer.addChild(video);
-				}
 				else {
+					// No avatar.  Show default jelly.
+					
 					user.showFace = true;
 					simpleAvatarImage.source = null;
 					simpleAvatarImage.visible = false;
 					simpleAvatarProgressBar.visible = false;
-					while (videoContainer.numChildren > 0) {
-						videoContainer.removeChildAt(0);
-					}
 				}
 			}
 			
@@ -152,13 +146,18 @@
 		mouseOver="handleMouseOver(event)" mouseOut="handleMouseOut(event)"
 		smoothBitmapContent="true" />
 
-	<mx1:UIComponent id="videoContainer" width="160" height="120"
-					 mouseEnabled="false"
-					 verticalCenter="-40" horizontalCenter="0" />
-
 	<mx1:ProgressBar horizontalCenter="0" verticalCenter="10"
 					 label=""
 					 height="10" width="50"
 					 id="simpleAvatarProgressBar" source="{simpleAvatarImage}" visible="false" />
+
+	<view:VideoAvatarPlayer id="videoAvatarPlayer" width="160" height="120"
+							verticalCenter="-40" horizontalCenter="0"
+							netConnectionManager="{InteractivityClient.getInstance().netConnectionManager}"
+							streamName="{user.videoAvatarStreamName}"
+							visible="{videoAvatarPlayer.playing}"
+							mouseOver="handleMouseOver(event)" mouseOut="handleMouseOut(event)"
+							includeInLayout="{videoAvatarPlayer.playing}"
+							mouseEnabled="{videoAvatarPlayer.playing}" />
 	
 </s:Group>

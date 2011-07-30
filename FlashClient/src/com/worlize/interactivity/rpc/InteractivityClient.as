@@ -11,6 +11,7 @@ package com.worlize.interactivity.rpc
 	import com.worlize.event.NotificationCenter;
 	import com.worlize.interactivity.event.InteractivityEvent;
 	import com.worlize.interactivity.event.InteractivitySecurityErrorEvent;
+	import com.worlize.interactivity.event.WebcamBroadcastEvent;
 	import com.worlize.interactivity.event.WorlizeCommEvent;
 	import com.worlize.interactivity.iptscrae.IptEventHandler;
 	import com.worlize.interactivity.iptscrae.IptInteractivityController;
@@ -19,6 +20,7 @@ package com.worlize.interactivity.rpc
 	import com.worlize.interactivity.model.InteractivityConfig;
 	import com.worlize.interactivity.model.InteractivityUser;
 	import com.worlize.interactivity.model.RoomHistoryManager;
+	import com.worlize.interactivity.model.WebcamBroadcastManager;
 	import com.worlize.interactivity.record.ChatRecord;
 	import com.worlize.interactivity.view.SoundPlayer;
 	import com.worlize.model.AvatarInstance;
@@ -48,6 +50,7 @@ package com.worlize.interactivity.rpc
 	import com.worlize.rpc.WorlizeResultEvent;
 	import com.worlize.rpc.WorlizeServiceClient;
 	import com.worlize.state.AuthorModeState;
+	import com.worlize.video.control.NetConnectionManager;
 	
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
@@ -118,6 +121,8 @@ package com.worlize.interactivity.rpc
 		[Bindable]
 		public var currentRoom:CurrentRoom = new CurrentRoom();
 		
+		public var webcamBroadcastManager:WebcamBroadcastManager = new WebcamBroadcastManager();
+		
 		public var roomById:Object = {};
 		
 		public var chatstr:String = "";
@@ -137,6 +142,9 @@ package com.worlize.interactivity.rpc
 		private var recentLogonUserIds:ArrayCollection = new ArrayCollection();
 		
 		private var worlizeComm:WorlizeComm = WorlizeComm.getInstance();
+		
+		[Bindable]
+		public var netConnectionManager:NetConnectionManager = new NetConnectionManager();
 		
 		[Bindable]
 		public var iptInteractivityController:IptInteractivityController;
@@ -190,6 +198,8 @@ package com.worlize.interactivity.rpc
 			worlizeComm.addEventListener(WorlizeCommEvent.CONNECTED, handleConnected);
 			worlizeComm.addEventListener(WorlizeCommEvent.MESSAGE, handleIncomingMessage);
 			worlizeComm.addEventListener(WorlizeCommEvent.DISCONNECTED, handleDisconnected);
+			
+			webcamBroadcastManager.addEventListener(WebcamBroadcastEvent.BROADCAST_START, handleCameraBroadcastStart);
 			
 			currentWorld.load(worlizeComm.interactivitySession.worldGuid);
 		}
@@ -380,7 +390,7 @@ package com.worlize.interactivity.rpc
 		}
 		
 		private function handleSetVideoServer(data:Object):void {
-			currentRoom.connectVideoServer(data as String);
+			netConnectionManager.connect(data as String);
 		}
 		
 		private function handlePaymentCompleted(data:Object):void {
@@ -621,20 +631,14 @@ package com.worlize.interactivity.rpc
 			var user:InteractivityUser = currentRoom.getUserById(data.user);
 			if (user) {
 				user.simpleAvatar = null;
-				if (user.videoAvatar) {
-					user.videoAvatar.stop();
-					user.videoAvatar = null;
-				}
+				user.videoAvatarStreamName = null;
 			}
 		}
 		
 		private function handleSetSimpleAvatar(data:Object):void {
 			var user:InteractivityUser = currentRoom.getUserById(data.user);
 			if (user) {
-				if (user.videoAvatar) {
-					user.videoAvatar.stop();
-					user.videoAvatar = null;
-				}
+				user.videoAvatarStreamName = null;
 				user.simpleAvatar = SimpleAvatarStore.getInstance().getAvatar(data.avatar.guid);
 			}
 		}
@@ -643,9 +647,7 @@ package com.worlize.interactivity.rpc
 			var user:InteractivityUser = currentRoom.getUserById(data.user);
 			if (user) {
 				user.simpleAvatar = null;
-				var videoAvatar:VideoAvatar = new VideoAvatar();
-				videoAvatar.play(user.id);
-				user.videoAvatar = videoAvatar;
+				user.videoAvatarStreamName = data.user;
 			}
 		}
 		
@@ -995,11 +997,8 @@ package com.worlize.interactivity.rpc
 		
 		public function naked():void {
 			currentUser.simpleAvatar = null;
-			currentUser.stopBroadcastingCamera();
-			if (currentUser.videoAvatar) {
-				currentUser.videoAvatar.stop();
-				currentUser.videoAvatar = null;
-			}
+			currentUser.videoAvatarStreamName = null;
+			webcamBroadcastManager.stopBroadcast();
 			worlizeComm.send({
 				msg: "naked"
 			});
@@ -1007,11 +1006,8 @@ package com.worlize.interactivity.rpc
 		
 		public function setSimpleAvatar(guid:String):void {
 			currentUser.simpleAvatar = SimpleAvatarStore.getInstance().getAvatar(guid);
-			currentUser.stopBroadcastingCamera();
-			if (currentUser.videoAvatar) {
-				currentUser.videoAvatar.stop();
-				currentUser.videoAvatar = null;
-			}
+			webcamBroadcastManager.stopBroadcast();
+			currentUser.videoAvatarStreamName = null;
 			worlizeComm.send({
 				msg: "set_simple_avatar",
 				data: guid
@@ -1019,19 +1015,11 @@ package com.worlize.interactivity.rpc
 		}
 		
 		public function setVideoAvatar():void {
-			if (currentRoom.netConnection) {
-				trace("Enabling Webcam");
-				currentUser.broadcastCamera(currentRoom.netConnection);
-				currentUser.addEventListener('cameraPublishSuccess', handleCameraPublishSuccess);
-			}
-			else {
-				trace("Cannot enable webcam: Not connected to video server.");
-			}
+			webcamBroadcastManager.netConnectionManager = netConnectionManager;
+			webcamBroadcastManager.broadcastCamera(currentUser.id);
 		}
 		
-		private function handleCameraPublishSuccess(event:Event):void {
-			currentUser.removeEventListener('cameraPublishSuccess', handleCameraPublishSuccess);
-			trace("Sending set_video_avatar message.");
+		private function handleCameraBroadcastStart(event:Event):void {
 			worlizeComm.send({
 				msg: 'set_video_avatar'
 			});
@@ -1228,9 +1216,7 @@ package com.worlize.interactivity.rpc
 					user.simpleAvatar = SimpleAvatarStore.getInstance().getAvatar(data.avatar.guid);
 				}
 				else if (data.avatar.type === "video") {
-//					var videoAvatar:VideoAvatar = new VideoAvatar();
-//					videoAvatar.play(user.id);
-//					user.videoAvatar = videoAvatar;
+					user.videoAvatarStreamName = user.id;
 				}
 			}
 			
