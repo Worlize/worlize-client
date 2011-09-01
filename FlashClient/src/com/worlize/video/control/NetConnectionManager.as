@@ -222,7 +222,7 @@ package com.worlize.video.control
 					break;
 					
 				case "NetConnection.Connect.Rejected":
-					setState(STATE_DISCONNECTED);
+					setState(STATE_DISCONNECTING);
 					disconnectedEvent =
 						new NetConnectionManagerEvent(NetConnectionManagerEvent.DISCONNECTED);
 					dispatchEvent(disconnectedEvent);

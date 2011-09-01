@@ -2,7 +2,6 @@ package com.worlize.rpc
 {
 	import com.adobe.protocols.dict.events.ConnectedEvent;
 	import com.adobe.serialization.json.JSON;
-	import com.wirelust.as3zlib.System;
 	import com.worlize.control.Marketplace;
 	import com.worlize.interactivity.event.WorlizeCommEvent;
 	import com.worlize.model.CurrentUser;
@@ -67,14 +66,15 @@ package com.worlize.rpc
 			WebSocket.debug = false;
 			
 			webSocket = new WebSocket(url, FlexGlobals.topLevelApplication.url, 'worlize-interact');
-			webSocket.enableDeflateStream = true;
+			trace("Connecting to server: " + url);
 			webSocket.connect();
 			
 			webSocket.addEventListener(WebSocketEvent.CLOSED, handleWebSocketClosed);
 			webSocket.addEventListener(WebSocketEvent.MESSAGE, handleWebSocketMessage);
 			webSocket.addEventListener(WebSocketEvent.OPEN, handleWebSocketOpen);
 			webSocket.addEventListener(WebSocketErrorEvent.CONNECTION_FAIL, handleWebSocketConnectionFail);
-			webSocket.addEventListener(IOErrorEvent.IO_ERROR, handleWebSocketIOError);
+			webSocket.addEventListener(WebSocketErrorEvent.ABNORMAL_CLOSE, handleWebSocketAbnormalClose);
+			webSocket.addEventListener(WebSocketErrorEvent.IO_ERROR, handleWebSocketIOError);
 			webSocket.addEventListener(SecurityErrorEvent.SECURITY_ERROR, handleWebSocketSecurityError);
 		}
 		
@@ -97,15 +97,18 @@ package com.worlize.rpc
 			dispatchEvent(commEvent);
 		}
 		private function handleWebSocketConnectionFail(event:WebSocketErrorEvent):void {
-			trace("WebSocket: Connection Fail");
+			trace("WebSocket: Connection Fail: " + event.text);
 //			dispatchEvent(new WorlizeCommEvent(WorlizeCommEvent.DISCONNECTED));
 		}
-		private function handleWebSocketIOError(event:IOErrorEvent):void {
-			trace("WebSocket: IOErrorEvent");
+		private function handleWebSocketIOError(event:WebSocketErrorEvent):void {
+			trace("WebSocket: IOErrorEvent: " + event.text);
 //			dispatchEvent(new WorlizeCommEvent(WorlizeCommEvent.DISCONNECTED));
+		}
+		private function handleWebSocketAbnormalClose(event:WebSocketErrorEvent):void {
+			trace("WebSocket: Abnormal Close: " + event.text);
 		}
 		private function handleWebSocketSecurityError(event:SecurityErrorEvent):void {
-			trace("WebSocket: SecurityErrorEvent");
+			trace("WebSocket: SecurityErrorEvent: " + event.text);
 //			dispatchEvent(new WorlizeCommEvent(WorlizeCommEvent.DISCONNECTED));
 		}
 		
@@ -117,7 +120,7 @@ package com.worlize.rpc
 			var config:Object = ExternalInterface.call('configData');
 			if (config) {
 				hostname = config.interactivity_hostname;
-				port = parseInt(config.interactivity_port, 10);
+				port = config.interactivity_port;
 				useTLS = config.interactivity_tls;
 				interactivitySession = InteractivitySession.fromData(config.interactivity_session);
 				WorlizeServiceClient.authenticityToken = config.authenticity_token;

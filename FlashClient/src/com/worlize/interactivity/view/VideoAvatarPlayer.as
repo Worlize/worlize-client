@@ -1,12 +1,17 @@
 package com.worlize.interactivity.view
 {
+	import com.worlize.interactivity.event.WebcamBroadcastEvent;
 	import com.worlize.interactivity.event.WorlizeVideoEvent;
+	import com.worlize.interactivity.model.WebcamBroadcastManager;
+	import com.worlize.interactivity.rpc.InteractivityClient;
 	import com.worlize.video.control.NetConnectionManager;
 	import com.worlize.video.events.NetConnectionManagerEvent;
 	
 	import flash.events.Event;
 	import flash.events.NetStatusEvent;
 	import flash.events.TimerEvent;
+	import flash.media.Camera;
+	import flash.media.SoundTransform;
 	import flash.media.Video;
 	import flash.net.NetConnection;
 	import flash.net.NetStream;
@@ -27,6 +32,10 @@ package com.worlize.interactivity.view
 		protected var streamNotFoundTimer:Timer = new Timer(5000, 1);
 		protected var streamNotFoundCount:int = 0;
 		
+		public var camera:Camera;
+		
+		private var _webcamBroadcastManager:WebcamBroadcastManager;
+		
 		[Bindable]
 		public var playing:Boolean = false;
 		
@@ -40,6 +49,23 @@ package com.worlize.interactivity.view
 			addEventListener(Event.REMOVED_FROM_STAGE, handleRemovedFromStage);
 			addEventListener(Event.ADDED_TO_STAGE, handleAddedToStage);
 			super();
+		}
+		
+		[Bindable(event="webcamBroadcastManagerChange")]
+		public function set webcamBroadcastManager(newValue:WebcamBroadcastManager):void {
+			if (_webcamBroadcastManager !== newValue) {
+				if (_webcamBroadcastManager) {
+					_webcamBroadcastManager.removeEventListener('micMutedChanged', handleMicMutedChange);
+				}
+				_webcamBroadcastManager = newValue;
+				if (_webcamBroadcastManager) {
+					_webcamBroadcastManager.addEventListener('micMutedChanged', handleMicMutedChange);
+				}
+				dispatchEvent(new FlexEvent('webcamBroadcastManagerChange'));
+			}
+		}
+		public function get webcamBroadcastManager():WebcamBroadcastManager {
+			return _webcamBroadcastManager;
 		}
 		
 		[Bindable(event='streamNameChange')]
@@ -78,6 +104,19 @@ package com.worlize.interactivity.view
 				}
 				var event:FlexEvent = new FlexEvent('netConnectionManagerChange');
 				dispatchEvent(event);
+			}
+		}
+		
+		protected function handleMicMutedChange(event:Event):void {
+			if (netStream) {
+				var transform:SoundTransform = new SoundTransform();
+				if (_webcamBroadcastManager.micMuted) {
+					transform.volume = 1; 
+				}
+				else {
+					transform.volume = 0;
+				}
+				netStream.soundTransform = transform;				
 			}
 		}
 		
@@ -121,17 +160,53 @@ package com.worlize.interactivity.view
 			if (netConnectionManager === null) { return; }
 			if (playing || !netConnectionManager.ready || streamName === null) { return; }
 			
+			if (streamName === '_local') {
+				playLocalStream();
+			}
+			else {
+				playRemoteStream();
+			}
+		}
+		
+		protected function playLocalStream():void {
+			var camera:Camera = InteractivityClient.getInstance().webcamBroadcastManager.camera;
+			if (camera) {
+				video.scaleX = -1;
+				video.x = 160;
+				video.attachCamera(camera);
+				playing = true;
+			}
+		}
+		
+		protected function playRemoteStream():void {
 			netStream = new NetStream(netConnectionManager.netConnection);
 			netStream.addEventListener(NetStatusEvent.NET_STATUS, handleNetStreamNetStatus, false, 0, true);
-			netStream.play(streamName);
+			netStream.play(streamName);				
 		}
 		
 		protected function stopStream():void {
+			if (streamName === '_local') {
+				stopLocalStream();
+			}
+			else {
+				stopRemoteStream();
+			}
+		}
+		
+		protected function stopLocalStream():void {
+			video.attachCamera(null);
+			video.attachNetStream(null);
+			playing = false;
+		}
+		
+		protected function stopRemoteStream():void {
 			if (netStream) {
 				netStream.receiveVideo(false);
 				netStream.receiveAudio(false);
 				netStream.close();
 				netStream = null;
+				video.attachNetStream(null);
+				video.attachCamera(null);
 				playing = false;
 			}
 		}
@@ -144,7 +219,22 @@ package com.worlize.interactivity.view
 			
 			switch (event.info.code) {
 				case 'NetStream.Play.Start':
+					video.scaleX = 1;
+					video.x = 0;
 					video.attachNetStream(netStream);
+					
+					// If push-to-talk is enabled while a new video starts playing...
+					if (_webcamBroadcastManager) {
+						var transform:SoundTransform = new SoundTransform();
+						if (_webcamBroadcastManager.micMuted) {
+							transform.volume = 1; 
+						}
+						else {
+							transform.volume = 0;
+						}
+						netStream.soundTransform = transform;						
+					}
+					
 					playing = true;
 					startedEvent = new WorlizeVideoEvent(WorlizeVideoEvent.STARTED);
 					dispatchEvent(startedEvent);

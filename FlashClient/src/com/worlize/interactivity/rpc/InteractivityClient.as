@@ -121,6 +121,7 @@ package com.worlize.interactivity.rpc
 		[Bindable]
 		public var currentRoom:CurrentRoom = new CurrentRoom();
 		
+		[Bindable]
 		public var webcamBroadcastManager:WebcamBroadcastManager = new WebcamBroadcastManager();
 		
 		public var roomById:Object = {};
@@ -647,7 +648,12 @@ package com.worlize.interactivity.rpc
 			var user:InteractivityUser = currentRoom.getUserById(data.user);
 			if (user) {
 				user.simpleAvatar = null;
-				user.videoAvatarStreamName = data.user;
+				if (user.isSelf) {
+					user.videoAvatarStreamName = '_local';
+				}
+				else {
+					user.videoAvatarStreamName = data.user;					
+				}
 			}
 		}
 		

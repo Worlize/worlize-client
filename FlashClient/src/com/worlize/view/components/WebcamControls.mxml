@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="59" height="62"
+		 initialize="handleInitialize()"
+		 addedToStage="handleAddedToStage(event)"
+		 removedFromStage="handleRemovedFromStage(event)">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+	<![CDATA[
+		import com.worlize.interactivity.model.WebcamBroadcastManager;
+		import com.worlize.interactivity.rpc.InteractivityClient;
+		
+		[Embed(source="src/assets/webcam/ptt-red.png")]
+		private const pttRed:Class;
+		
+		[Embed(source="src/assets/webcam/ptt-green.png")]
+		private const pttGreen:Class;
+		
+		[Bindable]
+		private var manager:WebcamBroadcastManager = InteractivityClient.getInstance().webcamBroadcastManager;
+		
+		private var muteTimer:Timer = new Timer(300, 1);
+		
+		private var ctrlDown:Boolean = false;
+		private var shiftDown:Boolean = false;
+		
+		private function handleInitialize():void {
+			muteTimer.addEventListener(TimerEvent.TIMER, handleMuteTimer);
+		}
+		
+		private function handleMouseDown(event:MouseEvent):void {
+			systemManager.getSandboxRoot().addEventListener(MouseEvent.MOUSE_UP, handleStageMouseUp);
+			manager.unmuteMic();
+		}
+		
+		private function handleStageMouseUp(event:MouseEvent):void {
+			systemManager.getSandboxRoot().removeEventListener(MouseEvent.MOUSE_UP, handleStageMouseUp);
+			muteTimer.reset();
+			muteTimer.start();
+		}
+		
+		private function handleAddedToStage(event:Event):void {
+			ctrlDown = false;
+			shiftDown = false;
+			systemManager.getSandboxRoot().addEventListener(KeyboardEvent.KEY_DOWN, handleKeyDown);
+			systemManager.getSandboxRoot().addEventListener(KeyboardEvent.KEY_UP, handleKeyUp);
+		}
+		
+		private function handleRemovedFromStage(event:Event):void {
+			systemManager.getSandboxRoot().removeEventListener(KeyboardEvent.KEY_DOWN, handleKeyDown);
+			systemManager.getSandboxRoot().removeEventListener(KeyboardEvent.KEY_UP, handleKeyUp);
+		}
+		
+		private function handleMuteTimer(event:TimerEvent):void {
+			manager.muteMic();
+		}
+		
+		private function handleKeyDown(event:KeyboardEvent):void {
+			if (manager.broadcasting) {
+				if (event.keyCode === Keyboard.PAGE_DOWN) {
+					manager.unmuteMic();
+					return;
+				}
+			}
+		}
+		
+		private function handleKeyUp(event:KeyboardEvent):void {
+			if (event.keyCode === Keyboard.PAGE_DOWN) {
+				muteTimer.reset();
+				muteTimer.start();
+			}
+		}
+		
+	]]>
+	</fx:Script>
+	
+	<mx:Image id="ptt" source="{manager.micMuted ? pttGreen : pttRed}"
+			  buttonMode="true" useHandCursor="true"
+			  top="0" left="0" mouseDown="handleMouseDown(event)"/>
+	
+</s:Group>

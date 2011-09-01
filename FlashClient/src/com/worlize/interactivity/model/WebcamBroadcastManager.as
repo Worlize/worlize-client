@@ -8,6 +8,8 @@ package com.worlize.interactivity.model
 	import flash.events.IEventDispatcher;
 	import flash.events.NetStatusEvent;
 	import flash.media.Camera;
+	import flash.media.Microphone;
+	import flash.media.SoundCodec;
 	import flash.media.Video;
 	import flash.net.NetStream;
 	
@@ -17,17 +19,94 @@ package com.worlize.interactivity.model
 	[Event(type="com.worlize.interactivity.event.WebcamBroadcastEvent", name="broadcastStop")]
 	public class WebcamBroadcastManager extends EventDispatcher
 	{
+		public static const MIC_MODE_OPEN:String = "micModeOpen";
+		public static const MIC_MODE_PUSH_TO_TALK:String = "micModePushToTalk";
+		
 		protected var netStream:NetStream;
 		public var video:Video;
-		protected var camera:Camera;
+		public var microphone:Microphone;
+		public var camera:Camera;
 		protected var broadcastEnabled:Boolean = false;
-		protected var broadcasting:Boolean = false;
+		private var _broadcasting:Boolean = false;
+		private var _micMode:String = MIC_MODE_PUSH_TO_TALK;
+		
+		private var _micMuted:Boolean = true;
+		
+		[Bindable]
+		protected var videoMuted:Boolean = false;
 		
 		private var _streamName:String;
 		private var _netConnectionManager:NetConnectionManager;
 		
+		function WebcamBroadcastManager(target:IEventDispatcher=null) {
+			microphone = Microphone.getMicrophone();
+			microphone.codec = SoundCodec.SPEEX;
+			microphone.setSilenceLevel(0);
+			microphone.encodeQuality = 6;
+			microphone.enableVAD = true;
+			microphone.gain = 0;
+			super(target);
+		}
+		
+		[Bindable(event="micMutedChanged")]
+		public function get micMuted():Boolean {
+			return _micMuted;
+		}
+		
+		protected function setMicMuted(newValue:Boolean):void {
+			if (_micMuted !== newValue) {
+				_micMuted = newValue;
+				dispatchEvent(new FlexEvent('micMutedChanged'));
+			}
+		}
+		
+		[Bindable(event="broadcastingChanged")]
+		public function get broadcasting():Boolean {
+			return _broadcasting;
+		}
+		
+		protected function setBroadcasting(newValue:Boolean):void {
+			if (_broadcasting !== newValue) {
+				_broadcasting = newValue;
+				dispatchEvent(new FlexEvent('broadcastingChanged'));
+			}
+		}
+		
 		public function get streamName():String {
 			return _streamName;
+		}
+		
+		[Bindable(event="micModeChanged")]
+		public function get micMode():String {
+			return _micMode;
+		}
+		public function set micMode(newValue:String):void {
+			if (_micMode !== newValue) {
+				_micMode = newValue;
+				dispatchEvent(new FlexEvent('micModeChanged'));
+			}
+		}
+		
+		public function muteMic():void {
+			if (!_micMuted && microphone) {
+				setMicMuted(true);
+				microphone.gain = 0;
+			}
+		}
+		
+		public function unmuteMic():void {
+			if (_micMuted && microphone) {
+				setMicMuted(false);
+				microphone.gain = 50;
+			}
+		}
+		
+		public function muteVideo():void {
+			
+		}
+		
+		public function unmuteVideo():void {
+			
 		}
 		
 		[Bindable(event="netConnectionManagerChanged")]
@@ -97,6 +176,7 @@ package com.worlize.interactivity.model
 			
 			netStream = new NetStream(netConnectionManager.netConnection);
 			netStream.attachCamera(camera);
+			netStream.attachAudio(microphone);
 			netStream.bufferTime = 0;
 			netStream.addEventListener(NetStatusEvent.NET_STATUS, handleNetStreamNetStatus);
 			
@@ -107,6 +187,7 @@ package com.worlize.interactivity.model
 			broadcastEnabled = false;
 			if (netStream) {
 				netStream.close();
+				setBroadcasting(false);
 				camera = null;
 				netStream = null;
 			}
@@ -116,24 +197,24 @@ package com.worlize.interactivity.model
 			trace("InteractivityUser NetStream: " + event.info.code + " (" + event.info.description + ")");
 			switch (event.info.code) {
 				case "NetStream.Publish.Start":
-					broadcasting = true;
+					setBroadcasting(true);
 					dispatchEvent(new WebcamBroadcastEvent(WebcamBroadcastEvent.BROADCAST_START));
 					break;
 				
 				case "NetStream.Failed":
-					broadcasting = false;
+					setBroadcasting(false);
 					broadcastEnabled = false;
 					dispatchEvent(new WebcamBroadcastEvent(WebcamBroadcastEvent.BROADCAST_STOP));
 					break;
 				
 				case "NetStream.Publish.BadName":
-					broadcasting = false;
+					setBroadcasting(false);
 					broadcastEnabled = false;
 					dispatchEvent(new WebcamBroadcastEvent(WebcamBroadcastEvent.BROADCAST_STOP));
 					break;
 				
 				case "NetStream.Unpublish.Success":
-					broadcasting = false;
+					setBroadcasting(false);
 					broadcastEnabled = false;
 					dispatchEvent(new WebcamBroadcastEvent(WebcamBroadcastEvent.BROADCAST_STOP));
 					break;
