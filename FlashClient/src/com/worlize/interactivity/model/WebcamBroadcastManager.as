@@ -43,7 +43,7 @@ package com.worlize.interactivity.model
 			microphone.codec = SoundCodec.SPEEX;
 			microphone.setSilenceLevel(0);
 			microphone.encodeQuality = 6;
-			microphone.enableVAD = true;
+			microphone.enableVAD = false;
 			microphone.gain = 0;
 			super(target);
 		}
