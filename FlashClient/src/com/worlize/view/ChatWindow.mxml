@@ -320,6 +320,10 @@
 	
 	<s:HGroup bottom="3" left="431" gap="6">
 		
+		<components:WebcamControls id="webcamControls"
+								   visible="{client.webcamBroadcastManager.broadcasting}"
+								   includeInLayout="{client.webcamBroadcastManager.broadcasting}" />
+		
 		<mx:Image useHandCursor="true" buttonMode="true"
 				  toolTip="Log Window"
 				  click="toggleLogWindow()"
@@ -388,8 +392,4 @@
 			 horizontalCenter="0" verticalCenter="0"
 			 text="Connecting..." />
 	
-	<components:WebcamControls id="webcamControls"
-							   visible="{client.webcamBroadcastManager.broadcasting}"
-							   mouseEnabled="{client.webcamBroadcastManager.broadcasting}"
-							   left="950" top="60" />
 </s:Group>

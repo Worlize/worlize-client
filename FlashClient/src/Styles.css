@@ -70,6 +70,19 @@ s|TextInput.YouTubeURLField {
 	rollOverColor: #e6e3dc;
 }
 
+.pushToTalkButton {
+	fontFamily: PTSansNarrowBold;
+	fontSize: 14pt;
+	cornerRadius: 10px;
+	skinClass: ClassReference("com.worlize.view.skins.PushToTalkButtonSkin");
+}
+
+.pushToTalkButton s|Label {
+	fontFamily: PTSansNarrowBold;
+	fontSize: 14pt;
+	color: #FFFFFF;
+}
+
 .lockerNavButton {
 	fontFamily: Tuffy;
 	fontSize: 16pt;

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
 		 xmlns:s="library://ns.adobe.com/flex/spark" 
-		 xmlns:mx="library://ns.adobe.com/flex/mx" width="59" height="62"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" height="21"
 		 initialize="handleInitialize()"
 		 addedToStage="handleAddedToStage(event)"
 		 removedFromStage="handleRemovedFromStage(event)">
@@ -25,9 +25,6 @@
 		
 		private var muteTimer:Timer = new Timer(300, 1);
 		
-		private var ctrlDown:Boolean = false;
-		private var shiftDown:Boolean = false;
-		
 		private function handleInitialize():void {
 			muteTimer.addEventListener(TimerEvent.TIMER, handleMuteTimer);
 		}
@@ -44,8 +41,6 @@
 		}
 		
 		private function handleAddedToStage(event:Event):void {
-			ctrlDown = false;
-			shiftDown = false;
 			systemManager.getSandboxRoot().addEventListener(KeyboardEvent.KEY_DOWN, handleKeyDown);
 			systemManager.getSandboxRoot().addEventListener(KeyboardEvent.KEY_UP, handleKeyUp);
 		}
@@ -60,8 +55,8 @@
 		}
 		
 		private function handleKeyDown(event:KeyboardEvent):void {
-			if (manager.broadcasting) {
-				if (event.keyCode === Keyboard.PAGE_DOWN) {
+			if (manager.broadcasting && manager.micMuted) {
+				if (event.keyCode === Keyboard.PAGE_DOWN || event.keyCode === Keyboard.F6) {
 					manager.unmuteMic();
 					return;
 				}
@@ -69,7 +64,21 @@
 		}
 		
 		private function handleKeyUp(event:KeyboardEvent):void {
-			if (event.keyCode === Keyboard.PAGE_DOWN) {
+			if (manager.broadcasting) {
+				if (event.keyCode === Keyboard.PAGE_DOWN || event.keyCode === Keyboard.F6) {
+					if (!manager.micMuted) {
+						muteTimer.reset();
+						muteTimer.start();
+					}
+				}
+			}
+		}
+		
+		protected function handleToggleButtonChange(event:Event):void {
+			if (manager.micMuted) {
+				manager.unmuteMic();
+			}
+			else {
 				muteTimer.reset();
 				muteTimer.start();
 			}
@@ -77,9 +86,15 @@
 		
 	]]>
 	</fx:Script>
+
+	<s:layout>
+		<s:HorizontalLayout />
+	</s:layout>
 	
-	<mx:Image id="ptt" source="{manager.micMuted ? pttGreen : pttRed}"
-			  buttonMode="true" useHandCursor="true"
-			  top="0" left="0" mouseDown="handleMouseDown(event)"/>
+	<s:ToggleButton label="Push to Talk" buttonMode="true"
+					styleName="pushToTalkButton"
+					id="ptt" selected="{!manager.micMuted}"
+					mouseDown="handleMouseDown(event)"
+					change="handleToggleButtonChange(event)" />
 	
 </s:Group>
