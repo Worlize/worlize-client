@@ -230,6 +230,7 @@
 	<s:HGroup top="3" left="10" right="10" gap="15">
 		
 		<s:BorderContainer
+			tabChildren="false"
 			height="25"
 			borderVisible="false"
 			backgroundColor="#FFFFFF" cornerRadius="12">
@@ -274,6 +275,7 @@
 		
 		<s:HGroup
 			verticalAlign="middle"
+			tabChildren="false"
 			gap="12">
 			
 			<components:CapacityButton

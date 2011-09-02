@@ -321,6 +321,9 @@
 	<s:HGroup bottom="3" left="431" gap="6">
 		
 		<components:WebcamControls id="webcamControls"
+								   tabIndex="2"
+								   toolTip="Push to Talk (F6 or PgDn)"
+								   tabEnabled="{client.webcamBroadcastManager.broadcasting}"
 								   visible="{client.webcamBroadcastManager.broadcasting}"
 								   includeInLayout="{client.webcamBroadcastManager.broadcasting}" />
 		
@@ -375,6 +378,7 @@
 	</s:HGroup>
 	
 	<code:PromptingTextInput
+		tabIndex="1"
 		bottom="3" height="21" left="3"
 		focusRect="false"
 		focusAlpha="0"

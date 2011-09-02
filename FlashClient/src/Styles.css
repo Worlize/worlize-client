@@ -34,6 +34,7 @@ s|Button s|Label, s|DropDownList s|Label {
 global {
 	modal-transparency-blur: 0;
 	modal-transparency-duration: 0;
+	focusColor: #FFFFFF;
 }
 
 s|Label {
