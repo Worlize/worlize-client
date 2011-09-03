@@ -72,13 +72,22 @@ s|TextInput.YouTubeURLField {
 }
 
 .pushToTalkButton {
-	fontFamily: PTSansNarrowBold;
-	fontSize: 14pt;
 	cornerRadius: 10px;
 	skinClass: ClassReference("com.worlize.view.skins.PushToTalkButtonSkin");
 }
 
 .pushToTalkButton s|Label {
+	fontFamily: PTSansNarrowBold;
+	fontSize: 14pt;
+	color: #FFFFFF;
+}
+
+.enableWebcamButton {
+	cornerRadius: 10px;
+	skinClass: ClassReference("com.worlize.view.skins.EnableWebcamButtonSkin");
+}
+
+.enableWebcamButton s|Label {
 	fontFamily: PTSansNarrowBold;
 	fontSize: 14pt;
 	color: #FFFFFF;

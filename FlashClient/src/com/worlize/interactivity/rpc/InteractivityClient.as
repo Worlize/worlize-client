@@ -201,6 +201,7 @@ package com.worlize.interactivity.rpc
 			worlizeComm.addEventListener(WorlizeCommEvent.DISCONNECTED, handleDisconnected);
 			
 			webcamBroadcastManager.addEventListener(WebcamBroadcastEvent.BROADCAST_START, handleCameraBroadcastStart);
+			webcamBroadcastManager.addEventListener(WebcamBroadcastEvent.CAMERA_PERMISSION_REVOKED, handleCameraPermissionRevoked);
 			
 			currentWorld.load(worlizeComm.interactivitySession.worldGuid);
 		}
@@ -1025,10 +1026,16 @@ package com.worlize.interactivity.rpc
 			webcamBroadcastManager.broadcastCamera(currentUser.id);
 		}
 		
-		private function handleCameraBroadcastStart(event:Event):void {
+		private function handleCameraBroadcastStart(event:WebcamBroadcastEvent):void {
 			worlizeComm.send({
 				msg: 'set_video_avatar'
 			});
+		}
+		
+		private function handleCameraPermissionRevoked(event:WebcamBroadcastEvent):void {
+			if (webcamBroadcastManager.broadcasting) {
+				naked();
+			}
 		}
 		
 		public function move(x:int, y:int):void {

@@ -13,13 +13,7 @@
 	<![CDATA[
 		import com.worlize.interactivity.model.WebcamBroadcastManager;
 		import com.worlize.interactivity.rpc.InteractivityClient;
-		
-		[Embed(source="src/assets/webcam/ptt-red.png")]
-		private const pttRed:Class;
-		
-		[Embed(source="src/assets/webcam/ptt-green.png")]
-		private const pttGreen:Class;
-		
+
 		[Bindable]
 		private var manager:WebcamBroadcastManager = InteractivityClient.getInstance().webcamBroadcastManager;
 		
@@ -42,12 +36,10 @@
 		
 		private function handleAddedToStage(event:Event):void {
 			systemManager.getSandboxRoot().addEventListener(KeyboardEvent.KEY_DOWN, handleKeyDown);
-			systemManager.getSandboxRoot().addEventListener(KeyboardEvent.KEY_UP, handleKeyUp);
 		}
 		
 		private function handleRemovedFromStage(event:Event):void {
 			systemManager.getSandboxRoot().removeEventListener(KeyboardEvent.KEY_DOWN, handleKeyDown);
-			systemManager.getSandboxRoot().removeEventListener(KeyboardEvent.KEY_UP, handleKeyUp);
 		}
 		
 		private function handleMuteTimer(event:TimerEvent):void {
@@ -57,15 +49,17 @@
 		private function handleKeyDown(event:KeyboardEvent):void {
 			if (manager.broadcasting && manager.micMuted) {
 				if (event.keyCode === Keyboard.PAGE_DOWN || event.keyCode === Keyboard.F6) {
+					systemManager.getSandboxRoot().addEventListener(KeyboardEvent.KEY_UP, handleStageKeyUp);
 					manager.unmuteMic();
 					return;
 				}
 			}
 		}
 		
-		private function handleKeyUp(event:KeyboardEvent):void {
+		private function handleStageKeyUp(event:KeyboardEvent):void {
 			if (manager.broadcasting) {
 				if (event.keyCode === Keyboard.PAGE_DOWN || event.keyCode === Keyboard.F6) {
+					systemManager.getSandboxRoot().removeEventListener(KeyboardEvent.KEY_UP, handleStageKeyUp);
 					if (!manager.micMuted) {
 						muteTimer.reset();
 						muteTimer.start();
@@ -74,14 +68,20 @@
 			}
 		}
 		
+		protected function handleToggleButtonKeyUp(event:KeyboardEvent):void {
+			if (event.keyCode === Keyboard.SPACE || event.keyCode === Keyboard.ENTER) {
+				if (manager.micMuted) {
+					manager.unmuteMic();
+				}
+				else {
+					muteTimer.reset();
+					muteTimer.start();
+				}				
+			}
+		}
+		
 		protected function handleToggleButtonChange(event:Event):void {
-			if (manager.micMuted) {
-				manager.unmuteMic();
-			}
-			else {
-				muteTimer.reset();
-				muteTimer.start();
-			}
+			ptt.selected = !manager.micMuted;
 		}
 		
 	]]>
@@ -91,10 +91,13 @@
 		<s:HorizontalLayout />
 	</s:layout>
 	
-	<s:ToggleButton label="Push to Talk" buttonMode="true"
+	<s:ToggleButton label="{ptt.selected ? 'Talking' : 'Push to Talk'}"
+					width="98"
+					buttonMode="true"
 					styleName="pushToTalkButton"
 					id="ptt" selected="{!manager.micMuted}"
 					mouseDown="handleMouseDown(event)"
+					keyUp="handleToggleButtonKeyUp(event)"
 					change="handleToggleButtonChange(event)" />
 	
 </s:Group>

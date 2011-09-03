@@ -31,6 +31,7 @@
 			import com.worlize.interactivity.event.InteractivitySecurityErrorEvent;
 			import com.worlize.interactivity.event.RoomSelectedEvent;
 			import com.worlize.interactivity.iptscrae.command.CLIENTTYPECommand;
+			import com.worlize.interactivity.model.WebcamBroadcastManager;
 			import com.worlize.interactivity.rpc.InteractivityClient;
 			import com.worlize.state.AuthorModeState;
 			import com.worlize.view.author.MyBackgroundsWindow;
@@ -117,10 +118,14 @@
 				chatIndex = chatHistory.length;
 				chatBox.text = "";
 			}
-
-			private function handleRoomMouseUp(event:MouseEvent):void {
+			
+			private function focusChatBox():void {
 				focusManager.setFocus(chatBox);
 				moveCursorToEnd();
+			}
+
+			private function handleRoomMouseUp(event:MouseEvent):void {
+				focusChatBox();
 			}
 
 			private function handleSecurityError(event:InteractivitySecurityErrorEvent):void {
@@ -223,6 +228,16 @@
 				userList.y = stage.mouseY + 15;
 				PopUpManager.addPopUp(userList, systemManager.getSandboxRoot());
 			}
+			
+			private function toggleWebcam():void {
+				var manager:WebcamBroadcastManager = client.webcamBroadcastManager;
+				if (client.webcamBroadcastManager.broadcasting) {
+					client.naked();
+				}
+				else {
+					client.setVideoAvatar();
+				}
+			}
 		]]>
 	</fx:Script>
 	
@@ -318,15 +333,8 @@
 		</s:fill>
 	</s:Rect>
 	
-	<s:HGroup bottom="3" left="431" gap="6">
-		
-		<components:WebcamControls id="webcamControls"
-								   tabIndex="2"
-								   toolTip="Push to Talk (F6 or PgDn)"
-								   tabEnabled="{client.webcamBroadcastManager.broadcasting}"
-								   visible="{client.webcamBroadcastManager.broadcasting}"
-								   includeInLayout="{client.webcamBroadcastManager.broadcasting}" />
-		
+	<s:HGroup bottom="2" left="431" gap="6" mouseUp="focusChatBox()">
+
 		<mx:Image useHandCursor="true" buttonMode="true"
 				  toolTip="Log Window"
 				  click="toggleLogWindow()"
@@ -336,6 +344,25 @@
 				  toolTip="Avatars Locker" source="@Embed(source='src/assets/icons/icon_mylocker.png')"
 				  click="handleAvatarsClick()" />
 	
+		<s:ToggleButton id="enableWebcamButton"
+						visible="{client.webcamBroadcastManager.isCameraAvailable()}"
+						includeInLayout="{client.webcamBroadcastManager.isCameraAvailable()}"
+						styleName="enableWebcamButton"
+						label="{client.webcamBroadcastManager.broadcasting ? 'On' : 'Off'}"
+						selected="{client.webcamBroadcastManager.broadcasting}"
+						toolTip="Turn Webcam On/Off"
+						tabEnabled="false"
+						focusEnabled="false"
+						change="toggleWebcam()"
+						/>
+		
+		<components:WebcamControls id="webcamControls"
+								   tabIndex="2"
+								   toolTip="Push to Talk (F6 or PgDn)"
+								   tabEnabled="{client.webcamBroadcastManager.broadcasting}"
+								   visible="{client.webcamBroadcastManager.broadcasting}"
+								   includeInLayout="{client.webcamBroadcastManager.broadcasting}" />
+
 	</s:HGroup>
 
 	<s:HGroup

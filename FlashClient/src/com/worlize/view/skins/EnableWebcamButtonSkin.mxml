@@ -90,13 +90,16 @@
     <!--- @private -->
     <s:Rect id="fill" left="1" right="1" top="1" bottom="1" radiusX="12">
         <s:fill>
-            <s:SolidColor color="0x874949" 
-                          color.selectedStates="0x3d7e34" 
+            <s:SolidColor color="0x1793d5" 
+						  color.over="0x1682bb"
+						  color.overAndSelected="0x1793d5"
+                          color.upAndSelected="0x23acf4"
+						  color.downAndSelected="0x23acf4"
                           alpha="1" />
         </s:fill>
     </s:Rect>
 	
-	<s:Image top="4" left="8" source="@Embed(source='/assets/icons/icon_microphone.png')" />
+	<s:Image top="3" left="8" source="@Embed(source='/assets/icons/icon_webcam.png')" />
     
     <!-- layer 8: text -->
     <!--- @copy spark.components.supportClasses.ButtonBase#labelDisplay -->

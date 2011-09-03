@@ -7,16 +7,20 @@ package com.worlize.interactivity.model
 	import flash.events.EventDispatcher;
 	import flash.events.IEventDispatcher;
 	import flash.events.NetStatusEvent;
+	import flash.events.StatusEvent;
 	import flash.media.Camera;
 	import flash.media.Microphone;
 	import flash.media.SoundCodec;
 	import flash.media.Video;
 	import flash.net.NetStream;
+	import flash.system.Security;
+	import flash.system.SecurityPanel;
 	
 	import mx.events.FlexEvent;
 
 	[Event(type="com.worlize.interactivity.event.WebcamBroadcastEvent", name="broadcastStart")]
 	[Event(type="com.worlize.interactivity.event.WebcamBroadcastEvent", name="broadcastStop")]
+	[Event(type="com.worlize.interactivity.event.WebcamBroadcastEvent", name="cameraPermissionRevoked")]
 	public class WebcamBroadcastManager extends EventDispatcher
 	{
 		public static const MIC_MODE_OPEN:String = "micModeOpen";
@@ -35,6 +39,8 @@ package com.worlize.interactivity.model
 		[Bindable]
 		protected var videoMuted:Boolean = false;
 		
+		private var requestedStreamName:String;
+		
 		private var _streamName:String;
 		private var _netConnectionManager:NetConnectionManager;
 		
@@ -45,6 +51,7 @@ package com.worlize.interactivity.model
 			microphone.encodeQuality = 6;
 			microphone.enableVAD = false;
 			microphone.gain = 0;
+			
 			super(target);
 		}
 		
@@ -109,6 +116,13 @@ package com.worlize.interactivity.model
 			
 		}
 		
+		public function isCameraAvailable():Boolean {
+			if (Camera.getCamera()) {
+				return true;
+			}
+			return false;
+		}
+		
 		[Bindable(event="netConnectionManagerChanged")]
 		public function get netConnectionManager():NetConnectionManager {
 			return _netConnectionManager;
@@ -146,6 +160,55 @@ package com.worlize.interactivity.model
 		}
 		
 		public function broadcastCamera(streamName:String):void {
+			var camera:Camera = Camera.getCamera();
+			// If getCamera() returns null, there is no camera or it's in use
+			// by another application.
+			if (camera !== null) {
+				if (camera.muted) {
+					trace("Camera.muted = true, requesting access.");
+					// User previously denied access to the camera.  Re-prompt.
+					requestedStreamName = streamName;
+					camera.addEventListener(StatusEvent.STATUS, function(event:StatusEvent):void {
+						trace("Status event");
+					});
+					camera.addEventListener(StatusEvent.STATUS, handleCameraStatusChange);
+					Security.showSettings(SecurityPanel.PRIVACY);
+				}
+				else {
+					// User granted access to the camera.. continue.
+					trace("Camera.muted = false, continuing to start broadcast.");
+					continueBroadcastCamera(streamName);
+				}
+			}
+			else {
+				requestedStreamName = null;
+			}
+		}
+		
+		private function handleCameraStatusChange(event:StatusEvent):void {
+			trace("Handling camera StatusEvent - code: " + event.code);
+			if (event.code === 'Camera.Unmuted') {
+				// User granted access to the camera.. continue.
+				if (requestedStreamName) {
+					continueBroadcastCamera(requestedStreamName);
+					requestedStreamName = null;
+				}
+			}
+			else if (event.code === 'Camera.Muted') {
+				// User denied access to the camera.  Stop any existing broadcast.
+				if (broadcastEnabled) {
+					trace("Camera access was revoked while broadcasting");
+					var revokedEvent:WebcamBroadcastEvent = new WebcamBroadcastEvent(WebcamBroadcastEvent.CAMERA_PERMISSION_REVOKED);
+					dispatchEvent(revokedEvent);
+					stopBroadcast();
+				}
+			}
+			else {
+				requestedStreamName = null;
+			}
+		}
+		
+		private function continueBroadcastCamera(streamName:String):void {
 			if (broadcastEnabled && _streamName === streamName) {
 				return;
 			}
@@ -170,9 +233,13 @@ package com.worlize.interactivity.model
 		protected function startBroadcast():void {
 			trace("Beginning broadcast '" + streamName + "'");
 			
+			if (micMode === MIC_MODE_PUSH_TO_TALK) {
+				muteMic();
+			}
+			
 			camera = Camera.getCamera();
 			camera.setQuality(16*1024, 85);
-			camera.setMode(160, 120, 24, false);
+			camera.setMode(160, 120, 24, true);
 			
 			netStream = new NetStream(netConnectionManager.netConnection);
 			netStream.attachCamera(camera);
