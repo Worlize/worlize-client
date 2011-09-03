@@ -110,11 +110,11 @@ package com.worlize.interactivity.view
 		protected function handleMicMutedChange(event:Event):void {
 			if (netStream) {
 				var transform:SoundTransform = new SoundTransform();
-				if (_webcamBroadcastManager.micMuted) {
-					transform.volume = 1; 
+				if (_webcamBroadcastManager.micMuted && !_webcamBroadcastManager.dimAudioWhenTalking) {
+					transform.volume = 1;
 				}
 				else {
-					transform.volume = 0;
+					transform.volume = 0.5;
 				}
 				netStream.soundTransform = transform;				
 			}

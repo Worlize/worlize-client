@@ -44,6 +44,9 @@ package com.worlize.interactivity.model
 		private var _streamName:String;
 		private var _netConnectionManager:NetConnectionManager;
 		
+		[Bindable]
+		public var dimAudioWhenTalking:Boolean = false;
+		
 		function WebcamBroadcastManager(target:IEventDispatcher=null) {
 			microphone = Microphone.getMicrophone();
 			microphone.codec = SoundCodec.SPEEX;
