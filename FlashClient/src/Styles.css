@@ -60,6 +60,12 @@ s|TextInput.YouTubeURLField {
 	font-size: 11pt;
 }
 
+s|Label.socialCallout {
+	font-family: PTSansNarrowBold;
+	font-size: 20pt;
+	color: #444444;
+}
+
 .topNavButton {
 	fontFamily: PTSansNarrowBold;
 	fontSize: 14pt;

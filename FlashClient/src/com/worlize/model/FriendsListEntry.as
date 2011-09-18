@@ -1,7 +1,7 @@
 package com.worlize.model
 {
-	import com.worlize.components.visualnotification.VisualNotificationManager;
 	import com.worlize.components.visualnotification.VisualNotification;
+	import com.worlize.components.visualnotification.VisualNotificationManager;
 	import com.worlize.rpc.HTTPMethod;
 	import com.worlize.rpc.WorlizeResultEvent;
 	import com.worlize.rpc.WorlizeServiceClient;
@@ -14,9 +14,15 @@ package com.worlize.model
 	[Bindable]
 	public class FriendsListEntry
 	{
+		public static const TYPE_FACEBOOK:String = "facebook";
+		public static const TYPE_WORLIZE:String = "worlize";
+		
 		public var username:String;
 		public var guid:String;
 		public var online:Boolean;
+		public var friendType:String;
+		public var name:String;
+		public var picture:String;
 		public var worldEntrance:String;
 		
 		public static function fromData(data:Object):FriendsListEntry {
@@ -25,6 +31,9 @@ package com.worlize.model
 			instance.guid = data.guid;
 			instance.online = data.online;
 			instance.worldEntrance = data.world_entrance;
+			instance.friendType = data.friend_type;
+			instance.name = data.name;
+			instance.picture = data.picture;
 			return instance;
 		}
 		

@@ -128,6 +128,9 @@
 				}
 			}
 			
+			private function inviteFacebookFriends():void {
+				ExternalInterface.call('openFacebookFriendFinder');
+			}
 		]]>
 	</fx:Script>
 	
@@ -137,6 +140,26 @@
 	</fx:Declarations>
 	
 	<s:VGroup width="100%" gap="0">
+		
+		<!-- Social Conncetion Callout -->
+		<s:Group width="100%" height="39">
+			<s:layout>
+				<s:BasicLayout />
+			</s:layout>
+			<s:Rect top="0" left="0" right="0" bottom="0">
+				<s:fill>
+					<s:SolidColor color="#daeef7" />
+				</s:fill>
+			</s:Rect>
+			<s:HGroup verticalCenter="0" horizontalCenter="0"
+					  verticalAlign="middle" horizontalAlign="center">
+				<s:Label text="find &amp; invite your friends:" styleName="socialCallout" />
+				<s:Image source="@Embed(source='assets/icons/social/fb-30.png')"
+						 buttonMode="true" click="inviteFacebookFriends()"/>
+			</s:HGroup>
+		</s:Group>
+		
+		
 		<s:HGroup gap="0" width="100%"
 				  paddingBottom="3" paddingTop="3"
 				  paddingLeft="1" paddingRight="5"
@@ -251,8 +274,6 @@
 			<components:FindUsersComponent includeIn="findFriends"
 										   width="100%" />
 		</s:VGroup>
-				
-		<components:BetaInvitationForm width="100%" />
 	</s:VGroup>
 	
 </components:WorlizeFloatingPanel>

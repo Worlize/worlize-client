@@ -6,9 +6,11 @@ package com.worlize.model
 	import com.worlize.rpc.HTTPMethod;
 	import com.worlize.rpc.WorlizeResultEvent;
 	import com.worlize.rpc.WorlizeServiceClient;
+	import com.worlize.state.Facebook;
 	
 	import flash.events.EventDispatcher;
 	import flash.events.IEventDispatcher;
+	import flash.external.ExternalInterface;
 	
 	import mx.collections.ArrayCollection;
 	import mx.collections.Sort;
@@ -170,7 +172,12 @@ package com.worlize.model
 				Alert.show("There was an unknown error while loading the friends list.", "Error");
 				state = STATE_READY;
 			});
-			client.send('/friends.json', HTTPMethod.GET);
+			var params:Object = {};
+			var accessToken:String = ExternalInterface.call('FB.getAccessToken');
+			if (accessToken) {
+				params['access_token'] = accessToken;
+			}
+			client.send('/friends.json', HTTPMethod.GET, params);
 		}	
 	}
 }
