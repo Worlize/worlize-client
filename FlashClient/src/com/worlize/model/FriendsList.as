@@ -171,12 +171,7 @@ package com.worlize.model
 				Alert.show("There was an unknown error while loading the friends list.", "Error");
 				state = STATE_READY;
 			});
-			var params:Object = {};
-			var accessToken:String = ExternalInterface.call('FB.getAccessToken');
-			if (accessToken) {
-				params['access_token'] = accessToken;
-			}
-			client.send('/friends.json', HTTPMethod.GET, params);
+			client.send('/friends.json', HTTPMethod.GET);
 		}	
 	}
 }
