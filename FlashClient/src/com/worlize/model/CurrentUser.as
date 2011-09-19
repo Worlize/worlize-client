@@ -61,7 +61,9 @@ package com.worlize.model
 				backgroundSlots = data.background_slots;
 				inWorldObjectSlots = data.in_world_object_slots;
 				propSlots = data.prop_lots;
-				birthday = new Date(Date.parse(data.birthday.replace(/-/g, '/')));
+				if (data.birthday) {
+					birthday = new Date(Date.parse(data.birthday.replace(/-/g, '/')));					
+				}
 				bucks = data.bucks;
 				coins = data.coins;
 				createdAt = DateUtil.parseW3CDTF(data.created_at);
