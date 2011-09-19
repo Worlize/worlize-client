@@ -155,3 +155,28 @@ mx|Menu {
 	paddingLeft: 5px;
 	paddingRight: 5px;
 }
+
+s|Label.friendListFullName {
+	fontFamily: "Lucida Grande", "Arial";
+	fontSize: 11px;
+	fontStyle: normal;
+	fontWeight: bold;
+	color: #444444;
+}
+
+s|Label.friendListUserName {
+	fontFamily: "Lucida Grande", "Arial";
+	fontSize: 11px;
+	fontStyle: normal;
+	fontWeight: bold;
+	color: #444444;
+}
+
+s|Label.friendListOnlineStatus {
+	fontFamily: "Lucida Sans", "Arial";
+	fontSize: 9px;
+	fontStyle: italic;
+	color: #888888;
+}
+
+

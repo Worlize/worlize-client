@@ -2,11 +2,15 @@
 <s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
 				xmlns:s="library://ns.adobe.com/flex/spark" 
 				xmlns:mx="library://ns.adobe.com/flex/mx"
-				height="57" autoDrawBackground="false">
+				height="57" autoDrawBackground="false"
+				dataChange="handleDataChange(event)"
+				initialize="handleInitialize(event)">
 	
 	<s:states>
-		<s:State name="normal" />
-		<s:State name="hovered" />
+		<s:State name="worlize" stateGroups="offline,worlize_friend" />
+		<s:State name="facebook" stateGroups="offline,facebook_friend" />
+		<s:State name="worlize_online" stateGroups="online,worlize_friend" />
+		<s:State name="facebook_online" stateGroups="online,facebook_friend" />
 	</s:states>
 	
 	<fx:Script>
@@ -16,6 +20,9 @@
 			import com.worlize.model.FriendsListEntry;
 			import com.worlize.view.windows.FriendsWindow;
 			
+			import flash.net.navigateToURL;
+			
+			import mx.binding.utils.ChangeWatcher;
 			import mx.collections.ArrayCollection;
 			import mx.controls.Alert;
 			import mx.controls.Menu;
@@ -26,28 +33,43 @@
 			[Bindable]
 			private var client:InteractivityClient = InteractivityClient.getInstance();
 			
-			[Bindable]
-			private var _data:FriendsListEntry;
+			private var onlineWatcher:ChangeWatcher;
 			
-			[Bindable(event='dataChange')]
-			override public function set data(newValue:Object):void {
-				if (_data !== newValue) {
-					if (newValue is FriendsListEntry) {
-						_data = FriendsListEntry(newValue);
-						updateMenu();
-					}
-					else {
-						_data = null;
-					}
-					dispatchEvent(new FlexEvent('dataChange'));
+			[Bindable]
+			private var buttonLabel:String;
+			
+			private function handleInitialize(event:Event):void {
+				onlineWatcher = ChangeWatcher.watch(this, ['data','online'], handleOnlineStatusChange);
+			}
+			
+			private function handleDataChange(event:FlexEvent):void {
+				if (data === null) { return; }
+				updateMenu();
+				updateState();
+				if ((data as FriendsListEntry).online) {
+					buttonLabel = "Join";
+				}
+				else {
+					buttonLabel = "Visit Worlz";
 				}
 			}
-			override public function get data():Object {
-				return _data;
+			
+			private function handleOnlineStatusChange(event:Event):void {
+				if (data === null) { return; }
+				updateState();
 			}
 			
-			private function visitFriend(data:FriendsListEntry):void {
-				client.gotoRoom(data.worldEntrance);
+			private function updateState():void {
+				var entry:FriendsListEntry = data as FriendsListEntry;
+				var state:String = entry.friendType;
+				if (entry.online) {
+					state += "_online";
+				}
+				currentState = state;
+			}
+			
+			private function visitWorlz():void {
+				client.gotoRoom((data as FriendsListEntry).worldEntrance);
 				FriendsWindow.close();
 			}
 			
@@ -57,13 +79,22 @@
 				if (menu) {
 					menu.removeEventListener(MenuEvent.ITEM_CLICK, handleMenuItemClick);
 				}	
+				var entry:FriendsListEntry = data as FriendsListEntry;
 				var menuData:Array = [];
-				if (_data.online) {
-					menuData.push({ type: 'normal', label: 'Invite ' + _data.username + ' to join you', action: 'invite' });
-					menuData.push({ type: 'normal', label: 'Request permission to join ' + _data.username, action: 'requestToJoin' });
-					menuData.push({ type: 'separator' });
+				if (entry.online) {
+					menuData.push({ type: 'normal', label: 'Go to Current Location', action: 'join' });
+					menuData.push({ type: 'normal', label: 'Invite to Your Location', action: 'invite' });
 				}
-				menuData.push({ type: 'normal', label: 'Remove Friend', action: 'unfriend' });
+				menuData.push({ type: 'normal', label: 'Go to Worlz', action: 'visitWorlz' });
+				if (entry.facebookProfile) {
+					menuData.push({ type: 'normal', label: 'View Facebook Profile', action: 'facebookProfile' });
+				}
+				if (entry.twitterProfile) {
+					menuData.push({ type: 'normal', label: 'View Twitter Profile', action: 'twitterProfile' });
+				}
+				if (entry.friendType === FriendsListEntry.TYPE_WORLIZE) {
+					menuData.push({ type: 'normal', label: 'Remove Friend', action: 'unfriend' });
+				}
 				
 				menu = Menu.createMenu(null, menuData, true);
 				menu.addEventListener(MenuEvent.ITEM_CLICK, handleMenuItemClick);
@@ -73,6 +104,18 @@
 			private function handleMenuItemClick(event:MenuEvent):void {
 				if (!event.item || !event.item.action) { return; }
 				switch (event.item.action) {
+					case "join":
+						visitFriend();
+						break;
+					case "visitWorlz":
+						visitWorlz();
+						break;
+					case "twitterProfile":
+						viewTwitterProfile();
+						break;
+					case "facebookProfile":
+						viewFacebookProfile();
+						break;
 					case "invite":
 						inviteFriend();
 						break;
@@ -87,34 +130,47 @@
 				}
 			}
 			
+			private function handleActionButtonClick():void {
+				if ((data as FriendsListEntry).online) {
+					visitFriend();
+				}
+				else {
+					visitWorlz();
+				}
+			}
+			
+			private function visitFriend():void {
+				client.gotoRoom((data as FriendsListEntry).currentRoomGuid);
+			}
+			
+			private function viewTwitterProfile():void {
+				var r:URLRequest = new URLRequest((data as FriendsListEntry).twitterProfile);
+				navigateToURL(r, '_blank');
+			}
+			
+			private function viewFacebookProfile():void {
+				var r:URLRequest = new URLRequest((data as FriendsListEntry).facebookProfile);
+				navigateToURL(r, '_blank');
+			}
+			
 			private function inviteFriend():void {
-				_data.invite();
+				(data as FriendsListEntry).invite();
 			}
 			
 			private function requestToJoin():void {
-				_data.requestToJoin();
+				(data as FriendsListEntry).requestToJoin();
 			}
 			
 			private function unfriend():void {
 				FriendsWindow.lockOpen();
-				if (_data.friendType === FriendsListEntry.TYPE_FACEBOOK) {
-					Alert.show("This friend is from your Facebook friend list and cannot be removed.",
-							   "Unfriend " + _data.username,
-							   Alert.OK,
-							   null,
-							   function(event:CloseEvent):void {
-								   FriendsWindow.releaseLock();
-							   }
-					);
-					return;
-				}
-				Alert.show("Are you sure you want to remove " + _data.username + " from your friends list?",
-						   "Unfriend " + _data.username,
+				var entry:FriendsListEntry = data as FriendsListEntry;
+				Alert.show("Are you sure you want to remove " + entry.username + " from your friends list?",
+						   "Unfriend " + entry.username,
 						   Alert.YES | Alert.NO,
 						   null,
 						   function(event:CloseEvent):void {
 							   if (event.detail == Alert.YES) {
-								   _data.unfriend();
+								   entry.unfriend();
 							   }
 							   FriendsWindow.releaseLock();
 						   }
@@ -129,41 +185,62 @@
 		</s:fill>
 	</s:Rect>
 	
-	<s:Rect width="51" height="51"
-			top="2" left="2">
-		<s:stroke>
-			<s:SolidColorStroke color="#666666" weight="1" joints="miter" caps="square" />
-		</s:stroke>
-		<s:fill>
-			<s:SolidColor color="#F0F0F0" />
-		</s:fill>
-	</s:Rect>
+	<s:Group id="profilePictureArea" width="52" height="52"
+			 top="2" left="2">
+		
+		<s:Rect width="51" height="51"
+				top="0" left="0">
+			<s:stroke>
+				<s:SolidColorStroke color="#c3c3c3" weight="1" pixelHinting="true" />
+			</s:stroke>
+			<s:fill>
+				<s:SolidColor color="#eeeeee" />
+			</s:fill>
+		</s:Rect>
+		
+		<s:Image width="50" height="50" top="1" left="1"
+				 source="{data.picture}" />
+		
+		<s:Image width="16" height="16" left="0" bottom="0"
+				 source="@Embed(source='src/assets/icons/social/fb-16.png')"
+				 includeIn="facebook_friend" />
+		
+		<s:Rect includeIn="online" id="onlineStatusJewel"
+				width="6" height="6" bottom="2" right="2">
+			<s:stroke>
+				<s:SolidColorStroke color="#000000" />
+			</s:stroke>
+			<s:fill>
+				<s:SolidColor color="#45e200" />
+			</s:fill>
+		</s:Rect>
+		
+	</s:Group>
 	
-	<s:Image width="50" height="50" top="3" left="3"
-			 source="{_data.picture}" />
-	
-	<!-- In this circumstance we can't use the visible property because of a
-	     Flex bug.  The item renderer has its data property set to null when
-	     it's being recycled, which happens when the renderer is not on the
-	     stage.  Changing the visibility depends on the component having an
-	     active reference to the stage
-	-->
-	<mx:Image id="onlineDot" left="58" verticalCenter="0" width="13" height="13"
-			  alpha="{_data.online ? 1.0 : 0.0}"
-			  source="@Embed(source='src/assets/icons/dot-online.png')" />
-	
-	<mx:Image id="offlineDot" left="58" verticalCenter="0" width="13" height="13"
-			  alpha="{_data.online ? 0.0 : 1.0}"
-			  source="@Embed(source='src/assets/icons/dot-offline.png')" />
-	
-	
-	<s:HGroup left="78" right="3" verticalCenter="0" verticalAlign="middle">
-		<s:Label fontFamily="Arial" width="100%"
-				 text="{_data.username}" />
+	<s:HGroup left="58" right="3" top="5" bottom="3" verticalAlign="middle">
+		<s:VGroup width="100%" height="100%">
+			<!-- Facebook Real Name -->
+			<s:Label styleName="friendListFullName"
+					 includeIn="facebook_friend"
+					 width="100%"
+					 text="{data.name}" />
+			
+			<!-- Worlize Username -->
+			<s:Label styleName="friendListUserName"
+					 width="100%"
+					 fontWeight.worlize_friend="bold"
+					 fontWeight.facebook_friend="normal"
+					 text="{data.username}" />
+			
+			<!-- Online Status -->
+			<s:Label styleName="friendListOnlineStatus"
+					 width="100%"
+					 includeIn="online"
+					 text="(Online)" />
+		</s:VGroup>
 
-		<mx:PopUpButton id="popUpButton" label="Visit Worlz"
-						click="visitFriend(_data)" />
-				
+		<mx:PopUpButton id="popUpButton" label="{buttonLabel}"
+						click="handleActionButtonClick()" />
 	</s:HGroup>
 	
 				

@@ -9,7 +9,7 @@
 								 xmlns:mx="library://ns.adobe.com/flex/mx"
 								 xmlns:components="com.worlize.view.components.*"
 								 close="handleClose(event)"
-								 width="300" height="450">
+								 width="300" height="550">
 	<components:layout>
 		<s:VerticalLayout gap="10"
 						  paddingTop="10" paddingLeft="10"

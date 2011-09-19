@@ -85,6 +85,15 @@ package com.worlize.model.gifts
 			client.send("/gifts.json", HTTPMethod.GET);
 		}
 		
+		public function prune():void {
+			for (var i:int=giftsList.length-1; i >= 0; i--) {
+				var gift:Gift = (giftsList.getItemAt(i)) as Gift;
+				if (gift.state !== Gift.STATE_NEW && gift.state !== Gift.STATE_LOADING) {
+					giftsList.removeItemAt(i);
+				}
+			}
+		}
+		
 		private function handleGiftAccepted(notification:GiftNotification):void {
 			
 		}

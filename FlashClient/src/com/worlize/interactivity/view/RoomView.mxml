@@ -539,6 +539,7 @@
 			private function handleRoomCleared(event:RoomEvent):void {
 				for each (var avatar:Object in avatarsByUser) {
 					Avatar(avatar).removeEventListener(MouseEvent.MOUSE_DOWN, handleAvatarMouseDown);
+					Avatar(avatar).removeEventListener(MouseEvent.MOUSE_DOWN, handleAvatarDragMouseDown);
 				}
 				avatarsGroup.removeAllElements();
 				avatarsByUser = new Dictionary();

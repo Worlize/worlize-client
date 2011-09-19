@@ -20,6 +20,9 @@ package com.worlize.model
 		public var username:String;
 		public var guid:String;
 		public var online:Boolean;
+		public var facebookProfile:String;
+		public var twitterProfile:String;
+		public var currentRoomGuid:String;
 		public var friendType:String;
 		public var name:String;
 		public var picture:String;
@@ -30,10 +33,16 @@ package com.worlize.model
 			instance.username = data.username;
 			instance.guid = data.guid;
 			instance.online = data.online;
+			instance.facebookProfile = data.facebook_profile;
+			instance.twitterProfile = data.twitter_profile;
+			instance.currentRoomGuid = data.current_room_guid;
 			instance.worldEntrance = data.world_entrance;
 			instance.friendType = data.friend_type;
 			instance.name = data.name;
 			instance.picture = data.picture;
+			if (instance.friendType === TYPE_WORLIZE) {
+				instance.name = instance.username;
+			}
 			return instance;
 		}
 		

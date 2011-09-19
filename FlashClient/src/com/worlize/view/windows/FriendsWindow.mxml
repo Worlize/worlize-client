@@ -3,13 +3,16 @@
 								 xmlns:s="library://ns.adobe.com/flex/spark" 
 								 xmlns:mx="library://ns.adobe.com/flex/mx"
 								 xmlns:components="com.worlize.view.components.*"
+								 xmlns:code="http://code.google.com/p/flexlib/"
+								 xmlns:layout="flexlib.scheduling.scheduleClasses.layout.*"
+								 xmlns:controls="controls.*"
 								 titleBarColor="#1076a4"
 								 showTitle="false"
 								 showCloseButton="false"
 								 mouseDownOutside="handleMouseDownOutside(event)"
 								 removedFromStage="handleRemovedFromStage()"
 								 currentState="myFriends"
-								 width="300" xmlns:code="http://code.google.com/p/flexlib/" xmlns:layout="flexlib.scheduling.scheduleClasses.layout.*" xmlns:controls="controls.*">
+								 width="300">
 	
 	<components:states>
 		<s:State name="myFriends" />
@@ -153,44 +156,11 @@
 			</s:Rect>
 			<s:HGroup verticalCenter="0" horizontalCenter="0"
 					  verticalAlign="middle" horizontalAlign="center">
-				<s:Label text="find &amp; invite your friends:" styleName="socialCallout" />
+				<s:Label text="invite your friends:" styleName="socialCallout" />
 				<s:Image source="@Embed(source='assets/icons/social/fb-30.png')"
 						 buttonMode="true" click="inviteFacebookFriends()"/>
 			</s:HGroup>
 		</s:Group>
-		
-		
-		<s:HGroup gap="0" width="100%"
-				  paddingBottom="3" paddingTop="3"
-				  paddingLeft="1" paddingRight="5"
-				  verticalAlign="middle">
-			<mx:LinkButton
-				styleName="friendsNavButton"
-				color="#000000"
-				color.myFriends="#c18a13"
-				click="currentState = 'myFriends';"
-				label="My Friends" />
-			<mx:LinkButton
-				styleName="friendsNavButton"
-				color="#000000"
-				color.findFriends="#c18a13"
-				click="currentState = 'findFriends';"
-				label="Search" />
-			<mx:Spacer width="100%" />
-			<controls:Spinner id="loadingSpinner"
-							  visible="false"
-							  autoPlay="false"
-							  mouseEnabled="false"
-							  mouseChildren="false"
-							  size="19" numTicks="9"
-							  tickWidth="2" speed="600"
-							  fadeSpeed="600" tickColor="#444444" />
-		</s:HGroup>
-		<s:Line width="100%">
-			<s:stroke>
-				<s:SolidColorStroke weight="1" color="#DDDDDD" />
-			</s:stroke>
-		</s:Line>
 		
 		<s:VGroup width="100%" includeIn="myFriends" gap="0">
 
@@ -230,12 +200,22 @@
 					<s:Label left="6" top="8" bottom="6"
 							 fontFamily="PTSansNarrowBold"
 							 fontSize="14" color="#000000"
-							 text="My Friends" />
+							 text="Friends" />
+					
+					<controls:Spinner id="loadingSpinner"
+									  visible="false"
+									  autoPlay="false"
+									  mouseEnabled="false"
+									  mouseChildren="false"
+									  size="22" numTicks="11"
+									  tickWidth="2" speed="600"
+									  right="6" top="2"
+									  fadeSpeed="500" tickColor="#222222" />
 				</s:Group>
 				
 				<components:DynamicHeightList
 					width="100%"
-					maxRowCount="5"
+					maxRowCount="8"
 					dataProvider="{friendsList.friends}"
 					borderVisible="false"
 					itemRenderer="com.worlize.view.itemrenderers.FriendListItemRenderer" />
@@ -254,7 +234,7 @@
 						 fontSize="11"
 						 fontStyle="italic"
 						 color="#666666"
-						 text="(Click 'Search' above to find some.)" />
+						 text="(Why not invite some?)" />
 			</s:VGroup>
 		</s:VGroup>
 		

@@ -6,7 +6,6 @@ package com.worlize.model
 	import com.worlize.rpc.HTTPMethod;
 	import com.worlize.rpc.WorlizeResultEvent;
 	import com.worlize.rpc.WorlizeServiceClient;
-	import com.worlize.state.Facebook;
 	
 	import flash.events.EventDispatcher;
 	import flash.events.IEventDispatcher;
@@ -65,7 +64,7 @@ package com.worlize.model
 			var sort:Sort = new Sort();
 			sort.fields = [
 				new SortField('online', false, true),
-				new SortField('username', true)
+				new SortField('name', true)
 			];
 			friends.sort = sort;
 			

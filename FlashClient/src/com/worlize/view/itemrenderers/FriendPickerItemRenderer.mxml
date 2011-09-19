@@ -2,12 +2,15 @@
 <s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
 				xmlns:s="library://ns.adobe.com/flex/spark" 
 				xmlns:mx="library://ns.adobe.com/flex/mx"
-				height="47" autoDrawBackground="true">
+				dataChange="handleDataChange(event)"
+				initialize="handleInitialize(event)"
+				height="57" autoDrawBackground="true">
 	
 	<s:states>
-		<s:State name="normal" />
-		<s:State name="hovered" />
-		<s:State name="selected" />
+		<s:State name="worlize" stateGroups="offline,worlize_friend" />
+		<s:State name="facebook" stateGroups="offline,facebook_friend" />
+		<s:State name="worlize_online" stateGroups="online,worlize_friend" />
+		<s:State name="facebook_online" stateGroups="online,facebook_friend" />
 	</s:states>
 	
 	<fx:Script>
@@ -17,71 +20,94 @@
 			import com.worlize.model.FriendsListEntry;
 			import com.worlize.view.windows.FriendsWindow;
 			
+			import mx.binding.utils.ChangeWatcher;
 			import mx.collections.ArrayCollection;
 			import mx.controls.Alert;
 			import mx.controls.Menu;
 			import mx.events.CloseEvent;
 			import mx.events.FlexEvent;
 			import mx.events.MenuEvent;
+
+			private var onlineWatcher:ChangeWatcher;
 			
-			[Bindable]
-			private var client:InteractivityClient = InteractivityClient.getInstance();
+			private function handleInitialize(event:Event):void {
+				onlineWatcher = ChangeWatcher.watch(this, ['data','online'], handleOnlineStatusChange);
+			}
 			
-			[Bindable]
-			private var _data:FriendsListEntry;
+			private function handleOnlineStatusChange(event:Event):void {
+				if (data === null) { return; }
+				updateState();
+			}
 			
-			[Bindable(event='dataChange')]
-			override public function set data(newValue:Object):void {
-				if (_data !== newValue) {
-					if (newValue is FriendsListEntry) {
-						_data = FriendsListEntry(newValue);
-					}
-					else {
-						_data = null;
-					}
-					dispatchEvent(new FlexEvent('dataChange'));
+			private function updateState():void {
+				var entry:FriendsListEntry = data as FriendsListEntry;
+				var state:String = entry.friendType;
+				if (entry.online) {
+					state += "_online";
 				}
+				currentState = state;
 			}
-			override public function get data():Object {
-				return _data;
+			
+			private function handleDataChange(event:FlexEvent):void {
+				if (data === null) { return; }
 			}
+			
 		]]>
 	</fx:Script>
 	
-	<s:Rect width="42" height="42"
-			top="2" left="2">
-		<s:stroke>
-			<s:SolidColorStroke color="#666666" weight="1" joints="miter" caps="square" />
-		</s:stroke>
-		<s:fill>
-			<s:SolidColor color="#F0F0F0" />
-		</s:fill>
-	</s:Rect>
+	<s:Group id="profilePictureArea" width="52" height="52"
+			 top="2" left="2">
+		
+		<s:Rect width="51" height="51"
+				top="0" left="0">
+			<s:stroke>
+				<s:SolidColorStroke color="#c3c3c3" weight="1" pixelHinting="true" />
+			</s:stroke>
+			<s:fill>
+				<s:SolidColor color="#eeeeee" />
+			</s:fill>
+		</s:Rect>
+		
+		<s:Image width="50" height="50" top="1" left="1"
+				 source="{data.picture}" />
+		
+		<s:Image width="16" height="16" left="0" bottom="0"
+				 source="@Embed(source='src/assets/icons/social/fb-16.png')"
+				 includeIn="facebook_friend" />
+		
+		<s:Rect includeIn="online" id="onlineStatusJewel"
+				width="6" height="6" bottom="2" right="2">
+			<s:stroke>
+				<s:SolidColorStroke color="#000000" />
+			</s:stroke>
+			<s:fill>
+				<s:SolidColor color="#45e200" />
+			</s:fill>
+		</s:Rect>
+		
+	</s:Group>
 	
-	<mx:Image width="40" height="40" top="3" left="3" 
-			  source="@Embed(source='src/assets/icons/unknown_user.png')" />
-	
-	
-	<!-- In this circumstance we can't use the visible property because of a
-	Flex bug.  The item renderer has its data property set to null when
-	it's being recycled, which happens when the renderer is not on the
-	stage.  Changing the visibility depends on the component having an
-	active reference to the stage
-	-->
-	<mx:Image id="onlineDot" left="48" verticalCenter="0" width="13" height="13"
-			  alpha="{_data.online ? 1.0 : 0.0}"
-			  source="@Embed(source='src/assets/icons/dot-online.png')" />
-	
-	<mx:Image id="offlineDot" left="48" verticalCenter="0" width="13" height="13"
-			  alpha="{_data.online ? 0.0 : 1.0}"
-			  source="@Embed(source='src/assets/icons/dot-offline.png')" />
-	
-	
-	<s:HGroup left="68" right="3" verticalCenter="0" verticalAlign="middle">
-		<s:Label fontFamily="Arial" width="100%"
-				 text="{_data.username}" />
+	<s:HGroup left="58" right="3" top="5" bottom="3" verticalAlign="middle">
+		<s:VGroup width="100%" height="100%">
+			<!-- Facebook Real Name -->
+			<s:Label styleName="friendListFullName"
+					 includeIn="facebook_friend"
+					 width="100%"
+					 text="{data.name}" />
+			
+			<!-- Worlize Username -->
+			<s:Label styleName="friendListUserName"
+					 width="100%"
+					 fontWeight.worlize_friend="bold"
+					 fontWeight.facebook_friend="normal"
+					 text="{data.username}" />
+			
+			<!-- Online Status -->
+			<s:Label styleName="friendListOnlineStatus"
+					 width="100%"
+					 includeIn="online"
+					 text="(Online)" />
+		</s:VGroup>
 	</s:HGroup>
-	
-	
 	
 </s:ItemRenderer>

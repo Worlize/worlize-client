@@ -100,7 +100,6 @@
 					});
 					PopUpManager.addPopUp(_instance, parent);
 					_instance.giftsList = GiftsList.getInstance();
-					_instance.giftsList.load();
 					_instance.x = 395;
 					_instance.y = 30;
 					_open = true;
@@ -110,6 +109,7 @@
 			public static function close():void {
 				if (_open && _instance && lockCounter <= 0) {
 					lockCounter = 0;
+					_instance.giftsList.prune();
 					_instance.giftsList = null;
 					PopUpManager.removePopUp(_instance);
 					_open = false;
