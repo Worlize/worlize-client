@@ -11,17 +11,13 @@
 								 showCloseButton="false"
 								 mouseDownOutside="handleMouseDownOutside(event)"
 								 removedFromStage="handleRemovedFromStage()"
-								 currentState="myFriends"
 								 width="300">
-	
-	<components:states>
-		<s:State name="myFriends" />
-		<s:State name="findFriends" />
-	</components:states>
 	
 	<fx:Script>
 		<![CDATA[
+			import com.adobe.serialization.json.JSON;
 			import com.worlize.event.FriendsListEvent;
+			import com.worlize.model.CurrentUser;
 			import com.worlize.model.FriendsList;
 			import com.worlize.model.FriendsListEntry;
 			import com.worlize.model.PendingFriendsListEntry;
@@ -132,7 +128,25 @@
 			}
 			
 			private function inviteFacebookFriends():void {
-				ExternalInterface.call('openFacebookFriendFinder');
+				var fbFriendIds:Array = [];
+				for (var i:int=0; i < friendsList.friends.length; i++) {
+					var friend:FriendsListEntry = friendsList.friends.getItemAt(i) as FriendsListEntry;
+					if (friend.friendType === FriendsListEntry.TYPE_FACEBOOK) {
+						fbFriendIds.push(friend.facebookId);
+					}
+				}
+				
+				ExternalInterface.call('showFacebookDialog', {
+					method: 'apprequests',
+					message: "Come chat with me in Worlize, a place where you can create your own virtual world and chat with your friends!",
+					exclude_ids: fbFriendIds,
+					filters: ['all'],
+					title: 'Invite Friends to Worlize',
+					data: JSON.encode({
+						action: 'join',
+						inviter_guid: CurrentUser.getInstance().guid
+					})
+				});
 			}
 		]]>
 	</fx:Script>
@@ -145,7 +159,7 @@
 	<s:VGroup width="100%" gap="0">
 		
 		<!-- Social Conncetion Callout -->
-		<s:Group width="100%" height="39">
+		<s:Group width="100%" height="39" buttonMode="true" click="inviteFacebookFriends()">
 			<s:layout>
 				<s:BasicLayout />
 			</s:layout>
@@ -157,12 +171,11 @@
 			<s:HGroup verticalCenter="0" horizontalCenter="0"
 					  verticalAlign="middle" horizontalAlign="center">
 				<s:Label text="invite your friends:" styleName="socialCallout" />
-				<s:Image source="@Embed(source='assets/icons/social/fb-30.png')"
-						 buttonMode="true" click="inviteFacebookFriends()"/>
+				<s:Image source="@Embed(source='assets/icons/social/fb-30.png')" />
 			</s:HGroup>
 		</s:Group>
 		
-		<s:VGroup width="100%" includeIn="myFriends" gap="0">
+		<s:VGroup width="100%" gap="0">
 
 			<s:VGroup width="100%" gap="0"
 					  visible="{friendsList.friendRequests.length > 0}"
@@ -236,23 +249,6 @@
 						 color="#666666"
 						 text="(Why not invite some?)" />
 			</s:VGroup>
-		</s:VGroup>
-		
-		<s:VGroup includeIn="findFriends" width="100%" gap="0">
-			<s:Group width="100%">
-				<s:Rect top="0" left="0" right="0" bottom="0">
-					<s:fill>
-						<s:SolidColor color="#e2c879" />
-					</s:fill>
-				</s:Rect>
-				<s:Label left="6" top="8" bottom="6"
-						 fontFamily="PTSansNarrowBold"
-						 fontSize="14" color="#000000"
-						 text="Search for Friends" />
-			</s:Group>
-			
-			<components:FindUsersComponent includeIn="findFriends"
-										   width="100%" />
 		</s:VGroup>
 	</s:VGroup>
 	

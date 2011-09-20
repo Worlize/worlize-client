@@ -21,6 +21,7 @@ package com.worlize.model
 		public var guid:String;
 		public var online:Boolean;
 		public var facebookProfile:String;
+		public var facebookId:String;
 		public var twitterProfile:String;
 		public var currentRoomGuid:String;
 		public var friendType:String;
@@ -34,6 +35,7 @@ package com.worlize.model
 			instance.guid = data.guid;
 			instance.online = data.online;
 			instance.facebookProfile = data.facebook_profile;
+			instance.facebookId = data.facebook_id;
 			instance.twitterProfile = data.twitter_profile;
 			instance.currentRoomGuid = data.current_room_guid;
 			instance.worldEntrance = data.world_entrance;
