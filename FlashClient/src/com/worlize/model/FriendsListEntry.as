@@ -52,7 +52,17 @@ package com.worlize.model
 			this.username = data.username;
 			this.guid = data.guid;
 			this.online = data.online;
+			this.facebookProfile = data.facebook_profile;
+			this.facebookId = data.facebook_id;
+			this.twitterProfile = data.twitter_profile;
+			this.currentRoomGuid = data.current_room_guid;
 			this.worldEntrance = data.world_entrance;
+			this.friendType = data.friend_type;
+			this.name = data.name;
+			this.picture = data.picture;
+			if (this.friendType === TYPE_WORLIZE) {
+				this.name = this.username;
+			}
 		}
 		
 		public function toString():String {
