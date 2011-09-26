@@ -227,9 +227,7 @@
 					 width="100%"
 					 maxWidth="{nameContainer.width}"
 					 lineBreak="toFit"
-					 text="This is a really long friend name" />
-			
-			<!-- text="{data.name}" -->
+					 text="{data.name}" />
 			
 			<!-- Worlize Username -->
 			<s:Label styleName="friendListUserName"
