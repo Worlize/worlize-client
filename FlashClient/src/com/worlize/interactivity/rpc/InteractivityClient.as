@@ -58,7 +58,10 @@ package com.worlize.interactivity.rpc
 	import flash.events.ProgressEvent;
 	import flash.events.SecurityErrorEvent;
 	import flash.events.TimerEvent;
+	import flash.external.ExternalInterface;
+	import flash.net.URLRequest;
 	import flash.net.XMLSocket;
+	import flash.net.navigateToURL;
 	import flash.system.LoaderContext;
 	import flash.utils.ByteArray;
 	import flash.utils.Dictionary;
@@ -384,11 +387,24 @@ package com.worlize.interactivity.rpc
 					case "set_video_server":
 						handleSetVideoServer(data);
 						break;
+					case "logged_out":
+						handleLoggedOut(data);
 					default:
 						trace("Unhandled message: " + JSON.encode(event.message));
 						break;
 				}
 			}
+		}
+		
+		private function handleLoggedOut(data:Object):void {
+			disconnect();
+			var message:String = "You have been logged out.";
+			if (data) {
+				message = data as String;
+			}
+			Alert.show(message, "Disconnected", 4, null, function(event:CloseEvent):void {
+				ExternalInterface.call("handleLoggedOut");
+			});
 		}
 		
 		private function handleSetVideoServer(data:Object):void {
