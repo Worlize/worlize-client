@@ -2,6 +2,7 @@
 @namespace s "library://ns.adobe.com/flex/spark";
 @namespace mx "library://ns.adobe.com/flex/mx";
 @namespace components "com.worlize.view.components.*";
+@namespace itemrenderers "com.worlize.view.itemrenderers.*";
 
 @font-face {
 	src: url("assets/fonts/PT_Sans_Narrow_Bold.ttf");
@@ -86,6 +87,19 @@ s|Label.socialCallout {
 	fontFamily: PTSansNarrowBold;
 	fontSize: 14pt;
 	color: #FFFFFF;
+}
+
+.friendsListToggleButton {
+	cornerRadius: 0px;
+	paddingLeft: 15px;
+	paddingRight: 15px;
+	skinClass: ClassReference("com.worlize.view.skins.FriendsListToggleButtonSkin");
+}
+
+.friendsListToggleButton s|Label {
+	fontFamily: PTSansNarrowBold;
+	fontSize: 16pt;
+	color: #000000;
 }
 
 .enableWebcamButton {
@@ -179,4 +193,28 @@ s|Label.friendListOnlineStatus {
 	color: #888888;
 }
 
+itemrenderers|ListHeadingItemRenderer s|Label {
+	fontFamily: PTSansNarrowBold;
+	fontSize: 16pt;
+	paddingTop: 5px;
+	paddingBottom: 1px;
+	paddingLeft: 4px;
+	paddingRight: 4px;
+}
 
+itemrenderers|ListHeadingItemRenderer s|Label.listEmptyMessage {
+	fontFamily: "Lucida Sans", "Arial";
+	fontSize: 11px;
+	fontStyle: italic;
+	fontWeight: normal;
+	color: #666666;
+}
+
+s|Label.friendsListTitle {
+	fontFamily: PTSansNarrowBold;
+	fontSize: 16pt;
+	paddingTop: 5px;
+	paddingBottom: 1px;
+	paddingLeft: 4px;
+	paddingRight: 4px;
+}

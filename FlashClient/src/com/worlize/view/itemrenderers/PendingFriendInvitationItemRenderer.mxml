@@ -2,7 +2,7 @@
 <s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
 				xmlns:s="library://ns.adobe.com/flex/spark" 
 				xmlns:mx="library://ns.adobe.com/flex/mx"
-				height="47" autoDrawBackground="false">
+				height="57" autoDrawBackground="false">
 	
 	<s:states>
 		<s:State name="normal" />
@@ -61,25 +61,38 @@
 		</s:fill>
 	</s:Rect>
 	
-	<s:Rect width="42" height="42"
-			top="2" left="2">
-		<s:stroke>
-			<s:SolidColorStroke color="#666666" weight="1" joints="miter" caps="square" />
-		</s:stroke>
-		<s:fill>
-			<s:SolidColor color="#F0F0F0" />
-		</s:fill>
-	</s:Rect>
+	<s:Group id="profilePictureArea" width="52" height="52"
+			 top="2" left="2">
+		
+		<s:Rect width="51" height="51"
+				top="0" left="0">
+			<s:stroke>
+				<s:SolidColorStroke color="#c3c3c3" weight="1" pixelHinting="true" />
+			</s:stroke>
+			<s:fill>
+				<s:SolidColor color="#eeeeee" />
+			</s:fill>
+		</s:Rect>
+		
+		<s:Image width="50" height="50" top="1" left="1"
+				 source="{data.picture}" />
+	</s:Group>
 	
-	<mx:Image width="40" height="40" top="3" left="3" 
-			  source="@Embed(source='src/assets/icons/unknown_user.png')" />
-	
-	<s:HGroup left="48" right="3" verticalCenter="0" verticalAlign="middle">
-		<s:VGroup width="100%">
-			<s:Label fontFamily="Arial" width="100%"
-					 text="{_data.capitalizedUsername}" />
+	<s:HGroup left="58" right="3" top="5" bottom="3" verticalAlign="middle">
+		
+		<s:VGroup width="100%" height="100%" id="nameContainer">
+			<!-- Worlize Username -->
+			<s:Label styleName="friendListUserName"
+					 maxDisplayedLines="1"
+					 width="100%"
+					 maxWidth="{nameContainer.width}"
+					 lineBreak="toFit"
+					 fontWeight="bold"
+					 text="{data.username}" />
 		</s:VGroup>
+	</s:HGroup>
 	
+	<s:HGroup right="3" bottom="3">
 		<s:Button
 			label="Ignore"
 			click="ignoreFriend();" />

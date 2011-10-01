@@ -16,19 +16,18 @@ package com.worlize.model
 	{
 		private var _username:String;
 		
+		public var listPriority:int = FriendsList.LIST_PRIORITY_FRIEND_REQUEST;
+		public var isHeader:Boolean = false;
+		
+		public var online:Boolean = false;
 		public var guid:String;
-		public var mutualFriends:ArrayCollection = new ArrayCollection();
+		public var picture:String;
 		
 		public static function fromData(data:Object):PendingFriendsListEntry {
 			var instance:PendingFriendsListEntry = new PendingFriendsListEntry();
 			instance.username = data.username;
 			instance.guid = data.guid;
-			for each (var mutualFriendData:Object in data.mutual_friends) {
-				var mutualFriend:FriendsListEntry = new FriendsListEntry();
-				mutualFriend.username = mutualFriendData.username;
-				mutualFriend.guid = mutualFriendData.guid;
-				instance.mutualFriends.addItem(mutualFriend);
-			}
+			instance.picture = data.picture;
 			return instance;
 		}
 		

@@ -133,14 +133,12 @@
 		]]>
 	</fx:Script>
 	
-	
-	
 	<components:controlBarContent>
 		<components:CapacityButton
 			click="showComingSoon()"
 			line1="Capacity: {inWorldObjectLocker.capacity}"
-			line2="Current: {inWorldObjectLocker.count}"
-			toolTip="Click to add more locker capacity"/>
+			line2="Used: {inWorldObjectLocker.count}"
+			toolTip="Click to buy more locker space"/>
 	</components:controlBarContent>
 	
 	<s:HGroup right="10" top="5" gap="10" verticalAlign="middle">

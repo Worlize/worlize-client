@@ -7,6 +7,7 @@ package com.worlize.model
 	import com.worlize.rpc.WorlizeServiceClient;
 	
 	import mx.controls.Alert;
+	import mx.events.FlexEvent;
 	import mx.rpc.Fault;
 	import mx.rpc.events.FaultEvent;
 	import mx.utils.UIDUtil;
@@ -17,9 +18,13 @@ package com.worlize.model
 		public static const TYPE_FACEBOOK:String = "facebook";
 		public static const TYPE_WORLIZE:String = "worlize";
 		
+		public var listPriority:int = -1;
+		public var isHeader:Boolean = false;
+		
+		private var _online:Boolean;
+		
 		public var username:String;
 		public var guid:String;
-		public var online:Boolean;
 		public var facebookProfile:String;
 		public var facebookId:String;
 		public var twitterProfile:String;
@@ -28,6 +33,23 @@ package com.worlize.model
 		public var name:String;
 		public var picture:String;
 		public var worldEntrance:String;
+		
+		[Bindable(event="onlineChanged")]
+		public function set online(newValue:Boolean):void {
+			var changed:Boolean = false;
+			if (_online !== newValue) {
+				changed = true;
+				_online = newValue;
+			}
+			listPriority = (_online) ? FriendsList.LIST_PRIORITY_ONLINE_FRIEND : FriendsList.LIST_PRIORITY_OFFLINE_FRIEND;
+			if (changed) {
+				var event:FlexEvent = new FlexEvent('onlineChanged');
+				dispatchEvent(event);
+			}
+		}
+		public function get online():Boolean {
+			return _online;
+		}
 		
 		public static function fromData(data:Object):FriendsListEntry {
 			var instance:FriendsListEntry = new FriendsListEntry();

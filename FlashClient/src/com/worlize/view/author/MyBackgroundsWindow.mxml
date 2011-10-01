@@ -187,8 +187,8 @@
 		<components:CapacityButton
 			click="showComingSoon()"
 			line1="Capacity: {backgroundsLocker.capacity}"
-			line2="Current: {backgroundsLocker.count}"
-			toolTip="Click to add more locker capacity"/>
+			line2="Used: {backgroundsLocker.count}"
+			toolTip="Click to buy more locker space"/>
 	</components:controlBarContent>
 
 	<s:HGroup right="10" top="5" gap="10" verticalAlign="middle">

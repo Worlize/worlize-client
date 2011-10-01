@@ -13,10 +13,12 @@ package com.worlize.model
 	
 	import mx.collections.ArrayCollection;
 	import mx.collections.Sort;
-	import mx.collections.SortField;
 	import mx.controls.Alert;
 	import mx.events.FlexEvent;
 	import mx.rpc.events.FaultEvent;
+	import mx.utils.ObjectProxy;
+	
+	import spark.collections.SortField;
 	
 	public class FriendsList extends EventDispatcher
 	{
@@ -25,7 +27,57 @@ package com.worlize.model
 		public static const STATE_READY:String = "ready";
 		public static const STATE_LOADING:String = "loading";
 		
+		public static const LIST_PRIORITY_FRIEND_REQUEST:int = 0;
+		public static const LIST_PRIORITY_ONLINE_FRIEND:int = 1;
+		public static const LIST_PRIORITY_OFFLINE_FRIEND:int = 2;
+		public static const LIST_PRIORITY_ONLINE_FACEBOOK_FRIEND:int = 3;
+		
 		private var _state:String = STATE_READY;
+		
+		private var friendRequestsHeading:ObjectProxy = new ObjectProxy({
+			isHeader: true,
+			background: 0x2c8a19,
+			color: 0xFFFFFF,
+			label: "FRIEND REQUESTS",
+			count: 0,
+			display: false,
+			listPriority: LIST_PRIORITY_FRIEND_REQUEST,
+			name: '' // because the stupid sort function can't deal with null values...
+		});
+		
+		private var onlineFriendsHeading:ObjectProxy = new ObjectProxy({
+			isHeader: true,
+			background: 0x3091c3,
+			color: 0xFFFFFF,
+			label: "ONLINE FRIENDS",
+			count: 0,
+			display: false,
+			listEmptyMessage: "(None of your friends are online.)",
+			listPriority: LIST_PRIORITY_ONLINE_FRIEND,
+			name: '' // because the stupid sort function can't deal with null values...
+		});
+		
+		private var offlineFriendsHeading:ObjectProxy = new ObjectProxy({
+			isHeader: true,
+			background: 0x678a9c,
+			color: 0xFFFFFF,
+			label: "OFFLINE FRIENDS",
+			count: 0,
+			display: false,
+			listPriority: LIST_PRIORITY_OFFLINE_FRIEND,
+			name: '' // because the stupid sort function can't deal with null values...
+		});
+		
+		private var onlineFacebookFriendsHeading:ObjectProxy = new ObjectProxy({
+			isHeader: true,
+			background: 0x3091c3,
+			color: 0xFFFFFF,
+			label: "ONLINE FACEBOOK FRIENDS",
+			count: 0,
+			display: false,
+			listPriority: LIST_PRIORITY_ONLINE_FACEBOOK_FRIEND,
+			name: '' // because the stupid sort function can't deal with null values...
+		});
 		
 		[Bindable(event="stateChange")]
 		public function set state(newValue:String):void {
@@ -40,10 +92,6 @@ package com.worlize.model
 		
 		[Bindable]
 		public var friends:ArrayCollection = new ArrayCollection();
-		
-		[Bindable]
-		public var friendRequests:ArrayCollection = new ArrayCollection();
-		
 		
 		private var invitationTokens:Object = {};
 		
@@ -61,23 +109,37 @@ package com.worlize.model
 				throw new Error("You may only create one instance of FriendsList");
 			}
 			
+			friends.addItem(friendRequestsHeading);
+			friends.addItem(onlineFriendsHeading);
+			friends.addItem(offlineFriendsHeading);
+			friends.addItem(onlineFacebookFriendsHeading);
+				
 			var sort:Sort = new Sort();
 			sort.fields = [
-				new SortField('online', false, true),
-				new SortField('name', true)
+				new SortField('listPriority'),
+				new SortField('isHeader', true),
+				new SortField('name')
 			];
 			friends.sort = sort;
 			
-			sort = new Sort();
-			sort.fields = [
-				new SortField('username', true)
-			];
-			friendRequests.sort = sort;
+			friends.filterFunction = filterFunction;
+			
+			applySortAndFilters();
 			
 			NotificationCenter.addListener(FriendsNotification.FRIEND_REQUEST_ACCEPTED, handleFriendRequestAccepted);
 			NotificationCenter.addListener(FriendsNotification.FRIEND_REQUEST_REJECTED, handleFriendRequestRejected);
 			
 			load();
+		}
+		
+		private function filterFunction(item:Object):Boolean {
+			if (item is FriendsListEntry || item is PendingFriendsListEntry) {
+				return true;
+			}
+			else if (item.isHeader) {
+				return ((item.display as Boolean) || item.listEmptyMessage != null);
+			}
+			return false;
 		}
 		
 		/* Invitation tokens prevent someone from wisking you away
@@ -101,8 +163,10 @@ package com.worlize.model
 		public function getFriendsListEntryByGuid(guid:String):FriendsListEntry {
 			for (var i:int = 0; i < friends.length; i++) {
 				var entry:Object = friends.getItemAt(i);
-				if (FriendsListEntry(entry).guid == guid) {
-					return FriendsListEntry(entry);
+				if (entry is FriendsListEntry) {
+					if (FriendsListEntry(entry).guid == guid) {
+						return FriendsListEntry(entry);
+					}					
 				}
 			}
 			return null;
@@ -110,10 +174,13 @@ package com.worlize.model
 		
 		public function removeFriendFromListByGuid(guid:String):void {
 			for (var i:int = 0; i < friends.length; i++) {
-				var entry:FriendsListEntry = FriendsListEntry(friends.getItemAt(i));
-				if (entry.guid == guid) {
-					friends.removeItemAt(i);
-					return;
+				var entry:Object = friends.getItemAt(i);
+				if (entry is FriendsListEntry) {
+					if (FriendsListEntry(entry).guid == guid) {
+						friends.removeItemAt(i);
+						applySortAndFilters();
+						return;
+					}					
 				}
 			}
 		}
@@ -126,8 +193,40 @@ package com.worlize.model
 			load();
 		}
 		
+		public function applySortAndFilters():void {
+			onlineFriendsHeading['count'] = 0;
+			offlineFriendsHeading['count'] = 0;
+			onlineFacebookFriendsHeading['count'] = 0;
+			friendRequestsHeading['count'] = 0;
+			
+			for each (var entry:Object in friends.source) {
+				if (entry is FriendsListEntry) {
+					if (FriendsListEntry(entry).online) {
+						onlineFriendsHeading['count'] ++;
+					}
+					else {
+						offlineFriendsHeading['count'] ++;
+					}
+				}
+				else if (entry is PendingFriendsListEntry) {
+					friendRequestsHeading['count'] ++;
+				}
+				else {
+					// a heading
+				}
+			}
+			
+			onlineFriendsHeading['display'] = (onlineFriendsHeading['count'] > 0);
+			offlineFriendsHeading['display'] = (offlineFriendsHeading['count'] > 0);
+			onlineFacebookFriendsHeading['display'] = (onlineFacebookFriendsHeading['count'] > 0);
+			friendRequestsHeading['display'] = (friendRequestsHeading['count'] > 0);
+			
+			friends.refresh();
+		}
+		
 		public function load():void {
 			state = STATE_LOADING;
+			var index:int;
 			var client:WorlizeServiceClient = new WorlizeServiceClient();
 			client.addEventListener(WorlizeResultEvent.RESULT, function(event:WorlizeResultEvent):void {
 				if (event.resultJSON.success) {
@@ -147,21 +246,30 @@ package com.worlize.model
 					
 					// Remove any unknown items from the old list
 					for each (friendData in friends) {
-						if (!seenGuids[FriendsListEntry(friendData).guid]) {
-							var index:int = friends.getItemIndex(friendData);
+						if (friendData is FriendsListEntry && !seenGuids[FriendsListEntry(friendData).guid]) {
+							index = friends.getItemIndex(friendData);
 							if (index != -1) {
 								friends.removeItemAt(index);
 							}
 						}
 					}
 					
-					friendRequests.removeAll();
+					for each (friendData in friends) {
+						if (friendData is PendingFriendsListEntry) {
+							index = friends.getItemIndex(friendData);
+							if (index != -1) {
+								friends.removeItemAt(index);
+							}
+						}
+					}
+					
 					for each (var pendingFriendData:Object in event.resultJSON.data.pending_friends) {
 						var pendingFriendEntry:PendingFriendsListEntry = PendingFriendsListEntry.fromData(pendingFriendData);
-						friendRequests.addItem(pendingFriendEntry);
+						friends.addItem(pendingFriendEntry);
 					}
-					friends.refresh();
-					friendRequests.refresh();
+					
+					applySortAndFilters();
+					
 					var completeEvent:FriendsListEvent = new FriendsListEvent(FriendsListEvent.LOAD_COMPLETE);
 					dispatchEvent(completeEvent);
 				}

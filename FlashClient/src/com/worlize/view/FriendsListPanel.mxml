@@ -1,18 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<components:WorlizeFloatingPanel xmlns:fx="http://ns.adobe.com/mxml/2009" 
-								 xmlns:s="library://ns.adobe.com/flex/spark" 
-								 xmlns:mx="library://ns.adobe.com/flex/mx"
-								 xmlns:components="com.worlize.view.components.*"
-								 xmlns:code="http://code.google.com/p/flexlib/"
-								 xmlns:layout="flexlib.scheduling.scheduleClasses.layout.*"
-								 xmlns:controls="controls.*"
-								 titleBarColor="#1076a4"
-								 showTitle="false"
-								 showCloseButton="false"
-								 mouseDownOutside="handleMouseDownOutside(event)"
-								 removedFromStage="handleRemovedFromStage()"
-								 width="300">
-	
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 xmlns:components="com.worlize.view.components.*"
+		 xmlns:code="http://code.google.com/p/flexlib/"
+		 xmlns:layout="flexlib.scheduling.scheduleClasses.layout.*"
+		 xmlns:controls="controls.*">
+
+	<!-- titleBarColor="#1076a4" -->
 	<fx:Script>
 		<![CDATA[
 			import com.adobe.serialization.json.JSON;
@@ -22,8 +17,11 @@
 			import com.worlize.model.FriendsListEntry;
 			import com.worlize.model.PendingFriendsListEntry;
 			import com.worlize.view.itemrenderers.FriendListItemRenderer;
+			import com.worlize.view.itemrenderers.ListHeadingItemRenderer;
 			import com.worlize.view.itemrenderers.PendingFriendInvitationItemRenderer;
 			import com.worlize.view.skins.DynamicHeightListSkin;
+			
+			import flash.filters.BitmapFilterQuality;
 			
 			import mx.events.CloseEvent;
 			import mx.events.FlexEvent;
@@ -31,11 +29,7 @@
 			
 			import spark.skins.spark.DefaultItemRenderer;
 			
-			private static var _open:Boolean = false;
-			private static var _instance:FriendsWindow;
-			private static var closedAt:Date;
-			
-			private var _friendsList:FriendsList;
+			private var _friendsList:FriendsList = FriendsList.getInstance();
 			
 			[Bindable(event="friendsListChange")]
 			public function set friendsList(newValue:FriendsList):void {
@@ -58,11 +52,6 @@
 				return _friendsList;
 			}
 			
-			private function handleRemovedFromStage():void {
-				loadingSpinner.visible = false;
-				loadingSpinner.stop();
-			}
-			
 			private function handleFriendsListStateChange(event:Event):void {
 				if (friendsList.state == FriendsList.STATE_LOADING) {
 					trace("Showing spinner.");
@@ -76,61 +65,14 @@
 				}
 			}
 			
-			private function handleMouseDownOutside(event:MouseEvent):void {
-				FriendsWindow.close();
-			}
-			
-			public static function get isOpen():Boolean {
-				return _open;
-			}
-			
-			private static var lockCounter:int = 0;
-			public static function lockOpen():void {
-				lockCounter ++;
-			}
-			
-			public static function releaseLock():void {
-				lockCounter --;
-			}
-			
-			public static function open(parent:DisplayObject):void {
-				if (closedAt && closedAt.valueOf() > (new Date()).valueOf() - 200) {
-					return;
-				}
-				
-				if (_open) {
-					PopUpManager.bringToFront(_instance);
-					_instance.setFocus();
-				}
-				else {
-					_instance = new FriendsWindow();
-					_instance.addEventListener(CloseEvent.CLOSE, function(event:CloseEvent):void {
-						close();
-					});
-					PopUpManager.addPopUp(_instance, parent);
-					_instance.friendsList = FriendsList.getInstance();
-					_instance.friendsList.load();
-					_instance.x = 130;
-					_instance.y = 30;
-					_open = true;
-				}
-			}
-			
-			public static function close():void {
-				if (_open && _instance && lockCounter <= 0) {
-					lockCounter = 0;
-					_instance.friendsList = null;
-					PopUpManager.removePopUp(_instance);
-					_open = false;
-					_instance = null;
-					closedAt = new Date();
-				}
-			}
-			
 			private function inviteFacebookFriends():void {
 				var fbFriendIds:Array = [];
 				for (var i:int=0; i < friendsList.friends.length; i++) {
-					var friend:FriendsListEntry = friendsList.friends.getItemAt(i) as FriendsListEntry;
+					var item:Object = friendsList.friends.getItemAt(i);
+					if (!(item is FriendsListEntry)) {
+						continue;
+					}
+					var friend:FriendsListEntry = item as FriendsListEntry;
 					if (friend.friendType === FriendsListEntry.TYPE_FACEBOOK) {
 						fbFriendIds.push(friend.facebookId);
 					}
@@ -148,15 +90,47 @@
 					})
 				});
 			}
+			
+			private function selectItemRenderer(item:Object):ClassFactory {
+				var classFactory:ClassFactory;
+				if (item is FriendsListEntry) {
+					classFactory = new ClassFactory(FriendListItemRenderer);
+				}
+				else if (item is PendingFriendsListEntry) {
+					classFactory = new ClassFactory(PendingFriendInvitationItemRenderer);
+				}
+				else if (item['isHeader']) {
+					classFactory = new ClassFactory(ListHeadingItemRenderer);
+				}
+				else {
+					classFactory = new ClassFactory(DefaultItemRenderer);
+				}
+				return classFactory;
+			}
 		]]>
 	</fx:Script>
 	
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
-
 	</fx:Declarations>
 	
-	<s:VGroup width="100%" gap="0">
+	<s:filters>
+		<s:GlowFilter blurX="4" blurY="4" alpha="0.47" color="#000000" quality="{BitmapFilterQuality.MEDIUM}" />
+	</s:filters>
+	
+	<!-- White Background -->
+	<s:Rect left="0" top="0" right="0" bottom="0">
+		<s:fill>
+			<s:SolidColor color="#FFFFFF" />
+		</s:fill>
+	</s:Rect>
+	
+	<s:VGroup left="0" top="0" bottom="0" right="0" gap="0">
+		<s:Rect width="100%" height="10">
+			<s:fill>
+				<s:SolidColor color="#3091c3" />
+			</s:fill>
+		</s:Rect>
 		
 		<!-- Social Conncetion Callout -->
 		<s:Group width="100%" height="39" buttonMode="true" click="inviteFacebookFriends()">
@@ -173,42 +147,31 @@
 				<s:Label text="invite your friends:" styleName="socialCallout" />
 				<s:Image source="@Embed(source='assets/icons/social/fb-30.png')" />
 			</s:HGroup>
+			
+			<controls:Spinner id="loadingSpinner"
+							  visible="false"
+							  autoPlay="false"
+							  mouseEnabled="false"
+							  mouseChildren="false"
+							  size="22" numTicks="11"
+							  tickWidth="2" speed="600"
+							  right="6" top="2"
+							  fadeSpeed="500" tickColor="#222222" />
 		</s:Group>
 		
-		<s:VGroup width="100%" gap="0">
-
-			<s:VGroup width="100%" gap="0"
+		<s:VGroup width="100%" height="100%" gap="0">
+			
+			<s:VGroup width="100%" height="100%" gap="0"
 					  visible="{friendsList.friends.length > 0}"
 					  includeInLayout="{friendsList.friends.length > 0}">
-
-				<s:Group width="100%">
-					<s:Rect top="0" left="0" right="0" bottom="0">
-						<s:fill>
-							<s:SolidColor color="#90d1ee" />
-						</s:fill>
-					</s:Rect>
-					<s:Label left="6" top="8" bottom="6"
-							 fontFamily="PTSansNarrowBold"
-							 fontSize="14" color="#000000"
-							 text="Friends" />
-					
-					<controls:Spinner id="loadingSpinner"
-									  visible="false"
-									  autoPlay="false"
-									  mouseEnabled="false"
-									  mouseChildren="false"
-									  size="22" numTicks="11"
-									  tickWidth="2" speed="600"
-									  right="6" top="2"
-									  fadeSpeed="500" tickColor="#222222" />
-				</s:Group>
+				
 				
 				<components:DynamicHeightList
 					width="100%"
 					maxRowCount="8"
 					dataProvider="{friendsList.friends}"
 					borderVisible="false"
-					itemRenderer="com.worlize.view.itemrenderers.FriendListItemRenderer" />
+					itemRendererFunction="{selectItemRenderer}" />
 			</s:VGroup>
 			
 			<s:VGroup width="100%" height="100"
@@ -228,5 +191,4 @@
 			</s:VGroup>
 		</s:VGroup>
 	</s:VGroup>
-	
-</components:WorlizeFloatingPanel>
+</s:Group>

@@ -84,7 +84,7 @@
 				close();
 			}
 
-			public static function open(parent:DisplayObject):void {
+			public static function open(parent:DisplayObject, x:int=395, y:int=30):void {
 				if (closedAt && closedAt.valueOf() > (new Date()).valueOf() - 200) {
 					return;
 				}
@@ -100,8 +100,8 @@
 					});
 					PopUpManager.addPopUp(_instance, parent);
 					_instance.giftsList = GiftsList.getInstance();
-					_instance.x = 395;
-					_instance.y = 30;
+					_instance.x = x;
+					_instance.y = y;
 					_open = true;
 				}
 			}

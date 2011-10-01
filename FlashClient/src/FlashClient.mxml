@@ -24,21 +24,19 @@
 			import com.worlize.control.VirtualCurrencyProducts;
 			import com.worlize.event.AuthorModeNotification;
 			import com.worlize.event.NotificationCenter;
-			import com.worlize.event.TutorialEvent;
 			import com.worlize.interactivity.event.InteractivityEvent;
 			import com.worlize.interactivity.event.InteractivitySecurityErrorEvent;
 			import com.worlize.interactivity.iptscrae.command.CLIENTTYPECommand;
 			import com.worlize.interactivity.model.InteractivityUser;
 			import com.worlize.interactivity.rpc.InteractivityClient;
 			import com.worlize.model.CurrentUser;
-			import com.worlize.model.tutorial.TutorialData;
 			import com.worlize.rpc.HTTPMethod;
 			import com.worlize.rpc.WorlizeResultEvent;
 			import com.worlize.rpc.WorlizeServiceClient;
 			import com.worlize.state.AuthorModeState;
+			import com.worlize.view.LockerWindow;
 			import com.worlize.view.MarketplaceWindow;
 			import com.worlize.view.author.AuthorModePropertiesWindow;
-			import com.worlize.view.tutorial.Tutorial;
 			import com.worlize.view.windows.FriendsWindow;
 			import com.worlize.view.windows.GiftsWindow;
 			import com.worlize.view.windows.WorldsWindow;
@@ -56,46 +54,25 @@
 			[Bindable]
 			private var worlizeUser:CurrentUser = CurrentUser.getInstance(); 
 
-			private var tutorialData:TutorialData;
-			private var tutorial:Tutorial;
-			
 			private var preferences:Preferences = Preferences.getInstance();
 			
 			private var authorPropertiesWindowShowing:Boolean = false;
 			private var authorPropertiesWindow:AuthorModePropertiesWindow;
 			
+			private var manualFriendsListState:String = null;
+			
 			private function handleApplicationComplete():void {
 				trace("Application Domain: " + url);
-				stage.addEventListener(KeyboardEvent.KEY_DOWN, handleStageKeyDown);
 				trace("Flash Player Version: " + Capabilities.version);
-				tutorialData = new TutorialData();
-				tutorialData.addEventListener(TutorialEvent.LAUNCH_TUTORIAL, handleLaunchTutorial);
-				tutorialData.addEventListener(TutorialEvent.CLOSE_TUTORIAL, handleCloseTutorial);
+				stage.addEventListener(KeyboardEvent.KEY_DOWN, handleStageKeyDown);
+				stage.addEventListener(Event.RESIZE, handleStageResize);
+				updateFriendsListAutoDisplay();
 //				analytics.tracker.setDomainName(".worlize.com");
 //				analytics.tracker.trackPageview("/enter");
 			}
 			
-			private function tutorialRequested():void {
-				tutorialData.loadData();
-			}
-			
-			private function handleLaunchTutorial(event:TutorialEvent):void {
-				trace("Should launch tutorial.");
-				launchTutorial();
-			}
-			
-			private function handleCloseTutorial(event:TutorialEvent):void {
-				if (tutorial) {
-					removeElement(tutorial);
-					tutorial = null;
-				}
-			}
-			
-			private function launchTutorial():void {
-				if (tutorial) { return; }
-				tutorial = new Tutorial();
-				tutorial.tutorialData = tutorialData;
-				addElement(tutorial);
+			private function handleStageResize(event:Event):void {
+				updateFriendsListAutoDisplay();
 			}
 			
 			private function handleStageKeyDown(event:KeyboardEvent):void {
@@ -118,7 +95,7 @@
 				client.connect();
 				
 				authorPropertiesWindow = new AuthorModePropertiesWindow();
-				authorPropertiesWindow.x = 750;
+				authorPropertiesWindow.x = this.width - authorPropertiesWindow.width - 15;
 				authorPropertiesWindow.y = 75;
 
 				NotificationCenter.addListener(AuthorModeNotification.AUTHOR_DISABLED, handleAuthorDisabled);
@@ -197,7 +174,9 @@
 			}
 			
 			private function handleGiftsClick():void {
-				GiftsWindow.open(systemManager.getSandboxRoot());
+				var point:Point = new Point(giftsButton.x, giftsButton.y);
+				var globalPoint:Point = topButtonBar.localToGlobal(point);
+				GiftsWindow.open(systemManager.getSandboxRoot(), globalPoint.x, globalPoint.y + giftsButton.height);
 			}
 			
 			private function handleWorlzClick():void {
@@ -221,23 +200,73 @@
 			private function showVirtualCurrencyProducts():void {
 				VirtualCurrencyProducts.show();
 			}
+			
+			private function handleAvatarsClick():void {
+				LockerWindow.toggleOpen(systemManager.getSandboxRoot());
+			}
+			
+			private function verifySufficientRoomForFriendsList():Boolean {
+				return (stage.width > chatWindow.x + chatWindow.width + friendsList.width);
+			}
+			
+			private function handleFriendsButtonChange(event:Event):void {
+				if (ToggleButton(event.target).selected) {
+					showFriendsList();
+					if (verifySufficientRoomForFriendsList()) {
+						manualFriendsListState = null;
+					}
+					else {
+						manualFriendsListState = "open";
+					}
+				}
+				else {
+					hideFriendsList();
+					manualFriendsListState = "closed";
+				}
+			}
+			
+			private function updateFriendsListAutoDisplay():void {
+				if (manualFriendsListState === null) {
+					if (verifySufficientRoomForFriendsList()) {
+						if (!friendsList.visible) {
+							showFriendsList();
+						}
+					}
+					else {
+						if (friendsList.visible) {
+							hideFriendsList();
+						}
+					}					
+				}
+			}
+			
+			private function showFriendsList():void {
+				friendsList.visible = true;
+				friendsListToggleButton.selected = true;
+			}
+			
+			private function hideFriendsList():void {
+				friendsList.visible = false;
+				friendsListToggleButton.selected = false;
+			}
 		]]>
 	</fx:Script>
 
 	
 	<view1:ChatWindow id="chatWindow" client="{client}" top="40" left="10" />	
 
-	<s:HGroup top="3" left="10" right="10" gap="15">
+	<s:HGroup top="3" left="10" right="10" gap="15" verticalAlign="middle">
 		
 		<s:BorderContainer
+			id="topButtonBar"
 			tabChildren="false"
 			height="25"
 			borderVisible="false"
 			backgroundColor="#FFFFFF" cornerRadius="12">
 			<s:layout>
-				<s:HorizontalLayout gap="38"
+				<s:HorizontalLayout gap="20"
 									paddingTop="1"
-									paddingLeft="4"
+									paddingLeft="3"
 									paddingRight="-1" />
 			</s:layout>
 			
@@ -246,31 +275,20 @@
 				color="#0C9dea"
 				icon="@Embed(source='src/assets/icons/icon_myworlz.png')"
 				click="handleWorlzClick()"
-				label="WORLZ" />
-			<mx:LinkButton
-				styleName="topNavButton"
-				color="#1076a4"
-				icon="@Embed(source='src/assets/icons/icon_friends.png')"
-				click="handleFriendsClick()"
-				label="FRIENDS" />
+				label="DIRECTORY" />
 			<mx:LinkButton
 				styleName="topNavButton"
 				color="#F15601"
-				icon="@Embed(source='src/assets/icons/icon_bookmarks.png')"
-				click="showComingSoon('Bookmarks are coming soon.');"
-				label="BOOKMARKS" />
+				icon="@Embed(source='src/assets/icons/icon_avatar.png')"
+				click="handleAvatarsClick()"
+				label="AVATARS" />
 			<mx:LinkButton
+				id="giftsButton"
 				styleName="topNavButton"
 				color="#9e1F63"
 				icon="@Embed(source='src/assets/icons/icon_gifts.png')"
 				click="handleGiftsClick()"
 				label="GIFTS" />
-			<mx:LinkButton
-				styleName="topNavButton"
-				color="#5c5d87"
-				icon="@Embed(source='src/assets/icons/icon_messages.png')"
-				click="showComingSoon('Messages are coming soon.');"
-				label="MESSAGES" />
 		</s:BorderContainer>
 		
 		<s:HGroup
@@ -284,22 +302,29 @@
 				toolTip="Click to add coins or bucks"
 				click="showVirtualCurrencyProducts();"
 				/>
+			<!--
 			<mx:LinkButton
 				styleName="topNavButton"
 				color="#B58B0B"
 				icon="@Embed(source='src/assets/icons/icon_marketplace.png')"
 				click="openMarketplace()"
 				label="Marketplace" />
-			<mx:LinkButton
-				styleName="topNavButton"
-				color="#888888"
-				icon="@Embed(source='src/assets/icons/icon_tutorial.png')"
-				click="tutorialRequested()"
-				label="Tutorial" />
-			
+			-->
 		</s:HGroup>
 
 	</s:HGroup>
+	
+	<s:HGroup right="0" top="0" height="40">
+		<s:ToggleButton label="FRIENDS"
+						id="friendsListToggleButton"
+						height="100%"
+						icon="@Embed(source='src/assets/icons/icon_friends.png')"
+						styleName="friendsListToggleButton"
+						change="handleFriendsButtonChange(event)" />
+	</s:HGroup>
+	
+	<view1:FriendsListPanel id="friendsList" visible="false"
+							top="40" right="0" bottom="0" width="300" />
 	
 	<visualnotification:VisualNotifier top="20" left="0" right="0" bottom="0" />
 	

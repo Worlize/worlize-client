@@ -29,6 +29,7 @@ package com.worlize.interactivity.rpc
 	import com.worlize.model.FriendsList;
 	import com.worlize.model.FriendsListEntry;
 	import com.worlize.model.InWorldObjectInstance;
+	import com.worlize.model.PendingFriendsListEntry;
 	import com.worlize.model.PreferencesManager;
 	import com.worlize.model.PublicWorldsList;
 	import com.worlize.model.RoomDefinition;
@@ -389,6 +390,7 @@ package com.worlize.interactivity.rpc
 						break;
 					case "logged_out":
 						handleLoggedOut(data);
+						break;
 					default:
 						trace("Unhandled message: " + JSON.encode(event.message));
 						break;
@@ -605,6 +607,7 @@ package com.worlize.interactivity.rpc
 		private function handleFriendRequestAccepted(data:Object):void {
 			var friend:FriendsListEntry = FriendsListEntry.fromData(data.user);
 			friendsList.friends.addItem(friend);
+			friendsList.applySortAndFilters();
 		}
 		
 		private function handleNewFriendRequest(data:Object):void {
@@ -614,6 +617,9 @@ package com.worlize.interactivity.rpc
 				"Friend Request"
 			);
 			notificationManager.showNotification(notification);
+			var entry:PendingFriendsListEntry = PendingFriendsListEntry.fromData(data.user);
+			friendsList.friends.addItem(entry);
+			friendsList.applySortAndFilters();
 		}
 		
 		private function handleNewObject(data:Object):void {

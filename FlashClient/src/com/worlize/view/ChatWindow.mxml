@@ -136,14 +136,6 @@
 				client.currentRoom.clearStatusMessage();
 			}
 			
-			private function handleAvatarsClick():void {
-				LockerWindow.toggleOpen(systemManager.getSandboxRoot());
-			}
-			
-			private function handlePropsClick():void {
-				LockerWindow.toggleOpen(systemManager.getSandboxRoot());
-			}
-			
 			private function handleBackgroundsClick():void {
 				MyBackgroundsWindow.toggleOpen(systemManager.getSandboxRoot());
 			}
@@ -339,10 +331,6 @@
 				  toolTip="Log Window"
 				  click="toggleLogWindow()"
 				  source="@Embed(source='src/assets/icons/icon_log.png')" />
-		
-		<mx:Image useHandCursor="true" buttonMode="true"
-				  toolTip="Avatars Locker" source="@Embed(source='src/assets/icons/icon_mylocker.png')"
-				  click="handleAvatarsClick()" />
 	
 		<s:ToggleButton id="enableWebcamButton"
 						visible="{client.webcamBroadcastManager.isCameraAvailable()}"

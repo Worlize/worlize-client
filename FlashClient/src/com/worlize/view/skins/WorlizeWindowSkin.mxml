@@ -113,8 +113,8 @@
     
     <!--- drop shadow can't be hittable so it stays sibling of other graphics @private-->
     <s:RectangularDropShadow id="dropShadow"
-							 blurX="18" blurY="18" blurX.inactiveGroup="8" blurY.inactiveGroup="8"
-							 alpha="0.52" alpha.inactiveGroup="0.32"
+							 blurX="30" blurY="30" blurX.inactiveGroup="18" blurY.inactiveGroup="18"
+							 alpha="0.72" alpha.inactiveGroup="0.52"
 							 distance="4"  distance.inactiveGroup="2"
                              angle="90" color="0x000000" left="0" top="0" right="0" bottom="0"/>
     
@@ -193,7 +193,7 @@
 				
                 <!--- @copy spark.components.TitleWindow#closeButton -->
                 <s:Button id="closeButton" skinClass="com.worlize.view.skins.WorlizeWindowCloseButtonSkin"
-                          width="14" height="10" right="0" top="0">
+                          width="18" height="16" right="0" top="0">
 				</s:Button>
 				
             </s:Group>

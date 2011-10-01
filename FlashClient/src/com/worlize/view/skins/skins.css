@@ -3,7 +3,7 @@
 @namespace c "com.worlize.view.components.*";
 c|WorlizeWindow {
 	skinClass: ClassReference('com.worlize.view.skins.WorlizeWindowSkin');
-	titleBarHeight: 10px;
+	titleBarHeight: 15px;
 	titleBarColor: #CCCCCC;
 	titleTextColor: #888888;
 }
