@@ -12,6 +12,8 @@ package com.worlize.model
 	import flash.external.ExternalInterface;
 	
 	import mx.collections.ArrayCollection;
+	import mx.collections.ArrayList;
+	import mx.collections.ListCollectionView;
 	import mx.collections.Sort;
 	import mx.controls.Alert;
 	import mx.events.FlexEvent;
@@ -33,6 +35,18 @@ package com.worlize.model
 		public static const LIST_PRIORITY_ONLINE_FACEBOOK_FRIEND:int = 3;
 		
 		private var _state:String = STATE_READY;
+		
+		[Bindable]
+		public var baseCollection:ArrayList = new ArrayList();
+		
+		[Bindable]
+		public var friendsForDisplay:ListCollectionView;
+
+		[Bindable]
+		public var onlineFriends:ArrayCollection = new ArrayCollection();
+		
+		[Bindable]
+		public var offlineFriends:ArrayCollection = new ArrayCollection();
 		
 		private var friendRequestsHeading:ObjectProxy = new ObjectProxy({
 			isHeader: true,
@@ -90,9 +104,6 @@ package com.worlize.model
 			return _state;
 		}
 		
-		[Bindable]
-		public var friends:ArrayCollection = new ArrayCollection();
-		
 		private var invitationTokens:Object = {};
 		
 		public static function getInstance():FriendsList {
@@ -109,20 +120,12 @@ package com.worlize.model
 				throw new Error("You may only create one instance of FriendsList");
 			}
 			
-			friends.addItem(friendRequestsHeading);
-			friends.addItem(onlineFriendsHeading);
-			friends.addItem(offlineFriendsHeading);
-			friends.addItem(onlineFacebookFriendsHeading);
-				
-			var sort:Sort = new Sort();
-			sort.fields = [
-				new SortField('listPriority'),
-				new SortField('isHeader', true),
-				new SortField('name')
-			];
-			friends.sort = sort;
+			baseCollection.addItem(friendRequestsHeading);
+			baseCollection.addItem(onlineFriendsHeading);
+			baseCollection.addItem(offlineFriendsHeading);
+			baseCollection.addItem(onlineFacebookFriendsHeading);
 			
-			friends.filterFunction = filterFunction;
+			initializeFriendsForFriendsList();
 			
 			applySortAndFilters();
 			
@@ -132,14 +135,27 @@ package com.worlize.model
 			load();
 		}
 		
-		private function filterFunction(item:Object):Boolean {
-			if (item is FriendsListEntry || item is PendingFriendsListEntry) {
-				return true;
-			}
-			else if (item.isHeader) {
-				return ((item.display as Boolean) || item.listEmptyMessage != null);
-			}
-			return false;
+		private function initializeFriendsForFriendsList():void {
+			friendsForDisplay = new ListCollectionView();
+			friendsForDisplay.list = baseCollection;
+			
+			var sort:Sort = new Sort();
+			sort.fields = [
+				new SortField('listPriority'),
+				new SortField('isHeader', true),
+				new SortField('name')
+			];
+			friendsForDisplay.sort = sort;
+			
+			friendsForDisplay.filterFunction = function(item:Object):Boolean {
+				if (item is FriendsListEntry || item is PendingFriendsListEntry) {
+					return true;
+				}
+				else if (item.isHeader) {
+					return ((item.display as Boolean) || item.listEmptyMessage != null);
+				}
+				return false;
+			};	
 		}
 		
 		/* Invitation tokens prevent someone from wisking you away
@@ -161,10 +177,10 @@ package com.worlize.model
 		}
 		
 		public function getFriendsListEntryByGuid(guid:String):FriendsListEntry {
-			for (var i:int = 0; i < friends.length; i++) {
-				var entry:Object = friends.getItemAt(i);
+			for (var i:int = 0; i < baseCollection.length; i++) {
+				var entry:Object = baseCollection.getItemAt(i);
 				if (entry is FriendsListEntry) {
-					if (FriendsListEntry(entry).guid == guid) {
+					if (FriendsListEntry(entry).guid === guid) {
 						return FriendsListEntry(entry);
 					}					
 				}
@@ -173,11 +189,11 @@ package com.worlize.model
 		}
 		
 		public function removeFriendFromListByGuid(guid:String):void {
-			for (var i:int = 0; i < friends.length; i++) {
-				var entry:Object = friends.getItemAt(i);
+			for (var i:int = 0; i < baseCollection.length; i++) {
+				var entry:Object = baseCollection.getItemAt(i);
 				if (entry is FriendsListEntry) {
-					if (FriendsListEntry(entry).guid == guid) {
-						friends.removeItemAt(i);
+					if (FriendsListEntry(entry).guid === guid) {
+						baseCollection.removeItemAt(i);
 						applySortAndFilters();
 						return;
 					}					
@@ -199,7 +215,8 @@ package com.worlize.model
 			onlineFacebookFriendsHeading['count'] = 0;
 			friendRequestsHeading['count'] = 0;
 			
-			for each (var entry:Object in friends.source) {
+			for (var i:int=0; i < baseCollection.length; i++) {
+				var entry:Object = baseCollection.getItemAt(i);
 				if (entry is FriendsListEntry) {
 					if (FriendsListEntry(entry).online) {
 						onlineFriendsHeading['count'] ++;
@@ -221,15 +238,27 @@ package com.worlize.model
 			onlineFacebookFriendsHeading['display'] = (onlineFacebookFriendsHeading['count'] > 0);
 			friendRequestsHeading['display'] = (friendRequestsHeading['count'] > 0);
 			
-			friends.refresh();
+			friendsForDisplay.refresh();
+		}
+		
+		protected function disableAutoUpdate():void {
+			friendsForDisplay.disableAutoUpdate();
+		}
+		
+		protected function enableAutoUpdate():void {
+			friendsForDisplay.enableAutoUpdate();
 		}
 		
 		public function load():void {
 			state = STATE_LOADING;
 			var index:int;
+			var i:int;
 			var client:WorlizeServiceClient = new WorlizeServiceClient();
 			client.addEventListener(WorlizeResultEvent.RESULT, function(event:WorlizeResultEvent):void {
+				
 				if (event.resultJSON.success) {
+					disableAutoUpdate();
+					
 					var seenGuids:Object = {};
 					
 					for each (var friendData:Object in event.resultJSON.data.friends) {
@@ -240,38 +269,37 @@ package com.worlize.model
 						}
 						else {
 							entry = FriendsListEntry.fromData(friendData);
-							friends.addItem(entry);
+							baseCollection.addItem(entry);
 						}
 					}
 					
 					// Remove any unknown items from the old list
-					for each (friendData in friends) {
-						if (friendData is FriendsListEntry && !seenGuids[FriendsListEntry(friendData).guid]) {
-							index = friends.getItemIndex(friendData);
-							if (index != -1) {
-								friends.removeItemAt(index);
+					for (i=0; i < baseCollection.length; i++) {
+						friendData = baseCollection.getItemAt(i);
+						if (friendData is FriendsListEntry) {
+							if (!seenGuids[FriendsListEntry(friendData).guid]) {
+								baseCollection.removeItemAt(i);
+								i --;
 							}
 						}
-					}
-					
-					for each (friendData in friends) {
-						if (friendData is PendingFriendsListEntry) {
-							index = friends.getItemIndex(friendData);
-							if (index != -1) {
-								friends.removeItemAt(index);
-							}
+						else if (friendData is PendingFriendsListEntry) {
+							index = baseCollection.getItemIndex(friendData);
+							friendsForDisplay.removeItemAt(i);
+							i --;
 						}
 					}
 					
 					for each (var pendingFriendData:Object in event.resultJSON.data.pending_friends) {
 						var pendingFriendEntry:PendingFriendsListEntry = PendingFriendsListEntry.fromData(pendingFriendData);
-						friends.addItem(pendingFriendEntry);
+						baseCollection.addItem(pendingFriendEntry);
 					}
-					
-					applySortAndFilters();
 					
 					var completeEvent:FriendsListEvent = new FriendsListEvent(FriendsListEvent.LOAD_COMPLETE);
 					dispatchEvent(completeEvent);
+					
+					enableAutoUpdate();
+					
+					applySortAndFilters();
 				}
 				state = STATE_READY;
 			});

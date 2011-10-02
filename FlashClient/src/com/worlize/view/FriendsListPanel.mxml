@@ -54,12 +54,10 @@
 			
 			private function handleFriendsListStateChange(event:Event):void {
 				if (friendsList.state == FriendsList.STATE_LOADING) {
-					trace("Showing spinner.");
 					loadingSpinner.visible = true;
 					loadingSpinner.play();
 				}
 				else {
-					trace("Hiding spinner.");
 					loadingSpinner.stop();
 					loadingSpinner.visible = false;
 				}
@@ -67,8 +65,8 @@
 			
 			private function inviteFacebookFriends():void {
 				var fbFriendIds:Array = [];
-				for (var i:int=0; i < friendsList.friends.length; i++) {
-					var item:Object = friendsList.friends.getItemAt(i);
+				for (var i:int=0; i < friendsList.friendsForDisplay.length; i++) {
+					var item:Object = friendsList.friendsForDisplay.getItemAt(i);
 					if (!(item is FriendsListEntry)) {
 						continue;
 					}
@@ -162,21 +160,21 @@
 		<s:VGroup width="100%" height="100%" gap="0">
 			
 			<s:VGroup width="100%" height="100%" gap="0"
-					  visible="{friendsList.friends.length > 0}"
-					  includeInLayout="{friendsList.friends.length > 0}">
+					  visible="{friendsList.friendsForDisplay.length > 0}"
+					  includeInLayout="{friendsList.friendsForDisplay.length > 0}">
 				
 				
 				<components:DynamicHeightList
 					width="100%"
 					maxRowCount="8"
-					dataProvider="{friendsList.friends}"
+					dataProvider="{friendsList.friendsForDisplay}"
 					borderVisible="false"
 					itemRendererFunction="{selectItemRenderer}" />
 			</s:VGroup>
 			
 			<s:VGroup width="100%" height="100"
-					  visible="{friendsList.friends.length == 0 &amp;&amp; friendsList.state != FriendsList.STATE_LOADING}"
-					  includeInLayout="{friendsList.friends.length == 0 &amp;&amp; friendsList.state != FriendsList.STATE_LOADING}"
+					  visible="{friendsList.friendsForDisplay.length == 0 &amp;&amp; friendsList.state != FriendsList.STATE_LOADING}"
+					  includeInLayout="{friendsList.friendsForDisplay.length == 0 &amp;&amp; friendsList.state != FriendsList.STATE_LOADING}"
 					  verticalAlign="middle"
 					  horizontalAlign="center">
 				<s:Label fontFamily="PTSansNarrowBold"

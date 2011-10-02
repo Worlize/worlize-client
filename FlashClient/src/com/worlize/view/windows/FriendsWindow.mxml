@@ -129,8 +129,8 @@
 			
 			private function inviteFacebookFriends():void {
 				var fbFriendIds:Array = [];
-				for (var i:int=0; i < friendsList.friends.length; i++) {
-					var friend:FriendsListEntry = friendsList.friends.getItemAt(i) as FriendsListEntry;
+				for (var i:int=0; i < friendsList.friendsForDisplay.length; i++) {
+					var friend:FriendsListEntry = friendsList.friendsForDisplay.getItemAt(i) as FriendsListEntry;
 					if (friend.friendType === FriendsListEntry.TYPE_FACEBOOK) {
 						fbFriendIds.push(friend.facebookId);
 					}
@@ -178,8 +178,8 @@
 		<s:VGroup width="100%" gap="0">
 
 			<s:VGroup width="100%" gap="0"
-					  visible="{friendsList.friends.length > 0}"
-					  includeInLayout="{friendsList.friends.length > 0}">
+					  visible="{friendsList.friendsForDisplay.length > 0}"
+					  includeInLayout="{friendsList.friendsForDisplay.length > 0}">
 
 				<s:Group width="100%">
 					<s:Rect top="0" left="0" right="0" bottom="0">
@@ -206,14 +206,14 @@
 				<components:DynamicHeightList
 					width="100%"
 					maxRowCount="8"
-					dataProvider="{friendsList.friends}"
+					dataProvider="{friendsList.friendsForDisplay}"
 					borderVisible="false"
 					itemRenderer="com.worlize.view.itemrenderers.FriendListItemRenderer" />
 			</s:VGroup>
 			
 			<s:VGroup width="100%" height="100"
-					  visible="{friendsList.friends.length == 0 &amp;&amp; friendsList.state != FriendsList.STATE_LOADING}"
-					  includeInLayout="{friendsList.friends.length == 0 &amp;&amp; friendsList.state != FriendsList.STATE_LOADING}"
+					  visible="{friendsList.friendsForDisplay.length == 0 &amp;&amp; friendsList.state != FriendsList.STATE_LOADING}"
+					  includeInLayout="{friendsList.friendsForDisplay.length == 0 &amp;&amp; friendsList.state != FriendsList.STATE_LOADING}"
 					  verticalAlign="middle"
 					  horizontalAlign="center">
 				<s:Label fontFamily="PTSansNarrowBold"
