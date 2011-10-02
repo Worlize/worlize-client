@@ -16,9 +16,9 @@
 			import com.worlize.model.FriendsList;
 			import com.worlize.model.FriendsListEntry;
 			import com.worlize.model.PendingFriendsListEntry;
-			import com.worlize.view.itemrenderers.FriendListItemRenderer;
 			import com.worlize.view.itemrenderers.ListHeadingItemRenderer;
-			import com.worlize.view.itemrenderers.PendingFriendInvitationItemRenderer;
+			import com.worlize.view.itemrenderers.friends.FriendListItemRenderer;
+			import com.worlize.view.itemrenderers.friends.PendingFriendInvitationItemRenderer;
 			import com.worlize.view.skins.DynamicHeightListSkin;
 			
 			import flash.filters.BitmapFilterQuality;
@@ -27,6 +27,7 @@
 			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;
 			
+			import spark.events.IndexChangeEvent;
 			import spark.skins.spark.DefaultItemRenderer;
 			
 			private var _friendsList:FriendsList = FriendsList.getInstance();
@@ -105,6 +106,18 @@
 				}
 				return classFactory;
 			}
+			
+			protected function handleFriendListChanging(event:IndexChangeEvent):void
+			{
+				var list:List = event.target as List;
+				if (event.newIndex > -1 && event.newIndex < list.dataProvider.length) {
+					var item:Object = list.dataProvider.getItemAt(event.newIndex);
+					if ('selectionEnabled' in item && item['selectionEnabled'] == false) {
+						event.preventDefault();
+					}
+				}
+			}
+			
 		]]>
 	</fx:Script>
 	
@@ -164,11 +177,13 @@
 					  includeInLayout="{friendsList.friendsForFriendsList.length > 0}">
 				
 				
-				<components:DynamicHeightList
+				<s:List
+					id="friendListDisplay"
 					width="100%"
-					maxRowCount="8"
+					height="100%"
 					dataProvider="{friendsList.friendsForFriendsList}"
 					borderVisible="false"
+					changing="handleFriendListChanging(event)"
 					itemRendererFunction="{selectItemRenderer}" />
 			</s:VGroup>
 			

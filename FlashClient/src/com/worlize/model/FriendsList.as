@@ -52,6 +52,7 @@ package com.worlize.model
 		public var friendRequests:ListCollectionView;
 		
 		private var friendRequestsHeading:ObjectProxy = new ObjectProxy({
+			selectionEnabled: false,
 			isHeader: true,
 			background: 0x2c8a19,
 			color: 0xFFFFFF,
@@ -63,6 +64,7 @@ package com.worlize.model
 		});
 		
 		private var onlineFriendsHeading:ObjectProxy = new ObjectProxy({
+			selectionEnabled: false,
 			isHeader: true,
 			background: 0x3091c3,
 			color: 0xFFFFFF,
@@ -75,6 +77,7 @@ package com.worlize.model
 		});
 		
 		private var offlineFriendsHeading:ObjectProxy = new ObjectProxy({
+			selectionEnabled: false,
 			isHeader: true,
 			background: 0x678a9c,
 			color: 0xFFFFFF,
@@ -86,6 +89,7 @@ package com.worlize.model
 		});
 		
 		private var onlineFacebookFriendsHeading:ObjectProxy = new ObjectProxy({
+			selectionEnabled: false,
 			isHeader: true,
 			background: 0x3091c3,
 			color: 0xFFFFFF,

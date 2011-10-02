@@ -172,7 +172,7 @@
 					<!-- layer 3: text -->
 					<!--- @copy spark.components.Panel#titleDisplay -->
 					<s:Label id="titleDisplay" maxDisplayedLines="1"
-							 fontFamily="Tuffy" fontWeight="bold" fontSize="22"
+							 fontFamily="PTSansNarrowBold" fontSize="30"
 							 left="35" bottom="10" paddingRight="10" 
 							 verticalAlign="middle" />
 					

@@ -2,15 +2,13 @@
 <s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
 				xmlns:s="library://ns.adobe.com/flex/spark" 
 				xmlns:mx="library://ns.adobe.com/flex/mx"
-				height="57" autoDrawBackground="false"
+				autoDrawBackground="true"
 				dataChange="handleDataChange(event)"
-				initialize="handleInitialize(event)">
+				initialize="handleInitialize(event)" xmlns:friends="com.worlize.view.itemrenderers.friends.*">
 	
 	<s:states>
-		<s:State name="worlize" stateGroups="offline,worlize_friend" />
-		<s:State name="facebook" stateGroups="offline,facebook_friend" />
-		<s:State name="worlize_online" stateGroups="online,worlize_friend" />
-		<s:State name="facebook_online" stateGroups="online,facebook_friend" />
+		<s:State name="over" id="over" />
+		<s:State name="up" id="up" />
 	</s:states>
 	
 	<fx:Script>
@@ -18,7 +16,6 @@
 			import com.worlize.interactivity.rpc.InteractivityClient;
 			import com.worlize.model.FriendsList;
 			import com.worlize.model.FriendsListEntry;
-			import com.worlize.view.windows.FriendsWindow;
 			
 			import flash.net.navigateToURL;
 			
@@ -33,10 +30,12 @@
 			[Bindable]
 			private var client:InteractivityClient = InteractivityClient.getInstance();
 			
-			private var onlineWatcher:ChangeWatcher;
-			
 			[Bindable]
 			private var buttonLabel:String;
+			
+			private var onlineWatcher:ChangeWatcher;
+			private var menu:Menu;
+			
 			
 			private function handleInitialize(event:Event):void {
 				onlineWatcher = ChangeWatcher.watch(this, ['data','online'], handleOnlineStatusChange);
@@ -45,8 +44,12 @@
 			private function handleDataChange(event:FlexEvent):void {
 				if (data === null) { return; }
 				updateMenu();
-				updateState();
-				if ((data as FriendsListEntry).online) {
+				updateOnlineStatus();
+			}
+			
+			private function updateOnlineStatus():void {
+				if (data === null) { return; }
+				if (data is FriendsListEntry && (data as FriendsListEntry).online) {
 					buttonLabel = "Join";
 				}
 				else {
@@ -55,25 +58,12 @@
 			}
 			
 			private function handleOnlineStatusChange(event:Event):void {
-				if (data === null) { return; }
-				updateState();
-			}
-			
-			private function updateState():void {
-				var entry:FriendsListEntry = data as FriendsListEntry;
-				var state:String = entry.friendType;
-				if (entry.online) {
-					state += "_online";
-				}
-				currentState = state;
+				updateOnlineStatus();
 			}
 			
 			private function visitWorlz():void {
 				client.gotoRoom((data as FriendsListEntry).worldEntrance);
-				FriendsWindow.close();
 			}
-			
-			private var menu:Menu;
 			
 			private function updateMenu():void {
 				if (menu) {
@@ -162,7 +152,6 @@
 			}
 			
 			private function unfriend():void {
-				FriendsWindow.lockOpen();
 				var entry:FriendsListEntry = data as FriendsListEntry;
 				Alert.show("Are you sure you want to remove " + entry.username + " from your friends list?",
 						   "Unfriend " + entry.username,
@@ -172,83 +161,23 @@
 							   if (event.detail == Alert.YES) {
 								   entry.unfriend();
 							   }
-							   FriendsWindow.releaseLock();
 						   }
 				);
 			}
 		]]>
 	</fx:Script>
-	
+	<!--
 	<s:Rect left="0" right="0" bottom="0" top="0">
 		<s:fill>
 			<s:SolidColor color="#FFFFFF" />	
 		</s:fill>
 	</s:Rect>
+	-->
 	
-	<s:Group id="profilePictureArea" width="52" height="52"
-			 top="2" left="2">
-		
-		<s:Rect width="51" height="51"
-				top="0" left="0">
-			<s:stroke>
-				<s:SolidColorStroke color="#c3c3c3" weight="1" pixelHinting="true" />
-			</s:stroke>
-			<s:fill>
-				<s:SolidColor color="#eeeeee" />
-			</s:fill>
-		</s:Rect>
-		
-		<s:Image width="50" height="50" top="1" left="1"
-				 source="{data.picture}" />
-		
-		<s:Image width="16" height="16" left="0" bottom="0"
-				 source="@Embed(source='src/assets/icons/social/fb-16.png')"
-				 includeIn="facebook_friend" />
-		
-		<s:Rect includeIn="online" id="onlineStatusJewel"
-				width="6" height="6" bottom="2" right="2">
-			<s:stroke>
-				<s:SolidColorStroke color="#000000" />
-			</s:stroke>
-			<s:fill>
-				<s:SolidColor color="#45e200" />
-			</s:fill>
-		</s:Rect>
-		
-	</s:Group>
-	
-	<s:HGroup left="58" right="3" top="5" bottom="3" verticalAlign="middle">
-		
-		<s:VGroup width="100%" height="100%" id="nameContainer">
-			<!-- Facebook Real Name -->
-			<s:Label styleName="friendListFullName"
-					 includeIn="facebook_friend"
-					 maxDisplayedLines="1"
-					 width="100%"
-					 maxWidth="{nameContainer.width}"
-					 lineBreak="toFit"
-					 text="{data.name}" />
-			
-			<!-- Worlize Username -->
-			<s:Label styleName="friendListUserName"
-					 maxDisplayedLines="1"
-					 width="100%"
-					 maxWidth="{nameContainer.width}"
-					 lineBreak="toFit"
-					 fontWeight.worlize_friend="bold"
-					 fontWeight.facebook_friend="normal"
-					 text="{data.username}" />
-			
-			<!-- Online Status -->
-			<s:Label styleName="friendListOnlineStatus"
-					 maxDisplayedLines="1"
-					 width="100%"
-					 maxWidth="{nameContainer.width}"
-					 lineBreak="toFit"
-					 includeIn="online"
-					 text="(Online)" />
-		</s:VGroup>
+	<s:HGroup left="0" right="3" top="0" bottom="0" verticalAlign="middle">
 
+		<friends:FriendItemRenderer data="{data}" width="100%" />
+		
 		<mx:PopUpButton id="popUpButton" label="{buttonLabel}"
 						click="handleActionButtonClick()" />
 	</s:HGroup>

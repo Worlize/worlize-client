@@ -21,8 +21,8 @@
 			import com.worlize.model.FriendsList;
 			import com.worlize.model.FriendsListEntry;
 			import com.worlize.model.PendingFriendsListEntry;
-			import com.worlize.view.itemrenderers.FriendListItemRenderer;
-			import com.worlize.view.itemrenderers.PendingFriendInvitationItemRenderer;
+			import com.worlize.view.itemrenderers.friends.FriendListItemRenderer;
+			import com.worlize.view.itemrenderers.friends.PendingFriendInvitationItemRenderer;
 			import com.worlize.view.skins.DynamicHeightListSkin;
 			
 			import mx.events.CloseEvent;
@@ -208,7 +208,7 @@
 					maxRowCount="8"
 					dataProvider="{friendsList.friendsForFriendsList}"
 					borderVisible="false"
-					itemRenderer="com.worlize.view.itemrenderers.FriendListItemRenderer" />
+					itemRenderer="com.worlize.view.itemrenderers.friends.FriendListItemRenderer" />
 			</s:VGroup>
 			
 			<s:VGroup width="100%" height="100"
