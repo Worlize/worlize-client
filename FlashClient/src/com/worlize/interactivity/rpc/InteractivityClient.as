@@ -37,6 +37,7 @@ package com.worlize.interactivity.rpc
 	import com.worlize.model.UserListEntry;
 	import com.worlize.model.VideoAvatar;
 	import com.worlize.model.WorldDefinition;
+	import com.worlize.model.WorlizeConfig;
 	import com.worlize.model.YouTubePlayerDefinition;
 	import com.worlize.model.gifts.Gift;
 	import com.worlize.model.gifts.GiftsList;
@@ -47,11 +48,12 @@ package com.worlize.interactivity.rpc
 	import com.worlize.notification.InWorldObjectNotification;
 	import com.worlize.notification.RoomChangeNotification;
 	import com.worlize.rpc.HTTPMethod;
-	import com.worlize.model.WorlizeConfig;
+	import com.worlize.rpc.RoomConnection;
 	import com.worlize.rpc.WorlizeResultEvent;
 	import com.worlize.rpc.WorlizeServiceClient;
 	import com.worlize.state.AuthorModeState;
 	import com.worlize.video.control.NetConnectionManager;
+	import com.worlize.websocket.WebSocket;
 	
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
@@ -98,7 +100,7 @@ package com.worlize.interactivity.rpc
 		public var version:int;
 		
 		public function get id():String {
-			return worlizeComm.interactivitySession.userGuid;
+			return worlizeConfig.interactivitySession.userGuid;
 		}
 		
 		public var serverId:String;
@@ -146,7 +148,7 @@ package com.worlize.interactivity.rpc
 		
 		private var recentLogonUserIds:ArrayCollection = new ArrayCollection();
 		
-		private var worlizeComm:WorlizeConfig = WorlizeConfig.getInstance();
+		private var worlizeConfig:WorlizeConfig = WorlizeConfig.getInstance();
 		
 		[Bindable]
 		public var netConnectionManager:NetConnectionManager = new NetConnectionManager();
@@ -176,6 +178,8 @@ package com.worlize.interactivity.rpc
 		
 		public var notificationManager:VisualNotificationManager = VisualNotificationManager.getInstance();
 		
+		public var roomConnection:RoomConnection;
+		
 		// States
 		public static const STATE_DISCONNECTED:int = 0;
 		public static const STATE_HANDSHAKING:int = 1;
@@ -200,21 +204,19 @@ package com.worlize.interactivity.rpc
 			iptInteractivityController = new IptInteractivityController();
 			iptInteractivityController.client = this;
 			
-			worlizeComm.addEventListener(WorlizeCommEvent.CONNECTED, handleConnected);
-			worlizeComm.addEventListener(WorlizeCommEvent.MESSAGE, handleIncomingMessage);
-			worlizeComm.addEventListener(WorlizeCommEvent.DISCONNECTED, handleDisconnected);
-			
 			webcamBroadcastManager.addEventListener(WebcamBroadcastEvent.BROADCAST_START, handleCameraBroadcastStart);
 			webcamBroadcastManager.addEventListener(WebcamBroadcastEvent.CAMERA_PERMISSION_REVOKED, handleCameraPermissionRevoked);
 			
-			currentWorld.load(worlizeComm.interactivitySession.worldGuid);
+			currentWorld.load(worlizeConfig.interactivitySession.worldGuid);
 		}
 		
+		
+		
 		private function handleConnected(event:WorlizeCommEvent):void {
-			worlizeComm.send({
+			roomConnection.send({
 				msg: "handshake",
 				data: {
-					session_guid: worlizeComm.interactivitySession.sessionGuid
+					session_guid: worlizeConfig.interactivitySession.sessionGuid
 				}
 			});
 		}
@@ -233,7 +235,7 @@ package com.worlize.interactivity.rpc
 						    Alert.OK,
 						    null,
 						  	function(event:CloseEvent):void {
-								worlizeComm.connect();
+								roomConnection.connect();
 							}
 				);
 			}
@@ -681,7 +683,7 @@ package com.worlize.interactivity.rpc
 		}
 		
 		private function handlePing(data:Object):void {
-			worlizeComm.send({
+			roomConnection.send({
 				msg: "pong"
 			});
 		}
@@ -852,17 +854,30 @@ package com.worlize.interactivity.rpc
 		
 		public function connect():void {
 			InteractivityClient.loaderContext.checkPolicyFile = true;
-			worlizeComm.connect();
+			
+			if (roomConnection) {
+				roomConnection.removeEventListener(WorlizeCommEvent.CONNECTED, handleConnected);
+				roomConnection.removeEventListener(WorlizeCommEvent.DISCONNECTED, handleDisconnected);
+				roomConnection.removeEventListener(WorlizeCommEvent.MESSAGE, handleIncomingMessage);
+			}
+			
+			roomConnection = new RoomConnection();
+			
+			roomConnection.addEventListener(WorlizeCommEvent.CONNECTED, handleConnected);
+			roomConnection.addEventListener(WorlizeCommEvent.DISCONNECTED, handleDisconnected);
+			roomConnection.addEventListener(WorlizeCommEvent.MESSAGE, handleIncomingMessage);
+			
+			roomConnection.connect();
 		}
 		
 		public function disconnect():void {
 			expectingDisconnect = true;
-			worlizeComm.disconnect();
+			roomConnection.disconnect();
 			resetState();
 		}
 		
 		public function youTubeLoad(playerGuid:String, videoId:String, duration:int, title:String, autoPlay:Boolean = true):void {
-			worlizeComm.send({
+			roomConnection.send({
 				msg: "youtube_load",
 				data: {
 					player: playerGuid,
@@ -875,7 +890,7 @@ package com.worlize.interactivity.rpc
 		}
 		
 		public function youTubeStop(playerGuid:String):void {
-			worlizeComm.send({
+			roomConnection.send({
 				msg: "youtube_stop",
 				data: {
 					player: playerGuid
@@ -884,7 +899,7 @@ package com.worlize.interactivity.rpc
 		}
 		
 		public function youTubePause(playerGuid:String):void {
-			worlizeComm.send({
+			roomConnection.send({
 				msg: "youtube_pause",
 				data: {
 					player: playerGuid
@@ -893,7 +908,7 @@ package com.worlize.interactivity.rpc
 		}
 		
 		public function youTubeSeek(playerGuid:String, seekTo:int):void {
-			worlizeComm.send({
+			roomConnection.send({
 				msg: "youtube_seek",
 				data: {
 					player: playerGuid,
@@ -903,7 +918,7 @@ package com.worlize.interactivity.rpc
 		}
 		
 		public function youTubePlay(playerGuid:String):void {
-			worlizeComm.send({
+			roomConnection.send({
 				msg: "youtube_play",
 				data: {
 					player: playerGuid
@@ -917,7 +932,7 @@ package com.worlize.interactivity.rpc
 			}
 //			trace("Saying: " + message);
 
-			worlizeComm.send({
+			roomConnection.send({
 				msg: "say",
 				data: message
 			});
@@ -928,7 +943,7 @@ package com.worlize.interactivity.rpc
 				return;
 			}
 			
-			worlizeComm.send({
+			roomConnection.send({
 				msg: "whisper",
 				data: {
 					to_user: targetUserGuid,
@@ -973,7 +988,7 @@ package com.worlize.interactivity.rpc
 			if (message.length > 254) {
 				message = message.substr(0, 254);
 			}
-			worlizeComm.send({
+			roomConnection.send({
 				msg: "global_msg",
 				data: message
 			});
@@ -987,7 +1002,7 @@ package com.worlize.interactivity.rpc
 				message = message.substr(0, 254);
 			}
 			
-			worlizeComm.send({
+			roomConnection.send({
 				msg: "room_msg",
 				data: message
 			});
@@ -1002,7 +1017,7 @@ package com.worlize.interactivity.rpc
 				message = message.substr(0, 254);
 			}
 			
-			worlizeComm.send({
+			roomConnection.send({
 				msg: "susr_msg",
 				data: message
 			});
@@ -1028,7 +1043,7 @@ package com.worlize.interactivity.rpc
 			currentUser.simpleAvatar = null;
 			currentUser.videoAvatarStreamName = null;
 			webcamBroadcastManager.stopBroadcast();
-			worlizeComm.send({
+			roomConnection.send({
 				msg: "naked"
 			});
 		}
@@ -1037,7 +1052,7 @@ package com.worlize.interactivity.rpc
 			currentUser.simpleAvatar = SimpleAvatarStore.getInstance().getAvatar(guid);
 			webcamBroadcastManager.stopBroadcast();
 			currentUser.videoAvatarStreamName = null;
-			worlizeComm.send({
+			roomConnection.send({
 				msg: "set_simple_avatar",
 				data: guid
 			});
@@ -1049,7 +1064,7 @@ package com.worlize.interactivity.rpc
 		}
 		
 		private function handleCameraBroadcastStart(event:WebcamBroadcastEvent):void {
-			worlizeComm.send({
+			roomConnection.send({
 				msg: 'set_video_avatar'
 			});
 		}
@@ -1071,7 +1086,7 @@ package com.worlize.interactivity.rpc
 			y = Math.max(y, 22);
 			y = Math.min(y, currentRoom.roomView.backgroundImage.height - 22);
 			
-			worlizeComm.send({
+			roomConnection.send({
 				msg: "move",
 				data: [x,y]
 			});
@@ -1090,7 +1105,7 @@ package com.worlize.interactivity.rpc
 			
 			currentUser.face = face;
 			
-			worlizeComm.send({
+			roomConnection.send({
 				msg: "set_face",
 				data: face
 			});
@@ -1106,7 +1121,7 @@ package com.worlize.interactivity.rpc
 			
 			currentUser.color = color;
 			
-			worlizeComm.send({
+			roomConnection.send({
 				msg: "set_color",
 				data: color
 			});
@@ -1189,21 +1204,21 @@ package com.worlize.interactivity.rpc
 			gotoRoomCommand.addEventListener(GotoRoomResultEvent.GOTO_ROOM_RESULT, function(event:GotoRoomResultEvent):void {
 				resetState();
 
-				worlizeComm.interactivitySession = event.interactivitySession;
+				worlizeConfig.interactivitySession = event.interactivitySession;
 				
-				if (currentWorld.guid != worlizeComm.interactivitySession.worldGuid) {
-					currentWorld.load(worlizeComm.interactivitySession.worldGuid);
+				if (currentWorld.guid != worlizeConfig.interactivitySession.worldGuid) {
+					currentWorld.load(worlizeConfig.interactivitySession.worldGuid);
 				} 
 				
 				expectingDisconnect = true;
-				worlizeComm.disconnect();
-				worlizeComm.connect();
+				roomConnection.disconnect();
+				connect();
 			});
 			gotoRoomCommand.execute(roomId);
 		}
 		
 		public function lockDoor(roomId:String, spotId:int):void {
-			worlizeComm.send({
+			roomConnection.send({
 				msg: 'lock_door',
 				data: {
 					door_id: spotId
@@ -1212,7 +1227,7 @@ package com.worlize.interactivity.rpc
 		}
 		
 		public function unlockDoor(roomGuid:String, spotId:int):void {
-			worlizeComm.send({
+			roomConnection.send({
 				msg: 'unlock_door',
 				data: {
 					roomGuid: roomGuid,

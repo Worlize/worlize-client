@@ -1,17 +1,9 @@
 package com.worlize.model
 {
-	import com.adobe.protocols.dict.events.ConnectedEvent;
-	import com.adobe.serialization.json.JSON;
 	import com.worlize.control.Marketplace;
-	import com.worlize.interactivity.event.WorlizeCommEvent;
-	import com.worlize.websocket.WebSocket;
-	import com.worlize.websocket.WebSocketErrorEvent;
-	import com.worlize.websocket.WebSocketEvent;
 	
 	import flash.events.EventDispatcher;
 	import flash.events.IEventDispatcher;
-	import flash.events.IOErrorEvent;
-	import flash.events.SecurityErrorEvent;
 	import flash.external.ExternalInterface;
 	
 	import mx.core.Application;
@@ -19,9 +11,6 @@ package com.worlize.model
 	import mx.managers.SystemManager;
 	import com.worlize.rpc.WorlizeServiceClient;
 	
-	[Event(type="com.worlize.interactivity.event.WorlizeCommEvent",name="message")]
-	[Event(type="com.worlize.interactivity.event.WorlizeCommEvent",name="connected")]
-	[Event(type="com.worlize.interactivity.event.WorlizeCommEvent",name="disconnected")]
 	public class WorlizeConfig extends EventDispatcher
 	{
 		private static var _instance:WorlizeConfig;
@@ -32,8 +21,6 @@ package com.worlize.model
 		public var hostname:String;
 		public var port:uint;
 		public var useTLS:Boolean = false;
-		
-		private var webSocket:WebSocket;
 		
 		public function WorlizeConfig(target:IEventDispatcher=null)
 		{
@@ -49,70 +36,6 @@ package com.worlize.model
 				_instance.initJavascriptWrapper();
 			}
 			return _instance;
-		}
-		
-		public function send(message:Object):void {
-			webSocket.sendUTF(JSON.encode(message));
-		}
-		
-		public function connect():void {
-			ExternalInterface.call('worlizeConnect', interactivitySession.serverId);
-			
-			var url:String = useTLS ? 'wss://' : 'ws://';
-			url += (hostname + ":" + port + "/" + interactivitySession.serverId + "/");
-			
-			// Disable logger
-			WebSocket.debug = false;
-			
-			webSocket = new WebSocket(url, FlexGlobals.topLevelApplication.url, 'worlize-interact');
-			trace("Connecting to server: " + url);
-			webSocket.connect();
-			
-			webSocket.addEventListener(WebSocketEvent.CLOSED, handleWebSocketClosed);
-			webSocket.addEventListener(WebSocketEvent.MESSAGE, handleWebSocketMessage);
-			webSocket.addEventListener(WebSocketEvent.OPEN, handleWebSocketOpen);
-			webSocket.addEventListener(WebSocketErrorEvent.CONNECTION_FAIL, handleWebSocketConnectionFail);
-			webSocket.addEventListener(WebSocketErrorEvent.ABNORMAL_CLOSE, handleWebSocketAbnormalClose);
-			webSocket.addEventListener(WebSocketErrorEvent.IO_ERROR, handleWebSocketIOError);
-			webSocket.addEventListener(SecurityErrorEvent.SECURITY_ERROR, handleWebSocketSecurityError);
-		}
-		
-		private function handleWebSocketOpen(event:WebSocketEvent):void {
-			trace("WebSocket: Connection Opened");
-			dispatchEvent(new WorlizeCommEvent(WorlizeCommEvent.CONNECTED));
-		}
-		private function handleWebSocketClosed(event:WebSocketEvent):void {
-			trace("WebSocket: Connection Closed");
-			dispatchEvent(new WorlizeCommEvent(WorlizeCommEvent.DISCONNECTED));
-		}
-		private function handleWebSocketMessage(event:WebSocketEvent):void {
-			var commEvent:WorlizeCommEvent = new WorlizeCommEvent(WorlizeCommEvent.MESSAGE);
-			try {
-				commEvent.message = JSON.decode(event.message.utf8Data);
-			}
-			catch (e:Error) {
-				commEvent.message = null;
-			}
-			dispatchEvent(commEvent);
-		}
-		private function handleWebSocketConnectionFail(event:WebSocketErrorEvent):void {
-			trace("WebSocket: Connection Fail: " + event.text);
-//			dispatchEvent(new WorlizeCommEvent(WorlizeCommEvent.DISCONNECTED));
-		}
-		private function handleWebSocketIOError(event:WebSocketErrorEvent):void {
-			trace("WebSocket: IOErrorEvent: " + event.text);
-//			dispatchEvent(new WorlizeCommEvent(WorlizeCommEvent.DISCONNECTED));
-		}
-		private function handleWebSocketAbnormalClose(event:WebSocketErrorEvent):void {
-			trace("WebSocket: Abnormal Close: " + event.text);
-		}
-		private function handleWebSocketSecurityError(event:SecurityErrorEvent):void {
-			trace("WebSocket: SecurityErrorEvent: " + event.text);
-//			dispatchEvent(new WorlizeCommEvent(WorlizeCommEvent.DISCONNECTED));
-		}
-		
-		public function disconnect():void {
-			webSocket.close();
 		}
 		
 		protected function initJavascriptWrapper():void {
