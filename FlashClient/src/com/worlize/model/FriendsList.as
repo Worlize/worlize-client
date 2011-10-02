@@ -40,13 +40,16 @@ package com.worlize.model
 		public var baseCollection:ArrayList;
 		
 		[Bindable]
-		public var friends:ListCollectionView = new ListCollectionView();
-		
-		[Bindable]
 		public var friendsForFriendsList:ListCollectionView;
 
 		[Bindable]
-		public var onlineFriends:ArrayCollection = new ArrayCollection();
+		public var friends:ListCollectionView;
+		
+		[Bindable]
+		public var onlineFriends:ListCollectionView;
+		
+		[Bindable]
+		public var friendRequests:ListCollectionView;
 		
 		private var friendRequestsHeading:ObjectProxy = new ObjectProxy({
 			isHeader: true,
@@ -129,6 +132,8 @@ package com.worlize.model
 			
 			initializeFriendsForFriendsListView();
 			initializeFriendsView();
+			initializeOnlineFriendsView();
+			initializeFriendRequestsView();
 			
 			applySortAndFilters();
 			
@@ -183,6 +188,62 @@ package com.worlize.model
 			
 			friends.refresh();
 		}
+		
+		private function initializeOnlineFriendsView():void {
+			onlineFriends = new ListCollectionView();
+			onlineFriends.list = baseCollection;
+			
+			var sort:Sort = new Sort();
+			sort.fields = [
+				new SortField('name')
+			];
+			onlineFriends.sort = sort;
+			
+			onlineFriends.filterFunction = function(item:Object):Boolean {
+				if (item is FriendsListEntry && (item as FriendsListEntry).online) {
+					return true
+				}
+				return false;
+			};
+			
+			onlineFriends.refresh();
+		}
+		
+		private function initializeFriendRequestsView():void {
+			friendRequests = new ListCollectionView();
+			friendRequests.list = baseCollection;
+			
+			var sort:Sort = new Sort();
+			sort.fields = [
+				new SortField('name')
+			];
+			friendRequests.sort = sort;
+			
+			friendRequests.filterFunction = function(item:Object):Boolean {
+				if (item is PendingFriendsListEntry) {
+					return true;
+				}
+				return false;
+			};
+			
+			friendRequests.refresh();
+		}
+		
+		protected function disableAutoUpdate():void {
+			friendsForFriendsList.disableAutoUpdate();
+			friends.disableAutoUpdate();
+			onlineFriends.disableAutoUpdate();
+			friendRequests.disableAutoUpdate();
+		}
+		
+		protected function enableAutoUpdate():void {
+			friendsForFriendsList.enableAutoUpdate();
+			friends.enableAutoUpdate();
+			onlineFriends.enableAutoUpdate();
+			friendRequests.enableAutoUpdate();
+		}
+		
+
 		
 		/* Invitation tokens prevent someone from wisking you away
 		   to a place of their choosing if you didn't request to join them
@@ -263,14 +324,6 @@ package com.worlize.model
 			offlineFriendsHeading['display'] = (offlineFriendsHeading['count'] > 0);
 			onlineFacebookFriendsHeading['display'] = (onlineFacebookFriendsHeading['count'] > 0);
 			friendRequestsHeading['display'] = (friendRequestsHeading['count'] > 0);
-		}
-		
-		protected function disableAutoUpdate():void {
-			friendsForFriendsList.disableAutoUpdate();
-		}
-		
-		protected function enableAutoUpdate():void {
-			friendsForFriendsList.enableAutoUpdate();
 		}
 		
 		public function load():void {
