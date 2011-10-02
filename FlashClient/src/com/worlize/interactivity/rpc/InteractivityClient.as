@@ -606,7 +606,7 @@ package com.worlize.interactivity.rpc
 		
 		private function handleFriendRequestAccepted(data:Object):void {
 			var friend:FriendsListEntry = FriendsListEntry.fromData(data.user);
-			friendsList.friendsForDisplay.addItem(friend);
+			friendsList.friendsForFriendsList.addItem(friend);
 			friendsList.applySortAndFilters();
 		}
 		
@@ -618,7 +618,7 @@ package com.worlize.interactivity.rpc
 			);
 			notificationManager.showNotification(notification);
 			var entry:PendingFriendsListEntry = PendingFriendsListEntry.fromData(data.user);
-			friendsList.friendsForDisplay.addItem(entry);
+			friendsList.friendsForFriendsList.addItem(entry);
 			friendsList.applySortAndFilters();
 		}
 		

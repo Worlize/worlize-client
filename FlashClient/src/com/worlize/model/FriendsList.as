@@ -37,16 +37,16 @@ package com.worlize.model
 		private var _state:String = STATE_READY;
 		
 		[Bindable]
-		public var baseCollection:ArrayList = new ArrayList();
+		public var baseCollection:ArrayList;
 		
 		[Bindable]
-		public var friendsForDisplay:ListCollectionView;
+		public var friends:ListCollectionView = new ListCollectionView();
+		
+		[Bindable]
+		public var friendsForFriendsList:ListCollectionView;
 
 		[Bindable]
 		public var onlineFriends:ArrayCollection = new ArrayCollection();
-		
-		[Bindable]
-		public var offlineFriends:ArrayCollection = new ArrayCollection();
 		
 		private var friendRequestsHeading:ObjectProxy = new ObjectProxy({
 			isHeader: true,
@@ -120,12 +120,15 @@ package com.worlize.model
 				throw new Error("You may only create one instance of FriendsList");
 			}
 			
+			baseCollection = new ArrayList();
+			
 			baseCollection.addItem(friendRequestsHeading);
 			baseCollection.addItem(onlineFriendsHeading);
 			baseCollection.addItem(offlineFriendsHeading);
 			baseCollection.addItem(onlineFacebookFriendsHeading);
 			
-			initializeFriendsForFriendsList();
+			initializeFriendsForFriendsListView();
+			initializeFriendsView();
 			
 			applySortAndFilters();
 			
@@ -135,9 +138,9 @@ package com.worlize.model
 			load();
 		}
 		
-		private function initializeFriendsForFriendsList():void {
-			friendsForDisplay = new ListCollectionView();
-			friendsForDisplay.list = baseCollection;
+		private function initializeFriendsForFriendsListView():void {
+			friendsForFriendsList = new ListCollectionView();
+			friendsForFriendsList.list = baseCollection;
 			
 			var sort:Sort = new Sort();
 			sort.fields = [
@@ -145,9 +148,9 @@ package com.worlize.model
 				new SortField('isHeader', true),
 				new SortField('name')
 			];
-			friendsForDisplay.sort = sort;
+			friendsForFriendsList.sort = sort;
 			
-			friendsForDisplay.filterFunction = function(item:Object):Boolean {
+			friendsForFriendsList.filterFunction = function(item:Object):Boolean {
 				if (item is FriendsListEntry || item is PendingFriendsListEntry) {
 					return true;
 				}
@@ -155,7 +158,30 @@ package com.worlize.model
 					return ((item.display as Boolean) || item.listEmptyMessage != null);
 				}
 				return false;
-			};	
+			};
+			
+			friendsForFriendsList.refresh();
+		}
+		
+		private function initializeFriendsView():void {
+			friends = new ListCollectionView();
+			friends.list = baseCollection;
+			
+			var sort:Sort = new Sort();
+			sort.fields = [
+				new SortField('listPriority'),
+				new SortField('name')
+			];
+			friends.sort = sort;
+			
+			friends.filterFunction = function(item:Object):Boolean {
+				if (item is FriendsListEntry) {
+					return true
+				}
+				return false;
+			};
+			
+			friends.refresh();
 		}
 		
 		/* Invitation tokens prevent someone from wisking you away
@@ -237,16 +263,14 @@ package com.worlize.model
 			offlineFriendsHeading['display'] = (offlineFriendsHeading['count'] > 0);
 			onlineFacebookFriendsHeading['display'] = (onlineFacebookFriendsHeading['count'] > 0);
 			friendRequestsHeading['display'] = (friendRequestsHeading['count'] > 0);
-			
-			friendsForDisplay.refresh();
 		}
 		
 		protected function disableAutoUpdate():void {
-			friendsForDisplay.disableAutoUpdate();
+			friendsForFriendsList.disableAutoUpdate();
 		}
 		
 		protected function enableAutoUpdate():void {
-			friendsForDisplay.enableAutoUpdate();
+			friendsForFriendsList.enableAutoUpdate();
 		}
 		
 		public function load():void {
@@ -283,8 +307,7 @@ package com.worlize.model
 							}
 						}
 						else if (friendData is PendingFriendsListEntry) {
-							index = baseCollection.getItemIndex(friendData);
-							friendsForDisplay.removeItemAt(i);
+							baseCollection.removeItemAt(i);
 							i --;
 						}
 					}

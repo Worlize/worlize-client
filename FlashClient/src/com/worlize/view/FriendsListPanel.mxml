@@ -65,8 +65,8 @@
 			
 			private function inviteFacebookFriends():void {
 				var fbFriendIds:Array = [];
-				for (var i:int=0; i < friendsList.friendsForDisplay.length; i++) {
-					var item:Object = friendsList.friendsForDisplay.getItemAt(i);
+				for (var i:int=0; i < friendsList.friendsForFriendsList.length; i++) {
+					var item:Object = friendsList.friendsForFriendsList.getItemAt(i);
 					if (!(item is FriendsListEntry)) {
 						continue;
 					}
@@ -160,21 +160,21 @@
 		<s:VGroup width="100%" height="100%" gap="0">
 			
 			<s:VGroup width="100%" height="100%" gap="0"
-					  visible="{friendsList.friendsForDisplay.length > 0}"
-					  includeInLayout="{friendsList.friendsForDisplay.length > 0}">
+					  visible="{friendsList.friendsForFriendsList.length > 0}"
+					  includeInLayout="{friendsList.friendsForFriendsList.length > 0}">
 				
 				
 				<components:DynamicHeightList
 					width="100%"
 					maxRowCount="8"
-					dataProvider="{friendsList.friendsForDisplay}"
+					dataProvider="{friendsList.friendsForFriendsList}"
 					borderVisible="false"
 					itemRendererFunction="{selectItemRenderer}" />
 			</s:VGroup>
 			
 			<s:VGroup width="100%" height="100"
-					  visible="{friendsList.friendsForDisplay.length == 0 &amp;&amp; friendsList.state != FriendsList.STATE_LOADING}"
-					  includeInLayout="{friendsList.friendsForDisplay.length == 0 &amp;&amp; friendsList.state != FriendsList.STATE_LOADING}"
+					  visible="{friendsList.friendsForFriendsList.length == 0 &amp;&amp; friendsList.state != FriendsList.STATE_LOADING}"
+					  includeInLayout="{friendsList.friendsForFriendsList.length == 0 &amp;&amp; friendsList.state != FriendsList.STATE_LOADING}"
 					  verticalAlign="middle"
 					  horizontalAlign="center">
 				<s:Label fontFamily="PTSansNarrowBold"
