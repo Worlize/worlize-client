@@ -47,7 +47,7 @@ package com.worlize.interactivity.rpc
 	import com.worlize.notification.InWorldObjectNotification;
 	import com.worlize.notification.RoomChangeNotification;
 	import com.worlize.rpc.HTTPMethod;
-	import com.worlize.rpc.WorlizeComm;
+	import com.worlize.model.WorlizeConfig;
 	import com.worlize.rpc.WorlizeResultEvent;
 	import com.worlize.rpc.WorlizeServiceClient;
 	import com.worlize.state.AuthorModeState;
@@ -146,7 +146,7 @@ package com.worlize.interactivity.rpc
 		
 		private var recentLogonUserIds:ArrayCollection = new ArrayCollection();
 		
-		private var worlizeComm:WorlizeComm = WorlizeComm.getInstance();
+		private var worlizeComm:WorlizeConfig = WorlizeConfig.getInstance();
 		
 		[Bindable]
 		public var netConnectionManager:NetConnectionManager = new NetConnectionManager();

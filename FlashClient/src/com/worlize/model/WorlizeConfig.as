@@ -1,11 +1,9 @@
-package com.worlize.rpc
+package com.worlize.model
 {
 	import com.adobe.protocols.dict.events.ConnectedEvent;
 	import com.adobe.serialization.json.JSON;
 	import com.worlize.control.Marketplace;
 	import com.worlize.interactivity.event.WorlizeCommEvent;
-	import com.worlize.model.CurrentUser;
-	import com.worlize.model.InteractivitySession;
 	import com.worlize.websocket.WebSocket;
 	import com.worlize.websocket.WebSocketErrorEvent;
 	import com.worlize.websocket.WebSocketEvent;
@@ -19,13 +17,14 @@ package com.worlize.rpc
 	import mx.core.Application;
 	import mx.core.FlexGlobals;
 	import mx.managers.SystemManager;
+	import com.worlize.rpc.WorlizeServiceClient;
 	
 	[Event(type="com.worlize.interactivity.event.WorlizeCommEvent",name="message")]
 	[Event(type="com.worlize.interactivity.event.WorlizeCommEvent",name="connected")]
 	[Event(type="com.worlize.interactivity.event.WorlizeCommEvent",name="disconnected")]
-	public class WorlizeComm extends EventDispatcher
+	public class WorlizeConfig extends EventDispatcher
 	{
-		private static var _instance:WorlizeComm;
+		private static var _instance:WorlizeConfig;
 		
 		public var interactivitySession:InteractivitySession;
 		public var currentUser:CurrentUser = CurrentUser.getInstance();
@@ -36,7 +35,7 @@ package com.worlize.rpc
 		
 		private var webSocket:WebSocket;
 		
-		public function WorlizeComm(target:IEventDispatcher=null)
+		public function WorlizeConfig(target:IEventDispatcher=null)
 		{
 			super(target);
 			if (_instance !== null) {
@@ -44,9 +43,9 @@ package com.worlize.rpc
 			}
 		}
 		
-		public static function getInstance():WorlizeComm {
+		public static function getInstance():WorlizeConfig {
 			if (!_instance) {
-				_instance = new WorlizeComm();
+				_instance = new WorlizeConfig();
 				_instance.initJavascriptWrapper();
 			}
 			return _instance;
