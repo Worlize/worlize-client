@@ -48,6 +48,7 @@ package com.worlize.interactivity.rpc
 	import com.worlize.notification.InWorldObjectNotification;
 	import com.worlize.notification.RoomChangeNotification;
 	import com.worlize.rpc.HTTPMethod;
+	import com.worlize.rpc.PresenceConnection;
 	import com.worlize.rpc.RoomConnection;
 	import com.worlize.rpc.WorlizeResultEvent;
 	import com.worlize.rpc.WorlizeServiceClient;
@@ -180,6 +181,8 @@ package com.worlize.interactivity.rpc
 		
 		public var roomConnection:RoomConnection;
 		
+		public var presenceConnection:PresenceConnection;
+		
 		// States
 		public static const STATE_DISCONNECTED:int = 0;
 		public static const STATE_HANDSHAKING:int = 1;
@@ -210,7 +213,32 @@ package com.worlize.interactivity.rpc
 			currentWorld.load(worlizeConfig.interactivitySession.worldGuid);
 		}
 		
+		private function initPresenceConnection():void {
+			presenceConnection = new PresenceConnection();
+			presenceConnection.addEventListener(WorlizeCommEvent.CONNECTED, handlePresenceConnected);
+			presenceConnection.addEventListener(WorlizeCommEvent.DISCONNECTED, handlePresenceDisconnected);
+			presenceConnection.addEventListener(WorlizeCommEvent.MESSAGE, handlePresenceMessage);
+			presenceConnection.connect();
+		}
 		
+		private function handlePresenceConnected(event:WorlizeCommEvent):void {
+			presenceConnection.send({
+				msg: "handshake",
+				data: {
+					session_guid: worlizeConfig.interactivitySession.sessionGuid
+				}
+			});
+		}
+		
+		private function handlePresenceDisconnected(event:WorlizeCommEvent):void {
+			showDisconnectedMessage();
+		}
+		
+		private function handlePresenceMessage(event:WorlizeCommEvent):void {
+			if (event.message) {
+				routeIncomingMessage(event.message);
+			}
+		}
 		
 		private function handleConnected(event:WorlizeCommEvent):void {
 			roomConnection.send({
@@ -219,6 +247,26 @@ package com.worlize.interactivity.rpc
 					session_guid: worlizeConfig.interactivitySession.sessionGuid
 				}
 			});
+		}
+		
+		private var disconnectedMessageShowing:Boolean = false;
+		private function showDisconnectedMessage():void {
+			if (disconnectedMessageShowing) { return; }
+			disconnectedMessageShowing = true;
+			Alert.show( "The connection to the server has been lost.  Press OK to reconnect.",
+				"Connection Lost",
+				Alert.OK,
+				null,
+				function(event:CloseEvent):void {
+					disconnectedMessageShowing = false;
+					if (roomConnection && !roomConnection.connected) {
+						roomConnection.connect();
+					}
+					if (presenceConnection && !presenceConnection.connected) {
+						presenceConnection.connect();
+					}
+				}
+			);
 		}
 		
 		private function handleDisconnected(event:WorlizeCommEvent):void {
@@ -230,25 +278,24 @@ package com.worlize.interactivity.rpc
 				resetState();
 				var notification:ConnectionNotification = new ConnectionNotification(ConnectionNotification.DISCONNECTED);
 				NotificationCenter.postNotification(notification);
-				Alert.show( "The connection to the server has been lost.  Press OK to reconnect.",
-						    "Connection Lost",
-						    Alert.OK,
-						    null,
-						  	function(event:CloseEvent):void {
-								roomConnection.connect();
-							}
-				);
+				showDisconnectedMessage();
 			}
 			expectingDisconnect = false;
 		}
 		
 		private function handleIncomingMessage(event:WorlizeCommEvent):void {
-			if (event.message && event.message.msg) {
+			if (event.message) {
+				routeIncomingMessage(event.message);
+			}
+		}
+		
+		private function routeIncomingMessage(message:Object):void {
+			if (message && message.msg) {
 				var data:Object = null;
-				if (event.message['data']) {
-					data = event.message.data;
+				if (message['data']) {
+					data = message.data;
 				}
-				switch (event.message.msg) {
+				switch (message.msg) {
 					case "user_enter":
 						handleUserNew(data);
 						break;
@@ -394,7 +441,7 @@ package com.worlize.interactivity.rpc
 						handleLoggedOut(data);
 						break;
 					default:
-						trace("Unhandled message: " + JSON.encode(event.message));
+						trace("Unhandled message: " + JSON.encode(message));
 						break;
 				}
 			}
@@ -854,6 +901,10 @@ package com.worlize.interactivity.rpc
 		
 		public function connect():void {
 			InteractivityClient.loaderContext.checkPolicyFile = true;
+			
+			if (presenceConnection === null) {
+				initPresenceConnection();
+			}
 			
 			if (roomConnection) {
 				roomConnection.removeEventListener(WorlizeCommEvent.CONNECTED, handleConnected);

@@ -16,13 +16,13 @@ package com.worlize.rpc
 	[Event(type="com.worlize.interactivity.event.WorlizeCommEvent",name="message")]
 	[Event(type="com.worlize.interactivity.event.WorlizeCommEvent",name="connected")]
 	[Event(type="com.worlize.interactivity.event.WorlizeCommEvent",name="disconnected")]
-	public class RoomConnection extends EventDispatcher
+	public class PresenceConnection extends EventDispatcher
 	{
 		private var webSocket:WebSocket;
 		
 		private var config:WorlizeConfig = WorlizeConfig.getInstance();
 		
-		public function RoomConnection(target:IEventDispatcher=null)
+		public function PresenceConnection(target:IEventDispatcher=null)
 		{
 			super(target);
 		}
@@ -40,13 +40,13 @@ package com.worlize.rpc
 		
 		public function connect():void {
 			var url:String = config.useTLS ? 'wss://' : 'ws://';
-			url += (config.hostname + ":" + config.port + "/" + config.interactivitySession.serverId + "/");
+			url += (config.hostname + ":" + config.port + "/presence/");
 			
 			// Disable logger
 			WebSocket.debug = false;
 			
-			webSocket = new WebSocket(url, FlexGlobals.topLevelApplication.url, 'worlize-interact');
-			trace("Connecting to room server: " + url);
+			webSocket = new WebSocket(url, FlexGlobals.topLevelApplication.url, 'worlize-presence');
+			trace("Connecting to presence server: " + url);
 			webSocket.connect();
 			
 			webSocket.addEventListener(WebSocketEvent.CLOSED, handleWebSocketClosed);
@@ -59,11 +59,11 @@ package com.worlize.rpc
 		}
 		
 		private function handleWebSocketOpen(event:WebSocketEvent):void {
-			trace("Room WebSocket: Connection Opened");
+			trace("Presence WebSocket: Connection Opened");
 			dispatchEvent(new WorlizeCommEvent(WorlizeCommEvent.CONNECTED));
 		}
 		private function handleWebSocketClosed(event:WebSocketEvent):void {
-			trace("Room WebSocket: Connection Closed");
+			trace("Presence WebSocket: Connection Closed");
 			dispatchEvent(new WorlizeCommEvent(WorlizeCommEvent.DISCONNECTED));
 		}
 		private function handleWebSocketMessage(event:WebSocketEvent):void {
@@ -77,18 +77,18 @@ package com.worlize.rpc
 			dispatchEvent(commEvent);
 		}
 		private function handleWebSocketConnectionFail(event:WebSocketErrorEvent):void {
-			trace("Room WebSocket: Connection Fail: " + event.text);
+			trace("Presence WebSocket: Connection Fail: " + event.text);
 			//			dispatchEvent(new WorlizeCommEvent(WorlizeCommEvent.DISCONNECTED));
 		}
 		private function handleWebSocketIOError(event:WebSocketErrorEvent):void {
-			trace("Room WebSocket: IOErrorEvent: " + event.text);
+			trace("Presence WebSocket: IOErrorEvent: " + event.text);
 			//			dispatchEvent(new WorlizeCommEvent(WorlizeCommEvent.DISCONNECTED));
 		}
 		private function handleWebSocketAbnormalClose(event:WebSocketErrorEvent):void {
-			trace("Room WebSocket: Abnormal Close: " + event.text);
+			trace("Presence WebSocket: Abnormal Close: " + event.text);
 		}
 		private function handleWebSocketSecurityError(event:SecurityErrorEvent):void {
-			trace("Room WebSocket: SecurityErrorEvent: " + event.text);
+			trace("Presence WebSocket: SecurityErrorEvent: " + event.text);
 			//			dispatchEvent(new WorlizeCommEvent(WorlizeCommEvent.DISCONNECTED));
 		}
 		
