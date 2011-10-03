@@ -17,7 +17,7 @@ c|CapacityButton {
 
 c|WorlizeFloatingPanel {
 	skinClass: ClassReference('com.worlize.view.skins.WorlizeFloatingPanelSkin');
-	titleBarHeight: 10px;
+	titleBarHeight: 15px;
 	titleBarColor: #CCCCCC;
 	titleTextColor: #888888;
 	showCloseButton: false;
