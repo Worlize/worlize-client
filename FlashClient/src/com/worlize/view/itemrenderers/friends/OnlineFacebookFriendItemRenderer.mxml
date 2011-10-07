@@ -2,29 +2,31 @@
 <s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
 				xmlns:s="library://ns.adobe.com/flex/spark" 
 				xmlns:mx="library://ns.adobe.com/flex/mx"
-				height="56" autoDrawBackground="false">
+				autoDrawBackground="false"
+				width="100%"
+				height="56">
 	
 	<s:states>
-		<s:State name="normal" />
+		<s:State name="down" />
+		<s:State name="selected" />
 		<s:State name="hovered" />
+		<s:State name="normal" />
 	</s:states>
-	
+		
 	<fx:Script>
 		<![CDATA[
-			import com.worlize.model.friends.PendingFriendsListEntry;
+			import com.worlize.model.friends.OnlineFacebookFriend;
 			
-			private function ignoreFriend():void {
-				PendingFriendsListEntry(data).rejectFriendship();
-			}
-			private function acceptFriend():void {
-				PendingFriendsListEntry(data).acceptFriendShip();
+			private function inviteFriend():void {
+				(data as OnlineFacebookFriend).invite();
 			}
 		]]>
 	</fx:Script>
-		
-	<s:Rect left="0" right="0" bottom="0" top="0">
+	
+	<s:Rect left="0" right="0" bottom="0" top="0" includeIn="hovered,down,selected">
 		<s:fill>
-			<s:SolidColor color="#d2ebbe" />	
+			<s:SolidColor color="#DAEEF7"
+						  color.down="#BFE5F6" />	
 		</s:fill>
 	</s:Rect>
 	
@@ -43,33 +45,28 @@
 		
 		<s:Image width="50" height="50" top="1" left="1"
 				 source="{data.picture}" />
+		
+		<s:Image width="16" height="16" left="0" bottom="0"
+				 source="@Embed(source='src/assets/icons/social/fb-16.png')" />
 	</s:Group>
 	
 	<s:HGroup left="58" right="3" top="5" bottom="3" verticalAlign="middle">
 		
 		<s:VGroup width="100%" height="100%" id="nameContainer">
-			<!-- Worlize Username -->
 			<s:Label styleName="friendListUserName"
 					 maxDisplayedLines="1"
 					 width="100%"
 					 maxWidth="{nameContainer.width}"
 					 lineBreak="toFit"
 					 fontWeight="bold"
-					 text="{data.username}" />
+					 text="{data.name}" />
 		</s:VGroup>
 	</s:HGroup>
 	
-	<s:HGroup right="3" bottom="3">
+	<s:HGroup right="3" bottom="10" includeIn="hovered,down,selected">
 		<s:Button
-			label="Ignore"
-			click="ignoreFriend();" />
-		
-		<s:Button
-			label="Accept"
-			click="acceptFriend();" />
-		
+			label="Invite"
+			click="inviteFriend();" />
 	</s:HGroup>
-	
-	
 	
 </s:ItemRenderer>

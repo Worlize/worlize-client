@@ -2,7 +2,7 @@
 <s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
 				xmlns:s="library://ns.adobe.com/flex/spark" 
 				xmlns:mx="library://ns.adobe.com/flex/mx"
-				height="57" autoDrawBackground="false"
+				height="56" autoDrawBackground="false"
 				dataChange="handleDataChange(event)"
 				initialize="handleInitialize(event)">
 	
@@ -11,13 +11,21 @@
 		<s:State name="facebook" stateGroups="offline,facebook_friend" />
 		<s:State name="worlize_online" stateGroups="online,worlize_friend" />
 		<s:State name="facebook_online" stateGroups="online,facebook_friend" />
+		<s:State name="hovered_worlize" stateGroups="hovered,offline,worlize_friend" />
+		<s:State name="hovered_facebook" stateGroups="hovered,offline,facebook_friend" />
+		<s:State name="hovered_worlize_online" stateGroups="hovered,online,worlize_friend" />
+		<s:State name="hovered_facebook_online" stateGroups="hovered,online,facebook_friend" />
+		<s:State name="down_worlize" stateGroups="down,offline,worlize_friend" />
+		<s:State name="down_facebook" stateGroups="down,offline,facebook_friend" />
+		<s:State name="down_worlize_online" stateGroups="down,online,worlize_friend" />
+		<s:State name="down_facebook_online" stateGroups="down,online,facebook_friend" />
 	</s:states>
 	
 	<fx:Script>
 		<![CDATA[
 			import com.worlize.interactivity.rpc.InteractivityClient;
-			import com.worlize.model.FriendsList;
-			import com.worlize.model.FriendsListEntry;
+			import com.worlize.model.friends.FriendsList;
+			import com.worlize.model.friends.FriendsListEntry;
 			import com.worlize.view.windows.FriendsWindow;
 			
 			import flash.net.navigateToURL;
@@ -37,22 +45,37 @@
 			}
 			
 			private function handleDataChange(event:FlexEvent):void {
-				updateState();
+				invalidateRendererState();
 			}
 			
 			private function handleOnlineStatusChange(event:Event):void {
-				updateState();
+				invalidateRendererState();
 			}
 			
-			private function updateState():void {
-				if (data === null) { return; }
-				var entry:FriendsListEntry = data as FriendsListEntry;
-				var state:String = entry.friendType;
-				if (entry.online) {
-					state += "_online";
+			override protected function getCurrentRendererState():String {
+				if (data === null) {
+					return currentState;
 				}
-				currentState = state;
+				
+				var stateParts:Array = [];
+				
+				if (hovered) {
+					stateParts.push("hovered");
+				}
+				else if (down) {
+					stateParts.push("down");
+				}
+				
+				var entry:FriendsListEntry = data as FriendsListEntry;
+				stateParts.push(entry.friendType);
+				
+				if (entry.online) {
+					stateParts.push("online");
+				}
+				return stateParts.join('_');
 			}
+
+			
 		]]>
 	</fx:Script>
 	
@@ -75,20 +98,21 @@
 		<s:Image width="16" height="16" left="0" bottom="0"
 				 source="@Embed(source='src/assets/icons/social/fb-16.png')"
 				 includeIn="facebook_friend" />
-		
-		<s:Rect includeIn="online" id="onlineStatusJewel"
-				width="6" height="6" bottom="2" right="2">
+
+		<s:Rect id="onlineStatusJewel" includeIn="online"
+				width="7" height="7" bottom="2" right="2">
 			<s:stroke>
-				<s:SolidColorStroke color="#000000" />
+				<s:SolidColorStroke color="#333333" />
 			</s:stroke>
 			<s:fill>
 				<s:SolidColor color="#45e200" />
 			</s:fill>
 		</s:Rect>
 		
+		
 	</s:Group>
 	
-	<s:VGroup left="58" right="3" top="5" bottom="3" id="nameContainer">
+	<s:VGroup left="58" right="3" top="5" bottom="2" id="nameContainer">
 		<!-- Facebook Real Name -->
 		<s:Label styleName="friendListFullName"
 				 includeIn="facebook_friend"

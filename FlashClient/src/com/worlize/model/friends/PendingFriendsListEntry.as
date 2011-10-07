@@ -1,4 +1,4 @@
-package com.worlize.model
+package com.worlize.model.friends
 {
 	import com.worlize.event.NotificationCenter;
 	import com.worlize.notification.FriendsNotification;
@@ -46,6 +46,14 @@ package com.worlize.model
 			return _username;
 		}
 		
+		// 'name' must be included because the sort functions used in the
+		// friends list cannot deal with non-null values.  It throws a bizarre
+		// error if one of the entries has a null value.
+		[Bindable(event='usernameChange')]
+		public function get name():String {
+			return _username;
+		}
+		
 		[Bindable(event='usernameChange')]
 		public function get capitalizedUsername():String {
 			var result:String = _username.charAt(0).toLocaleUpperCase();
@@ -56,9 +64,14 @@ package com.worlize.model
 		public function rejectFriendship():void {
 			var client:WorlizeServiceClient = new WorlizeServiceClient();
 			client.addEventListener(WorlizeResultEvent.RESULT, function(event:WorlizeResultEvent):void {
-				var notification:FriendsNotification = new FriendsNotification(FriendsNotification.FRIEND_REQUEST_REJECTED);
-				notification.userGuid = guid;
-				NotificationCenter.postNotification(notification);
+				if (event.resultJSON.success) {
+					var notification:FriendsNotification = new FriendsNotification(FriendsNotification.FRIEND_REQUEST_REJECTED);
+					notification.userGuid = event.resultJSON.friend_guid;
+					NotificationCenter.postNotification(notification);					
+				}
+				else {
+					Alert.show("There was an unknown error while rejecting the pending friend request from " + username);
+				}
 			});
 			client.addEventListener(FaultEvent.FAULT, function(event:FaultEvent):void {
 				Alert.show("There was an unknown error while rejecting the pending friend request from " + username);
@@ -68,12 +81,18 @@ package com.worlize.model
 		public function acceptFriendShip():void {
 			var client:WorlizeServiceClient = new WorlizeServiceClient();
 			client.addEventListener(WorlizeResultEvent.RESULT, function(event:WorlizeResultEvent):void {
-				var notification:FriendsNotification = new FriendsNotification(FriendsNotification.FRIEND_REQUEST_ACCEPTED);
-				notification.userGuid = guid;
-				NotificationCenter.postNotification(notification);
+				if (event.resultJSON.success) {
+					var notification:FriendsNotification = new FriendsNotification(FriendsNotification.FRIEND_REQUEST_ACCEPTED);
+					notification.friendsListEntry = FriendsListEntry.fromData(event.resultJSON.friends_list_entry);
+					notification.userGuid = guid;
+					NotificationCenter.postNotification(notification);
+				}
+				else {
+					Alert.show("There was an unknown error while accepting the pending friend request from " + username);
+				}
 			});
 			client.addEventListener(FaultEvent.FAULT, function(event:FaultEvent):void {
-				Alert.show("There was an known error while accepting the pending friend request from " + username);
+				Alert.show("There was an unknown error while accepting the pending friend request from " + username);
 			});
 			client.send("/friends/" + guid + "/accept_friendship.json", HTTPMethod.POST);
 		}

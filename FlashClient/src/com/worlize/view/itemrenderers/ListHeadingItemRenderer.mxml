@@ -22,7 +22,7 @@
 	
 	<s:Group includeInLayout="{data.count == 0 &amp;&amp; data.listEmptyMessage}"
 			 visible="{data.count == 0 &amp;&amp; data.listEmptyMessage}"
-			 height="57" width="100%">
+			 height="56" width="100%">
 		<s:Rect left="0" right="0" bottom="0" top="0">
 			<s:fill>
 				<s:SolidColor color="#FFFFFF" />

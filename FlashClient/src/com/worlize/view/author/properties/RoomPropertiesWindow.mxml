@@ -158,7 +158,7 @@
 		]]>
 	</fx:Script>
 	
-	<s:TextInput width="100%" fontFamily="Tuffy" fontWeight="bold"
+	<s:TextInput width="100%"
 				 styleName="big"
 				 id="nameField"
 				 text="{client.currentRoom.name}"

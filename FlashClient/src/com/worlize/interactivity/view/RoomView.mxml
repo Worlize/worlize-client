@@ -35,8 +35,8 @@
 			import com.worlize.interactivity.model.InteractivityConfig;
 			import com.worlize.interactivity.model.InteractivityUser;
 			import com.worlize.interactivity.rpc.InteractivityClient;
-			import com.worlize.model.FriendsList;
-			import com.worlize.model.FriendsListEntry;
+			import com.worlize.model.friends.FriendsList;
+			import com.worlize.model.friends.FriendsListEntry;
 			import com.worlize.model.RoomDefinition;
 			import com.worlize.model.userSearch.UserSearchResultLineItem;
 			import com.worlize.state.AuthorModeState;
@@ -253,6 +253,9 @@
 					if (!FriendsList.getInstance().getFriendsListEntryByGuid(user.id)) {
 						menuData.push({ type: 'normal', label: 'Add ' + user.name + ' as friend', action: 'addFriend', user: user}); 
 					}
+					else {
+						menuData.push({ type: 'normal', label: 'Unfriend ' + user.name, action: 'removeFriend', user: user}); 
+					}
 					
 					currentMenu = Menu.createMenu(null, menuData, true);
 					currentMenu.addEventListener(MenuEvent.ITEM_CLICK, handleUserContextMenuItemClick, false, 0, true);
@@ -272,19 +275,30 @@
 						break;
 					case "removeFriend":
 						interactivityUser = InteractivityUser(event.item.user);
-						var friend:FriendsListEntry = FriendsList.getInstance().getFriendsListEntryByGuid(interactivityUser.id);
-						if (friend) {
-							Alert.show("Are you sure you want to remove " + friend.username + " from your friends list?",
-								"Unfriend " + friend.username,
-								Alert.YES | Alert.NO,
-								null,
-								function(event:CloseEvent):void {
-									if (event.detail == Alert.YES) {
-										friend.unfriend();
-									}
-								}
-							);
+						var entry:FriendsListEntry = FriendsList.getInstance().getFriendsListEntryByGuid(interactivityUser.id);
+						var message:String;
+						var name:String
+						if (entry.friendType === FriendsListEntry.TYPE_FACEBOOK && entry.autoSynced) {
+							name = entry.name;
+							message = name + " is from your Facebook friends list and was automatically added.\n\n" +
+								"Are you sure you want to unfriend them?";
 						}
+						else {
+							name = entry.username;
+							message = "Are you sure you want to remove " + name + " from your friends list?"; 
+						}
+						Alert.show(message,
+							"Unfriend " + name,
+							Alert.YES | Alert.NO,
+							null,
+							function(event:CloseEvent):void {
+								if (event.detail == Alert.YES) {
+									entry.unfriend();
+								}
+							},
+							null,
+							Alert.NO
+						);
 						break;
 					case "addFriend":
 						interactivityUser = InteractivityUser(event.item.user);

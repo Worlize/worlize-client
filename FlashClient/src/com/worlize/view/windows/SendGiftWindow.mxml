@@ -22,7 +22,7 @@
 	<fx:Script>
 		<![CDATA[
 			import com.worlize.components.visualnotification.VisualNotification;
-			import com.worlize.model.FriendsListEntry;
+			import com.worlize.model.friends.FriendsListEntry;
 			import com.worlize.model.gifts.IGiftable;
 			
 			import mx.events.CloseEvent;

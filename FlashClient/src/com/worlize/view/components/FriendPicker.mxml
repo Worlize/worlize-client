@@ -7,7 +7,7 @@
 		width="200" height="200">
 	<fx:Script>
 		<![CDATA[
-			import com.worlize.model.FriendsList;
+			import com.worlize.model.friends.FriendsList;
 			import com.worlize.view.itemrenderers.friends.FriendPickerItemRenderer;
 			
 			[Bindable]

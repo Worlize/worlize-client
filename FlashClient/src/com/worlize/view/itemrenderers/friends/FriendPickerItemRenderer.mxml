@@ -16,8 +16,8 @@
 	<fx:Script>
 		<![CDATA[
 			import com.worlize.interactivity.rpc.InteractivityClient;
-			import com.worlize.model.FriendsList;
-			import com.worlize.model.FriendsListEntry;
+			import com.worlize.model.friends.FriendsList;
+			import com.worlize.model.friends.FriendsListEntry;
 			import com.worlize.view.windows.FriendsWindow;
 			
 			import mx.binding.utils.ChangeWatcher;

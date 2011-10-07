@@ -18,9 +18,9 @@
 			import com.adobe.serialization.json.JSON;
 			import com.worlize.event.FriendsListEvent;
 			import com.worlize.model.CurrentUser;
-			import com.worlize.model.FriendsList;
-			import com.worlize.model.FriendsListEntry;
-			import com.worlize.model.PendingFriendsListEntry;
+			import com.worlize.model.friends.FriendsList;
+			import com.worlize.model.friends.FriendsListEntry;
+			import com.worlize.model.friends.PendingFriendsListEntry;
 			import com.worlize.view.itemrenderers.friends.FriendListItemRenderer;
 			import com.worlize.view.itemrenderers.friends.PendingFriendInvitationItemRenderer;
 			import com.worlize.view.skins.DynamicHeightListSkin;

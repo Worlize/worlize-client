@@ -1,7 +1,8 @@
-package com.worlize.model
+package com.worlize.model.friends
 {
 	import com.worlize.components.visualnotification.VisualNotification;
 	import com.worlize.components.visualnotification.VisualNotificationManager;
+	import com.worlize.interactivity.rpc.InteractivityClient;
 	import com.worlize.rpc.HTTPMethod;
 	import com.worlize.rpc.WorlizeResultEvent;
 	import com.worlize.rpc.WorlizeServiceClient;
@@ -11,6 +12,7 @@ package com.worlize.model
 	import mx.rpc.Fault;
 	import mx.rpc.events.FaultEvent;
 	import mx.utils.UIDUtil;
+	import com.worlize.model.UserPresenceStatus;
 
 	[Bindable]
 	public class FriendsListEntry
@@ -21,47 +23,65 @@ package com.worlize.model
 		public var listPriority:int = -1;
 		public var isHeader:Boolean = false;
 		
-		private var _online:Boolean;
+		private var _presenceStatus:String;
+		
+		private var pendingGotoLocationRequest:Boolean = false;
 		
 		public var username:String;
 		public var guid:String;
 		public var facebookProfile:String;
 		public var facebookId:String;
 		public var twitterProfile:String;
-		public var currentRoomGuid:String;
 		public var friendType:String;
+		public var autoSynced:Boolean;
+		public var facebookOnlinePresence:String;
 		public var name:String;
 		public var picture:String;
 		public var worldEntrance:String;
 		
-		[Bindable(event="onlineChanged")]
-		public function set online(newValue:Boolean):void {
+		[Bindable(event="presenceStatusChanged")]
+		public function get online():Boolean {
+			return _presenceStatus === UserPresenceStatus.ONLINE;
+		}
+		
+		[Bindable(event="presenceStatusChanged")]
+		public function set presenceStatus(newValue:String):void {
 			var changed:Boolean = false;
-			if (_online !== newValue) {
-				changed = true;
-				_online = newValue;
-			}
-			listPriority = (_online) ? FriendsList.LIST_PRIORITY_ONLINE_FRIEND : FriendsList.LIST_PRIORITY_OFFLINE_FRIEND;
-			if (changed) {
-				var event:FlexEvent = new FlexEvent('onlineChanged');
-				dispatchEvent(event);
+			if (_presenceStatus !== newValue) {
+				_presenceStatus = newValue;
+				switch(newValue) {
+					case UserPresenceStatus.ONLINE:
+					case UserPresenceStatus.AWAY:
+					case UserPresenceStatus.IDLE:
+						listPriority = FriendsList.LIST_PRIORITY_ONLINE_FRIEND;
+						break;
+					case UserPresenceStatus.OFFLINE:
+					case UserPresenceStatus.INVISIBLE:
+						listPriority = FriendsList.LIST_PRIORITY_OFFLINE_FRIEND;
+						break;
+					default:
+						throw new Error("Invalid Status: " + newValue);
+						break;
+				}
+				dispatchEvent(new FlexEvent('presenceStatusChanged'));
 			}
 		}
-		public function get online():Boolean {
-			return _online;
+		public function get presenceStatus():String {
+			return _presenceStatus;
 		}
 		
 		public static function fromData(data:Object):FriendsListEntry {
 			var instance:FriendsListEntry = new FriendsListEntry();
 			instance.username = data.username;
 			instance.guid = data.guid;
-			instance.online = data.online;
+			instance.presenceStatus = data.presence_status;
 			instance.facebookProfile = data.facebook_profile;
 			instance.facebookId = data.facebook_id;
 			instance.twitterProfile = data.twitter_profile;
-			instance.currentRoomGuid = data.current_room_guid;
 			instance.worldEntrance = data.world_entrance;
 			instance.friendType = data.friend_type;
+			instance.autoSynced = data.auto_synced;
+			instance.facebookOnlinePresence = data.fb_online_presence;
 			instance.name = data.name;
 			instance.picture = data.picture;
 			if (instance.friendType === TYPE_WORLIZE) {
@@ -73,13 +93,14 @@ package com.worlize.model
 		public function updateFromData(data:Object):void {
 			this.username = data.username;
 			this.guid = data.guid;
-			this.online = data.online;
+			this.presenceStatus = data.presence_status;
 			this.facebookProfile = data.facebook_profile;
 			this.facebookId = data.facebook_id;
 			this.twitterProfile = data.twitter_profile;
-			this.currentRoomGuid = data.current_room_guid;
 			this.worldEntrance = data.world_entrance;
 			this.friendType = data.friend_type;
+			this.autoSynced = data.auto_synced;
+			this.facebookOnlinePresence = data.fb_online_presence;
 			this.name = data.name;
 			this.picture = data.picture;
 			if (this.friendType === TYPE_WORLIZE) {
@@ -89,6 +110,22 @@ package com.worlize.model
 		
 		public function toString():String {
 			return username;
+		}
+		
+		public function gotoLocation():void {
+			if (pendingGotoLocationRequest) { return; }
+			pendingGotoLocationRequest = true;
+			var client:WorlizeServiceClient = new WorlizeServiceClient();
+			client.addEventListener(WorlizeResultEvent.RESULT, function(event:WorlizeResultEvent):void {
+				pendingGotoLocationRequest = false;
+				if (event.resultJSON.success) {
+					InteractivityClient.getInstance().gotoRoom(event.resultJSON.room_guid);
+				}
+			});
+			client.addEventListener(FaultEvent.FAULT, function(event:FaultEvent):void {
+				pendingGotoLocationRequest = false;
+			});
+			client.send("/users/" + guid + "/join.json", HTTPMethod.GET);
 		}
 		
 		public function unfriend():void {

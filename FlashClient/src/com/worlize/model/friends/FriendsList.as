@@ -1,5 +1,6 @@
-package com.worlize.model
+package com.worlize.model.friends
 {
+	import com.adobe.serialization.json.JSON;
 	import com.worlize.event.FriendsListEvent;
 	import com.worlize.event.NotificationCenter;
 	import com.worlize.notification.FriendsNotification;
@@ -9,7 +10,9 @@ package com.worlize.model
 	
 	import flash.events.EventDispatcher;
 	import flash.events.IEventDispatcher;
+	import flash.events.TimerEvent;
 	import flash.external.ExternalInterface;
+	import flash.utils.Timer;
 	
 	import mx.collections.ArrayCollection;
 	import mx.collections.ArrayList;
@@ -18,6 +21,8 @@ package com.worlize.model
 	import mx.controls.Alert;
 	import mx.events.FlexEvent;
 	import mx.rpc.events.FaultEvent;
+	import mx.rpc.events.ResultEvent;
+	import mx.rpc.http.HTTPService;
 	import mx.utils.ObjectProxy;
 	
 	import spark.collections.SortField;
@@ -36,6 +41,8 @@ package com.worlize.model
 		
 		private var _state:String = STATE_READY;
 		
+		private var updateOnlineFacebookFriendsTimer:Timer = new Timer(7000, 0);
+		
 		[Bindable]
 		public var baseCollection:ArrayList;
 		
@@ -50,6 +57,8 @@ package com.worlize.model
 		
 		[Bindable]
 		public var friendRequests:ListCollectionView;
+		
+		private var queuedPresenceStatusChanges:Array = [];
 		
 		private var friendRequestsHeading:ObjectProxy = new ObjectProxy({
 			selectionEnabled: false,
@@ -105,6 +114,9 @@ package com.worlize.model
 			if (_state !== newValue) {
 				_state = newValue;
 				dispatchEvent(new FlexEvent('stateChange'));
+				if (_state === STATE_READY) {
+					processQueuedPresenceStatusChanges();
+				}
 			}
 		}
 		public function get state():String {
@@ -139,10 +151,15 @@ package com.worlize.model
 			initializeOnlineFriendsView();
 			initializeFriendRequestsView();
 			
-			applySortAndFilters();
+			updateHeadingCounts();
 			
 			NotificationCenter.addListener(FriendsNotification.FRIEND_REQUEST_ACCEPTED, handleFriendRequestAccepted);
 			NotificationCenter.addListener(FriendsNotification.FRIEND_REQUEST_REJECTED, handleFriendRequestRejected);
+			
+			// TODO: Can't use the native direct FQL query for online users yet.
+			// Have to resolve the integer overflow issue first.
+			updateOnlineFacebookFriendsTimer.addEventListener(TimerEvent.TIMER, handleOnlineFacebookFriendsTimer);
+//			updateOnlineFacebookFriendsTimer.start();
 			
 			load();
 		}
@@ -160,7 +177,10 @@ package com.worlize.model
 			friendsForFriendsList.sort = sort;
 			
 			friendsForFriendsList.filterFunction = function(item:Object):Boolean {
-				if (item is FriendsListEntry || item is PendingFriendsListEntry) {
+				if (item is FriendsListEntry ||
+					item is PendingFriendsListEntry ||
+					item is OnlineFacebookFriend)
+				{
 					return true;
 				}
 				else if (item.isHeader) {
@@ -247,8 +267,6 @@ package com.worlize.model
 			friendRequests.enableAutoUpdate();
 		}
 		
-
-		
 		/* Invitation tokens prevent someone from wisking you away
 		   to a place of their choosing if you didn't request to join them
 		*/
@@ -267,16 +285,63 @@ package com.worlize.model
 			return false;
 		}
 		
+		public function updateFriendStatus(friendGuid:String, newStatus:String):void {
+			// If the main friends list is loading when we receive a change and
+			// we drop it on the floor, the presence status in the friends list
+			// will be stale.  Therefore, we queue up changes if the friends
+			// list is still loading and apply them after the loading is
+			// complete.
+			queuedPresenceStatusChanges.push({
+				friendGuid: friendGuid,
+				newStatus: newStatus
+			});
+			if (state === STATE_READY) {
+				processQueuedPresenceStatusChanges();
+			}
+		}
+		
+		private function processQueuedPresenceStatusChanges():void {
+			for each (var change:Object in queuedPresenceStatusChanges) {
+				var friend:FriendsListEntry = getFriendsListEntryByGuid(change.friendGuid);
+				if (friend) {
+					try {
+						friend.presenceStatus = change.newStatus;
+					}
+					catch(e:Error) {
+						// unsupported presence status.
+						trace(e);
+					}
+				}
+			}
+			queuedPresenceStatusChanges = [];
+			updateHeadingCounts();
+		}
+		
 		public function getFriendsListEntryByGuid(guid:String):FriendsListEntry {
 			for (var i:int = 0; i < baseCollection.length; i++) {
 				var entry:Object = baseCollection.getItemAt(i);
 				if (entry is FriendsListEntry) {
 					if (FriendsListEntry(entry).guid === guid) {
-						return FriendsListEntry(entry);
+						return entry as FriendsListEntry;
 					}					
 				}
 			}
 			return null;
+		}
+		
+		public function getOnlineFacebookFriendById(id:String):OnlineFacebookFriend {
+			for (var i:int = 0; i < baseCollection.length; i++) {
+				var entry:Object = baseCollection.getItemAt(i);
+				if (entry is OnlineFacebookFriend) {
+					return entry as OnlineFacebookFriend;
+				}
+			}
+			return null;
+		}
+		
+		public function addFriendsListEntry(entry:FriendsListEntry):void {
+			baseCollection.addItem(entry);
+			updateHeadingCounts();
 		}
 		
 		public function removeFriendFromListByGuid(guid:String):void {
@@ -285,7 +350,20 @@ package com.worlize.model
 				if (entry is FriendsListEntry) {
 					if (FriendsListEntry(entry).guid === guid) {
 						baseCollection.removeItemAt(i);
-						applySortAndFilters();
+						updateHeadingCounts();
+						return;
+					}					
+				}
+			}
+		}
+		
+		public function removeFriendRequestFromListByGuid(guid:String):void {
+			for (var i:int = 0; i < baseCollection.length; i++) {
+				var entry:Object = baseCollection.getItemAt(i);
+				if (entry is PendingFriendsListEntry) {
+					if (PendingFriendsListEntry(entry).guid === guid) {
+						baseCollection.removeItemAt(i);
+						updateHeadingCounts();
 						return;
 					}					
 				}
@@ -293,14 +371,15 @@ package com.worlize.model
 		}
 		
 		private function handleFriendRequestAccepted(notification:FriendsNotification):void {
-			load();
+			addFriendsListEntry(notification.friendsListEntry);
+			removeFriendRequestFromListByGuid(notification.friendsListEntry.guid);
 		}
 		
 		private function handleFriendRequestRejected(notification:FriendsNotification):void {
-			load();
+			removeFriendRequestFromListByGuid(notification.userGuid);
 		}
 		
-		public function applySortAndFilters():void {
+		public function updateHeadingCounts():void {
 			onlineFriendsHeading['count'] = 0;
 			offlineFriendsHeading['count'] = 0;
 			onlineFacebookFriendsHeading['count'] = 0;
@@ -318,6 +397,9 @@ package com.worlize.model
 				}
 				else if (entry is PendingFriendsListEntry) {
 					friendRequestsHeading['count'] ++;
+				}
+				else if (entry is OnlineFacebookFriend) {
+					onlineFacebookFriendsHeading['count'] ++;
 				}
 				else {
 					// a heading
@@ -367,6 +449,10 @@ package com.worlize.model
 							baseCollection.removeItemAt(i);
 							i --;
 						}
+						else if (friendData is OnlineFacebookFriend) {
+							baseCollection.removeItemAt(i);
+							i --;
+						}
 					}
 					
 					for each (var pendingFriendData:Object in event.resultJSON.data.pending_friends) {
@@ -374,12 +460,17 @@ package com.worlize.model
 						baseCollection.addItem(pendingFriendEntry);
 					}
 					
+					for each (var onlineFacebookFriendData:Object in event.resultJSON.data.online_facebook_friends) {
+						var onlineFacebookFriend:OnlineFacebookFriend = OnlineFacebookFriend.fromData(onlineFacebookFriendData);
+						baseCollection.addItem(onlineFacebookFriend);
+					}
+					
 					var completeEvent:FriendsListEvent = new FriendsListEvent(FriendsListEvent.LOAD_COMPLETE);
 					dispatchEvent(completeEvent);
 					
 					enableAutoUpdate();
 					
-					applySortAndFilters();
+					updateHeadingCounts();
 				}
 				state = STATE_READY;
 			});
@@ -393,6 +484,73 @@ package com.worlize.model
 				params['access_token'] = accessToken;
 			}
 			client.send('/friends.json', HTTPMethod.GET, params);
-		}	
+		}
+		
+		private function handleOnlineFacebookFriendsTimer(event:TimerEvent):void {
+			loadOnlineFacebookFriends();
+		}
+		
+		public function loadOnlineFacebookFriends():void {
+			var accessToken:String = ExternalInterface.call('FB.getAccessToken');
+			if (accessToken === null) {
+				return;
+			}
+			
+			var service:HTTPService = new HTTPService();
+			service.url = 'https://api.facebook.com/method/fql.query';
+			service.addEventListener(ResultEvent.RESULT, handleOnlineFacebookFriendsResult);
+			service.addEventListener(FaultEvent.FAULT, handleOnlineFacebookFriendsFault);
+			service.resultFormat = 'text';
+			service.send({
+				access_token: accessToken,
+				format: 'json',
+				query: 'SELECT uid, name, pic_square, online_presence ' +
+					   'FROM user WHERE uid IN (SELECT uid2 FROM friend WHERE uid1 = me()) ' +
+					   'ORDER BY uid'
+			});
+		}
+		
+		private function handleOnlineFacebookFriendsResult(event:ResultEvent):void {
+			trace("Got friends result!");
+			// TODO: Fixme... the UID field is overflowing AS3's 32-bit int datatype.
+			var resultJSON:Object = JSON.decode(event.result as String);
+			
+			if (resultJSON) {
+				disableAutoUpdate();
+				
+				var seenIds:Object = [];
+				for each (var friendData:Object in resultJSON) {
+					if (friendData.online_presence === 'active') {
+						seenIds[friendData.uid] = true;
+						var f:OnlineFacebookFriend = getOnlineFacebookFriendById(friendData.uid);
+						if (f) {
+							f.updateFromData(friendData);
+						}
+						else {
+							f = OnlineFacebookFriend.fromData(friendData);
+							baseCollection.addItem(f);
+						}
+					}
+				}
+				
+				// Remove any unknown items from the old list
+				for (var i:int=0; i < baseCollection.length; i++) {
+					friendData = baseCollection.getItemAt(i);
+					if (friendData is OnlineFacebookFriend) {
+						if (!seenIds[friendData.facebookId]) {
+							baseCollection.removeItemAt(i);
+							i --;
+						}
+					}
+				}
+				
+				updateHeadingCounts();
+				enableAutoUpdate();
+			}
+		}
+		
+		private function handleOnlineFacebookFriendsFault(event:FaultEvent):void {
+			trace("Online Facebook Friends Fault");
+		}
 	}
 }

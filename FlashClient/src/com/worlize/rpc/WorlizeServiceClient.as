@@ -13,9 +13,8 @@ package com.worlize.rpc
 	import mx.rpc.events.ResultEvent;
 	import mx.rpc.http.HTTPService;
 	
-	[Event(name='result',type='com.worlize.rpc.WorlizeResultEvent')]
-	[Event(name='fault',type='mx.rpc.events.FaultEvent')]
-
+	[Event(name="result",type="com.worlize.rpc.WorlizeResultEvent")]
+	[Event(name="fault",type="mx.rpc.events.FaultEvent")]
 	public class WorlizeServiceClient extends EventDispatcher
 	{
 		

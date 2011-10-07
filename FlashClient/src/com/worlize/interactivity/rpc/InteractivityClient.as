@@ -26,10 +26,7 @@ package com.worlize.interactivity.rpc
 	import com.worlize.model.AvatarInstance;
 	import com.worlize.model.BackgroundImageInstance;
 	import com.worlize.model.CurrentUser;
-	import com.worlize.model.FriendsList;
-	import com.worlize.model.FriendsListEntry;
 	import com.worlize.model.InWorldObjectInstance;
-	import com.worlize.model.PendingFriendsListEntry;
 	import com.worlize.model.PreferencesManager;
 	import com.worlize.model.PublicWorldsList;
 	import com.worlize.model.RoomDefinition;
@@ -39,12 +36,16 @@ package com.worlize.interactivity.rpc
 	import com.worlize.model.WorldDefinition;
 	import com.worlize.model.WorlizeConfig;
 	import com.worlize.model.YouTubePlayerDefinition;
+	import com.worlize.model.friends.FriendsList;
+	import com.worlize.model.friends.FriendsListEntry;
+	import com.worlize.model.friends.PendingFriendsListEntry;
 	import com.worlize.model.gifts.Gift;
 	import com.worlize.model.gifts.GiftsList;
 	import com.worlize.notification.AvatarNotification;
 	import com.worlize.notification.BackgroundImageNotification;
 	import com.worlize.notification.ConnectionNotification;
 	import com.worlize.notification.FinancialNotification;
+	import com.worlize.notification.FriendsNotification;
 	import com.worlize.notification.InWorldObjectNotification;
 	import com.worlize.notification.RoomChangeNotification;
 	import com.worlize.rpc.HTTPMethod;
@@ -440,10 +441,19 @@ package com.worlize.interactivity.rpc
 					case "logged_out":
 						handleLoggedOut(data);
 						break;
+					case "presence_status_change":
+						handlePresenceStatusChange(data);
+						break;
 					default:
 						trace("Unhandled message: " + JSON.encode(message));
 						break;
 				}
+			}
+		}
+		
+		private function handlePresenceStatusChange(data:Object):void {
+			if (data.user && data.presence_status) {
+				friendsList.updateFriendStatus(data.user, data.presence_status);
 			}
 		}
 		
@@ -453,7 +463,7 @@ package com.worlize.interactivity.rpc
 			if (data) {
 				message = data as String;
 			}
-			Alert.show(message, "Disconnected", 4, null, function(event:CloseEvent):void {
+			Alert.show(message, "Disconnected", Alert.OK, null, function(event:CloseEvent):void {
 				ExternalInterface.call("handleLoggedOut");
 			});
 		}
@@ -603,7 +613,6 @@ package com.worlize.interactivity.rpc
 			var friend:FriendsListEntry = new FriendsListEntry();
 			friend.username = data.user.username;
 			friend.guid = data.user.guid;
-			friend.online = true;
 			
 			var token:String = data.invitation_token;
 			
@@ -636,27 +645,32 @@ package com.worlize.interactivity.rpc
 		
 		private function handleFriendRemoved(data:Object):void {
 			if (data.show_notification) {
-				var notification:VisualNotification = new VisualNotification(
-					data.user.username + " has been removed from your friends list.",
-					"Friend Removed"
-				);
-				notificationManager.showNotification(notification);
+				var notification:FriendsNotification = new FriendsNotification(FriendsNotification.FRIEND_REMOVED);
+				notification.friendsListEntry = new FriendsListEntry();
+				notification.friendsListEntry.guid = data.user.guid;
+				notification.friendsListEntry.username = data.user.username;
+				NotificationCenter.postNotification(notification);
 			}
 			friendsList.removeFriendFromListByGuid(data.user.guid);
 		}
 		
 		private function handleFriendAdded(data:Object):void {
-			var notification:VisualNotification = new VisualNotification(
-				data.user.username + " has been added to your friends list!",
-				"Friendship Confirmed!"
-			);
-			notificationManager.showNotification(notification);
+			var notification:FriendsNotification = new FriendsNotification(FriendsNotification.FRIEND_ADDED);
+			notification.friendsListEntry = new FriendsListEntry();
+			notification.friendsListEntry.username = data.user.username;
+			if (data.facebook_friend) {
+				notification.friendsListEntry.friendType = FriendsListEntry.TYPE_FACEBOOK;
+			}
+			else {
+				notification.friendsListEntry.friendType = FriendsListEntry.TYPE_WORLIZE;
+			}
+			NotificationCenter.postNotification(notification);
 		}
 		
 		private function handleFriendRequestAccepted(data:Object):void {
 			var friend:FriendsListEntry = FriendsListEntry.fromData(data.user);
 			friendsList.friendsForFriendsList.addItem(friend);
-			friendsList.applySortAndFilters();
+			friendsList.updateHeadingCounts();
 		}
 		
 		private function handleNewFriendRequest(data:Object):void {
@@ -668,7 +682,7 @@ package com.worlize.interactivity.rpc
 			notificationManager.showNotification(notification);
 			var entry:PendingFriendsListEntry = PendingFriendsListEntry.fromData(data.user);
 			friendsList.friendsForFriendsList.addItem(entry);
-			friendsList.applySortAndFilters();
+			friendsList.updateHeadingCounts();
 		}
 		
 		private function handleNewObject(data:Object):void {

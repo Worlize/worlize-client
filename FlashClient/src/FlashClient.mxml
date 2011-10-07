@@ -2,13 +2,16 @@
 <s:Application
 	xmlns:fx="http://ns.adobe.com/mxml/2009"
 	xmlns:s="library://ns.adobe.com/flex/spark"
+	xmlns:code="http://code.google.com/p/flexlib/"
+	xmlns:view="com.worlize.interactivity.view.*"
+	xmlns:local="*" xmlns:mx="library://ns.adobe.com/flex/mx"
+	xmlns:view1="com.worlize.view.*"
+	xmlns:components="com.worlize.view.components.*"
+	xmlns:visualnotification="com.worlize.components.visualnotification.*"
 	minWidth="965" minHeight="640"
 	skinClass="FlashClientApplicationSkin"
 	applicationComplete="handleApplicationComplete()"
-	creationComplete="handleCreationComplete()"
-	xmlns:code="http://code.google.com/p/flexlib/"
-	xmlns:view="com.worlize.interactivity.view.*"
-	xmlns:local="*" xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:view1="com.worlize.view.*" xmlns:components="com.worlize.view.components.*" xmlns:visualnotification="com.worlize.components.visualnotification.*">
+	creationComplete="handleCreationComplete()">
 	<s:layout>
 		<s:BasicLayout/>
 	</s:layout>
@@ -30,17 +33,18 @@
 			import com.worlize.interactivity.model.InteractivityUser;
 			import com.worlize.interactivity.rpc.InteractivityClient;
 			import com.worlize.model.CurrentUser;
+			import com.worlize.model.friends.FriendsList;
 			import com.worlize.rpc.HTTPMethod;
 			import com.worlize.rpc.WorlizeResultEvent;
 			import com.worlize.rpc.WorlizeServiceClient;
 			import com.worlize.state.AuthorModeState;
 			import com.worlize.view.LockerWindow;
-			import com.worlize.view.MarketplaceWindow;
 			import com.worlize.view.author.AuthorModePropertiesWindow;
 			import com.worlize.view.windows.FriendsWindow;
 			import com.worlize.view.windows.GiftsWindow;
 			import com.worlize.view.windows.WorldsWindow;
 			
+			import flash.net.navigateToURL;
 			import flash.sampler.getInvocationCount;
 			
 			import mx.binding.utils.ChangeWatcher;
@@ -85,6 +89,8 @@
 			}
 
 			private function handleCreationComplete():void {
+				ExternalInterface.call('hideLoadingOverlay');
+				
 				client.addEventListener(InteractivityEvent.CONNECT_COMPLETE, handleConnectComplete);
 				client.addEventListener(InteractivityEvent.CONNECT_FAILED, handleConnectFailed);
 				client.addEventListener(InteractivityEvent.CONNECT_START, handleConnectStart);
@@ -206,7 +212,7 @@
 			}
 			
 			private function verifySufficientRoomForFriendsList():Boolean {
-				return (stage.width > chatWindow.x + chatWindow.width + friendsList.width);
+				return (stage.width > chatWindow.x + chatWindow.width + friendsListPanel.width);
 			}
 			
 			private function handleFriendsButtonChange(event:Event):void {
@@ -228,12 +234,12 @@
 			private function updateFriendsListAutoDisplay():void {
 				if (manualFriendsListState === null) {
 					if (verifySufficientRoomForFriendsList()) {
-						if (!friendsList.visible) {
+						if (!friendsListPanel.visible) {
 							showFriendsList();
 						}
 					}
 					else {
-						if (friendsList.visible) {
+						if (friendsListPanel.visible) {
 							hideFriendsList();
 						}
 					}					
@@ -241,14 +247,20 @@
 			}
 			
 			private function showFriendsList():void {
-				friendsList.visible = true;
+				friendsListPanel.visible = true;
 				friendsListToggleButton.selected = true;
 			}
 			
 			private function hideFriendsList():void {
-				friendsList.visible = false;
+				friendsListPanel.visible = false;
 				friendsListToggleButton.selected = false;
 			}
+			
+			protected function handleLogoutClick(event:MouseEvent):void
+			{
+				ExternalInterface.call("logout");
+			}
+			
 		]]>
 	</fx:Script>
 
@@ -314,7 +326,12 @@
 
 	</s:HGroup>
 	
-	<s:HGroup right="0" top="0" height="40">
+	<s:HGroup right="0" top="0" height="40" gap="0" verticalAlign="middle">
+		<mx:LinkButton label="LOG OUT"
+					   height="100%"
+					   styleName="topNavButtonRight"
+					   color="#333333"
+					   click="handleLogoutClick(event)"/>
 		<s:ToggleButton label="FRIENDS"
 						id="friendsListToggleButton"
 						height="100%"
@@ -323,8 +340,9 @@
 						change="handleFriendsButtonChange(event)" />
 	</s:HGroup>
 	
-	<view1:FriendsListPanel id="friendsList" visible="false"
-							top="40" right="0" bottom="0" width="300" />
+	<view1:FriendsListPanel id="friendsListPanel" visible="false"
+							friendsList="{FriendsList.getInstance()}"
+							top="40" right="0" bottom="0" width="250" />
 	
 	<visualnotification:VisualNotifier top="20" left="0" right="0" bottom="0" />
 	

@@ -10,19 +10,6 @@
 	embedAsCFF: true;
 }
 
-@font-face {
-	src: url("assets/fonts/Tuffy.ttf");
-	fontFamily: Tuffy;
-	embedAsCFF: true;
-}
-
-@font-face {
-	src: url("assets/fonts/Tuffy_Bold.ttf");
-	fontFamily: Tuffy;
-	fontWeight: bold;
-	embedAsCFF: true;
-}
-
 components|DynamicHeightList {
 	skinClass: ClassReference("com.worlize.view.skins.DynamicHeightListSkin"); 
 }
@@ -39,12 +26,12 @@ global {
 }
 
 s|Label {
-	fontFamily: Tuffy;
+	fontFamily: "Lucida Sans", "Arial";
 	fontSize: 14px;
 }
 
 s|TextInput {
-	fontFamily: Tuffy;
+	fontFamily: "Lucida Sans", "Arial";
 	contentBackgroundColor: #f2f2f2;
 	color: #858585;
 }
@@ -78,6 +65,17 @@ s|Label.socialCallout {
 	rollOverColor: #e6e3dc;
 }
 
+.topNavButtonRight {
+	fontFamily: PTSansNarrowBold;
+	fontSize: 16pt;
+	color: #333333;
+	paddingLeft: 10px;
+	paddingRight: 10px;
+	cornerRadius: 0px;
+	textRollOverColor: #FFFFFF;
+	rollOverColor: #9f3030;
+}
+
 .pushToTalkButton {
 	cornerRadius: 10px;
 	skinClass: ClassReference("com.worlize.view.skins.PushToTalkButtonSkin");
@@ -99,7 +97,7 @@ s|Label.socialCallout {
 .friendsListToggleButton s|Label {
 	fontFamily: PTSansNarrowBold;
 	fontSize: 16pt;
-	color: #000000;
+	color: #333333;
 }
 
 .enableWebcamButton {
@@ -114,7 +112,7 @@ s|Label.socialCallout {
 }
 
 .lockerNavButton {
-	fontFamily: Tuffy;
+	fontFamily: "Lucida Sans", "Arial";
 	fontSize: 16pt;
 	fontWeight: bold;
 	paddingTop: 0px;
@@ -126,7 +124,7 @@ s|Label.socialCallout {
 }
 
 .friendsNavButton {
-	fontFamily: Tuffy;
+	fontFamily: "Lucida Sans", "Arial";
 	fontSize: 13pt;
 	fontWeight: bold;
 	paddingTop: 0px;

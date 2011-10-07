@@ -11,6 +11,7 @@ package com.worlize.model
 	
 	import mx.controls.Alert;
 	import mx.rpc.events.FaultEvent;
+	import com.worlize.model.friends.FriendsListEntry;
 
 	[Event(name="avatarLoaded",type="com.worlize.event.AvatarEvent")]
 	[Event(name="avatarError",type="com.worlize.event.AvatarEvent")]

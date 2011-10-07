@@ -5,19 +5,31 @@
 		 xmlns:components="com.worlize.view.components.*"
 		 xmlns:code="http://code.google.com/p/flexlib/"
 		 xmlns:layout="flexlib.scheduling.scheduleClasses.layout.*"
-		 xmlns:controls="controls.*">
+		 xmlns:controls="controls.*"
+		 creationComplete="handleCreationComplete(event)">
 
+	<s:states>
+		<s:State name="normal" />
+		<s:State name="loading" />
+	</s:states>
+	
 	<!-- titleBarColor="#1076a4" -->
 	<fx:Script>
 		<![CDATA[
 			import com.adobe.serialization.json.JSON;
+			import com.worlize.components.visualnotification.VisualNotification;
 			import com.worlize.event.FriendsListEvent;
+			import com.worlize.event.NotificationCenter;
+			import com.worlize.interactivity.rpc.InteractivityClient;
 			import com.worlize.model.CurrentUser;
-			import com.worlize.model.FriendsList;
-			import com.worlize.model.FriendsListEntry;
-			import com.worlize.model.PendingFriendsListEntry;
+			import com.worlize.model.friends.FriendsList;
+			import com.worlize.model.friends.FriendsListEntry;
+			import com.worlize.model.friends.OnlineFacebookFriend;
+			import com.worlize.model.friends.PendingFriendsListEntry;
+			import com.worlize.notification.FriendsNotification;
 			import com.worlize.view.itemrenderers.ListHeadingItemRenderer;
 			import com.worlize.view.itemrenderers.friends.FriendListItemRenderer;
+			import com.worlize.view.itemrenderers.friends.OnlineFacebookFriendItemRenderer;
 			import com.worlize.view.itemrenderers.friends.PendingFriendInvitationItemRenderer;
 			import com.worlize.view.skins.DynamicHeightListSkin;
 			
@@ -30,7 +42,7 @@
 			import spark.events.IndexChangeEvent;
 			import spark.skins.spark.DefaultItemRenderer;
 			
-			private var _friendsList:FriendsList = FriendsList.getInstance();
+			private var _friendsList:FriendsList;
 			
 			[Bindable(event="friendsListChange")]
 			public function set friendsList(newValue:FriendsList):void {
@@ -42,8 +54,10 @@
 					if (_friendsList) {
 						_friendsList.addEventListener('stateChange', handleFriendsListStateChange);
 						if (friendsList.state == FriendsList.STATE_LOADING) {
-							loadingSpinner.visible = true;
-							loadingSpinner.play();
+							currentState = 'loading';
+						}
+						else {
+							currentState = 'normal';
 						}
 					}
 					dispatchEvent(new FlexEvent("friendsListChange"));
@@ -55,12 +69,10 @@
 			
 			private function handleFriendsListStateChange(event:Event):void {
 				if (friendsList.state == FriendsList.STATE_LOADING) {
-					loadingSpinner.visible = true;
-					loadingSpinner.play();
+					currentState = 'loading';
 				}
 				else {
-					loadingSpinner.stop();
-					loadingSpinner.visible = false;
+					currentState = 'normal';
 				}
 			}
 			
@@ -98,6 +110,9 @@
 				else if (item is PendingFriendsListEntry) {
 					classFactory = new ClassFactory(PendingFriendInvitationItemRenderer);
 				}
+				else if (item is OnlineFacebookFriend) {
+					classFactory = new ClassFactory(OnlineFacebookFriendItemRenderer);
+				}
 				else if (item['isHeader']) {
 					classFactory = new ClassFactory(ListHeadingItemRenderer);
 				}
@@ -112,9 +127,59 @@
 				var list:List = event.target as List;
 				if (event.newIndex > -1 && event.newIndex < list.dataProvider.length) {
 					var item:Object = list.dataProvider.getItemAt(event.newIndex);
+					
+					if (item is FriendsListEntry) {
+						var friend:FriendsListEntry = item as FriendsListEntry;
+						if (friend.online) {
+							friend.gotoLocation()
+						}
+						else {
+							InteractivityClient.getInstance().gotoRoom(friend.worldEntrance);
+						}
+					}
+					
+					if (item is OnlineFacebookFriend) {
+						var onlineFacebookFriend:OnlineFacebookFriend = item as OnlineFacebookFriend;
+						onlineFacebookFriend.invite();
+					}
+					
+					// Prevent headings from being selected
 					if ('selectionEnabled' in item && item['selectionEnabled'] == false) {
 						event.preventDefault();
 					}
+				}
+				
+				// nothing is selectable
+				event.preventDefault();
+			}
+			
+			protected function handleCreationComplete(event:FlexEvent):void
+			{
+				NotificationCenter.addListener(FriendsNotification.FRIEND_ADDED, handleFriendAddedNotification);
+				NotificationCenter.addListener(FriendsNotification.FRIEND_REMOVED, handleFriendRemovedNotification);
+			}
+			
+			private function handleFriendAddedNotification(event:FriendsNotification):void {
+				if (!this.visible) {
+					var message:String;
+					if (event.friendsListEntry.friendType === FriendsListEntry.TYPE_FACEBOOK) {
+						message = event.friendsListEntry.username + " has been added to your friends list because they are your friend on Facebook.";
+					}
+					else {
+						message = event.friendsListEntry.username + " has been added to your friends list!";
+					}
+					var notification:VisualNotification = new VisualNotification(message, "New Friend!");
+					notification.show();
+				}
+			}
+			
+			private function handleFriendRemovedNotification(event:FriendsNotification):void {
+				if (!this.visible) {
+					var notification:VisualNotification = new VisualNotification(
+						event.friendsListEntry.username + " has been removed from your friends list.",
+						"Friend Removed"
+					);
+					notification.show();
 				}
 			}
 			
@@ -150,7 +215,7 @@
 			</s:layout>
 			<s:Rect top="0" left="0" right="0" bottom="0">
 				<s:fill>
-					<s:SolidColor color="#daeef7" />
+					<s:SolidColor color="#DAEEF7" />
 				</s:fill>
 			</s:Rect>
 			<s:HGroup verticalCenter="0" horizontalCenter="0"
@@ -158,19 +223,21 @@
 				<s:Label text="invite your friends:" styleName="socialCallout" />
 				<s:Image source="@Embed(source='assets/icons/social/fb-30.png')" />
 			</s:HGroup>
-			
+		</s:Group>
+		
+		<s:Group width="100%" height="100%" includeIn="loading">
 			<controls:Spinner id="loadingSpinner"
-							  visible="false"
-							  autoPlay="false"
+							  autoPlay="true"
 							  mouseEnabled="false"
 							  mouseChildren="false"
-							  size="22" numTicks="11"
-							  tickWidth="2" speed="600"
-							  right="6" top="2"
+							  size="44" numTicks="13"
+							  tickWidth="3" speed="600"
+							  horizontalCenter="0"
+							  top="30"
 							  fadeSpeed="500" tickColor="#222222" />
 		</s:Group>
 		
-		<s:VGroup width="100%" height="100%" gap="0">
+		<s:VGroup width="100%" height="100%" gap="0" includeIn="normal">
 			
 			<s:VGroup width="100%" height="100%" gap="0"
 					  visible="{friendsList.friendsForFriendsList.length > 0}"

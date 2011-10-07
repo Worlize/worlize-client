@@ -2,20 +2,25 @@
 <s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
 				xmlns:s="library://ns.adobe.com/flex/spark" 
 				xmlns:mx="library://ns.adobe.com/flex/mx"
-				autoDrawBackground="true"
+				xmlns:friends="com.worlize.view.itemrenderers.friends.*"
+				autoDrawBackground="false"
 				dataChange="handleDataChange(event)"
-				initialize="handleInitialize(event)" xmlns:friends="com.worlize.view.itemrenderers.friends.*">
+				initialize="handleInitialize(event)"
+				width="100%"
+				currentState="normal">
 	
 	<s:states>
-		<s:State name="over" id="over" />
-		<s:State name="up" id="up" />
+		<s:State name="down" />
+		<s:State name="selected" />
+		<s:State name="hovered" />
+		<s:State name="normal" />
 	</s:states>
 	
 	<fx:Script>
 		<![CDATA[
 			import com.worlize.interactivity.rpc.InteractivityClient;
-			import com.worlize.model.FriendsList;
-			import com.worlize.model.FriendsListEntry;
+			import com.worlize.model.friends.FriendsList;
+			import com.worlize.model.friends.FriendsListEntry;
 			
 			import flash.net.navigateToURL;
 			
@@ -34,7 +39,11 @@
 			private var buttonLabel:String;
 			
 			private var onlineWatcher:ChangeWatcher;
+			
+			[Bindable]
 			private var menu:Menu;
+			
+			private var stateUpdatesSuspended:Boolean = false;
 			
 			
 			private function handleInitialize(event:Event):void {
@@ -43,14 +52,22 @@
 			
 			private function handleDataChange(event:FlexEvent):void {
 				if (data === null) { return; }
+				stateUpdatesSuspended = false;
 				updateMenu();
 				updateOnlineStatus();
+			}
+			
+			override protected function getCurrentRendererState():String {
+				if (stateUpdatesSuspended) {
+					return currentState;
+				}
+				return super.getCurrentRendererState();
 			}
 			
 			private function updateOnlineStatus():void {
 				if (data === null) { return; }
 				if (data is FriendsListEntry && (data as FriendsListEntry).online) {
-					buttonLabel = "Join";
+					buttonLabel = "Join Friend";
 				}
 				else {
 					buttonLabel = "Visit Worlz";
@@ -82,13 +99,19 @@
 				if (entry.twitterProfile) {
 					menuData.push({ type: 'normal', label: 'View Twitter Profile', action: 'twitterProfile' });
 				}
-				if (entry.friendType === FriendsListEntry.TYPE_WORLIZE) {
-					menuData.push({ type: 'normal', label: 'Remove Friend', action: 'unfriend' });
-				}
+				menuData.push({ type: 'normal', label: 'Remove Friend', action: 'unfriend' });
 				
 				menu = Menu.createMenu(null, menuData, true);
 				menu.addEventListener(MenuEvent.ITEM_CLICK, handleMenuItemClick);
-				popUpButton.popUp = menu;
+			}
+			
+			private function handleMenuOpen(event:Event):void {
+				stateUpdatesSuspended = true;
+			}
+			
+			private function handleMenuClose(event:Event):void {
+				stateUpdatesSuspended = false;
+				invalidateRendererState();
 			}
 			
 			private function handleMenuItemClick(event:MenuEvent):void {
@@ -120,7 +143,7 @@
 				}
 			}
 			
-			private function handleActionButtonClick():void {
+			private function handleActionButtonClick(event:MouseEvent):void {
 				if ((data as FriendsListEntry).online) {
 					visitFriend();
 				}
@@ -129,8 +152,12 @@
 				}
 			}
 			
+			private function stopMouseEventPropagation(event:MouseEvent):void {
+				event.stopImmediatePropagation();
+			}
+			
 			private function visitFriend():void {
-				client.gotoRoom((data as FriendsListEntry).currentRoomGuid);
+				(data as FriendsListEntry).gotoLocation();
 			}
 			
 			private function viewTwitterProfile():void {
@@ -153,8 +180,19 @@
 			
 			private function unfriend():void {
 				var entry:FriendsListEntry = data as FriendsListEntry;
-				Alert.show("Are you sure you want to remove " + entry.username + " from your friends list?",
-						   "Unfriend " + entry.username,
+				var message:String;
+				var name:String
+				if (entry.friendType === FriendsListEntry.TYPE_FACEBOOK && entry.autoSynced) {
+					name = entry.name;
+					message = name + " is from your Facebook friends list and was automatically added.\n\n" +
+						      "Are you sure you want to unfriend them?";
+				}
+				else {
+					name = entry.username;
+					message = "Are you sure you want to remove " + name + " from your friends list?"; 
+				}
+				Alert.show(message,
+						   "Unfriend " + name,
 						   Alert.YES | Alert.NO,
 						   null,
 						   function(event:CloseEvent):void {
@@ -166,20 +204,26 @@
 			}
 		]]>
 	</fx:Script>
-	<!--
-	<s:Rect left="0" right="0" bottom="0" top="0">
+	<s:Rect left="0" right="0" bottom="0" top="0" includeIn="hovered,down,selected">
 		<s:fill>
-			<s:SolidColor color="#FFFFFF" />	
+			<s:SolidColor color="#DAEEF7"
+						  color.down="#BFE5F6" />	
 		</s:fill>
 	</s:Rect>
-	-->
 	
-	<s:HGroup left="0" right="3" top="0" bottom="0" verticalAlign="middle">
+	<s:HGroup width="100%" top="0" bottom="0" paddingRight="3" verticalAlign="middle">
 
 		<friends:FriendItemRenderer data="{data}" width="100%" />
 		
-		<mx:PopUpButton id="popUpButton" label="{buttonLabel}"
-						click="handleActionButtonClick()" />
+		<mx:PopUpButton id="actionButton"
+						excludeFrom="normal"
+						label="{buttonLabel}"
+						popUp="{menu}"
+						mouseDown="stopMouseEventPropagation(event)"
+						mouseUp="stopMouseEventPropagation(event)"
+						open="handleMenuOpen(event)"
+						close="handleMenuClose(event)"
+						click="handleActionButtonClick(event)" />
 	</s:HGroup>
 	
 				
