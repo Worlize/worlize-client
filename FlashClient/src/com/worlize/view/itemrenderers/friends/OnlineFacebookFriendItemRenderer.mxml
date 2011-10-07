@@ -17,6 +17,10 @@
 		<![CDATA[
 			import com.worlize.model.friends.OnlineFacebookFriend;
 			
+			private function stopMouseEventPropagation(event:MouseEvent):void {
+				event.stopImmediatePropagation();
+			}
+			
 			private function inviteFriend():void {
 				(data as OnlineFacebookFriend).invite();
 			}
@@ -66,6 +70,8 @@
 	<s:HGroup right="3" bottom="10" includeIn="hovered,down,selected">
 		<s:Button
 			label="Invite"
+			mouseDown="stopMouseEventPropagation(event)"
+			mouseUp="stopMouseEventPropagation(event)"
 			click="inviteFriend();" />
 	</s:HGroup>
 	
