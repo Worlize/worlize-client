@@ -42,10 +42,11 @@ package com.worlize.rpc
 			var url:String = config.useTLS ? 'wss://' : 'ws://';
 			url += (config.hostname + ":" + config.port + "/presence/");
 			
-			// Disable logger
-			WebSocket.debug = false;
-			
 			webSocket = new WebSocket(url, FlexGlobals.topLevelApplication.url, 'worlize-presence');
+			
+			// Disable logger
+			webSocket.debug = false;
+			
 			trace("Connecting to presence server: " + url);
 			webSocket.connect();
 			
