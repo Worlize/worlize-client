@@ -67,10 +67,10 @@
 			private function updateOnlineStatus():void {
 				if (data === null) { return; }
 				if (data is FriendsListEntry && (data as FriendsListEntry).online) {
-					buttonLabel = "Join Friend";
+					buttonLabel = "Goto";
 				}
 				else {
-					buttonLabel = "Visit Worlz";
+					buttonLabel = "Visit Home";
 				}
 			}
 			
