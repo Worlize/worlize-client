@@ -258,7 +258,17 @@
 			
 			protected function handleLogoutClick(event:MouseEvent):void
 			{
-				ExternalInterface.call("logout");
+				Alert.show("Are you sure you want to log out of Worlize and Facebook?",
+						   "Logout",
+						   Alert.YES | Alert.NO,
+						   null,
+						   function(event:CloseEvent):void {
+							   if (event.detail == Alert.YES) {
+								   ExternalInterface.call("logout");
+							   }
+						   },
+						   null,
+						   Alert.NO);
 			}
 			
 		]]>
