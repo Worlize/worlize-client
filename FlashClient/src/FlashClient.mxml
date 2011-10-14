@@ -8,7 +8,7 @@
 	xmlns:view1="com.worlize.view.*"
 	xmlns:components="com.worlize.view.components.*"
 	xmlns:visualnotification="com.worlize.components.visualnotification.*"
-	minWidth="965" minHeight="640"
+	minWidth="965" minHeight="500"
 	skinClass="FlashClientApplicationSkin"
 	applicationComplete="handleApplicationComplete()"
 	creationComplete="handleCreationComplete()">
@@ -36,6 +36,7 @@
 			import com.worlize.model.CurrentUser;
 			import com.worlize.model.Directory;
 			import com.worlize.model.PreferencesManager;
+			import com.worlize.model.WorlizeConfig;
 			import com.worlize.model.friends.FriendsList;
 			import com.worlize.rpc.HTTPMethod;
 			import com.worlize.rpc.WorlizeResultEvent;
@@ -313,6 +314,22 @@
 				navigateToURL(request, "_blank");
 			}
 			
+			private function handleHomeClick():void {
+				var homeEntrance:String = WorlizeConfig.getInstance().currentUser.worldEntrance;
+				if (homeEntrance) {
+					if (client.currentRoom.id === homeEntrance) {
+						var notification:VisualNotification = new VisualNotification(
+							"You are already at the entrance to your home world!",
+							"Home"
+						);
+						notification.show();
+					}
+					else {
+						client.gotoRoom(homeEntrance);
+					}
+				}
+			}
+			
 		]]>
 	</fx:Script>
 
@@ -339,18 +356,28 @@
 				color="#0C9dea"
 				icon="@Embed(source='src/assets/icons/icon_myworlz.png')"
 				click="handleDirectoryClick()"
+				toolTip="Browse a list of active rooms"
 				label="DIRECTORY" />
+			<mx:LinkButton
+				styleName="topNavButton"
+				color="#479d13"
+				icon="@Embed(source='src/assets/icons/icon_home.png')"
+				click="handleHomeClick()"
+				toolTip="Go to your home world"
+				label="HOME" />
 			<mx:LinkButton
 				styleName="topNavButton"
 				color="#F15601"
 				icon="@Embed(source='src/assets/icons/icon_avatar.png')"
 				click="handleAvatarsClick()"
+				toolTip="Change your Avatar"
 				label="AVATARS" />
 			<mx:LinkButton
 				id="giftsButton"
 				styleName="topNavButton"
 				color="#9e1F63"
 				icon="@Embed(source='src/assets/icons/icon_gifts.png')"
+				toolTip="See if you have received any gifts"
 				click="handleGiftsClick()"
 				label="GIFTS" />
 		</s:BorderContainer>

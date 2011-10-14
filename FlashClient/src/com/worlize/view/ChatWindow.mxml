@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark" xmlns:view="com.worlize.interactivity.view.*" xmlns:code="http://code.google.com/p/flexlib/"
 	creationComplete="handleCreationComplete()"
-	width="950"
 	currentState="disconnected" xmlns:layout="flexlib.scheduling.scheduleClasses.layout.*" xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:view1="com.worlize.interactivity.view.*" xmlns:components="com.worlize.view.components.*">
 	
 	<s:states>
@@ -71,7 +70,11 @@
 				NotificationCenter.addListener(AuthorModeNotification.AUTHOR_DISABLED, handleAuthorModeDisabled);
 				NotificationCenter.addListener(AuthorModeNotification.AUTHOR_ENABLED, handleAuthorModeEnabled);
 			}
-						
+			
+			private function handleStageResize(event:Event):void {
+				
+			}
+			
 			private function handleChatKeyDown(event:KeyboardEvent):void {
 				if (event.keyCode == Keyboard.ENTER) {
 					client.say(chatBox.text);
