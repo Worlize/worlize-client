@@ -27,6 +27,7 @@
 			import com.worlize.control.VirtualCurrencyProducts;
 			import com.worlize.event.AuthorModeNotification;
 			import com.worlize.event.NotificationCenter;
+			import com.worlize.event.PreferencesEvent;
 			import com.worlize.interactivity.event.InteractivityEvent;
 			import com.worlize.interactivity.event.InteractivitySecurityErrorEvent;
 			import com.worlize.interactivity.iptscrae.command.CLIENTTYPECommand;
@@ -34,6 +35,7 @@
 			import com.worlize.interactivity.rpc.InteractivityClient;
 			import com.worlize.model.CurrentUser;
 			import com.worlize.model.Directory;
+			import com.worlize.model.PreferencesManager;
 			import com.worlize.model.friends.FriendsList;
 			import com.worlize.rpc.HTTPMethod;
 			import com.worlize.rpc.WorlizeResultEvent;
@@ -60,7 +62,7 @@
 			[Bindable]
 			private var worlizeUser:CurrentUser = CurrentUser.getInstance(); 
 
-			private var preferences:Preferences = Preferences.getInstance();
+			private var preferences:PreferencesManager = PreferencesManager.getInstance();
 			
 			private var authorPropertiesWindowShowing:Boolean = false;
 			private var authorPropertiesWindow:AuthorModePropertiesWindow;
@@ -84,8 +86,26 @@
 					logOutToolTip = "Log out of Worlize";
 				}
 				
+				if (preferences.initialized) {
+					handlePreferencesInitialized();
+				}
+				else {
+					preferences.addEventListener(PreferencesEvent.PREFERENCES_INITIALIZED, handlePreferencesInitialized);
+				}
+				
 //				analytics.tracker.setDomainName(".worlize.com");
 //				analytics.tracker.trackPageview("/enter");
+			}
+			
+			private function handlePreferencesInitialized(event:PreferencesEvent=null):void {
+				if (preferences.preferenceDefined('launchDirectoryOnLoad')) {
+					if (preferences.getPreference('launchDirectoryOnLoad')) {
+						DirectoryWindow.open(systemManager.getSandboxRoot());
+					}
+				}
+				else {
+					DirectoryWindow.open(systemManager.getSandboxRoot());
+				}
 			}
 			
 			private function handleStageResize(event:Event):void {
@@ -109,7 +129,7 @@
 				client.addEventListener(InteractivityEvent.CONNECT_START, handleConnectStart);
 				client.addEventListener(InteractivityEvent.GOTO_URL, handleGotoURL);
 					
-				client.setCyborg(preferences.cyborg);
+				client.setCyborg("");
 				
 				client.connect();
 				

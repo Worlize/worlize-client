@@ -51,6 +51,10 @@ package com.worlize.model
 			save();
 		}
 		
+		public function preferenceDefined(name:String):Boolean {
+			return (name in prefs);
+		}
+		
 		public function load():void {
 			var service:WorlizeServiceClient = new WorlizeServiceClient();
 			service.addEventListener(WorlizeResultEvent.RESULT, handleLoadResult);

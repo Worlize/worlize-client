@@ -10,13 +10,14 @@
 						  windowIcon="@Embed('assets/icons/large/w_icon_myworlz.png')"
 						  creationComplete="handleCreationComplete()"
 						  width="500" minWidth="500" maxWidth="500"
-						  height="500" minHeight="348" xmlns:controls="controls.*">
+						  height="500" minHeight="371" xmlns:controls="controls.*">
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
 	
 	<fx:Script>
 		<![CDATA[
+			import com.worlize.event.PreferencesEvent;
 			import com.worlize.interactivity.rpc.InteractivityClient;
 			import com.worlize.model.Directory;
 			import com.worlize.model.DirectoryEntry;
@@ -38,6 +39,8 @@
 			
 			[Bindable]
 			public var directory:Directory = new Directory();
+			
+			private var preferences:PreferencesManager = PreferencesManager.getInstance();
 			
 			public static function toggleOpen(parent:DisplayObject):void {
 				if (_open) {
@@ -109,6 +112,26 @@
 				
 				var watcher:ChangeWatcher = ChangeWatcher.watch(this, ['directory','state'], handleDirectoryStateChange);
 				updateLoadingSpinnerState();
+				
+				if (preferences.initialized) {
+					handlePreferencesInitialized();
+				}
+				else {
+					preferences.addEventListener(PreferencesEvent.PREFERENCES_INITIALIZED, handlePreferencesInitialized);
+				}
+			}
+			
+			private function handlePreferencesInitialized(event:PreferencesEvent=null):void {
+				if (!preferences.preferenceDefined('launchDirectoryOnLoad')) {
+					autoOpen.selected = true;
+				}
+				else {
+					autoOpen.selected = Boolean(preferences.getPreference('launchDirectoryOnLoad'));
+				}
+			}
+			
+			private function handleAutoOpenChange(event:Event):void {
+				preferences.setPreference('launchDirectoryOnLoad', autoOpen.selected);					
 			}
 			
 			private function handleDirectoryStateChange(event:Event):void {
@@ -182,6 +205,9 @@
 					changing="handleDirectorySelectionChanging(event)"
 					dataProvider="{directory}" />
 		</s:Group>
+		<s:CheckBox label="Open Directory Window on Login"
+					id="autoOpen" change="handleAutoOpenChange(event)" />
+					
 	</s:Group>
 	
 	<controls:Spinner id="loadingSpinner"
