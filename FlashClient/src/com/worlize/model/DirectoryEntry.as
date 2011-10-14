@@ -39,6 +39,11 @@ package com.worlize.model
 			return _room.name;
 		}
 		
+		[Bindable(event="roomChanged")]
+		public function get roomFull():Boolean {
+			return room.userCount >= 20;
+		}
+		
 		public static function fromData(data:Object):DirectoryEntry {
 			var instance:DirectoryEntry = new DirectoryEntry();
 			instance.room = RoomListEntry.fromData(data.room);

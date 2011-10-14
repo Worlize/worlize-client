@@ -22,7 +22,6 @@ package com.worlize.model
 		public var state:String = STATE_INIT;
 		
 		private var _showFullRooms:Boolean = true;
-		private var _maxOccupancy:int = 20;
 		
 		public function Directory(source:Array = null) {
 			super(source);
@@ -50,18 +49,6 @@ package com.worlize.model
 			return _showFullRooms;
 		}
 		
-		[Bindable(event="maxOccupancyChanged")]
-		public function set maxOccupancy(newValue:int):void {
-			if (_maxOccupancy !== newValue) {
-				_maxOccupancy = newValue;
-				refresh();
-				dispatchEvent(new FlexEvent('maxOccupancyChanged'));
-			}
-		}
-		public function get maxOccupancy():int {
-			return _maxOccupancy;
-		}
-		
 		protected function updateFilter():void {
 			if (showFullRooms) {
 				filterFunction = filterFunctionShowFullRooms;
@@ -77,7 +64,7 @@ package com.worlize.model
 		
 		private function filterFunctionHideFullRooms(item:Object):Boolean {
 			if (item is DirectoryEntry) {
-				return (item as DirectoryEntry).room.userCount < _maxOccupancy;				
+				return !(item as DirectoryEntry).roomFull;				
 			}
 			return true;
 		}

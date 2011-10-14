@@ -147,8 +147,10 @@
 					
 					if (item is DirectoryEntry) {
 						var entry:DirectoryEntry = item as DirectoryEntry;
-						InteractivityClient.getInstance().gotoRoom(entry.room.guid);
-						close();
+						if (!entry.roomFull) {
+							InteractivityClient.getInstance().gotoRoom(entry.room.guid);
+							close();
+						}
 					}
 				}
 				

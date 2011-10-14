@@ -2,7 +2,38 @@
 <s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
 				xmlns:s="library://ns.adobe.com/flex/spark" 
 				xmlns:mx="library://ns.adobe.com/flex/mx"
+				currentState="normal"
 				autoDrawBackground="true">
+	
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.model.DirectoryEntry;
+			
+			import mx.events.FlexEvent;
+			private function handleDataChange(event:FlexEvent):void {
+				invalidateRendererState();
+			}
+			
+			override protected function getCurrentRendererState():String {
+				if (data === null) {
+					return currentState;
+				}
+				
+				if (data is DirectoryEntry) {
+					if ((data as DirectoryEntry).roomFull) {
+						return "full";
+					}
+				}
+				
+				return "normal";
+			}
+		]]>
+	</fx:Script>
+	
+	<s:states>
+		<s:State name="normal" />
+		<s:State name="full" />
+	</s:states>
 	
 	<s:Group id="thumbnailGroup" top="3" bottom="3" left="3">
 		<s:Rect top="0" left="0" right="0" bottom="0">
@@ -33,16 +64,17 @@
 					 width="100%"
 					 color="#555555"
 					 fontFamily="Arial"
-					 fontWeight="normal"
 					 fontSize="12" />
-			<s:Label text="{data.room.userCount} {data.room.userCount == 1 ? 'Person' : 'People'}"
-					 maxDisplayedLines="1"
-					 width="100%"
-					 lineBreak="toFit"
-					 color="#555555"
-					 fontFamily="Arial"
-					 fontWeight="normal"
-					 fontSize="12" />
+			<s:HGroup gap="5">
+				<s:Label text="{data.room.userCount} {data.room.userCount == 1 ? 'Person' : 'People'}"
+						 color="#555555"
+						 fontFamily="Arial"
+						 fontSize="12" />
+				<s:Label text="(Full)"
+						 fontFamily="Arial"
+						 color="#AA3333"
+						 includeIn="full" />
+			</s:HGroup>
 		</s:VGroup>
 		
 		<s:VGroup width="150" height="100%" horizontalAlign="right">
