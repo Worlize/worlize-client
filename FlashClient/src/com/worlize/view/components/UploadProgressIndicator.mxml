@@ -55,8 +55,8 @@
 		<s:HorizontalLayout gap="5" />
 	</s:layout>
 	
-	<s:Label fontFamily="PTSansNarrowBold" text="Uploading..."  includeIn="uploading"/>
-	<s:Label fontFamily="PTSansNarrowBold" text="Processing..." includeIn="processing" />
+	<s:Label fontFamily="PTSansNarrowBold" fontSize="14" text="Uploading..."  includeIn="uploading"/>
+	<s:Label fontFamily="PTSansNarrowBold" fontSize="14" text="Processing..." includeIn="processing" />
 	
 	<mx:ProgressBar includeIn="uploading"
 		width="75" height="5" label="" source="{_uploader}" chromeColor="#777777" />
