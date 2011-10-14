@@ -69,10 +69,10 @@
 	<s:Rect id="fill" 
 			left="0" right="0" top="0" bottom="0">
 		<s:fill>
-			<s:SolidColor color="#98cfec" 
-						  color.upAndSelected="#7bc6ee"
-						  color.overAndSelected="#7bc6ee"
-						  color.downAndSelected="#7bc6ee"
+			<s:SolidColor color="#33bcff" 
+						  color.upAndSelected="#40b4ed"
+						  color.overAndSelected="#40b4ed"
+						  color.downAndSelected="#40b4ed"
 						  alpha="1"
 						  alpha.up="0" />
 		</s:fill>
@@ -82,6 +82,11 @@
 	<!--- @copy spark.components.supportClasses.ButtonBase#labelDisplay -->
 	<s:Label id="labelDisplay"
 			 textAlign="center"
+			 color.over="#FFFFFF"
+			 color.down="#FFFFFF"
+			 color.upAndSelected="#FFFFFF"
+			 color.overAndSelected="#FFFFFF"
+			 color.downAndSelected="#FFFFFF"
 			 verticalAlign="middle"
 			 maxDisplayedLines="1"
 			 verticalCenter="0"

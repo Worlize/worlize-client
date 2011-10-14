@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				xmlns:s="library://ns.adobe.com/flex/spark" 
+				xmlns:mx="library://ns.adobe.com/flex/mx"
+				autoDrawBackground="true">
+	
+	<s:Group id="thumbnailGroup" top="3" bottom="3" left="3">
+		<s:Rect top="0" left="0" right="0" bottom="0">
+			<s:stroke>
+				<s:SolidColorStroke color="#c3c3c3" />
+			</s:stroke>
+			<s:fill>
+				<s:SolidColor color="#eeeeee" />
+			</s:fill>
+		</s:Rect>
+		<s:Image width="133" height="80"
+				 top="1" left="1" right="1" bottom="1"
+				 source="{data.room.thumbnail}" />
+	</s:Group>
+	
+	<s:HGroup top="5" left="145" height="100%" right="5">
+		<s:VGroup width="100%">
+			<s:Label text="{data.room.name}"
+					 maxDisplayedLines="1"
+					 width="100%"
+					 lineBreak="toFit"
+					 fontFamily="Arial"
+					 fontWeight="bold"
+					 fontSize="15" />
+			<s:Label text="{data.world.name}"
+					 maxDisplayedLines="1"
+					 lineBreak="toFit"
+					 width="100%"
+					 color="#555555"
+					 fontFamily="Arial"
+					 fontWeight="normal"
+					 fontSize="12" />
+			<s:Label text="{data.room.userCount} {data.room.userCount == 1 ? 'Person' : 'People'}"
+					 maxDisplayedLines="1"
+					 width="100%"
+					 lineBreak="toFit"
+					 color="#555555"
+					 fontFamily="Arial"
+					 fontWeight="normal"
+					 fontSize="12" />
+		</s:VGroup>
+		
+		<s:VGroup width="150" height="100%" horizontalAlign="right">
+			<s:Label text="{data.friendsInRoom.length} {data.friendsInRoom.length == 1 ? 'Friend' : 'Friends'}"
+					 visible="{data.friendsInRoom.length > 0}"
+					 fontFamily="Arial"
+					 fontWeight="bold"
+					 fontSize="12" />
+			
+			<s:List width="103" height="51"
+					styleName="noScroll"
+					borderVisible="false" layoutDirection="rtl"
+					dataProvider="{data.friendsInRoom}" contentBackgroundAlpha="0">
+				<s:layout>
+					<s:TileLayout  verticalGap="1" horizontalGap="1"
+								   clipAndEnableScrolling="true" />
+				</s:layout>
+				<s:itemRenderer>
+					<fx:Component>
+						<s:ItemRenderer autoDrawBackground="false">
+							<!-- DataProvider items will be of type UserListEntry -->
+							<s:Image source="{data.picture}"
+									 toolTip="{data.name}"
+									 width="25" height="25"
+									 scaleMode="letterbox" />
+						</s:ItemRenderer>
+					</fx:Component>
+				</s:itemRenderer>
+			</s:List>
+		</s:VGroup>
+	</s:HGroup>
+	
+</s:ItemRenderer>

@@ -8,6 +8,9 @@ package com.worlize.model
 	import mx.events.FlexEvent;
 	import mx.rpc.events.FaultEvent;
 	
+	import spark.collections.Sort;
+	import spark.collections.SortField;
+	
 	public class Directory extends ArrayCollection
 	{
 		public static const STATE_INIT:String = "init";
@@ -15,6 +18,7 @@ package com.worlize.model
 		public static const STATE_READY:String = "ready";
 		public static const STATE_ERROR:String = "error";
 		
+		[Bindable]
 		public var state:String = STATE_INIT;
 		
 		private var _showFullRooms:Boolean = true;
@@ -22,7 +26,15 @@ package com.worlize.model
 		
 		public function Directory(source:Array = null) {
 			super(source);
+			var sort:Sort = new Sort();
+			sort.fields = [
+				new SortField('friendCount', true, true),
+				new SortField('userCount', true, true),
+				new SortField('roomName')
+			];
+			this.sort = sort;
 			updateFilter();
+			refresh();
 		}
 		
 		[Bindable(event="showFullRoomsChanged")]
@@ -30,6 +42,7 @@ package com.worlize.model
 			if (_showFullRooms !== newValue) {
 				_showFullRooms = newValue;
 				updateFilter();
+				refresh();
 				dispatchEvent(new FlexEvent('showFullRoomsChanged'));
 			}
 		}
@@ -56,7 +69,6 @@ package com.worlize.model
 			else {
 				filterFunction = filterFunctionHideFullRooms;
 			}
-			refresh();
 		}
 		
 		private function filterFunctionShowFullRooms(item:Object):Boolean {

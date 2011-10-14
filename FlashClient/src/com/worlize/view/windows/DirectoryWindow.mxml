@@ -3,12 +3,193 @@
 						  xmlns:s="library://ns.adobe.com/flex/spark" 
 						  xmlns:mx="library://ns.adobe.com/flex/mx"
 						  xmlns:components="com.worlize.view.components.*"
-						  titleBarColor="#0d9eeb"
-						  showTitle="true"
+						  titleBarColor="#73c7e6"
+						  titleTextColor="#0086b7"
 						  title="Directory"
-						  showCloseButton="true"
-						  width="400" height="300">
+						  resizable="true"
+						  windowIcon="@Embed('assets/icons/large/w_icon_myworlz.png')"
+						  creationComplete="handleCreationComplete()"
+						  width="500" minWidth="500" maxWidth="500"
+						  height="500" minHeight="348" xmlns:controls="controls.*">
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.interactivity.rpc.InteractivityClient;
+			import com.worlize.model.Directory;
+			import com.worlize.model.DirectoryEntry;
+			import com.worlize.model.PreferencesManager;
+			import com.worlize.view.itemrenderers.DirectoryEntryItemRenderer;
+			
+			import flex.utils.spark.resize.ResizeManager;
+			
+			import mx.binding.utils.ChangeWatcher;
+			import mx.events.CloseEvent;
+			import mx.events.ResizeEvent;
+			import mx.managers.PopUpManager;
+			
+			import spark.events.IndexChangeEvent;
+			import spark.events.TitleWindowBoundsEvent;
+			import spark.skins.spark.DefaultItemRenderer;
+			private static var _open:Boolean = false;
+			private static var _instance:WorlizeWindow;
+			
+			[Bindable]
+			public var directory:Directory = new Directory();
+			
+			public static function toggleOpen(parent:DisplayObject):void {
+				if (_open) {
+					close();
+				}
+				else {
+					open(parent);
+				}
+			}
+			
+			public static function open(parent:DisplayObject):void {
+				var preferences:PreferencesManager = PreferencesManager.getInstance();
+				if (_open) {
+					PopUpManager.bringToFront(_instance);
+					_instance.setFocus();
+				}
+				else {
+					var needsPosition:Boolean = false;
+					if (!_instance) {
+						needsPosition = true;
+						_instance = new DirectoryWindow();
+						_instance.addEventListener(CloseEvent.CLOSE, function(event:CloseEvent):void {
+							close();
+						});
+					}
+					if ((_instance as DirectoryWindow).directory.state !== Directory.STATE_LOADING) {
+						(_instance as DirectoryWindow).directory.load();
+					}
+					PopUpManager.addPopUp(_instance, parent);
+					if (needsPosition) {
+						var coordinates:Array = preferences.getPreference('directoryPosition') as Array;
+						var size:Array = preferences.getPreference('directorySize') as Array;
+						if (coordinates && size &&
+							_instance.boundsAreValid(coordinates[0], coordinates[1], size[0], size[1]))
+						{
+							_instance.x = coordinates[0];
+							_instance.y = coordinates[1];
+							_instance.width = size[0];
+							_instance.height = size[1];
+						}
+						else {
+							PopUpManager.centerPopUp(_instance);
+						}
+					}
+					_open = true;
+				}
+			}
+			
+			private function saveSizeAndPosition():void {
+				var preferences:PreferencesManager = PreferencesManager.getInstance();
+				preferences.setPreference('directoryPosition', [x,y]);
+				preferences.setPreference('directorySize', [width, height]);
+			}
+			
+			public static function close():void {
+				if (_open && _instance) {
+					PopUpManager.removePopUp(_instance);
+					_open = false;
+				}
+			}
+			
+			private function handleCreationComplete():void {
+				addEventListener(ResizeManager.RESIZE_END, function(event:ResizeEvent):void {
+					saveSizeAndPosition();
+				});
+				addEventListener(TitleWindowBoundsEvent.WINDOW_MOVE_END, function(event:TitleWindowBoundsEvent):void {
+					saveSizeAndPosition();
+				});
+				
+				var watcher:ChangeWatcher = ChangeWatcher.watch(this, ['directory','state'], handleDirectoryStateChange);
+				updateLoadingSpinnerState();
+			}
+			
+			private function handleDirectoryStateChange(event:Event):void {
+				updateLoadingSpinnerState();
+			}
+			
+			private function updateLoadingSpinnerState():void {
+				if (directory.state === Directory.STATE_LOADING) {
+					loadingSpinner.play();
+					loadingSpinner.visible = true;
+					loadingSpinner.includeInLayout = true;
+				}
+				else {
+					loadingSpinner.stop();
+					loadingSpinner.visible = false;
+					loadingSpinner.includeInLayout = false;
+				}
+			}
+
+			private function selectItemRenderer(item:Object):ClassFactory {
+				var classFactory:ClassFactory;
+				if (item is DirectoryEntry) {
+					classFactory = new ClassFactory(DirectoryEntryItemRenderer);
+				}
+				else {
+					classFactory = new ClassFactory(DefaultItemRenderer);
+				}
+				return classFactory;
+			}
+			
+			protected function handleDirectorySelectionChanging(event:IndexChangeEvent):void {
+				var list:List = event.target as List;
+				
+				if (event.newIndex > -1 && event.newIndex < list.dataProvider.length) {
+					var item:Object = list.dataProvider.getItemAt(event.newIndex);
+					
+					if (item is DirectoryEntry) {
+						var entry:DirectoryEntry = item as DirectoryEntry;
+						InteractivityClient.getInstance().gotoRoom(entry.room.guid);
+						close();
+					}
+				}
+				
+				// nothing is selectable
+				event.preventDefault();
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<components:controlBarContent>
+		<s:Label height="80%" verticalAlign="bottom"
+				 visible="{directory.state === Directory.STATE_READY}"
+				 textAlign="right" text="There are {directory.length} rooms operating" />
+	</components:controlBarContent>
+	
+	<s:Group top="10" left="10" right="10" bottom="10">
+		<s:layout>
+			<s:VerticalLayout gap="5" />
+		</s:layout>
+		
+		<s:Group id="listContainer" width="100%" height="100%">
+			<s:List top="0" left="0" right="0" bottom="0"
+					id="directoryList"
+					borderColor="#DDDDDD"
+					alternatingItemColors="[#FFFFFF, #F4F4F4]"
+					rollOverColor="#DAEEF7"
+					itemRendererFunction="{selectItemRenderer}"
+					changing="handleDirectorySelectionChanging(event)"
+					dataProvider="{directory}" />
+		</s:Group>
+	</s:Group>
+	
+	<controls:Spinner id="loadingSpinner"
+					  autoPlay="false"
+					  mouseEnabled="false"
+					  mouseChildren="false"
+					  size="64" numTicks="14"
+					  tickWidth="4" speed="600"
+					  horizontalCenter="0"
+					  verticalCenter="0"
+					  fadeSpeed="500" tickColor="#444444" />
+	
 </components:WorlizeWindow>

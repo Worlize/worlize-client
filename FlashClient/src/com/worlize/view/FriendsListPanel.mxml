@@ -250,6 +250,7 @@
 					height="100%"
 					dataProvider="{friendsList.friendsForFriendsList}"
 					borderVisible="false"
+					tabEnabled="false"
 					changing="handleFriendListChanging(event)"
 					itemRendererFunction="{selectItemRenderer}" />
 			</s:VGroup>

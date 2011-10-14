@@ -19,6 +19,11 @@ s|Button s|Label, s|DropDownList s|Label {
 	fontSize: 14pt;
 }
 
+s|List.noScroll s|Scroller {
+	horizontalScrollPolicy: off;
+	verticalScrollPolicy: off;
+}
+
 global {
 	modal-transparency-blur: 0;
 	modal-transparency-duration: 0;
@@ -26,12 +31,13 @@ global {
 }
 
 s|Label {
-	fontFamily: "Lucida Sans", "Arial";
-	fontSize: 14px;
+/*	fontFamily: "Lucida Grande", "Arial";
+	fontSize: 12px; */
+	color: #333333;
 }
 
 s|TextInput {
-	fontFamily: "Lucida Sans", "Arial";
+	fontFamily: "Lucida Grande", "Arial";
 	contentBackgroundColor: #f2f2f2;
 	color: #858585;
 }
@@ -72,8 +78,16 @@ s|Label.socialCallout {
 	paddingLeft: 10px;
 	paddingRight: 10px;
 	cornerRadius: 0px;
+}
+
+.forumsButton {
+	rollOverColor: #58bf2f;
 	textRollOverColor: #FFFFFF;
+}
+
+.logOutButton {
 	rollOverColor: #9f3030;
+	textRollOverColor: #FFFFFF;
 }
 
 .pushToTalkButton {
@@ -123,14 +137,13 @@ s|Label.socialCallout {
 }
 
 .lockerNavButton {
-	fontFamily: "Lucida Sans", "Arial";
-	fontSize: 16pt;
-	fontWeight: bold;
+	fontFamily: PTSansNarrowBold;
+	fontSize: 20pt;
 	paddingTop: 0px;
 	paddingBottom: 1px;
-	paddingLeft: 2px;
-	paddingRight: 5px;
-	cornerRadius: 14px;
+	paddingLeft: 4px;
+	paddingRight: 7px;
+	cornerRadius: 15px;
 	rollOverColor: #e6e3dc;
 }
 
@@ -161,7 +174,7 @@ s|Label.socialCallout {
 
 mx|ToolTip {
 	fontFamily: PTSansNarrowBold;
-	fontSize: 14pt;
+	fontSize: 16pt;
 	backgroundColor: #FFFFFF;
 	cornerRadius: 0;
 }

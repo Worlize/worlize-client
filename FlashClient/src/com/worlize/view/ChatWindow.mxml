@@ -330,7 +330,7 @@
 		<s:Button id="logWindowButton"
 				  toolTip="Open/Close Log Window"
 				  click="toggleLogWindow()"
-				  label="Chat Log"
+				  label="Log"
 				  icon="@Embed(source='src/assets/icons/icon_log_transparent.png')"
 				  styleName="logWindowButton"
 				  tabEnabled="false"

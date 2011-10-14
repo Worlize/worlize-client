@@ -167,22 +167,20 @@
 					</mx:filters>
 				</mx:Image>
 				
-				<s:Group left="0" top="0" bottom="2" right="0">
-
+				<s:Group left="0" top="{getStyle('titleBarHeight')}" bottom="2" right="0">
 					<!-- layer 3: text -->
 					<!--- @copy spark.components.Panel#titleDisplay -->
 					<s:Label id="titleDisplay" maxDisplayedLines="1"
 							 fontFamily="PTSansNarrowBold" fontSize="30"
-							 left="35" bottom="10" paddingRight="10" 
-							 verticalAlign="middle" />
+							 left="35" bottom="3" paddingRight="10" />
 					
 					<s:Group id="moveArea" left="0" right="0" top="0" bottom="0" />
 					
-					<s:Group id="controlBarGroup" top="{getStyle('titleBarHeight')}" right="30" bottom="2"
+					<s:Group id="controlBarGroup" top="0" right="12" bottom="0"
 							 					  left="{titleDisplay.x + titleDisplay.width}">
 						<s:layout>
 							<s:HorizontalLayout
-								paddingLeft="10" paddingRight="10" paddingTop="10" paddingBottom="10"
+								paddingLeft="10" paddingRight="0" paddingTop="0" paddingBottom="0"
 								gap="14" horizontalAlign="right" verticalAlign="middle" />
 						</s:layout>
 					</s:Group>

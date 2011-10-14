@@ -41,6 +41,7 @@
 			import com.worlize.state.AuthorModeState;
 			import com.worlize.view.LockerWindow;
 			import com.worlize.view.author.AuthorModePropertiesWindow;
+			import com.worlize.view.windows.DirectoryWindow;
 			import com.worlize.view.windows.FriendsWindow;
 			import com.worlize.view.windows.GiftsWindow;
 			import com.worlize.view.windows.WorldsWindow;
@@ -66,12 +67,23 @@
 			
 			private var manualFriendsListState:String = null;
 			
+			[Bindable]
+			private var logOutToolTip:String;
+			
 			private function handleApplicationComplete():void {
 				trace("Application Domain: " + url);
 				trace("Flash Player Version: " + Capabilities.version);
 				stage.addEventListener(KeyboardEvent.KEY_DOWN, handleStageKeyDown);
 				stage.addEventListener(Event.RESIZE, handleStageResize);
 				updateFriendsListAutoDisplay();
+				
+				if (ExternalInterface.call('getFacebookLoginStatus')) {
+					logOutToolTip = "Log out of Worlize and Facebook";
+				}
+				else {
+					logOutToolTip = "Log out of Worlize";
+				}
+				
 //				analytics.tracker.setDomainName(".worlize.com");
 //				analytics.tracker.trackPageview("/enter");
 			}
@@ -107,9 +119,6 @@
 
 				NotificationCenter.addListener(AuthorModeNotification.AUTHOR_DISABLED, handleAuthorDisabled);
 				NotificationCenter.addListener(AuthorModeNotification.SELECTED_ITEM_CHANGED, handleAuthorSelectedItemChanged);
-				
-				var directory:Directory = new Directory();
-				directory.load();
 			}
 			
 			private var authorMode:Boolean = false;
@@ -189,8 +198,8 @@
 				GiftsWindow.open(systemManager.getSandboxRoot(), globalPoint.x, globalPoint.y + giftsButton.height);
 			}
 			
-			private function handleWorlzClick():void {
-				WorldsWindow.open(systemManager.getSandboxRoot());
+			private function handleDirectoryClick():void {
+				DirectoryWindow.toggleOpen(systemManager.getSandboxRoot());
 			}
 			
 			private function showComingSoon(message:String):void {
@@ -279,6 +288,11 @@
 						   Alert.NO);
 			}
 			
+			private function handleForumsClick(event:MouseEvent):void {
+				var request:URLRequest = new URLRequest("https://forums.worlize.com/");
+				navigateToURL(request, "_blank");
+			}
+			
 		]]>
 	</fx:Script>
 
@@ -304,7 +318,7 @@
 				styleName="topNavButton"
 				color="#0C9dea"
 				icon="@Embed(source='src/assets/icons/icon_myworlz.png')"
-				click="handleWorlzClick()"
+				click="handleDirectoryClick()"
 				label="DIRECTORY" />
 			<mx:LinkButton
 				styleName="topNavButton"
@@ -345,16 +359,24 @@
 	</s:HGroup>
 	
 	<s:HGroup right="0" top="0" height="40" gap="0" verticalAlign="middle">
+		<mx:LinkButton label="FORUMS"
+					   height="100%"
+					   styleName="topNavButtonRight forumsButton"
+					   color="#333333"
+					   toolTip="Submit feature requests or get help from the community in the forums."
+					   click="handleForumsClick(event)"/>
 		<mx:LinkButton label="LOG OUT"
 					   height="100%"
-					   styleName="topNavButtonRight"
+					   styleName="topNavButtonRight logOutButton"
 					   color="#333333"
+					   toolTip="{logOutToolTip}"
 					   click="handleLogoutClick(event)"/>
 		<s:ToggleButton label="FRIENDS"
 						id="friendsListToggleButton"
 						height="100%"
 						icon="@Embed(source='src/assets/icons/icon_friends.png')"
 						styleName="friendsListToggleButton"
+						toolTip="Find and invite your friends"
 						change="handleFriendsButtonChange(event)" />
 	</s:HGroup>
 	
@@ -362,6 +384,6 @@
 							friendsList="{FriendsList.getInstance()}"
 							top="40" right="0" bottom="0" width="250" />
 	
-	<visualnotification:VisualNotifier top="20" left="0" right="0" bottom="0" />
+	<visualnotification:VisualNotifier id="visualNotifier" top="20" left="0" right="0" bottom="0" />
 	
 </s:Application>
