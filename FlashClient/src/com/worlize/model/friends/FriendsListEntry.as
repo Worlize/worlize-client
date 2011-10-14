@@ -84,9 +84,6 @@ package com.worlize.model.friends
 			instance.facebookOnlinePresence = data.fb_online_presence;
 			instance.name = data.name;
 			instance.picture = data.picture;
-			if (instance.friendType === TYPE_WORLIZE) {
-				instance.name = instance.username;
-			}
 			return instance;
 		}
 		

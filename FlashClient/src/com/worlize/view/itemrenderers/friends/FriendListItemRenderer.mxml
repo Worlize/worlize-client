@@ -92,7 +92,7 @@
 					menuData.push({ type: 'normal', label: 'Go to Current Location', action: 'join' });
 					menuData.push({ type: 'normal', label: 'Invite to Your Location', action: 'invite' });
 				}
-				menuData.push({ type: 'normal', label: 'Go to Worlz', action: 'visitWorlz' });
+				menuData.push({ type: 'normal', label: 'Visit Home', action: 'visitWorlz' });
 				if (entry.facebookProfile) {
 					menuData.push({ type: 'normal', label: 'View Facebook Profile', action: 'facebookProfile' });
 				}

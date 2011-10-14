@@ -327,10 +327,14 @@
 	
 	<s:HGroup bottom="2" left="431" gap="6" mouseUp="focusChatBox()">
 
-		<mx:Image useHandCursor="true" buttonMode="true"
-				  toolTip="Log Window"
+		<s:Button id="logWindowButton"
+				  toolTip="Open/Close Log Window"
 				  click="toggleLogWindow()"
-				  source="@Embed(source='src/assets/icons/icon_log.png')" />
+				  label="Chat Log"
+				  icon="@Embed(source='src/assets/icons/icon_log_transparent.png')"
+				  styleName="logWindowButton"
+				  tabEnabled="false"
+				  focusEnabled="false" />
 	
 		<s:ToggleButton id="enableWebcamButton"
 						visible="{client.webcamBroadcastManager.isCameraAvailable()}"
@@ -339,6 +343,7 @@
 						label="{client.webcamBroadcastManager.broadcasting ? 'On' : 'Off'}"
 						selected="{client.webcamBroadcastManager.broadcasting}"
 						toolTip="Turn Webcam On/Off"
+						icon="@Embed(source='/assets/icons/icon_webcam.png')"
 						tabEnabled="false"
 						focusEnabled="false"
 						change="toggleWebcam()"

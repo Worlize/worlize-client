@@ -33,6 +33,7 @@
 			import com.worlize.interactivity.model.InteractivityUser;
 			import com.worlize.interactivity.rpc.InteractivityClient;
 			import com.worlize.model.CurrentUser;
+			import com.worlize.model.Directory;
 			import com.worlize.model.friends.FriendsList;
 			import com.worlize.rpc.HTTPMethod;
 			import com.worlize.rpc.WorlizeResultEvent;
@@ -106,6 +107,9 @@
 
 				NotificationCenter.addListener(AuthorModeNotification.AUTHOR_DISABLED, handleAuthorDisabled);
 				NotificationCenter.addListener(AuthorModeNotification.SELECTED_ITEM_CHANGED, handleAuthorSelectedItemChanged);
+				
+				var directory:Directory = new Directory();
+				directory.load();
 			}
 			
 			private var authorMode:Boolean = false;
@@ -258,7 +262,11 @@
 			
 			protected function handleLogoutClick(event:MouseEvent):void
 			{
-				Alert.show("Are you sure you want to log out of Worlize and Facebook?",
+				var message:String = "Are you sure you want to log out of Worlize?";
+				if (ExternalInterface.call('getFacebookLoginStatus') as Boolean) {
+					message = "Are you sure you want to log out of Worlize and Facebook?";
+				}
+				Alert.show(message,
 						   "Logout",
 						   Alert.YES | Alert.NO,
 						   null,

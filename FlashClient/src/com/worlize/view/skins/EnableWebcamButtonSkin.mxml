@@ -99,9 +99,7 @@
         </s:fill>
     </s:Rect>
 	
-	<s:Image top="3" left="8" source="@Embed(source='/assets/icons/icon_webcam.png')" />
-    
-    <!-- layer 8: text -->
+	<!-- layer 8: text -->
     <!--- @copy spark.components.supportClasses.ButtonBase#labelDisplay -->
     <s:Label id="labelDisplay"
              textAlign="center"

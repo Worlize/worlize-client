@@ -111,6 +111,17 @@ s|Label.socialCallout {
 	color: #FFFFFF;
 }
 
+.logWindowButton {
+	cornerRadius: 10px;
+	skinClass: ClassReference("com.worlize.view.skins.ChatLogButtonSkin");
+}
+
+.logWindowButton s|Label {
+	fontFamily: PTSansNarrowBold;
+	fontSize: 14pt;
+	color: #FFFFFF;
+}
+
 .lockerNavButton {
 	fontFamily: "Lucida Sans", "Arial";
 	fontSize: 16pt;
