@@ -239,15 +239,24 @@
 					client.setVideoAvatar();
 				}
 			}
+			
+			private function handleShareClick():void {
+				ExternalInterface.call('launchShareDialog', {
+					username: client.currentUser.name,
+					userGuid: client.currentUser.id,
+					roomGuid: client.currentRoom.id,
+					roomName: client.currentRoom.name
+				});
+			}
 		]]>
 	</fx:Script>
 	
 	<s:BorderContainer
 		borderVisible="false"
 		backgroundColor="#f0f0f1"
-		top="0" left="0" right="0" height="21">
+		top="0" left="0" right="0" height="26">
 		
-		<s:Group left="0" top="0">
+		<s:Group left="0" verticalCenter="0">
 			<s:layout>
 				<s:HorizontalLayout gap="3" paddingTop="3" paddingLeft="6"
 									verticalAlign="middle"/>
@@ -314,10 +323,48 @@
 			
 		</s:Group>
 		
+		<s:HGroup
+			verticalCenter="0" right="3">
+			<s:HGroup id="authorIcons" visible="false" visible.authormode="true"
+					  verticalAlign="middle">
+				<mx:Image useHandCursor="true" buttonMode="true"
+						  toolTip="Create New Area"
+						  click="client.createNewRoom()"
+						  source="@Embed(source='src/assets/icons/icon_new_room.png')"
+						  visible="{client.currentWorld.canCreateNewRoom}"
+						  includeInLayout="{client.currentWorld.canCreateNewRoom}" />
+				<mx:Spacer width="10" />
+				<mx:Image useHandCursor="true" buttonMode="true"
+						  toolTip="Create new Door" source="@Embed(source='src/assets/icons/icon_author_door.png')"
+						  click="createHotspot()" />
+				<mx:Image useHandCursor="true" buttonMode="true"
+						  toolTip="Backgrounds" source="@Embed(source='src/assets/icons/icon_author_bkg.png')"
+						  click="handleBackgroundsClick()" />
+				<mx:Image useHandCursor="true" buttonMode="true"
+						  toolTip="Objects" source="@Embed(source='src/assets/icons/icon_author_object.png')"
+						  click="handleObjectsClick()" />
+				<mx:Image useHandCursor="true" buttonMode="true"
+						  toolTip="Add YouTube Player" source="@Embed(source='src/assets/icons/YouTubeIcon.png')"
+						  click="createYoutubePlayer()" />
+				<mx:Image toolTip="Area Settings"
+						  click="handleAreaSettingsClick()"
+						  useHandCursor="true" buttonMode="true"
+						  source="@Embed(source='src/assets/icons/icon_room_settings.png')"
+						  visible="{client.canAuthor}" includeInLayout="{client.canAuthor}" />
+			</s:HGroup>
+			<mx:Image
+				toolTip="Author Mode"
+				visible="{client.canAuthor}"
+				includeInLayout="{client.canAuthor}"
+				useHandCursor="true" buttonMode="true"
+				source="@Embed(source='src/assets/icons/icon_authormode_grey.png')"
+				source.authormode="@Embed(source='src/assets/icons/icon_authormode_red.png')"
+				click="toggleAuthorMode();"/>
+		</s:HGroup>
 	</s:BorderContainer>
 	
 	
-	<s:Group top="21" left="0">
+	<s:Group top="26" left="0">
 		<s:layout>
 			<s:VerticalLayout gap="0"/>
 		</s:layout>
@@ -334,7 +381,7 @@
 		</s:fill>
 	</s:Rect>
 	
-	<s:HGroup bottom="2" left="431" gap="6" mouseUp="focusChatBox()">
+	<s:HGroup bottom="2" left="531" gap="6" mouseUp="focusChatBox()">
 
 		<s:Button id="logWindowButton"
 				  toolTip="Open/Close Log Window"
@@ -366,52 +413,17 @@
 								   includeInLayout="{client.webcamBroadcastManager.broadcasting}" />
 
 	</s:HGroup>
-
-	<s:HGroup
-		bottom="3" right="3">
-		<s:HGroup id="authorIcons" includeIn="authormode"
-				  verticalAlign="middle">
-			<mx:Image useHandCursor="true" buttonMode="true"
-					  toolTip="Create New Area"
-					  click="client.createNewRoom()"
-					  source="@Embed(source='src/assets/icons/icon_new_room.png')"
-					  visible="{client.currentWorld.canCreateNewRoom}"
-					  includeInLayout="{client.currentWorld.canCreateNewRoom}" />
-			<mx:Spacer width="10" />
-			<mx:Image useHandCursor="true" buttonMode="true"
-				toolTip="Create new Door" source="@Embed(source='src/assets/icons/icon_author_door.png')"
-				click="createHotspot()" />
-			<mx:Image useHandCursor="true" buttonMode="true"
-				toolTip="Backgrounds" source="@Embed(source='src/assets/icons/icon_author_bkg.png')"
-			    click="handleBackgroundsClick()" />
-			<mx:Image useHandCursor="true" buttonMode="true"
-				toolTip="Objects" source="@Embed(source='src/assets/icons/icon_author_object.png')"
-				click="handleObjectsClick()" />
-			<mx:Image useHandCursor="true" buttonMode="true"
-					  toolTip="Add YouTube Player" source="@Embed(source='src/assets/icons/YouTubeIcon.png')"
-					  click="createYoutubePlayer()" />
-			<mx:Image toolTip="Area Settings"
-				click="handleAreaSettingsClick()"
-				useHandCursor="true" buttonMode="true"
-				source="@Embed(source='src/assets/icons/icon_room_settings.png')"
-			  	visible="{client.canAuthor}" includeInLayout="{client.canAuthor}" />
-		</s:HGroup>
-		<mx:Image
-			toolTip="Author Mode"
-			visible="{client.canAuthor}"
-			includeInLayout="{client.canAuthor}"
-			useHandCursor="true" buttonMode="true"
-			source="@Embed(source='src/assets/icons/icon_authormode_grey.png')"
-			source.authormode="@Embed(source='src/assets/icons/icon_authormode_red.png')"
-			click="toggleAuthorMode();"/>
-	</s:HGroup>
+	
+	<components:SocialSharingWidget id="sharingWidget"
+									click="handleShareClick()"
+									right="0" bottom="0" />
 	
 	<code:PromptingTextInput
 		tabIndex="1"
 		bottom="3" height="21" left="3"
 		focusRect="false"
 		focusAlpha="0"
-		width="421"
+		width="521"
 		prompt="Type here to chat..."
 		borderVisible="false"
 	 	fontStyle="{client.currentRoom.selectedUser ? 'italic' : 'normal'}"
