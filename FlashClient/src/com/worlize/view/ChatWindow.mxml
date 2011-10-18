@@ -32,6 +32,7 @@
 			import com.worlize.interactivity.iptscrae.command.CLIENTTYPECommand;
 			import com.worlize.interactivity.model.WebcamBroadcastManager;
 			import com.worlize.interactivity.rpc.InteractivityClient;
+			import com.worlize.notification.WorlizeNotification;
 			import com.worlize.state.AuthorModeState;
 			import com.worlize.view.author.MyBackgroundsWindow;
 			import com.worlize.view.author.MyGamesWindow;
@@ -69,6 +70,11 @@
 				roomView.addEventListener(MouseEvent.MOUSE_UP, handleRoomMouseUp);
 				NotificationCenter.addListener(AuthorModeNotification.AUTHOR_DISABLED, handleAuthorModeDisabled);
 				NotificationCenter.addListener(AuthorModeNotification.AUTHOR_ENABLED, handleAuthorModeEnabled);
+				NotificationCenter.addListener(WorlizeNotification.FOCUS_CHAT_BOX_NOTIFICATION, handleFocusChatBoxNotification);
+			}
+			
+			private function handleFocusChatBoxNotification(event:WorlizeNotification):void {
+				focusChatBox();
 			}
 			
 			private function handleStageResize(event:Event):void {

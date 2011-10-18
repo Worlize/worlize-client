@@ -25,6 +25,7 @@
 	
 	<fx:Script>
 		<![CDATA[
+			import com.worlize.event.NotificationCenter;
 			import com.worlize.interactivity.event.ChatEvent;
 			import com.worlize.interactivity.event.InteractivitySecurityErrorEvent;
 			import com.worlize.interactivity.event.RoomEvent;
@@ -35,10 +36,11 @@
 			import com.worlize.interactivity.model.InteractivityConfig;
 			import com.worlize.interactivity.model.InteractivityUser;
 			import com.worlize.interactivity.rpc.InteractivityClient;
+			import com.worlize.model.RoomDefinition;
 			import com.worlize.model.friends.FriendsList;
 			import com.worlize.model.friends.FriendsListEntry;
-			import com.worlize.model.RoomDefinition;
 			import com.worlize.model.userSearch.UserSearchResultLineItem;
+			import com.worlize.notification.WorlizeNotification;
 			import com.worlize.state.AuthorModeState;
 			
 			import mx.binding.utils.ChangeWatcher;
@@ -265,13 +267,18 @@
 			
 			private function handleUserContextMenuItemClick(event:MenuEvent):void {
 				var interactivityUser:InteractivityUser;
+				var worlizeNotification:WorlizeNotification;
 				switch (event.item.action) {
 					case "whisper":
 						interactivityUser = InteractivityUser(event.item.user);
 						room.selectedUser = interactivityUser;
+						worlizeNotification = new WorlizeNotification(WorlizeNotification.FOCUS_CHAT_BOX_NOTIFICATION);
+						NotificationCenter.postNotification(worlizeNotification);
 						break;
 					case "stopWhispering":
 						room.selectedUser = null;
+						worlizeNotification = new WorlizeNotification(WorlizeNotification.FOCUS_CHAT_BOX_NOTIFICATION);
+						NotificationCenter.postNotification(worlizeNotification);
 						break;
 					case "removeFriend":
 						interactivityUser = InteractivityUser(event.item.user);
