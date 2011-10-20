@@ -36,8 +36,8 @@ package com.worlize.model.friends
 		
 		public static const LIST_PRIORITY_FRIEND_REQUEST:int = 0;
 		public static const LIST_PRIORITY_ONLINE_FRIEND:int = 1;
-		public static const LIST_PRIORITY_OFFLINE_FRIEND:int = 2;
-		public static const LIST_PRIORITY_ONLINE_FACEBOOK_FRIEND:int = 3;
+		public static const LIST_PRIORITY_ONLINE_FACEBOOK_FRIEND:int = 2;
+		public static const LIST_PRIORITY_OFFLINE_FRIEND:int = 3;
 		
 		private var _state:String = STATE_READY;
 		
