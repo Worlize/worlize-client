@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:HGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" 
+		  xmlns:mx="library://ns.adobe.com/flex/mx"
+		  verticalAlign="middle" gap="1">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.components.visualnotification.VisualNotification;
+			
+			import flash.desktop.Clipboard;
+			import flash.desktop.ClipboardFormats;
+			[Bindable]
+			public var description:String = "a link";
+			
+			[Bindable]
+			public var twitterText:String;
+			
+			[Bindable]
+			public var twitterRelated:String;
+			
+			[Bindable]
+			public var twitterVia:String;
+			
+			[Bindable]
+			public var facebookPicture:String;
+			
+			[Bindable]
+			public var facebookName:String;
+			
+			[Bindable]
+			public var facebookCaption:String;
+			
+			[Bindable]
+			public var facebookDescription:String;
+			
+			[Bindable]
+			public var linkFunction:Function;
+			
+			public function get link():String {
+				return linkFunction() as String;
+			}
+			
+			private function handleShareTwitterButtonClick(event:MouseEvent):void {
+				var twitterLink:String = "https://twitter.com/share?";
+				var twitterParams:Object = {
+					url: link,
+					via: twitterVia,
+					text: twitterText,
+					related: twitterRelated
+				};
+				var temp:Array = [];
+				for (var key:String in twitterParams) {
+					var value:String = twitterParams[key];
+					temp.push(encodeURIComponent(key) + "=" + encodeURIComponent(value));
+				}
+				twitterLink += temp.join("&");
+				ExternalInterface.call('launchCenteredPopup', twitterLink, 550, 450);
+			}
+			
+			private function handleShareFacebookButtonClick(event:MouseEvent):void {
+				ExternalInterface.call('showFacebookDialog', {
+					method: 'feed',
+					link: link,
+					picture: facebookPicture,
+					name: facebookName,
+					caption: facebookCaption,
+					description: facebookDescription
+				});
+			}
+			
+			private function handleShareLinkButtonClick(event:MouseEvent):void {
+				Clipboard.generalClipboard.setData(ClipboardFormats.TEXT_FORMAT, link);
+				var capitalizedDescription:String = description.charAt(0).toLocaleUpperCase() + description.slice(1);
+				var notification:VisualNotification = new VisualNotification(
+					capitalizedDescription + " has been copied to the clipboard.  Paste it to a friend!",
+					"Link Copied"
+				);
+				notification.show();
+			}
+		]]>
+	</fx:Script>
+	
+	<s:Label text="SHARE:"
+			 paddingTop="2"
+			 fontFamily="PTSansNarrowBold"
+			 fontSize="14"
+			 paddingRight="3"
+			 color="#333333" />
+	<s:Button id="shareTwitterButton"
+			  click="handleShareTwitterButtonClick(event)"
+			  skinClass="com.worlize.view.skins.buttons.socialsharing.SmallTweetButtonSkin"
+			  toolTip="Post {description} on Twitter." />
+	<s:Button id="shareFacebookButton"
+			  click="handleShareFacebookButtonClick(event)"
+			  skinClass="com.worlize.view.skins.buttons.socialsharing.SmallFacebookButtonSkin"
+			  toolTip="Post {description} on Facebook." />
+	<s:Button id="shareLinkButton"
+			  click="handleShareLinkButtonClick(event)"
+			  skinClass="com.worlize.view.skins.buttons.socialsharing.SmallLinkButtonSkin"
+			  toolTip="Copy {description} to the clipboard." />
+
+</s:HGroup>

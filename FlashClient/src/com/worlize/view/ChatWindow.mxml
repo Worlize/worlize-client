@@ -239,15 +239,7 @@
 					client.setVideoAvatar();
 				}
 			}
-			
-			private function handleShareClick():void {
-				ExternalInterface.call('launchShareDialog', {
-					username: client.currentUser.name,
-					userGuid: client.currentUser.id,
-					roomGuid: client.currentRoom.id,
-					roomName: client.currentRoom.name
-				});
-			}
+
 		]]>
 	</fx:Script>
 	
@@ -413,10 +405,6 @@
 								   includeInLayout="{client.webcamBroadcastManager.broadcasting}" />
 
 	</s:HGroup>
-	
-	<components:SocialSharingWidget id="sharingWidget"
-									click="handleShareClick()"
-									right="0" bottom="0" />
 	
 	<code:PromptingTextInput
 		tabIndex="1"

@@ -150,7 +150,7 @@ package com.worlize.interactivity.rpc
 		
 		private var recentLogonUserIds:ArrayCollection = new ArrayCollection();
 		
-		private var worlizeConfig:WorlizeConfig = WorlizeConfig.getInstance();
+		public var worlizeConfig:WorlizeConfig = WorlizeConfig.getInstance();
 		
 		[Bindable]
 		public var netConnectionManager:NetConnectionManager = new NetConnectionManager();

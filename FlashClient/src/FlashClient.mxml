@@ -22,6 +22,7 @@
  
 	<fx:Script>
 		<![CDATA[
+			import com.adobe.net.URI;
 			import com.worlize.components.visualnotification.VisualNotification;
 			import com.worlize.control.Marketplace;
 			import com.worlize.control.VirtualCurrencyProducts;
@@ -49,11 +50,14 @@
 			import com.worlize.view.windows.GiftsWindow;
 			import com.worlize.view.windows.WorldsWindow;
 			
+			import flash.desktop.Clipboard;
+			import flash.desktop.ClipboardFormats;
 			import flash.net.navigateToURL;
 			import flash.sampler.getInvocationCount;
 			
 			import mx.binding.utils.ChangeWatcher;
 			import mx.controls.Alert;
+			import mx.core.mx_internal;
 			import mx.events.CloseEvent;
 			import mx.events.PropertyChangeEvent;
 			import mx.managers.PopUpManager;
@@ -330,6 +334,14 @@
 				}
 			}
 			
+			public function get baseURI():String {
+				var appURI:URI = new URI(url);
+				return appURI.scheme + "://" + appURI.authority;
+			}
+			
+			private function getUserJoinLink():String {
+				return baseURI + "/users/" + encodeURIComponent(client.worlizeConfig.currentUser.username) + "/join";
+			}
 		]]>
 	</fx:Script>
 
@@ -393,6 +405,20 @@
 				toolTip="Click to add coins or bucks"
 				click="showVirtualCurrencyProducts();"
 				/>
+			
+			<components:SocialShareWidget
+				  tabChildren="false"
+				  description="a link to your location"
+				  linkFunction="{getUserJoinLink}"
+				  twitterText="I'm chatting right now in Worlize, a 2d virtual world platform.  Come join me!"
+				  twitterRelated="worlize"
+				  twitterVia="worlize"
+				  facebookPicture="https://www.worlize.com/images/share-facebook-link-picture-2.png"
+				  facebookName="Come chat with me LIVE right now in Worlize!"
+				  facebookCaption="Worlize: Your World, Realized"
+				  facebookDescription="I'm online right now in Worlize, a stylish avatar chat hangout where you can be whatever you want.  Come join me!"
+				  paddingLeft="10" />
+			
 			<!--
 			<mx:LinkButton
 				styleName="topNavButton"
@@ -402,7 +428,6 @@
 				label="Marketplace" />
 			-->
 		</s:HGroup>
-
 	</s:HGroup>
 	
 	<s:HGroup right="0" top="0" height="40" gap="0" verticalAlign="middle">
