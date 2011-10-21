@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- width="{backgroundImage.width}" height="{backgroundImage.height}" -->
 <s:Group xmlns:mx="library://ns.adobe.com/flex/halo"
-	width="950" height="570"
 	clipAndEnableScrolling="true"
 	currentState="normal"
 	creationComplete="handleCreationComplete()"
+	width="950" height="570"
+	scaleX="{scaleFactor}"
+	scaleY="{scaleFactor}"
 	xmlns:view="com.worlize.interactivity.view.*"
 	xmlns:s="library://ns.adobe.com/flex/spark"
 	xmlns:fx="http://ns.adobe.com/mxml/2009"
@@ -54,6 +56,7 @@
 			import mx.events.CloseEvent;
 			import mx.events.DragEvent;
 			import mx.events.EffectEvent;
+			import mx.events.FlexEvent;
 			import mx.events.MenuEvent;
 			import mx.events.PropertyChangeEvent;
 			import mx.managers.DragManager;
@@ -61,6 +64,8 @@
 			import spark.effects.Animate;
 			import spark.effects.Fade;
 			import spark.effects.Move;
+			
+			private var _scaleFactor:Number = 1.0;
 			
 			private var _room:CurrentRoom;
 			private var roomBackgroundWatcher:ChangeWatcher;
@@ -73,6 +78,18 @@
 			private var forcingJpeg:Boolean = false;
 			
 			private var currentMenu:Menu;
+			
+			[Bindable(event="scaleFactorChanged")]
+			public function get scaleFactor():Number {
+				return _scaleFactor;
+			}
+			public function set scaleFactor(newValue:Number):void {
+				if (_scaleFactor !== newValue) {
+					_scaleFactor = newValue;
+					updateTextItemScale();
+					dispatchEvent(new FlexEvent('scaleFactorChanged'));
+				}
+			}
 			
 			[Bindable(event="roomChanged")]
 			public function get room():CurrentRoom {
@@ -113,6 +130,26 @@
 				addEventListener(DragEvent.DRAG_ENTER, handleDragEnter);
 				addEventListener(DragEvent.DRAG_DROP, handleDragDrop);
 				addEventListener(DragEvent.DRAG_OVER, handleDragOver);
+			}
+			
+			public function updateTextItemScale():void {
+				var inverseScaleFactor:Number = 1 / scaleFactor;
+				for (var i:int=0; i < nameTagGroup.numElements; i ++) {
+					var element:IVisualElement = nameTagGroup.getElementAt(i);
+					if (element is DisplayObject) {
+						(element as DisplayObject).scaleX = inverseScaleFactor;
+						(element as DisplayObject).scaleY = inverseScaleFactor;
+					}
+				}
+				
+				for (i=0; i < textGroup.numElements; i ++) {
+					element = textGroup.getElementAt(i);
+					trace(element);
+					if (element is DisplayObject) {
+						(element as DisplayObject).scaleX = inverseScaleFactor;
+						(element as DisplayObject).scaleY = inverseScaleFactor;
+					}
+				}
 			}
 			
 			private function handleDragEnter(event:DragEvent):void {
@@ -406,6 +443,13 @@
 				chatBubble.isWhisper = message.isWhisper;
 				chatBubble.tintColor = message.tint;
 				chatBubble.visible = true;
+				// Compensate for room size reduction, if applied
+				if (scaleX !== 1.0) {
+					chatBubble.scaleX = 1 / scaleX;
+				}
+				if (scaleY !== 1.0) {
+					chatBubble.scaleY = 1 / scaleY;
+				}
 				
 				var overlapped:Boolean = false;
 				
@@ -419,24 +463,24 @@
 					//trace(chatBubble.skin.currentState);
 
 					var skinState:String = chatBubble.skin.currentState;
-					var rightCheck:int, leftCheck:int, bottomCheck:int, topCheck:int;
-					
+					var rightCheck:Number, leftCheck:Number, bottomCheck:Number, topCheck:Number;
+					var inverseScaleFactor:Number = 1 / scaleFactor;
 					
 					if (skinState.indexOf('Right') != -1) {
-						rightCheck = chatBubble.x + chatBubble.skin.x + chatBubble.skin.measuredWidth;
+						rightCheck = chatBubble.x + chatBubble.skin.x + (chatBubble.skin.measuredWidth * inverseScaleFactor);
 						leftCheck = chatBubble.x + chatBubble.skin.x;
 					}
 					if (skinState.indexOf('Left') != -1) {
 						rightCheck = chatBubble.x + chatBubble.skin.x;
-						leftCheck = chatBubble.x + chatBubble.skin.x - chatBubble.skin.measuredWidth;
+						leftCheck = chatBubble.x + chatBubble.skin.x - (chatBubble.skin.measuredWidth * inverseScaleFactor);
 					}
 					if (skinState.indexOf('bottom') != -1) {
-						bottomCheck = chatBubble.y + chatBubble.skin.y + chatBubble.skin.measuredHeight;
+						bottomCheck = chatBubble.y + chatBubble.skin.y + (chatBubble.skin.measuredHeight * inverseScaleFactor);
 						topCheck = chatBubble.y + chatBubble.skin.y;
 					}
 					if (skinState.indexOf('top') != -1) {
 						bottomCheck = chatBubble.y + chatBubble.skin.y;
-						topCheck = chatBubble.y + chatBubble.skin.y - chatBubble.skin.measuredHeight;
+						topCheck = chatBubble.y + chatBubble.skin.y - (chatBubble.skin.measuredHeight * inverseScaleFactor);
 					}
 					 
 					if (
@@ -525,6 +569,10 @@
 				nameTag.user = event.user;
 				nameTagsByUser[event.user] = nameTag;
 				nameTag.alpha = 0;
+				if (scaleX !== 1.0) {
+					nameTag.scaleX = 1 / scaleX;
+					nameTag.scaleY = 1 / scaleY;
+				}
 				nameTagGroup.addElement(nameTag);
 				
 				var fade:Fade = new Fade(nameTag);
@@ -635,7 +683,8 @@
 		</s:fill>
 	</s:Rect>
 	
-	<mx1:Image top="0" left="0" id="backgroundImage" minHeight="570" minWidth="950"
+	<mx1:Image top="0" left="0" id="backgroundImage"
+        width="950" height="570"
 		smoothBitmapContent="true"
 		scaleContent="false" complete="handleBackgroundLoadComplete(event)"
 		loaderContext="{InteractivityClient.loaderContext}" securityError="handleSecurityError(event)" ioError="handleBGioERROR(event);"

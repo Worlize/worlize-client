@@ -90,7 +90,7 @@
 			private function handleMouseDown(event:MouseEvent):void {
 				event.stopImmediatePropagation();
 				startPoint = new Point(point.x, point.y);
-				startMousePoint = new Point(stage.mouseX, stage.mouseY);
+				startMousePoint = new Point(parent.mouseX, parent.mouseY);
 				
 				systemManager.getSandboxRoot().addEventListener(MouseEvent.MOUSE_UP, handleStageMouseUp);
 				systemManager.getSandboxRoot().addEventListener(MouseEvent.MOUSE_MOVE, handleStageMouseMove);
@@ -111,14 +111,14 @@
 				systemManager.getSandboxRoot().removeEventListener(MouseEvent.MOUSE_UP, handleStageMouseUp);
 				systemManager.getSandboxRoot().removeEventListener(MouseEvent.MOUSE_MOVE, handleStageMouseMove);
 				removeEventListener(Event.ENTER_FRAME, handleEnterFrame);
-				addEventListener(Event.REMOVED_FROM_STAGE, handleRemovedFromStage);
+				removeEventListener(Event.REMOVED_FROM_STAGE, handleRemovedFromStage);
 			}
 			
 			private function handleEnterFrame(event:Event):void {
 				if (dragging) {
 					var destPoint:Point = new Point();
-					point.x = destPoint.x = startPoint.x + (stage.mouseX - startMousePoint.x);
-					point.y = destPoint.y = startPoint.y + (stage.mouseY - startMousePoint.y);
+					point.x = destPoint.x = startPoint.x + (parent.mouseX - startMousePoint.x);
+					point.y = destPoint.y = startPoint.y + (parent.mouseY - startMousePoint.y);
 					
 					if (hotspot.location.x + point.x < 0) {
 						point.x = destPoint.x = 0 - hotspot.location.x;
@@ -143,10 +143,11 @@
 			}
 			
 			private function handleRemovedFromStage(event:Event):void {
+				dragging = false;
 				systemManager.getSandboxRoot().removeEventListener(MouseEvent.MOUSE_UP, handleStageMouseUp);
 				systemManager.getSandboxRoot().removeEventListener(MouseEvent.MOUSE_MOVE, handleStageMouseMove);
 				removeEventListener(Event.ENTER_FRAME, handleEnterFrame);
-				addEventListener(Event.REMOVED_FROM_STAGE, handleRemovedFromStage);
+				removeEventListener(Event.REMOVED_FROM_STAGE, handleRemovedFromStage);
 			}
 			
 		]]>

@@ -1,5 +1,10 @@
 package com.worlize.interactivity.view
 {
+	import com.worlize.interactivity.event.HotspotEvent;
+	import com.worlize.interactivity.iptscrae.IptEventHandler;
+	import com.worlize.interactivity.model.Hotspot;
+	import com.worlize.interactivity.model.InteractivityConfig;
+	import com.worlize.interactivity.rpc.InteractivityClient;
 	import com.worlize.model.PreferencesManager;
 	import com.worlize.state.AuthorModeState;
 	
@@ -16,12 +21,6 @@ package com.worlize.interactivity.view
 	import mx.core.FlexSprite;
 	import mx.managers.CursorManager;
 	import mx.managers.SystemManager;
-	
-	import com.worlize.interactivity.event.HotspotEvent;
-	import com.worlize.interactivity.iptscrae.IptEventHandler;
-	import com.worlize.interactivity.model.InteractivityConfig;
-	import com.worlize.interactivity.model.Hotspot;
-	import com.worlize.interactivity.rpc.InteractivityClient;
 
 	public class HotSpotSprite extends FlexSprite
 	{
@@ -156,12 +155,13 @@ package com.worlize.interactivity.view
 			addEventListener(MouseEvent.MOUSE_MOVE, handleAuthorMouseMove);
 			addEventListener(Event.ENTER_FRAME, handleAuthorEnterFrame);
 			startPoint = new Point(x,y);
-			startMousePos = new Point(stage.mouseX, stage.mouseY);
+			startMousePos = new Point(parent.mouseX, parent.mouseY);
 			hotSpot.selectForAuthoring();
 		}
 		
 		private function handleAuthorMouseMove(event:MouseEvent):void {
 			dragging = true;
+			stage.removeEventListener(MouseEvent.MOUSE_MOVE, handleAuthorMouseMove);
 		}
 		
 		private function handleAuthorStageMouseUp(event:MouseEvent):void {
@@ -189,8 +189,8 @@ package com.worlize.interactivity.view
 		private var lastMousePos:Point = new Point(-1, -1);
 		
 		private function handleAuthorEnterFrame(event:Event):void {
-			mousePos.x = stage.mouseX;
-			mousePos.y = stage.mouseY;
+			mousePos.x = parent.mouseX;
+			mousePos.y = parent.mouseY;
 			
 			if (dragging) {
 				var destX:int = startPoint.x + (mousePos.x - startMousePos.x);

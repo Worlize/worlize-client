@@ -10,6 +10,8 @@
 		  mouseDown="handleMouseDown(event)"
 		  mouseOver="handleMouseOver(event)"
 		  mouseOut="handleMouseOut(event)"
+		  loaderContext="{InteractivityClient.loaderContext}"
+		  smoothBitmapContent="true"
 		  x="{inWorldObjectInstance.x - (width/2)}"
 		  y="{inWorldObjectInstance.y - (height/2)}">
 	<fx:Declarations>
@@ -95,8 +97,8 @@
 					event.stopImmediatePropagation();
 					AuthorModeState.getInstance().selectedItem = this.inWorldObjectInstance;
 					startPoint = new Point(inWorldObjectInstance.x, inWorldObjectInstance.y);
-					startMousePos = new Point(stage.mouseX, stage.mouseY);
-					mousePos = new Point(stage.mouseX, stage.mouseY);
+					startMousePos = new Point(parent.mouseX, parent.mouseY);
+					mousePos = new Point(parent.mouseX, parent.mouseY);
 				}
 				else if (inWorldObjectInstance.dest) {
 					InteractivityClient.getInstance().gotoRoom(inWorldObjectInstance.dest);
@@ -119,8 +121,8 @@
 			
 			private function handleStageMouseMove(event:MouseEvent):void {
 				if (dragging) {
-					mousePos.x = stage.mouseX;
-					mousePos.y = stage.mouseY;
+					mousePos.x = parent.mouseX;
+					mousePos.y = parent.mouseY;
 					
 					var destx:int = startPoint.x + (mousePos.x - startMousePos.x);
 					var desty:int = startPoint.y + (mousePos.y - startMousePos.y);

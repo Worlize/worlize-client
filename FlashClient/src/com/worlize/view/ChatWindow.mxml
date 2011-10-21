@@ -1,7 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark" xmlns:view="com.worlize.interactivity.view.*" xmlns:code="http://code.google.com/p/flexlib/"
+<s:Group
+	xmlns:fx="http://ns.adobe.com/mxml/2009"
+	xmlns:s="library://ns.adobe.com/flex/spark"
+	xmlns:view="com.worlize.interactivity.view.*"
+	xmlns:code="http://code.google.com/p/flexlib/"
+	xmlns:layout="flexlib.scheduling.scheduleClasses.layout.*"
+	xmlns:mx="library://ns.adobe.com/flex/mx"
+	xmlns:view1="com.worlize.interactivity.view.*"
+	xmlns:components="com.worlize.view.components.*"
 	creationComplete="handleCreationComplete()"
-	currentState="disconnected" xmlns:layout="flexlib.scheduling.scheduleClasses.layout.*" xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:view1="com.worlize.interactivity.view.*" xmlns:components="com.worlize.view.components.*">
+	initialize="handleInitialize(event)"
+	currentState="disconnected">
 	
 	<s:states>
 		<s:State name="disconnected" />
@@ -46,7 +55,9 @@
 			import flash.filters.BitmapFilterQuality;
 			
 			import mx.binding.utils.ChangeWatcher;
+			import mx.core.Application;
 			import mx.core.ITextInput;
+			import mx.events.FlexEvent;
 			import mx.events.PropertyChangeEvent;
 			import mx.managers.PopUpManager;
 			
@@ -71,16 +82,53 @@
 				NotificationCenter.addListener(AuthorModeNotification.AUTHOR_DISABLED, handleAuthorModeDisabled);
 				NotificationCenter.addListener(AuthorModeNotification.AUTHOR_ENABLED, handleAuthorModeEnabled);
 				NotificationCenter.addListener(WorlizeNotification.FOCUS_CHAT_BOX_NOTIFICATION, handleFocusChatBoxNotification);
+				setTimeout(function():void {
+					recalculateScaleFactor();				
+				}, 250);
+			}
+			
+			protected function handleInitialize(event:FlexEvent):void {
+				addEventListener(Event.ADDED_TO_STAGE, handleAddedToStage);
+				addEventListener(Event.REMOVED_FROM_STAGE, handleRemovedFromStage);
+			}
+			
+			private function handleAddedToStage(event:Event):void {
+				stage.addEventListener(Event.RESIZE, handleStageResize);
+			}
+			
+			private function handleRemovedFromStage(event:Event):void {
+				stage.removeEventListener(Event.RESIZE, handleStageResize);
+			}
+			
+			private function handleStageResize(event:Event):void {
+				recalculateScaleFactor();
+			}
+			
+			private function recalculateScaleFactor():void {
+				callLater(function():void {
+					var topLeftGlobal:Point = roomView.localToGlobal(new Point(roomView.x,roomView.y));
+					var requiredWidth:int = topLeftGlobal.x + roomView.width + 10;
+					var requiredHeight:int = topLeftGlobal.y + roomView.height + bottomBar.height;
+					var scaleFactorX:Number = 1.0;
+					var scaleFactorY:Number = 1.0;
+					var scaleFactor:Number = 1.0;
+					if (requiredWidth > stage.width) {
+						scaleFactorX = (stage.width - topLeftGlobal.x - 10) / roomView.width;
+					}
+					if (requiredHeight > stage.height) {
+						scaleFactorY = (stage.height - topLeftGlobal.y) / roomView.height;
+					}
+					scaleFactor = Math.min(scaleFactorX, scaleFactorY);
+					if (roomView.scaleFactor !== scaleFactor) {
+						roomView.scaleFactor = scaleFactor;
+					}
+				});
 			}
 			
 			private function handleFocusChatBoxNotification(event:WorlizeNotification):void {
 				focusChatBox();
 			}
-			
-			private function handleStageResize(event:Event):void {
-				
-			}
-			
+						
 			private function handleChatKeyDown(event:KeyboardEvent):void {
 				if (event.keyCode == Keyboard.ENTER) {
 					client.say(chatBox.text);
@@ -239,7 +287,7 @@
 					client.setVideoAvatar();
 				}
 			}
-
+			
 		]]>
 	</fx:Script>
 	
@@ -367,7 +415,7 @@
 							 room="{client.currentRoom}" />
 	</s:Group>
 
-	<s:Rect bottom="0" left="0" right="0" height="26">
+	<s:Rect id="bottomBar" bottom="0" left="0" right="0" height="26">
 		<s:fill>
 			<s:SolidColor color="#f0f0f1" alpha="0.55" />
 		</s:fill>

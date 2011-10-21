@@ -8,14 +8,13 @@
 	xmlns:view1="com.worlize.view.*"
 	xmlns:components="com.worlize.view.components.*"
 	xmlns:visualnotification="com.worlize.components.visualnotification.*"
-	minWidth="965" minHeight="500"
+	minWidth="970" minHeight="522"
 	skinClass="FlashClientApplicationSkin"
 	applicationComplete="handleApplicationComplete()"
 	creationComplete="handleCreationComplete()">
 	<s:layout>
 		<s:BasicLayout/>
 	</s:layout>
-	
 	
 	<fx:Style source="Styles.css" />
 	<fx:Style source="src/com/worlize/view/skins/skins.css" />
