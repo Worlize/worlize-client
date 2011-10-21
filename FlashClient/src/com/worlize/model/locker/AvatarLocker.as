@@ -54,6 +54,16 @@ package com.worlize.model.locker
 			return _instance;
 		}
 		
+		public function getAvatarInstaceByGuid(guid:String):AvatarInstance {
+			for (var i:int = 0, len:int = avatarInstances.length; i < len; i++) {
+				var instance:AvatarInstance = AvatarInstance(avatarInstances.getItemAt(i));
+				if (instance.guid === guid) {
+					return instance;
+				}
+			}
+			return null;
+		}
+		
 		private function handleAvatarDeleted(notification:AvatarNotification):void {
 			for (var i:int = 0, len:int = avatarInstances.length; i < len; i++) {
 				var instance:AvatarInstance = AvatarInstance(avatarInstances.getItemAt(i));
@@ -74,12 +84,12 @@ package com.worlize.model.locker
 				if (instance.emptySlot) {
 					avatarInstances.removeItemAt(i);
 					delete avatarInstanceMap[instance.guid];
-					avatarInstances.addItemAt(notification.avatarInstance, i);
+					avatarInstances.addItemAt(notification.avatarInstance, 0);
 					updateCount();
 					return;
 				}
 			}
-			avatarInstances.addItem(notification.avatarInstance);
+			avatarInstances.addItemAt(notification.avatarInstance, 0);
 		}
 		
 		private function addEmptySlot():void {

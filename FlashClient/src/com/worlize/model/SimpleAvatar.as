@@ -22,6 +22,7 @@ package com.worlize.model
 		public var name:String;
 		public var ready:Boolean = false;
 		public var guid:String;
+		public var creatorGuid:String;
 		public var thumbnailURL:String;
 		public var fullsizeURL:String;
 		public var mediumURL:String;
@@ -32,6 +33,7 @@ package com.worlize.model
 		public function fromData(data:Object):void {
 			name = data.name;
 			guid = data.guid;
+			creatorGuid = data.creator_guid;
 			fullsizeURL = data.fullsize;
 			mediumURL = data.medium;
 			smallURL = data.small;

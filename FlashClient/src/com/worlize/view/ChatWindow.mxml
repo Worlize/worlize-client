@@ -83,8 +83,8 @@
 				NotificationCenter.addListener(AuthorModeNotification.AUTHOR_ENABLED, handleAuthorModeEnabled);
 				NotificationCenter.addListener(WorlizeNotification.FOCUS_CHAT_BOX_NOTIFICATION, handleFocusChatBoxNotification);
 				setTimeout(function():void {
-					recalculateScaleFactor();				
-				}, 250);
+					recalculateScaleFactor();		
+				}, 750);
 			}
 			
 			protected function handleInitialize(event:FlexEvent):void {

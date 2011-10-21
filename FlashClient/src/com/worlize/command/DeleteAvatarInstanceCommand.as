@@ -26,11 +26,12 @@ package com.worlize.command
 		}
 		
 		private function handleResult(event:WorlizeResultEvent):void {
-			if (event.resultJSON.success) {
-				var notification:AvatarNotification = new AvatarNotification(AvatarNotification.AVATAR_INSTANCE_DELETED);
-				notification.deletedInstanceGuid = guid;
-				NotificationCenter.postNotification(notification);
-			}
+			// This is now handled by receiving an async notification through websockets.
+//			if (event.resultJSON.success) {
+//				var notification:AvatarNotification = new AvatarNotification(AvatarNotification.AVATAR_INSTANCE_DELETED);
+//				notification.deletedInstanceGuid = guid;
+//				NotificationCenter.postNotification(notification);
+//			}
 		}
 		
 		private function handleFault(event:FaultEvent):void {

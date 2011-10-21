@@ -30,6 +30,7 @@ package com.worlize.interactivity.rpc
 	import com.worlize.model.PreferencesManager;
 	import com.worlize.model.PublicWorldsList;
 	import com.worlize.model.RoomDefinition;
+	import com.worlize.model.SimpleAvatar;
 	import com.worlize.model.SimpleAvatarStore;
 	import com.worlize.model.UserListEntry;
 	import com.worlize.model.VideoAvatar;
@@ -41,6 +42,7 @@ package com.worlize.interactivity.rpc
 	import com.worlize.model.friends.PendingFriendsListEntry;
 	import com.worlize.model.gifts.Gift;
 	import com.worlize.model.gifts.GiftsList;
+	import com.worlize.model.locker.AvatarLocker;
 	import com.worlize.notification.AvatarNotification;
 	import com.worlize.notification.BackgroundImageNotification;
 	import com.worlize.notification.ConnectionNotification;
@@ -426,6 +428,9 @@ package com.worlize.interactivity.rpc
 					case "avatar_instance_added":
 						handleAvatarInstanceAdded(data);
 						break;
+					case "avatar_instance_deleted":
+						handleAvatarInstanceDeleted(data);
+						break;
 					case "in_world_object_instance_added":
 						handleInWorldObjectInstanceAdded(data);
 						break;
@@ -500,6 +505,24 @@ package com.worlize.interactivity.rpc
 			var notification:AvatarNotification = new AvatarNotification(AvatarNotification.AVATAR_INSTANCE_ADDED);
 			notification.avatarInstance = avatarInstance;
 			NotificationCenter.postNotification(notification);
+		}
+		
+		private function handleAvatarInstanceDeleted(data:Object):void {
+			if (data.guid) {
+				// Remove avatar if we're wearing it...
+				var currentAvatar:SimpleAvatar = currentUser.simpleAvatar;
+				var locker:AvatarLocker = AvatarLocker.getInstance();
+				var instance:AvatarInstance = locker.getAvatarInstaceByGuid(data.guid);
+				if (instance) {
+					if (currentAvatar && currentAvatar.guid == instance.avatar.guid) {
+						naked();
+					}
+				}
+				
+				var notification:AvatarNotification = new AvatarNotification(AvatarNotification.AVATAR_INSTANCE_DELETED);
+				notification.deletedInstanceGuid = data.guid;
+				NotificationCenter.postNotification(notification);		
+			}
 		}
 		
 		private function handleBackgroundInstanceAdded(data:Object):void {

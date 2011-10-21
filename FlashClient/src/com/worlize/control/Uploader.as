@@ -88,7 +88,7 @@ package com.worlize.control
 			var cookieStrings:Array = [];
 			for (var cookieKey:String in WorlizeServiceClient.cookies) {
 				var cookieValue:String = WorlizeServiceClient.cookies[cookieKey];
-				cookieStrings.push(cookieKey + "=" + cookieValue);
+				cookieStrings.push(encodeURIComponent(cookieKey) + "=" + encodeURIComponent(cookieValue));
 			}
 			params.cookie = cookieStrings.join("; ");
 			request.data = params;
