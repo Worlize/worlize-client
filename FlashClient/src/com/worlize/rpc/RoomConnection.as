@@ -79,7 +79,7 @@ package com.worlize.rpc
 		}
 		private function handleWebSocketConnectionFail(event:WebSocketErrorEvent):void {
 			trace("Room WebSocket: Connection Fail: " + event.text);
-			//			dispatchEvent(new WorlizeCommEvent(WorlizeCommEvent.DISCONNECTED));
+			dispatchEvent(new WorlizeCommEvent(WorlizeCommEvent.CONNECTION_FAIL));
 		}
 		private function handleWebSocketIOError(event:WebSocketErrorEvent):void {
 			trace("Room WebSocket: IOErrorEvent: " + event.text);

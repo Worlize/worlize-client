@@ -53,6 +53,7 @@ package com.worlize.interactivity.rpc
 	import com.worlize.rpc.HTTPMethod;
 	import com.worlize.rpc.PresenceConnection;
 	import com.worlize.rpc.RoomConnection;
+	import com.worlize.rpc.WorlizeConnectionState;
 	import com.worlize.rpc.WorlizeResultEvent;
 	import com.worlize.rpc.WorlizeServiceClient;
 	import com.worlize.state.AuthorModeState;
@@ -79,6 +80,7 @@ package com.worlize.interactivity.rpc
 	import mx.collections.ArrayCollection;
 	import mx.controls.Alert;
 	import mx.events.CloseEvent;
+	import mx.events.FlexEvent;
 	import mx.rpc.events.FaultEvent;
 	
 	import org.openpalace.iptscrae.IptEngineEvent;
@@ -122,12 +124,24 @@ package com.worlize.interactivity.rpc
 		public var host:String = null;
 		[Bindable]
 		public var initialRoom:uint = 0;
-		[Bindable]
-		public var state:int = STATE_DISCONNECTED;
-		[Bindable]
-		public var connected:Boolean = false;
-		[Bindable]
-		public var connecting:Boolean = false;
+		
+		private var _roomConnectionState:String = WorlizeConnectionState.CONNECTING;
+		[Bindable(event="roomConnectionStateChanged")]
+		public function get roomConnectionState():String {
+			return _roomConnectionState;
+		}
+		public function set roomConnectionState(newValue:String):void {
+			if (_roomConnectionState !== newValue) {
+				_roomConnectionState = newValue;
+				dispatchEvent(new FlexEvent("roomConnectionStateChanged"));
+			}
+		}
+		
+		[Bindable(event="roomConnectionStateChanged")]
+		public function get roomConnected():Boolean {
+			return _roomConnectionState === WorlizeConnectionState.CONNECTED;
+		}
+		
 		[Bindable]
 		public var currentRoom:CurrentRoom = new CurrentRoom();
 		
@@ -191,6 +205,61 @@ package com.worlize.interactivity.rpc
 		public static const STATE_HANDSHAKING:int = 1;
 		public static const STATE_READY:int = 2; 
 		
+		// Incoming Message Handlers
+		private var incomingMessageHandlers:Object = {
+			"user_enter": handleUserNew,
+			"handshake": handleHandshakeResponse,
+			"say": handleReceiveTalk,
+			"whisper": handleReceiveWhisper,
+			"move": handleMove,
+			"set_face": handleUserFace,
+			"set_color": handleUserColor,
+			"user_leave": handleUserLeaving,
+			"room_entered": handleRoomEntered,
+			"room_definition_updated": handleRoomDefinitionUpdated,
+			"global_msg": handleGlobalMessage,
+			"new_hotspot": handleNewHotspot,
+			"hotspot_moved": handleHotspotMoved,
+			"hotspot_removed": handleHotspotRemoved,
+			"hotspot_dest_updated": handleHotspotDestUpdated,
+			"ping": handlePing,
+			"set_simple_avatar": handleSetSimpleAvatar,
+			"set_video_avatar": handleSetVideoAvatar,
+			"naked": handleNaked,
+			"goto_room": handleGotoRoomMessage,
+			"room_redirect": handleRoomRedirect,
+			"new_object": handleNewObject,
+			"object_moved": handleObjectMoved,
+			"object_updated": handleObjectUpdated, // dest changed
+			"object_removed": handleObjectRemoved,
+			"friend_removed": handleFriendRemoved,
+			"friend_added": handleFriendAdded,
+			"friend_request_accepted": handleFriendRequestAccepted,
+			"new_friend_request": handleNewFriendRequest,
+			"invitation_to_join_friend": handleInvitationToJoinFriend,
+			"request_permission_to_join": handleRequestPermissionToJoin,
+			"permission_to_join_granted": handlePermissionToJoinGranted,
+			"youtube_player_added": handleYouTubePlayerAdded,
+			"youtube_player_moved": handleYouTubePlayerMoved,
+			"youtube_player_data_updated": handleYouTubePlayerDataUpdated,
+			"youtube_player_removed": handleYouTubePlayerRemoved,
+			"youtube_load": handleYouTubeLoad,
+			"youtube_pause": handleYouTubePause,
+			"youtube_play": handleYouTubePlay,
+			"youtube_stop": handleYouTubeStop,
+			"youtube_seek": handleYouTubeSeek,
+			"gift_received": handleGiftReceived,
+			"background_instance_added": handleBackgroundInstanceAdded,
+			"avatar_instance_added": handleAvatarInstanceAdded,
+			"avatar_instance_deleted": handleAvatarInstanceDeleted,
+			"in_world_object_instance_added": handleInWorldObjectInstanceAdded,
+			"balance_updated": handleBalanceUpdated,
+			"payment_completed": handlePaymentCompleted,
+			"set_video_server": handleSetVideoServer,
+			"logged_out": handleLoggedOut,
+			"presence_status_change": handlePresenceStatusChange
+		};
+		
 		public static function getInstance():InteractivityClient {
 			if (InteractivityClient.instance == null) {
 				InteractivityClient.instance = new InteractivityClient();
@@ -244,6 +313,7 @@ package com.worlize.interactivity.rpc
 		}
 		
 		private function handleConnected(event:WorlizeCommEvent):void {
+			expectingDisconnect = false;
 			roomConnection.send({
 				msg: "handshake",
 				data: {
@@ -258,12 +328,16 @@ package com.worlize.interactivity.rpc
 			disconnectedMessageShowing = true;
 			Alert.show( "The connection to the server has been lost.  Press OK to reconnect.",
 				"Connection Lost",
-				Alert.OK,
+				Alert.OK | Alert.CANCEL,
 				null,
 				function(event:CloseEvent):void {
 					disconnectedMessageShowing = false;
-					if (roomConnection && !roomConnection.connected) {
-						roomConnection.connect();
+					if (event.detail === Alert.CANCEL) {
+						ExternalInterface.call('redirectToHomepage');
+						return;
+					}
+					if (!roomConnected) {
+						reconnectToRoomServer();
 					}
 					if (presenceConnection && !presenceConnection.connected) {
 						presenceConnection.connect();
@@ -273,17 +347,29 @@ package com.worlize.interactivity.rpc
 		}
 		
 		private function handleDisconnected(event:WorlizeCommEvent):void {
+			roomConnectionState = WorlizeConnectionState.CLOSED;
+			roomConnection.removeEventListener(WorlizeCommEvent.CONNECTED, handleConnected);
+			roomConnection.removeEventListener(WorlizeCommEvent.DISCONNECTED, handleDisconnected);
+			roomConnection.removeEventListener(WorlizeCommEvent.CONNECTION_FAIL, handleRoomConnectionFail);
+			roomConnection.removeEventListener(WorlizeCommEvent.MESSAGE, handleIncomingMessage);
+			roomConnection = null;
+			
+			trace("disconnected; Expecting Disconnect: " + expectingDisconnect);
 			if (expectingDisconnect) {
 				// do nothing
 			}
 			else {
-				trace("Disconnected");
 				resetState();
 				var notification:ConnectionNotification = new ConnectionNotification(ConnectionNotification.DISCONNECTED);
 				NotificationCenter.postNotification(notification);
 				showDisconnectedMessage();
 			}
 			expectingDisconnect = false;
+		}
+		
+		private function handleRoomConnectionFail(event:WorlizeCommEvent):void {
+			expectingDisconnect = true;
+			reconnectToRoomServer();
 		}
 		
 		private function handleIncomingMessage(event:WorlizeCommEvent):void {
@@ -298,160 +384,12 @@ package com.worlize.interactivity.rpc
 				if (message['data']) {
 					data = message.data;
 				}
-				switch (message.msg) {
-					case "user_enter":
-						handleUserNew(data);
-						break;
-					case "handshake":
-						handleHandshakeResponse(data);
-						break;
-					case "say":
-						handleReceiveTalk(data);
-						break;
-					case "whisper":
-						handleReceiveWhisper(data);
-						break;
-					case "move":
-						handleMove(data);
-						break;
-					case "set_face":
-						handleUserFace(data);
-						break;
-					case "set_color":
-						handleUserColor(data);
-						break;
-					case "user_leave":
-						handleUserLeaving(data);
-						break;
-					case "room_entered":
-						handleRoomEntered(data);
-						break;
-					case "room_definition_updated":
-						handleRoomDefinitionUpdated(data);
-						break;
-					case "global_msg":
-						handleGlobalMessage(data);
-						break;
-					case "new_hotspot":
-						handleNewHotspot(data);
-						break;
-					case "hotspot_moved":
-						handleHotspotMoved(data);
-						break;
-					case "hotspot_removed":
-						handleHotspotRemoved(data);
-						break;
-					case "hotspot_dest_updated":
-						handleHotspotDestUpdated(data);
-						break;
-					case "ping":
-						handlePing(data);
-						break;
-					case "set_simple_avatar":
-						handleSetSimpleAvatar(data);
-						break;
-					case "set_video_avatar":
-						handleSetVideoAvatar(data);
-						break;
-					case "naked":
-						handleNaked(data);
-						break;
-					case "goto_room":
-						handleGotoRoomMessage(data);
-						break;
-					case "new_object":
-						handleNewObject(data);
-						break;
-					case "object_moved":
-						handleObjectMoved(data);
-						break;
-					case "object_updated": // dest changed
-						handleObjectUpdated(data);
-						break;
-					case "object_removed":
-						handleObjectRemoved(data);
-						break;
-					case "friend_removed":
-						handleFriendRemoved(data);
-						break;
-					case "friend_added":
-						handleFriendAdded(data);
-						break;
-					case "friend_request_accepted":
-						handleFriendRequestAccepted(data);
-						break;
-					case "new_friend_request":
-						handleNewFriendRequest(data);
-						break;
-					case "invitation_to_join_friend":
-						handleInvitationToJoinFriend(data);
-						break;
-					case "request_permission_to_join":
-						handleRequestPermissionToJoin(data);
-						break;
-					case "permission_to_join_granted":
-						handlePermissionToJoinGranted(data);
-						break;
-					case "youtube_player_added":
-						handleYouTubePlayerAdded(data);
-						break;
-					case "youtube_player_moved":
-						handleYouTubePlayerMoved(data);
-						break;
-					case "youtube_player_data_updated":
-						handleYouTubePlayerDataUpdated(data);
-						break;
-					case "youtube_player_removed":
-						handleYouTubePlayerRemoved(data);
-						break;
-					case "youtube_load":
-						handleYouTubeLoad(data);
-						break;
-					case "youtube_pause":
-						handleYouTubePause(data);
-						break;
-					case "youtube_play":
-						handleYouTubePlay(data);
-						break;
-					case "youtube_stop":
-						handleYouTubeStop(data);
-						break;
-					case "youtube_seek":
-						handleYouTubeSeek(data);
-						break;
-					case "gift_received":
-						handleGiftReceived(data);
-						break;
-					case "background_instance_added":
-						handleBackgroundInstanceAdded(data);
-						break;
-					case "avatar_instance_added":
-						handleAvatarInstanceAdded(data);
-						break;
-					case "avatar_instance_deleted":
-						handleAvatarInstanceDeleted(data);
-						break;
-					case "in_world_object_instance_added":
-						handleInWorldObjectInstanceAdded(data);
-						break;
-					case "balance_updated":
-						handleBalanceUpdated(data);
-						break;
-					case "payment_completed":
-						handlePaymentCompleted(data);
-						break;
-					case "set_video_server":
-						handleSetVideoServer(data);
-						break;
-					case "logged_out":
-						handleLoggedOut(data);
-						break;
-					case "presence_status_change":
-						handlePresenceStatusChange(data);
-						break;
-					default:
-						trace("Unhandled message: " + JSON.encode(message));
-						break;
+				var handlerFunction:Function = incomingMessageHandlers[message.msg];
+				if (handlerFunction is Function) {
+					handlerFunction(data);
+				}
+				else {
+					trace("Unhandled message: " + JSON.encode(message));
 				}
 			}
 		}
@@ -733,8 +671,12 @@ package com.worlize.interactivity.rpc
 		}
 		
 		private function handleGotoRoomMessage(data:Object):void {
-			var guid:String = String(data);
-			gotoRoom(guid);
+			gotoRoom(data as String);
+		}
+		
+		private function handleRoomRedirect(data:Object):void {
+			trace("Room Redirect for room " + data.room + " on server " + data.server_id);
+			actuallyGotoRoom(data.room as String);
 		}
 		
 		private function handleNaked(data:Object):void {
@@ -884,7 +826,7 @@ package com.worlize.interactivity.rpc
 		
 		private function handleHandshakeResponse(data:Object):void {
 			if (data.success) {
-				connected = true;
+				roomConnectionState = WorlizeConnectionState.CONNECTED;
 				expectingDisconnect = false;
 				var event:InteractivityEvent = new InteractivityEvent(InteractivityEvent.CONNECT_COMPLETE);
 				dispatchEvent(event);
@@ -912,7 +854,6 @@ package com.worlize.interactivity.rpc
 		private function resetState():void {
 			iptInteractivityController.clearAlarms();
 			needToRunSignonHandlers = true;
-			connected = false;
 			currentRoom.name = "";
 			currentRoom.backgroundFile = null;
 			currentRoom.selectedUser = null;
@@ -924,6 +865,7 @@ package com.worlize.interactivity.rpc
 			currentRoom.hotSpotsAboveNothing.removeAll();
 			currentRoom.hotSpotsByGuid = {};
 			currentRoom.hotSpotsById = {};
+			currentRoom.resetYoutubePlayers();
 			currentRoom.drawBackCommands.removeAll();
 			currentRoom.drawFrontCommands.removeAll();
 			currentRoom.drawLayerHistory = new Vector.<uint>();
@@ -937,6 +879,10 @@ package com.worlize.interactivity.rpc
 		// ***************************************************************
 		
 		public function connect():void {
+			if (roomConnectionState === WorlizeConnectionState.CONNECTING) {
+				cancelRoomConnection();
+			}
+			
 			InteractivityClient.loaderContext.checkPolicyFile = true;
 			
 			if (presenceConnection === null) {
@@ -946,16 +892,31 @@ package com.worlize.interactivity.rpc
 			if (roomConnection) {
 				roomConnection.removeEventListener(WorlizeCommEvent.CONNECTED, handleConnected);
 				roomConnection.removeEventListener(WorlizeCommEvent.DISCONNECTED, handleDisconnected);
+				roomConnection.removeEventListener(WorlizeCommEvent.CONNECTION_FAIL, handleRoomConnectionFail);
 				roomConnection.removeEventListener(WorlizeCommEvent.MESSAGE, handleIncomingMessage);
 			}
 			
+			roomConnectionState = WorlizeConnectionState.CONNECTING;
 			roomConnection = new RoomConnection();
 			
 			roomConnection.addEventListener(WorlizeCommEvent.CONNECTED, handleConnected);
 			roomConnection.addEventListener(WorlizeCommEvent.DISCONNECTED, handleDisconnected);
+			roomConnection.addEventListener(WorlizeCommEvent.CONNECTION_FAIL, handleRoomConnectionFail);
 			roomConnection.addEventListener(WorlizeCommEvent.MESSAGE, handleIncomingMessage);
 			
 			roomConnection.connect();
+		}
+		
+		public function cancelRoomConnection():void {
+			if (roomConnection) {
+				roomConnection.removeEventListener(WorlizeCommEvent.CONNECTED, handleConnected);
+				roomConnection.removeEventListener(WorlizeCommEvent.DISCONNECTED, handleDisconnected);
+				roomConnection.removeEventListener(WorlizeCommEvent.CONNECTION_FAIL, handleRoomConnectionFail);
+				roomConnection.removeEventListener(WorlizeCommEvent.MESSAGE, handleIncomingMessage);
+				roomConnection.disconnect();
+				roomConnection = null;
+				roomConnectionState = WorlizeConnectionState.CLOSED;
+			}
 		}
 		
 		public function disconnect():void {
@@ -1015,7 +976,7 @@ package com.worlize.interactivity.rpc
 		}
 		
 		public function roomChat(message:String):void {
-			if (!connected || message == null || message.length == 0) {
+			if (!roomConnected || message == null || message.length == 0) {
 				return;
 			}
 //			trace("Saying: " + message);
@@ -1027,7 +988,7 @@ package com.worlize.interactivity.rpc
 		}
 		
 		public function privateMessage(message:String, targetUserGuid:String):void {
-			if (!connected || message == null || message.length == 0) {
+			if (!roomConnected || message == null || message.length == 0) {
 				return;
 			}
 			
@@ -1041,7 +1002,7 @@ package com.worlize.interactivity.rpc
 		}
 		
 		public function say(message:String):void {
-			if (!connected || message == null || message.length == 0) {
+			if (!roomConnected || message == null || message.length == 0) {
 				return;
 			}
 			
@@ -1069,7 +1030,7 @@ package com.worlize.interactivity.rpc
 		}
 		
 		public function globalMessage(message:String):void {
-			if (!connected || message == null || message.length == 0) {
+			if (!roomConnected || message == null || message.length == 0) {
 				return;
 			}
 			
@@ -1083,7 +1044,7 @@ package com.worlize.interactivity.rpc
 		}
 		
 		public function roomMessage(message:String):void {
-			if (!connected || message == null || message.length == 0) {
+			if (!roomConnected || message == null || message.length == 0) {
 				return;
 			}
 			if (message.length > 254) {
@@ -1097,7 +1058,7 @@ package com.worlize.interactivity.rpc
 		}
 		
 		public function superUserMessage(message:String):void {
-			if (!connected || message == null || message.length == 0) {
+			if (!roomConnected || message == null || message.length == 0) {
 				return;
 			}
 
@@ -1164,7 +1125,7 @@ package com.worlize.interactivity.rpc
 		}
 		
 		public function move(x:int, y:int):void {
-			if (!connected || !currentUser) {
+			if (!roomConnected || !currentUser) {
 				return;
 			}
 			
@@ -1184,7 +1145,7 @@ package com.worlize.interactivity.rpc
 		}
 		
 		public function setFace(face:int):void {
-			if (!connected || currentUser.face == face) {
+			if (!roomConnected || currentUser.face == face) {
 				return;
 			}
 			
@@ -1200,7 +1161,7 @@ package com.worlize.interactivity.rpc
 		}
 		
 		public function setColor(color:int):void {
-			if (!connected || currentUser.color == color) {
+			if (!roomConnected || currentUser.color == color) {
 				return;
 			}
 			
@@ -1242,9 +1203,9 @@ package com.worlize.interactivity.rpc
 		private var leaveEventHandlers:Vector.<IptTokenList>;
 		private var requestedRoomId:String = null;
 		private var shouldInsertHistory:Boolean = true;
-		
+
 		public function gotoRoom(roomId:String, insertHistory:Boolean = true):void {
-			if (!connected || currentRoom.id == roomId) {
+			if (!roomConnected || currentRoom.id == roomId) {
 				return;
 			}
 
@@ -1284,25 +1245,42 @@ package com.worlize.interactivity.rpc
 		}
 		
 		private function actuallyGotoRoom(roomId:String):void {
-			if (!connected) {
-				return;
-			}
-			
-			var gotoRoomCommand:GotoRoomCommand = new GotoRoomCommand();
-			gotoRoomCommand.addEventListener(GotoRoomResultEvent.GOTO_ROOM_RESULT, function(event:GotoRoomResultEvent):void {
-				resetState();
+			trace("Actually going to room " + roomId);
 
-				worlizeConfig.interactivitySession = event.interactivitySession;
-				
-				if (currentWorld.guid != worlizeConfig.interactivitySession.worldGuid) {
-					currentWorld.load(worlizeConfig.interactivitySession.worldGuid);
-				} 
-				
+			resetState();
+			
+			var gotoNextRoom:Function = function():void {
+				var gotoRoomCommand:GotoRoomCommand = new GotoRoomCommand();
+				gotoRoomCommand.addEventListener(GotoRoomResultEvent.GOTO_ROOM_RESULT, function(event:GotoRoomResultEvent):void {
+					worlizeConfig.interactivitySession = event.interactivitySession;
+					
+					if (currentWorld.guid != worlizeConfig.interactivitySession.worldGuid) {
+						currentWorld.load(worlizeConfig.interactivitySession.worldGuid);
+					} 
+					
+					connect();
+				});
+				gotoRoomCommand.execute(roomId);
+			};
+			
+			if (roomConnection && roomConnection.connected) {
 				expectingDisconnect = true;
+				var disconnectHandler:Function = function(event:WorlizeCommEvent):void {
+					RoomConnection(event.target).removeEventListener(WorlizeCommEvent.DISCONNECTED, disconnectHandler);
+					gotoNextRoom();
+				};
+				roomConnection.addEventListener(WorlizeCommEvent.DISCONNECTED, disconnectHandler);
 				roomConnection.disconnect();
-				connect();
-			});
-			gotoRoomCommand.execute(roomId);
+			}
+			else {
+				gotoNextRoom();
+			}
+		}
+		
+		public function reconnectToRoomServer():void {
+			if (worlizeConfig.interactivitySession && worlizeConfig.interactivitySession.roomGuid) {
+				actuallyGotoRoom(worlizeConfig.interactivitySession.roomGuid);
+			}
 		}
 		
 		public function lockDoor(roomId:String, spotId:int):void {

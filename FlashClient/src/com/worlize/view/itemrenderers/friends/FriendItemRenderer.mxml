@@ -38,6 +38,8 @@
 			import mx.events.FlexEvent;
 			import mx.events.MenuEvent;
 			
+			import spark.core.ContentCache;
+			
 			private var onlineWatcher:ChangeWatcher;
 			
 			private function handleInitialize(event:Event):void {
@@ -92,7 +94,8 @@
 			</s:fill>
 		</s:Rect>
 		
-		<s:Image width="50" height="50" top="1" left="1"
+		<s:BitmapImage width="50" height="50" top="1" left="1"
+				 contentLoader="{FriendsList.getInstance().profilePictureCache}"
 				 source="{data.picture}" />
 		
 		<s:Image width="16" height="16" left="0" bottom="0"

@@ -7,6 +7,7 @@ package com.worlize.interactivity.event
 		public static const MESSAGE:String = "message";
 		public static const CONNECTED:String = "connected";
 		public static const DISCONNECTED:String = "disconnected";
+		public static const CONNECTION_FAIL:String = "connectionFail";
 		
 		public var message:Object;
 		

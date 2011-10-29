@@ -26,6 +26,7 @@ package com.worlize.model.friends
 	import mx.utils.ObjectProxy;
 	
 	import spark.collections.SortField;
+	import spark.core.ContentCache;
 	
 	public class FriendsList extends EventDispatcher
 	{
@@ -42,6 +43,9 @@ package com.worlize.model.friends
 		private var _state:String = STATE_READY;
 		
 		private var updateOnlineFacebookFriendsTimer:Timer = new Timer(7000, 0);
+		
+		[Bindable]
+		public var profilePictureCache:ContentCache;
 		
 		[Bindable]
 		public var baseCollection:ArrayList;
@@ -138,6 +142,11 @@ package com.worlize.model.friends
 			if (_instance !== null) {
 				throw new Error("You may only create one instance of FriendsList");
 			}
+			
+			profilePictureCache = new ContentCache();
+			profilePictureCache.enableCaching = true;
+			profilePictureCache.enableQueueing = false;
+			profilePictureCache.maxCacheEntries = 350;
 			
 			baseCollection = new ArrayList();
 			
