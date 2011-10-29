@@ -77,10 +77,12 @@ package com.worlize.interactivity.rpc
 	import flash.utils.Timer;
 	import flash.utils.setTimeout;
 	
+	import mx.binding.utils.ChangeWatcher;
 	import mx.collections.ArrayCollection;
 	import mx.controls.Alert;
 	import mx.events.CloseEvent;
 	import mx.events.FlexEvent;
+	import mx.events.PropertyChangeEvent;
 	import mx.rpc.events.FaultEvent;
 	
 	import org.openpalace.iptscrae.IptEngineEvent;
@@ -215,8 +217,7 @@ package com.worlize.interactivity.rpc
 			"set_face": handleUserFace,
 			"set_color": handleUserColor,
 			"user_leave": handleUserLeaving,
-			"room_entered": handleRoomEntered,
-			"room_definition_updated": handleRoomDefinitionUpdated,
+			"room_definition": handleRoomDefinition,
 			"global_msg": handleGlobalMessage,
 			"new_hotspot": handleNewHotspot,
 			"hotspot_moved": handleHotspotMoved,
@@ -283,6 +284,20 @@ package com.worlize.interactivity.rpc
 			webcamBroadcastManager.addEventListener(WebcamBroadcastEvent.CAMERA_PERMISSION_REVOKED, handleCameraPermissionRevoked);
 			
 			currentWorld.load(worlizeConfig.interactivitySession.worldGuid);
+			
+			ChangeWatcher.watch(this, ['currentWorld', 'ownerGuid'], handleWorldOwnerChange);
+		}
+		
+		private function handleWorldOwnerChange(event:Event):void {
+			verifyUserCanAuthor();
+		}
+		
+		private function verifyUserCanAuthor():void {
+			canAuthor = (currentWorld.ownerGuid === id);
+			if (AuthorModeState.getInstance().enabled && !canAuthor) {
+				var authorModeNotificaton:AuthorModeNotification = new AuthorModeNotification(AuthorModeNotification.AUTHOR_DISABLED);
+				NotificationCenter.postNotification(authorModeNotificaton);
+			}
 		}
 		
 		private function initPresenceConnection():void {
@@ -759,69 +774,42 @@ package com.worlize.interactivity.rpc
 			currentRoom.hotSpotsById[hotspot.id] = hotspot;
 		}
 		
-		private function handleRoomEntered(data:Object):void {
-			loadRoomDefinition(data as String);
-		}
-		
-		private function handleRoomDefinitionUpdated(data:Object):void {
-			loadRoomDefinition(currentRoom.id);
-		}
-		
-		private function loadRoomDefinition(roomGuid:String):void {
-			trace("Loading room definition for room " + roomGuid);
-			var service:WorlizeServiceClient = new WorlizeServiceClient();
-			service.addEventListener(WorlizeResultEvent.RESULT, function(event:WorlizeResultEvent):void {
-				if (event.resultJSON.success) {
-					var room:RoomDefinition = RoomDefinition.fromData(event.resultJSON.data.room_definition);
-					currentRoom.id = room.guid;
-					currentRoom.name = room.name;
-					currentRoom.backgroundFile = room.backgroundImageURL;
-					canAuthor = event.resultJSON.data.can_author;
-					if (AuthorModeState.getInstance().enabled && !canAuthor) {
-						var authorModeNotificaton:AuthorModeNotification = new AuthorModeNotification(AuthorModeNotification.AUTHOR_DISABLED);
-						NotificationCenter.postNotification(authorModeNotificaton);
-					}
-					
-					if (shouldInsertHistory) {
-						roomHistoryManager.addItem(currentRoom.id, currentRoom.name, currentWorld.name);
-					}
-					
-					// Hotspots:
-					currentRoom.hotSpotsAboveNothing.removeAll();
-					currentRoom.hotSpots.removeAll();
-					currentRoom.hotSpotsByGuid = {};
-					currentRoom.hotSpotsById = {};
-					
-					for each (var hotspot:Hotspot in room.hotspots) {
-						currentRoom.hotSpots.addItem(hotspot);
-						currentRoom.hotSpotsAboveNothing.addItem(hotspot);
-						currentRoom.hotSpotsById[hotspot.id] = hotspot;
-						currentRoom.hotSpotsByGuid[hotspot.guid] = hotspot;
-					}
-					
-					// In-World Objects
-					currentRoom.resetInWorldObjects();
-					for each (var objectData:Object in room.objects) {
-						currentRoom.addObject(objectData.guid, objectData.x, objectData.y, objectData.fullsize_url, objectData.dest);
-					}
-					
-					// YouTube Players
-					currentRoom.resetYoutubePlayers();
-					for each (var youtubePlayerDefinition:YouTubePlayerDefinition in room.youtubePlayers) {
-						currentRoom.addYoutubePlayer(youtubePlayerDefinition);
-					}
-					
-				}
-				else {
-					disconnect();
-					Alert.show("Unable to load room definition.", "Error");
-				}
-			});
-			service.addEventListener(FaultEvent.FAULT, function(event:FaultEvent):void {
-				disconnect();
-				Alert.show("Unable to load room definition.", "Error");
-			});
-			service.send("/rooms/" + roomGuid, HTTPMethod.GET);
+		private function handleRoomDefinition(data:Object):void {
+			trace("Got room definition for room " + data.guid + ".");
+			
+			var room:RoomDefinition = RoomDefinition.fromData(data);
+			currentRoom.id = room.guid;
+			currentRoom.name = room.name;
+			currentRoom.backgroundFile = room.backgroundImageURL;
+			
+			if (shouldInsertHistory) {
+				roomHistoryManager.addItem(currentRoom.id, currentRoom.name, currentWorld.name);
+			}
+			
+			// Hotspots:
+			currentRoom.hotSpotsAboveNothing.removeAll();
+			currentRoom.hotSpots.removeAll();
+			currentRoom.hotSpotsByGuid = {};
+			currentRoom.hotSpotsById = {};
+			
+			for each (var hotspot:Hotspot in room.hotspots) {
+				currentRoom.hotSpots.addItem(hotspot);
+				currentRoom.hotSpotsAboveNothing.addItem(hotspot);
+				currentRoom.hotSpotsById[hotspot.id] = hotspot;
+				currentRoom.hotSpotsByGuid[hotspot.guid] = hotspot;
+			}
+			
+			// In-World Objects
+			currentRoom.resetInWorldObjects();
+			for each (var objectData:Object in room.objects) {
+				currentRoom.addObject(objectData.guid, objectData.x, objectData.y, objectData.fullsize_url, objectData.dest);
+			}
+			
+			// YouTube Players
+			currentRoom.resetYoutubePlayers();
+			for each (var youtubePlayerDefinition:YouTubePlayerDefinition in room.youtubePlayers) {
+				currentRoom.addYoutubePlayer(youtubePlayerDefinition);
+			}
 		}
 		
 		private function handleHandshakeResponse(data:Object):void {
