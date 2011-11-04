@@ -140,6 +140,16 @@
 			private function handleSizeSelectionChange(event:Event):void {
 				generateEmbedCode();
 			}
+			
+			private function selectSmallBadge():void {
+				sizeSelectionGroup.selectedValue = smallButtonInfo;
+				generateEmbedCode();
+			}
+			
+			private function selectLargeBadge():void {
+				sizeSelectionGroup.selectedValue = largeButtonInfo;
+				generateEmbedCode();
+			}
 		]]>
 	</fx:Script>
 	
@@ -166,7 +176,7 @@
 			
 			<s:Image source="@Embed(source='src/assets/images/embed-icon-preview-128x128.png')"
 					 width="128" height="128"
-					 click="sizeSelectionGroup.selection = largeSizeRadioButton;" />
+					 click="selectLargeBadge();" />
 			<s:RadioButton label="Large (128x128)"
 						   id="largeSizeRadioButton"
 						   group="{sizeSelectionGroup}"
@@ -180,7 +190,7 @@
 			
 			<s:Image source="@Embed(source='src/assets/images/embed-icon-preview-140x26.png')"
 					 width="140" height="26"
-					 click="sizeSelectionGroup.selection = smallSizeRadioButton;" />
+					 click="selectSmallBadge();" />
 			<s:RadioButton label="Small (140x26)"
 						   id="smallSizeRadioButton"
 						   group="{sizeSelectionGroup}"
