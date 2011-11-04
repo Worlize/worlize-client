@@ -1193,7 +1193,7 @@ package com.worlize.interactivity.rpc
 		private var shouldInsertHistory:Boolean = true;
 
 		public function gotoRoom(roomId:String, insertHistory:Boolean = true):void {
-			if (!roomConnected || currentRoom.id == roomId) {
+			if (currentRoom.id == roomId) {
 				return;
 			}
 
