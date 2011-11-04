@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8"?>
+<components:WorlizeFloatingPanel xmlns:fx="http://ns.adobe.com/mxml/2009" 
+								 xmlns:s="library://ns.adobe.com/flex/spark" 
+								 xmlns:mx="library://ns.adobe.com/flex/mx"
+								 xmlns:components="com.worlize.view.components.*"
+								 showTitle="false"
+								 showCloseButton="true"
+								 titleBarColor="#059f14"
+								 creationComplete="handleCreationComplete()"
+								 initialize="handleInitialize()"
+								 width="560" height="380">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<s:RadioButtonGroup id="sizeSelectionGroup"
+							change="handleSizeSelectionChange(event)"/>
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.adobe.net.URI;
+			import com.worlize.components.visualnotification.VisualNotification;
+			import com.worlize.interactivity.rpc.InteractivityClient;
+			
+			import flash.desktop.Clipboard;
+			import flash.desktop.ClipboardFormats;
+			
+			import mx.binding.utils.ChangeWatcher;
+			import mx.core.FlexGlobals;
+			import mx.events.CloseEvent;
+			import mx.events.PropertyChangeEvent;
+			import mx.managers.PopUpManager;
+			private static var _open:Boolean = false;
+			private static var _instance:EmbedCodeWindow;
+			private static var closedAt:Date;
+			
+			[Bindable]
+			private var embedCode:String = "";
+			
+			[Bindable]
+			public var client:InteractivityClient = InteractivityClient.getInstance();
+			
+//			private var watcher:ChangeWatcher;
+			
+			[Bindable]
+			private var largeButtonInfo:Object = {
+				name: "128x128",
+				width: 128,
+				height: 128
+			};
+			
+			[Bindable]
+			private var smallButtonInfo:Object = {
+				name: "140x26",
+				width: 140,
+				height: 26
+			};
+			
+			public static function get isOpen():Boolean {
+				return _open;
+			}
+			
+			public static function open(parent:DisplayObject):void {
+				if (_open) {
+					PopUpManager.bringToFront(_instance);
+					_instance.setFocus();
+				}
+				else {
+					_instance = new EmbedCodeWindow();
+					_instance.addEventListener(CloseEvent.CLOSE, function(event:CloseEvent):void {
+						close();
+					});
+					PopUpManager.addPopUp(_instance, parent);
+					PopUpManager.centerPopUp(_instance);
+					_open = true;
+				}
+			}
+			
+			private function handleInitialize():void {
+//				watcher = ChangeWatcher.watch(client, ['currentWorld','guid'], handleCurrentWorldChange);
+			}
+			
+			public static function close():void {
+				if (_open && _instance) {
+//					_instance.watcher.unwatch();
+					PopUpManager.removePopUp(_instance);
+					_open = false;
+					_instance = null;
+				}
+			}
+			
+			private function get baseURI():String {
+				var appURI:URI = new URI(FlexGlobals.topLevelApplication.url);
+				return appURI.scheme + "://" + appURI.authority;
+			}
+			
+			private function handleCreationComplete():void {
+				generateEmbedCode();
+			}
+			
+			private function handleCurrentWorldChange(event:PropertyChangeEvent):void {
+				generateEmbedCode();
+			}
+			
+			private function generateEmbedCode():void {
+				if (client.currentWorld) {
+					var width:Number = sizeSelectionGroup.selectedValue.width;
+					var height:Number = sizeSelectionGroup.selectedValue.height;
+					var options:Object = {
+						v: 1,
+						size: sizeSelectionGroup.selectedValue.name,
+						world: client.worlizeConfig.currentUser.worldGuid
+					};
+					var pairs:Array = [];
+					for (var key:String in options) {
+						var value:String = options[key];
+						pairs.push(encodeURIComponent(key) + "=" + encodeURIComponent(value));
+					}
+					
+					var badgeurl:String = baseURI + "/embed/badge?" + pairs.join("&");
+					
+					embedCode = '<iframe src="' + badgeurl + '" scrolling="no" frameborder="0" ' +
+								'style="border:none; overflow:hidden; width:' + width + 'px; ' +
+								'height:' + height + 'px;" allowTransparency="true"></iframe>';
+				}
+			}
+			
+			private function copyEmbedCode():void {
+				Clipboard.generalClipboard.setData(ClipboardFormats.TEXT_FORMAT, embedCode);
+				var notification:VisualNotification = new VisualNotification(
+					"Your embed code has been copied to the clipboard!  Now just paste it into your website or blog.",
+					"Embed Code Copied"
+				);
+				notification.show();
+				
+				setTimeout(function():void {
+					close();
+				}, 250);
+			}
+			
+			private function handleSizeSelectionChange(event:Event):void {
+				generateEmbedCode();
+			}
+		]]>
+	</fx:Script>
+	
+	<components:layout>
+		<s:VerticalLayout gap="20"
+						  paddingLeft="20" paddingRight="20"
+						  paddingTop="20" paddingBottom="20" />
+	</components:layout>
+	
+	<s:Label text="&lt;Embed Code&gt;"
+			 fontFamily="PTSansNarrowBold"
+			 fontSize="43"
+			 color="#059f14" />
+	
+	<s:HGroup gap="10" width="100%">
+		<s:VGroup gap="5" width="200"
+				  paddingLeft="10" paddingRight="10"
+				  paddingTop="0" paddingBottom="10"
+				  horizontalAlign="center">
+			<s:Label text="Select a Badge"
+					 fontFamily="PTSansNarrowBold"
+					 fontSize="23"
+					 color="#076810" />
+			
+			<s:Image source="@Embed(source='src/assets/images/embed-icon-preview-128x128.png')"
+					 width="128" height="128"
+					 click="sizeSelectionGroup.selection = largeSizeRadioButton;" />
+			<s:RadioButton label="Large (128x128)"
+						   id="largeSizeRadioButton"
+						   group="{sizeSelectionGroup}"
+						   value="{largeButtonInfo}"
+						   selected="true"
+						   fontFamily="Arial"
+						   fontSize="15"
+						   fontWeight="bold" />
+
+			<s:Spacer height="15" />
+			
+			<s:Image source="@Embed(source='src/assets/images/embed-icon-preview-140x26.png')"
+					 width="140" height="26"
+					 click="sizeSelectionGroup.selection = smallSizeRadioButton;" />
+			<s:RadioButton label="Small (140x26)"
+						   id="smallSizeRadioButton"
+						   group="{sizeSelectionGroup}"
+						   value="{smallButtonInfo}"
+						   selected="false"
+						   fontFamily="Arial"
+						   fontSize="15"
+						   fontWeight="bold" />
+		</s:VGroup>
+		<s:VGroup gap="10" width="100%"
+				  paddingLeft="10" paddingRight="10"
+				  paddingTop="0" paddingBottom="10"
+				  horizontalAlign="left">
+			<s:Label text="Get the Code"
+					 fontFamily="PTSansNarrowBold"
+					 fontSize="23"
+					 color="#076810" />
+			<s:Label width="100%"
+					 fontFamily="Arial"
+					 fontSize="15"
+					 text="Paste this embed code into your website or blog to invite your users to visit your world and chat!" />
+			<s:TextArea editable="false"
+						id="embedCodeTextBox"
+						text="{embedCode}"
+						width="100%"
+						height="110" />
+			<s:HGroup width="100%" horizontalAlign="right">
+				<s:Button label="Copy to Clipboard"
+						  skinClass="com.worlize.view.skins.CopyToClipboardButtonSkin"
+						  click="copyEmbedCode()" />
+			</s:HGroup>
+		</s:VGroup>
+	</s:HGroup>
+	
+</components:WorlizeFloatingPanel>

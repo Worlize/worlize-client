@@ -38,6 +38,7 @@
 			import com.worlize.model.PreferencesManager;
 			import com.worlize.model.WorlizeConfig;
 			import com.worlize.model.friends.FriendsList;
+			import com.worlize.notification.WorlizeNotification;
 			import com.worlize.rpc.HTTPMethod;
 			import com.worlize.rpc.WorlizeResultEvent;
 			import com.worlize.rpc.WorlizeServiceClient;
@@ -341,6 +342,11 @@
 			private function getUserJoinLink():String {
 				return baseURI + "/users/" + encodeURIComponent(client.worlizeConfig.currentUser.username) + "/join";
 			}
+			
+			private function focusChatBox():void {
+				var notification:WorlizeNotification = new WorlizeNotification(WorlizeNotification.FOCUS_CHAT_BOX_NOTIFICATION);
+				NotificationCenter.postNotification(notification);
+			}
 		]]>
 	</fx:Script>
 
@@ -406,6 +412,7 @@
 				/>
 			
 			<components:SocialShareWidget
+				  click="focusChatBox()"
 				  tabChildren="false"
 				  description="a link to your location"
 				  linkFunction="{getUserJoinLink}"
@@ -416,6 +423,8 @@
 				  facebookName="Come chat with me LIVE right now in Worlize!"
 				  facebookCaption="Worlize: Your World, Realized"
 				  facebookDescription="I'm online right now in Worlize, a stylish avatar chat hangout where you can be whatever you want.  Come join me!"
+				  currentRoom="{client.currentRoom}"
+				  currentWorld="{client.currentWorld}"
 				  paddingLeft="10" />
 			
 			<!--

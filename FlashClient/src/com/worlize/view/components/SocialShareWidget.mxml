@@ -10,6 +10,9 @@
 	<fx:Script>
 		<![CDATA[
 			import com.worlize.components.visualnotification.VisualNotification;
+			import com.worlize.interactivity.model.CurrentRoom;
+			import com.worlize.model.WorldDefinition;
+			import com.worlize.view.windows.EmbedCodeWindow;
 			
 			import flash.desktop.Clipboard;
 			import flash.desktop.ClipboardFormats;
@@ -39,6 +42,12 @@
 			
 			[Bindable]
 			public var linkFunction:Function;
+			
+			[Bindable]
+			public var currentRoom:CurrentRoom;
+			
+			[Bindable]
+			public var currentWorld:WorldDefinition;
 			
 			public function get link():String {
 				return linkFunction() as String;
@@ -81,6 +90,10 @@
 				);
 				notification.show();
 			}
+			
+			private function handleEmbedButtonClick(event:MouseEvent):void {
+				EmbedCodeWindow.open(systemManager.getSandboxRoot());
+			}
 		]]>
 	</fx:Script>
 	
@@ -91,16 +104,24 @@
 			 paddingRight="3"
 			 color="#333333" />
 	<s:Button id="shareTwitterButton"
+			  tabEnabled="false"
 			  click="handleShareTwitterButtonClick(event)"
 			  skinClass="com.worlize.view.skins.buttons.socialsharing.SmallTweetButtonSkin"
 			  toolTip="Post {description} on Twitter." />
 	<s:Button id="shareFacebookButton"
+			  tabEnabled="false"
 			  click="handleShareFacebookButtonClick(event)"
 			  skinClass="com.worlize.view.skins.buttons.socialsharing.SmallFacebookButtonSkin"
 			  toolTip="Post {description} on Facebook." />
 	<s:Button id="shareLinkButton"
+			  tabEnabled="false"
 			  click="handleShareLinkButtonClick(event)"
 			  skinClass="com.worlize.view.skins.buttons.socialsharing.SmallLinkButtonSkin"
 			  toolTip="Copy {description} to the clipboard." />
-
+	<s:Button id="embedButton"
+			  tabEnabled="false"
+			  click="handleEmbedButtonClick(event)"
+			  skinClass="com.worlize.view.skins.buttons.socialsharing.SmallEmbedButtonSkin"
+			  toolTip="Get Embed Code." />
+	
 </s:HGroup>

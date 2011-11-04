@@ -6,6 +6,7 @@
 								 minWidth="200" minHeight="150"
 								 title="Chat Log"
 								 showTitle="true"
+								 titleBarColor="#888888"
 								 resizable="true"
 								 showCloseButton="true"
 								 creationComplete="handleCreationComplete()">
