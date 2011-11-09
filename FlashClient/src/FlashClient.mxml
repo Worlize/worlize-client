@@ -11,7 +11,8 @@
 	minWidth="970" minHeight="522"
 	skinClass="FlashClientApplicationSkin"
 	applicationComplete="handleApplicationComplete()"
-	creationComplete="handleCreationComplete()">
+	creationComplete="handleCreationComplete()"
+	uncaughtError="handleUncaughtError(event)">
 	<s:layout>
 		<s:BasicLayout/>
 	</s:layout>
@@ -52,6 +53,7 @@
 			
 			import flash.desktop.Clipboard;
 			import flash.desktop.ClipboardFormats;
+			import flash.events.ErrorEvent;
 			import flash.net.navigateToURL;
 			import flash.sampler.getInvocationCount;
 			
@@ -61,6 +63,8 @@
 			import mx.events.CloseEvent;
 			import mx.events.PropertyChangeEvent;
 			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.http.HTTPService;
 			[Bindable]
 			public var client:InteractivityClient = InteractivityClient.getInstance();
 			
@@ -77,7 +81,68 @@
 			[Bindable]
 			private var logOutToolTip:String;
 			
+			
+			protected function handleUncaughtError(event:UncaughtErrorEvent):void
+			{
+				// Prevent the default error dialog in the debug player
+				event.preventDefault();
+				
+				// Prepare to log the error to the server
+				var serviceClient:WorlizeServiceClient = new WorlizeServiceClient();
+				serviceClient.addEventListener(FaultEvent.FAULT, function(event:FaultEvent):void {
+					// If there is an error reporting the error we can't do much..
+				});
+				serviceClient.addEventListener(WorlizeResultEvent.RESULT, function(event:WorlizeResultEvent):void {
+					// There's no result to handle.
+				});
+				
+				var detail:Object = {};
+				
+				if (event.error is Error) {
+					var errorObject:Error = event.error;
+					detail.error_type = "Error";
+					detail.error_id = errorObject.errorID;
+					detail.stack_trace = errorObject.getStackTrace();
+					if (errorObject.message && "toString" in errorObject.message) {
+						detail.message = errorObject.message.toString();
+					}
+					if (errorObject.name && "toString" in errorObject.name) {
+						detail.name = errorObject.name.toString();
+					}
+				}
+				else if (event.error is ErrorEvent) {
+					var errorEvent:ErrorEvent = event.error;
+					detail.error_type = "ErrorEvent";
+					detail.error_id = errorEvent.errorID;
+					detail.name = errorEvent.type;
+					if (detail.message && "toString" in detail.message) {
+						detail.message = errorEvent.toString();						
+					}
+				}
+				else {
+					detail.type = "Object";
+					if ('toString' in event.error) {
+						detail.message = event.error.toString();
+					}
+					else {
+						detail.message = "Object does not implement toString()";
+					}
+				}
+				serviceClient.send('/client_errors.json', HTTPMethod.POST, detail);
+				
+				Alert.show("Uhoh!  Something went wrong.  An error report has been sent to our engineers, and we'll try to get it taken care of as soon as possible!",
+						   "Error", Alert.OK, null, function(event:CloseEvent):void {
+							   ExternalInterface.call('redirectToHomepage');
+						   });
+			}
+			
 			private function handleApplicationComplete():void {
+				// Test global event handling
+//				setTimeout(function():void {
+//					throw new Error("Foo Bar Error");
+//					var errorEvent:ErrorEvent = new ErrorEvent("myGreatErrorEvent", false, false, "Error Event Text", 25);
+//					dispatchEvent(errorEvent);
+//				}, 2000);
 				trace("Application Domain: " + url);
 				trace("Flash Player Version: " + Capabilities.version);
 				stage.addEventListener(KeyboardEvent.KEY_DOWN, handleStageKeyDown);
@@ -347,6 +412,7 @@
 				var notification:WorlizeNotification = new WorlizeNotification(WorlizeNotification.FOCUS_CHAT_BOX_NOTIFICATION);
 				NotificationCenter.postNotification(notification);
 			}
+			
 		]]>
 	</fx:Script>
 
