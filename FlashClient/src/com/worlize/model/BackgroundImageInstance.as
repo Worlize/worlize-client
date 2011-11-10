@@ -6,11 +6,15 @@ package com.worlize.model
 	import com.worlize.rpc.WorlizeResultEvent;
 	import com.worlize.rpc.WorlizeServiceClient;
 	
+	import mx.logging.ILogger;
+	import mx.logging.Log;
 	import mx.rpc.events.FaultEvent;
 
 	[Bindable]
 	public class BackgroundImageInstance
 	{
+		private var logger:ILogger = Log.getLogger('com.worlize.model.BackgroundImageInstance');
+		
 		public var backgroundImageAsset:BackgroundImageAsset;
 		public var guid:String;
 		public var room:RoomListEntry;
@@ -49,7 +53,7 @@ package com.worlize.model
 		}
 		
 		private function handleFault(event:FaultEvent):void {
-			trace("Background Delete Failed. " + event);
+			logger.error("Background Delete Failed. " + event);
 		}
 		
 		private function handleDeleteResult(event:WorlizeResultEvent):void {

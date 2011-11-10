@@ -2,16 +2,17 @@ package com.worlize.interactivity.model
 {
 	import com.worlize.command.DeleteHotspotCommand;
 	import com.worlize.command.MoveHotspotCommand;
+	import com.worlize.interactivity.event.HotspotEvent;
+	import com.worlize.interactivity.iptscrae.IptEventHandler;
+	import com.worlize.interactivity.iptscrae.WorlizeIptManager;
+	import com.worlize.interactivity.rpc.InteractivityClient;
 	
 	import flash.events.EventDispatcher;
 	import flash.geom.Point;
 	
 	import mx.collections.ArrayCollection;
-	
-	import com.worlize.interactivity.event.HotspotEvent;
-	import com.worlize.interactivity.iptscrae.IptEventHandler;
-	import com.worlize.interactivity.iptscrae.WorlizeIptManager;
-	import com.worlize.interactivity.rpc.InteractivityClient;
+	import mx.logging.ILogger;
+	import mx.logging.Log;
 	
 	import org.openpalace.iptscrae.IptTokenList;
 
@@ -88,7 +89,8 @@ package com.worlize.interactivity.model
 		}
 		
 		public function deleteHotspot():void {
-			trace("Deleting hotspot " + this.guid);
+			var logger:ILogger = Log.getLogger('com.worlize.interactivity.model.Hotspot');
+			logger.info("Deleting hotspot " + this.guid);
 			var command:DeleteHotspotCommand = new DeleteHotspotCommand();
 			command.execute(InteractivityClient.getInstance().currentRoom.id, guid);
 		}

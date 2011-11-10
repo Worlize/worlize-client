@@ -65,12 +65,10 @@
 			
 			private function handleFriendsListStateChange(event:Event):void {
 				if (friendsList.state == FriendsList.STATE_LOADING) {
-					trace("Showing spinner.");
 					loadingSpinner.visible = true;
 					loadingSpinner.play();
 				}
 				else {
-					trace("Hiding spinner.");
 					loadingSpinner.stop();
 					loadingSpinner.visible = false;
 				}

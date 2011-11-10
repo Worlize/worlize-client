@@ -1,6 +1,7 @@
 package com.worlize.model
 {
 	import com.worlize.control.Marketplace;
+	import com.worlize.rpc.WorlizeServiceClient;
 	
 	import flash.events.EventDispatcher;
 	import flash.events.IEventDispatcher;
@@ -8,11 +9,14 @@ package com.worlize.model
 	
 	import mx.core.Application;
 	import mx.core.FlexGlobals;
+	import mx.logging.ILogger;
+	import mx.logging.Log;
 	import mx.managers.SystemManager;
-	import com.worlize.rpc.WorlizeServiceClient;
 	
 	public class WorlizeConfig extends EventDispatcher
 	{
+		private var logger:ILogger = Log.getLogger('com.worlize.model.WorlizeConfig');
+		
 		private static var _instance:WorlizeConfig;
 		
 		public var interactivitySession:InteractivitySession;
@@ -50,9 +54,8 @@ package com.worlize.model
 				currentUser.load(config.user_guid);
 				Marketplace.marketplaceEnabled = config.marketplace_enabled;
 			}
-//			trace("User Guid: " + interactivitySession.userGuid);
-//			trace("Session Guid: " + interactivitySession.sessionGuid);
-//			trace("Cookies: " + JSON.encode(config.cookies));
+			logger.info("User Guid: " + interactivitySession.userGuid);
+			logger.info("Interactivity Session Guid: " + interactivitySession.sessionGuid);
 		}
 	}
 }

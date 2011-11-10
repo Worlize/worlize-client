@@ -11,6 +11,8 @@ package com.worlize.model.locker
 	import flash.events.IEventDispatcher;
 	
 	import mx.collections.ArrayCollection;
+	import mx.logging.ILogger;
+	import mx.logging.Log;
 	import mx.rpc.events.FaultEvent;
 	
 	public class InWorldObjectLocker extends EventDispatcher
@@ -19,6 +21,8 @@ package com.worlize.model.locker
 		public static const STATE_LOADING:String = "loading";
 		public static const STATE_READY:String = "ready";
 		public static const STATE_ERROR:String = "error";
+		
+		private var logger:ILogger = Log.getLogger('com.worlize.model.locker.InWorldObjectLocker');
 		
 		[Bindable]
 		public var capacity:int;
@@ -99,7 +103,7 @@ package com.worlize.model.locker
 			var result:Object = event.resultJSON;
 			var instance:InWorldObjectInstance;
 			if (result.success) {
-				trace("Success: Got " + result.count + " objects.");
+				logger.info("Success: Got " + result.count + " objects.");
 				instances.removeAll();
 				for each (var rawData:Object in result.data) {
 					instance = InWorldObjectInstance.fromData(rawData);
@@ -115,7 +119,7 @@ package com.worlize.model.locker
 				state = STATE_READY;
 			}
 			else {
-				trace("Failed to load background locker information.");
+				logger.error("Failed to load background locker information.");
 				state = STATE_ERROR;
 			}
 		}

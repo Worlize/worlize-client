@@ -83,6 +83,8 @@ package com.worlize.interactivity.rpc
 	import mx.events.CloseEvent;
 	import mx.events.FlexEvent;
 	import mx.events.PropertyChangeEvent;
+	import mx.logging.ILogger;
+	import mx.logging.Log;
 	import mx.rpc.events.FaultEvent;
 	
 	import org.openpalace.iptscrae.IptEngineEvent;
@@ -104,6 +106,8 @@ package com.worlize.interactivity.rpc
 		
 		[Bindable]
 		public static var loaderContext:LoaderContext = new LoaderContext();
+		
+		private var logger:ILogger = Log.getLogger("com.worlize.interactivity.rpc.InteractivityClient");
 		
 		public var version:int;
 		
@@ -369,11 +373,12 @@ package com.worlize.interactivity.rpc
 			roomConnection.removeEventListener(WorlizeCommEvent.MESSAGE, handleIncomingMessage);
 			roomConnection = null;
 			
-			trace("disconnected; Expecting Disconnect: " + expectingDisconnect);
 			if (expectingDisconnect) {
 				// do nothing
+				logger.info("Disconnected from room server, but was expecting disconnection.");
 			}
 			else {
+				logger.error("Disconnected from room server!");
 				resetState();
 				var notification:ConnectionNotification = new ConnectionNotification(ConnectionNotification.DISCONNECTED);
 				NotificationCenter.postNotification(notification);
@@ -404,7 +409,7 @@ package com.worlize.interactivity.rpc
 					handlerFunction(data);
 				}
 				else {
-					trace("Unhandled message: " + JSON.encode(message));
+					logger.warn("Unhandled message: " + JSON.encode(message));
 				}
 			}
 		}
@@ -690,7 +695,7 @@ package com.worlize.interactivity.rpc
 		}
 		
 		private function handleRoomRedirect(data:Object):void {
-			trace("Room Redirect for room " + data.room + " on server " + data.server_id);
+			logger.info("Room Redirect for room " + data.room);
 			actuallyGotoRoom(data.room as String);
 		}
 		
@@ -775,7 +780,7 @@ package com.worlize.interactivity.rpc
 		}
 		
 		private function handleRoomDefinition(data:Object):void {
-			trace("Got room definition for room " + data.guid + ".");
+			logger.info("Got room definition for room " + data.guid + ".");
 			
 			var room:RoomDefinition = RoomDefinition.fromData(data);
 			currentRoom.id = room.guid;
@@ -1067,7 +1072,7 @@ package com.worlize.interactivity.rpc
 				var argument:String = clientCommandMatch[2];
 				switch (command) {
 					default:
-						trace("Unrecognized command: " + command + " argument " + argument);
+						logger.info("Unrecognized command: " + command + " argument " + argument);
 				}
 				return true;
 			}
@@ -1233,7 +1238,7 @@ package com.worlize.interactivity.rpc
 		}
 		
 		private function actuallyGotoRoom(roomId:String):void {
-			trace("Actually going to room " + roomId);
+			logger.info("Actually going to room " + roomId);
 
 			resetState();
 			
@@ -1326,7 +1331,7 @@ package com.worlize.interactivity.rpc
 			
 			currentRoom.addUser(user);
 			
-			trace("User " + user.name + " entered.");
+			logger.info("User " + user.name + " entered.");
 			
 			if (user.id == id) {
 				// Self entered
@@ -1473,7 +1478,6 @@ package com.worlize.interactivity.rpc
 			chatRecord.eventHandlers = iptInteractivityController.getHotspotEvents(IptEventHandler.TYPE_INCHAT);
 			chatQueue.push(chatRecord);
 			processChatQueue();
-//			trace("Got xtalk from userID " + referenceId + ": " + chatstr);
 		}
 		
 		private function handleGlobalMessage(data:Object):void {

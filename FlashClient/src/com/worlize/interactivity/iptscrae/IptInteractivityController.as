@@ -14,6 +14,9 @@ package com.worlize.interactivity.iptscrae
 	import flash.geom.Point;
 	import flash.utils.setTimeout;
 	
+	import mx.logging.ILogger;
+	import mx.logging.Log;
+	
 	import org.openpalace.iptscrae.IptAlarm;
 	import org.openpalace.iptscrae.IptEngineEvent;
 	import org.openpalace.iptscrae.IptTokenList;
@@ -27,6 +30,8 @@ package com.worlize.interactivity.iptscrae
 		[Bindable]
 		public var output:String;
 		public var client:InteractivityClient;
+		
+		private var logger:ILogger = Log.getLogger('com.worlize.interactivity.iptscrae.IptInteractivityController');
 		
 		public function IptInteractivityController()
 		{
@@ -57,7 +62,7 @@ package com.worlize.interactivity.iptscrae
 		private function logResult(value:String):void {
 			output += value + "\n";
 			client.currentRoom.logScript(value);
-			trace(value);
+			logger.debug(value);
 		}
 				
 		public function triggerHotspotEvent(hotspot:Hotspot, eventType:int):Boolean {

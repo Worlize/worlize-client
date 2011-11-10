@@ -6,11 +6,15 @@ package com.worlize.model
 	import com.worlize.rpc.WorlizeResultEvent;
 	import com.worlize.rpc.WorlizeServiceClient;
 	
+	import mx.logging.ILogger;
+	import mx.logging.Log;
 	import mx.rpc.events.FaultEvent;
 
 	[Bindable]
 	public class WorldDefinition
 	{
+		private var logger:ILogger = Log.getLogger('com.worlize.model.WorldDefinition');
+		
 		public var name:String;
 		public var guid:String;
 		
@@ -47,7 +51,7 @@ package com.worlize.model
 				this.ownerGuid = event.resultJSON.data.owner.guid;
 				this.canCreateNewRoom = event.resultJSON.data.can_create_new_room;
 				this.roomList.updateFromData(event.resultJSON.data.rooms);
-				trace("Got updated worlz definition");
+				logger.info("Got worlz definition for " + this.name + " - " + this.guid);
 			}
 		}
 		private function handleFault(event:FaultEvent):void {

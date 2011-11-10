@@ -12,6 +12,8 @@ package com.worlize.model.locker
 	import flash.events.IEventDispatcher;
 	
 	import mx.collections.ArrayCollection;
+	import mx.logging.ILogger;
+	import mx.logging.Log;
 	import mx.rpc.events.FaultEvent;
 	
 	[Bindable]
@@ -21,6 +23,8 @@ package com.worlize.model.locker
 		public static const STATE_LOADING:String = "loading";
 		public static const STATE_READY:String = "ready";
 		public static const STATE_ERROR:String = "error";
+		
+		private var logger:ILogger = Log.getLogger('com.worlize.model.locker.BackgroundsLocker');
 		
 		public var capacity:int;
 		public var count:int;
@@ -87,7 +91,7 @@ package com.worlize.model.locker
 			var result:Object = event.resultJSON;
 			var asset:BackgroundImageInstance;
 			if (result.success) {
-				trace("Success: Got " + result.count + " backgrounds.");
+				logger.info("Success: Got " + result.count + " backgrounds.");
 				backgroundInstances.removeAll();
 				for each (var rawData:Object in result.data) {
 					asset = BackgroundImageInstance.fromData(rawData);
@@ -103,7 +107,7 @@ package com.worlize.model.locker
 				state = STATE_READY;
 			}
 			else {
-				trace("Failed to load background locker information.");
+				logger.error("Failed to load background locker information.");
 				state = STATE_ERROR;
 			}
 		}

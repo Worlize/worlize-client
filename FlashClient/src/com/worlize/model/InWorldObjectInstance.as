@@ -6,6 +6,8 @@ package com.worlize.model
 	import com.worlize.rpc.WorlizeResultEvent;
 	import com.worlize.rpc.WorlizeServiceClient;
 	
+	import mx.logging.ILogger;
+	import mx.logging.Log;
 	import mx.rpc.events.FaultEvent;
 
 	[Bindable]
@@ -40,7 +42,8 @@ package com.worlize.model
 		}
 		
 		private function handleFault(event:FaultEvent):void {
-			trace("Object Delete Failed. " + event);
+			var logger:ILogger = Log.getLogger("com.worlize.model.InWorldObjectInstance");
+			logger.error("Object Delete Failed. " + event);
 		}
 		
 		private function handleDeleteResult(event:WorlizeResultEvent):void {

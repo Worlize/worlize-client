@@ -19,11 +19,15 @@ package com.worlize.interactivity.view
 	import flash.utils.setTimeout;
 	
 	import mx.core.FlexSprite;
+	import mx.logging.ILogger;
+	import mx.logging.Log;
 	import mx.managers.CursorManager;
 	import mx.managers.SystemManager;
 
 	public class HotSpotSprite extends FlexSprite
 	{
+		private var logger:ILogger = Log.getLogger('com.worlize.interactivity.view.HotSpotSprite');
+		
 		private var _authorMode:Boolean = false;
 		private var _selected:Boolean = false;
 		

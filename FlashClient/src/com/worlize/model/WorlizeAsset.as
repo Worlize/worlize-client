@@ -8,6 +8,8 @@ package com.worlize.model
 	import flash.events.IEventDispatcher;
 	
 	import mx.controls.Alert;
+	import mx.logging.ILogger;
+	import mx.logging.Log;
 	import mx.rpc.events.FaultEvent;
 	
 	// TODO: Build subclasses for different asset types.
@@ -52,11 +54,11 @@ package com.worlize.model
 			else {
 				Alert.show(event.resultJSON.description);
 			}
-			trace(event.result);
 		}
 		
 		private function handleBuyFault(event:FaultEvent):void {
-			
+			var logger:ILogger = Log.getLogger('com.worlize.model.WorlizeAsset');
+			logger.error("A fault was encountered when trying to buy an item.");
 		}
 		
 		public static function fromData(data:Object, kind:String):WorlizeAsset {

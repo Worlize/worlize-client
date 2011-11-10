@@ -12,12 +12,16 @@ package com.worlize.rpc
 	import flash.events.SecurityErrorEvent;
 	
 	import mx.core.FlexGlobals;
+	import mx.logging.ILogger;
+	import mx.logging.Log;
 	
 	[Event(type="com.worlize.interactivity.event.WorlizeCommEvent",name="message")]
 	[Event(type="com.worlize.interactivity.event.WorlizeCommEvent",name="connected")]
 	[Event(type="com.worlize.interactivity.event.WorlizeCommEvent",name="disconnected")]
 	public class PresenceConnection extends EventDispatcher
 	{
+		private var logger:ILogger = Log.getLogger('com.worlize.rpc.PresenceConnection');
+		
 		private var webSocket:WebSocket;
 		
 		private var config:WorlizeConfig = WorlizeConfig.getInstance();
@@ -47,7 +51,7 @@ package com.worlize.rpc
 			// Disable logger
 			webSocket.debug = false;
 			
-			trace("Connecting to presence server: " + url);
+			logger.info("Connecting to presence server: " + url);
 			webSocket.connect();
 			
 			webSocket.addEventListener(WebSocketEvent.CLOSED, handleWebSocketClosed);
@@ -60,11 +64,11 @@ package com.worlize.rpc
 		}
 		
 		private function handleWebSocketOpen(event:WebSocketEvent):void {
-			trace("Presence WebSocket: Connection Opened");
+			logger.info("Connection Opened");
 			dispatchEvent(new WorlizeCommEvent(WorlizeCommEvent.CONNECTED));
 		}
 		private function handleWebSocketClosed(event:WebSocketEvent):void {
-			trace("Presence WebSocket: Connection Closed");
+			logger.info("Connection Closed");
 			dispatchEvent(new WorlizeCommEvent(WorlizeCommEvent.DISCONNECTED));
 		}
 		private function handleWebSocketMessage(event:WebSocketEvent):void {
@@ -78,18 +82,18 @@ package com.worlize.rpc
 			dispatchEvent(commEvent);
 		}
 		private function handleWebSocketConnectionFail(event:WebSocketErrorEvent):void {
-			trace("Presence WebSocket: Connection Fail: " + event.text);
+			logger.error("Connection Fail: " + event.text);
 			//			dispatchEvent(new WorlizeCommEvent(WorlizeCommEvent.DISCONNECTED));
 		}
 		private function handleWebSocketIOError(event:WebSocketErrorEvent):void {
-			trace("Presence WebSocket: IOErrorEvent: " + event.text);
+			logger.error("IOErrorEvent: " + event.toString());
 			//			dispatchEvent(new WorlizeCommEvent(WorlizeCommEvent.DISCONNECTED));
 		}
 		private function handleWebSocketAbnormalClose(event:WebSocketErrorEvent):void {
-			trace("Presence WebSocket: Abnormal Close: " + event.text);
+			logger.error("Abnormal Close: " + event.text);
 		}
 		private function handleWebSocketSecurityError(event:SecurityErrorEvent):void {
-			trace("Presence WebSocket: SecurityErrorEvent: " + event.text);
+			logger.error("SecurityErrorEvent: " + event.toString());
 			//			dispatchEvent(new WorlizeCommEvent(WorlizeCommEvent.DISCONNECTED));
 		}
 		

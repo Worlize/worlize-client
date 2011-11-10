@@ -5,6 +5,8 @@ package com.worlize.model
 	import com.worlize.rpc.WorlizeResultEvent;
 	import com.worlize.rpc.WorlizeServiceClient;
 	
+	import mx.logging.ILogger;
+	import mx.logging.Log;
 	import mx.rpc.events.FaultEvent;
 
 	[Bindable]
@@ -18,6 +20,8 @@ package com.worlize.model
 		}
 		
 		private static var _instance:CurrentUser;
+		
+		private var logger:ILogger = Log.getLogger("com.worlize.model.CurrentUser");
 		
 		public var guid:String;
 		public var admin:Boolean;
@@ -81,7 +85,7 @@ package com.worlize.model
 		}
 		
 		private function handleFault(event:FaultEvent):void {
-			trace("There was an error loading the user data.");
+			logger.error("There was an error loading the user data.");
 		}
 	}
 }

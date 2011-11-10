@@ -17,11 +17,15 @@ package com.worlize.control
 	
 	import mx.controls.Alert;
 	import mx.events.StateChangeEvent;
+	import mx.logging.ILogger;
+	import mx.logging.Log;
 	
 	[Event(type="mx.events.StateChangeEvent",name="currentStateChange")]
 	[Event(type="flash.events.ProgressEvent",name="progress")]
 	public class Uploader extends EventDispatcher
 	{
+		private var logger:ILogger = Log.getLogger('com.worlize.control.Uploader');
+		
 		public function Uploader(target:IEventDispatcher=null)
 		{
 			super(target);
@@ -35,7 +39,7 @@ package com.worlize.control
 		protected var fileRef:FileReference;
 		protected var browsing:Boolean = false;
 		protected var _state:String = STATE_READY;
-		protected var fileTypeFilter:FileFilter;
+		protected var fileTypeFilters:Array;
 		
 		public var url:String;
 		
@@ -64,8 +68,8 @@ package com.worlize.control
 			fileRef.addEventListener(Event.CANCEL, handleFileBrowseCancel);
 			fileRef.addEventListener(IOErrorEvent.IO_ERROR, handleIOErrorEvent);
 			fileRef.addEventListener(SecurityErrorEvent.SECURITY_ERROR, handleSecurityErrorEvent);
-			if (fileTypeFilter) {
-				fileRef.browse([fileTypeFilter]);
+			if (fileTypeFilters) {
+				fileRef.browse(fileTypeFilters);
 			}
 			else {
 				fileRef.browse();
@@ -74,7 +78,7 @@ package com.worlize.control
 		
 		protected function handleFileSelected(event:Event):void {
 			browsing = false;
-			trace("File selected");
+			logger.info("File selected");
 			// We have to manually do the URLRequest instead of going through
 			// a WorlizeServiceClient subclass...
 			var request:URLRequest = new URLRequest(url);
@@ -102,39 +106,41 @@ package com.worlize.control
 		}
 		
 		protected function handleFileBrowseCancel(event:Event):void {
-			trace("Browse Canceled.");
+			logger.info("Browse Canceled.");
 			browsing = false;
 		}
 		
 		protected function handleIOErrorEvent(event:IOErrorEvent):void {
+			logger.error("IOErrorEvent: " + event.toString());
 			browsing = false;
 			Alert.show("There was an IO Error while trying to upload the file.", "Error");
 			fileRef = null;
 		}
 		
 		protected function handleSecurityErrorEvent(event:SecurityErrorEvent):void {
+			logger.error("Security Error: " + event.toString());
 			browsing = false;
 			Alert.show("There was a Security Error while trying to upload the file.", "Error");
 			fileRef = null;
 		}
 		
 		protected function handleFileUploadComplete(event:DataEvent):void {
-			trace("UploadComplete");
+			logger.info("UploadComplete");
 			state = STATE_READY;
 		}
 		
 		protected function handleFileComplete(event:Event):void {
-			trace("FileComplete");
+			logger.info("FileComplete");
 			state = STATE_READY;
 		}
 		
 		protected function handleUploadBegin(event:Event):void {
-			trace("Uploading...");
+			logger.info("Uploading...");
 			state = STATE_UPLOADING;
 		}
 		
 		protected function handleUploadProgress(event:ProgressEvent):void {
-			trace("Upload Progress. Total Bytes: " + event.bytesTotal + ", Uploaded Bytes: " + event.bytesLoaded);
+			logger.debug("Upload Progress. Total Bytes: " + event.bytesTotal + ", Uploaded Bytes: " + event.bytesLoaded);
 			percentComplete = event.bytesLoaded / event.bytesTotal;
 			dispatchEvent(event.clone())
 			if (event.bytesLoaded == event.bytesTotal) {
@@ -143,7 +149,7 @@ package com.worlize.control
 		}
 		
 		protected function cancelUpload():void {
-			trace("Upload Canceled");
+			logger.info("Upload Canceled");
 			state = STATE_READY;
 		}
 	}

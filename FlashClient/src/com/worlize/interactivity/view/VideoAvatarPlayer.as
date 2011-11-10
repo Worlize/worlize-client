@@ -19,11 +19,15 @@ package com.worlize.interactivity.view
 	
 	import mx.core.UIComponent;
 	import mx.events.FlexEvent;
+	import mx.logging.ILogger;
+	import mx.logging.Log;
 	
 	[Event(type="com.worlize.interactivity.event.WorlizeVideoEvent", name="stopped")]
 	[Event(type="com.worlize.interactivity.event.WorlizeVideoEvent", name="started")]
 	public class VideoAvatarPlayer extends UIComponent
 	{
+		private var logger:ILogger = Log.getLogger('com.worlize.interactivity.view.VideoAvatarPlayer');
+		
 		protected var netStream:NetStream;
 		private var _streamName:String;
 		private var _netConnectionManager:NetConnectionManager;
@@ -212,7 +216,7 @@ package com.worlize.interactivity.view
 		}
 		
 		private function handleNetStreamNetStatus(event:NetStatusEvent):void {
-			trace("NetStream NetStatusEvent: " + event.info.level + " - " + event.info.code);
+			logger.debug("NetStream NetStatusEvent: " + event.info.level + " - " + event.info.code);
 			
 			var startedEvent:WorlizeVideoEvent;
 			var stoppedEvent:WorlizeVideoEvent;
@@ -247,15 +251,15 @@ package com.worlize.interactivity.view
 					break;
 				
 				case 'NetStream.Play.InsufficientBW':
-					trace("Insufficient bandwidth to maintain stream.");
+					logger.error("Insufficient bandwidth to maintain stream.");
 					break;
 				
 				case 'NetStream.Failed':
-					trace("NetStream: Server error.");
+					logger.error("NetStream: Server error.");
 					break;
 				
 				case 'NetStream.Play.StreamNotFound':
-					trace("Stream " + streamName + " not found.");
+					logger.error("Stream " + streamName + " not found.");
 					// Only retry three times on StreamNotFound.
 					if (streamNotFoundCount < 2) {
 						streamNotFoundTimer.reset();
@@ -271,7 +275,7 @@ package com.worlize.interactivity.view
 					break;
 				
 				default:
-					trace("Unhandled NetStatus Event: " + event.info.code);
+					logger.warn("Unhandled NetStatus Event: " + event.info.code);
 					break;
 			}
 		}

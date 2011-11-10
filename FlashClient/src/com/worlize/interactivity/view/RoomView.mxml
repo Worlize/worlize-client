@@ -59,11 +59,15 @@
 			import mx.events.FlexEvent;
 			import mx.events.MenuEvent;
 			import mx.events.PropertyChangeEvent;
+			import mx.logging.ILogger;
+			import mx.logging.Log;
 			import mx.managers.DragManager;
 			
 			import spark.effects.Animate;
 			import spark.effects.Fade;
 			import spark.effects.Move;
+			
+			private var logger:ILogger = Log.getLogger('com.worlize.interactivity.view.RoomView');
 			
 			private var _scaleFactor:Number = 1.0;
 			
@@ -144,7 +148,6 @@
 				
 				for (i=0; i < textGroup.numElements; i ++) {
 					element = textGroup.getElementAt(i);
-					trace(element);
 					if (element is DisplayObject) {
 						(element as DisplayObject).scaleX = inverseScaleFactor;
 						(element as DisplayObject).scaleY = inverseScaleFactor;
@@ -549,7 +552,7 @@
 					textGroup.removeElement(Animate(event.target).target as IVisualElement);
 				}
 				catch(e:Error) {
-					trace("Unable to remove element after fadeout animation. ", Animate(event.target).target);
+					logger.warn("Unable to remove element after fadeout animation. ", Animate(event.target).target);
 					// do nothing
 				}
 			}

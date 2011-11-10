@@ -34,6 +34,7 @@
 			import com.worlize.interactivity.iptscrae.command.CLIENTTYPECommand;
 			import com.worlize.interactivity.model.InteractivityUser;
 			import com.worlize.interactivity.rpc.InteractivityClient;
+			import com.worlize.logging.ArrayLogTarget;
 			import com.worlize.model.CurrentUser;
 			import com.worlize.model.Directory;
 			import com.worlize.model.PreferencesManager;
@@ -62,6 +63,10 @@
 			import mx.core.mx_internal;
 			import mx.events.CloseEvent;
 			import mx.events.PropertyChangeEvent;
+			import mx.logging.ILogger;
+			import mx.logging.Log;
+			import mx.logging.LogEventLevel;
+			import mx.logging.targets.TraceTarget;
 			import mx.managers.PopUpManager;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.http.HTTPService;
@@ -81,6 +86,29 @@
 			[Bindable]
 			private var logOutToolTip:String;
 			
+			private var logger:ILogger = Log.getLogger('FlashClient');
+			
+			private var arrayTarget:ArrayLogTarget;
+			
+			protected function initLogger():void {
+				var traceTarget:TraceTarget = new TraceTarget();
+				traceTarget.filters = ['*'];
+				traceTarget.level = LogEventLevel.INFO;
+				traceTarget.includeDate = false;
+				traceTarget.includeTime = false;
+				traceTarget.includeCategory = true;
+				traceTarget.includeLevel = true;
+				Log.addTarget(traceTarget);
+				
+				arrayTarget = new ArrayLogTarget();
+				arrayTarget.filters = ['*'];
+				arrayTarget.level = LogEventLevel.INFO;
+				arrayTarget.includeDate = false;
+				arrayTarget.includeTime = true;
+				arrayTarget.includeCategory = true;
+				arrayTarget.includeLevel = true;
+				Log.addTarget(arrayTarget);
+			}
 			
 			protected function handleUncaughtError(event:UncaughtErrorEvent):void
 			{
@@ -96,7 +124,9 @@
 					// There's no result to handle.
 				});
 				
-				var detail:Object = {};
+				var detail:Object = {
+					log_text: arrayTarget.getLogText()
+				};
 				
 				if (event.error is Error) {
 					var errorObject:Error = event.error;
@@ -142,9 +172,10 @@
 //					throw new Error("Foo Bar Error");
 //					var errorEvent:ErrorEvent = new ErrorEvent("myGreatErrorEvent", false, false, "Error Event Text", 25);
 //					dispatchEvent(errorEvent);
-//				}, 2000);
-				trace("Application Domain: " + url);
-				trace("Flash Player Version: " + Capabilities.version);
+//				}, 5000);
+				logger.info("Application URL: " + url);
+				logger.info("Flash Player Version: " + Capabilities.version);
+				
 				stage.addEventListener(KeyboardEvent.KEY_DOWN, handleStageKeyDown);
 				stage.addEventListener(Event.RESIZE, handleStageResize);
 				updateFriendsListAutoDisplay();
@@ -192,6 +223,8 @@
 			}
 
 			private function handleCreationComplete():void {
+				initLogger();
+				
 				ExternalInterface.call('hideLoadingOverlay');
 				
 				client.addEventListener(InteractivityEvent.CONNECT_COMPLETE, handleConnectComplete);

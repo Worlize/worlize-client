@@ -15,7 +15,9 @@ package com.worlize.control
 		{
 			super(target);
 			url = "/locker/in_world_objects";
-			fileTypeFilter = new FileFilter("Image Files (*.jpg, *.jpeg, *.png, *.gif)", "*.jpg;*.jpeg;*.png;*.gif");
+			var imageFilter:FileFilter = new FileFilter("Image Files (*.jpg, *.jpeg, *.png, *.gif)", "*.jpg;*.jpeg;*.png;*.gif");
+//			var flashFilter:FileFilter = new FileFilter("Flash Movie (*.swf)", "*.swf");
+			fileTypeFilters = [imageFilter];
 		}
 		
 		override protected function handleFileUploadComplete(event:DataEvent):void {

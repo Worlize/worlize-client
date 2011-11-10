@@ -20,6 +20,8 @@ package com.worlize.model.friends
 	import mx.collections.Sort;
 	import mx.controls.Alert;
 	import mx.events.FlexEvent;
+	import mx.logging.ILogger;
+	import mx.logging.Log;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	import mx.rpc.http.HTTPService;
@@ -31,6 +33,8 @@ package com.worlize.model.friends
 	public class FriendsList extends EventDispatcher
 	{
 		private static var _instance:FriendsList;
+		
+		private var logger:ILogger = Log.getLogger('com.worlize.model.friends.FriendsList');
 		
 		public static const STATE_READY:String = "ready";
 		public static const STATE_LOADING:String = "loading";
@@ -318,7 +322,7 @@ package com.worlize.model.friends
 					}
 					catch(e:Error) {
 						// unsupported presence status.
-						trace(e);
+						logger.error("Unsupported presence status: " + e.toString());
 					}
 				}
 			}
@@ -520,7 +524,7 @@ package com.worlize.model.friends
 		}
 		
 		private function handleOnlineFacebookFriendsResult(event:ResultEvent):void {
-			trace("Got friends result!");
+			logger.info("Got friends result");
 			// TODO: Fixme... the UID field is overflowing AS3's 32-bit int datatype.
 			var resultJSON:Object = JSON.decode(event.result as String);
 			
@@ -556,10 +560,13 @@ package com.worlize.model.friends
 				updateHeadingCounts();
 				enableAutoUpdate();
 			}
+			else {
+				logger.error("Invalid response received for Friends list request:\n" + event.result.toString());
+			}
 		}
 		
 		private function handleOnlineFacebookFriendsFault(event:FaultEvent):void {
-			trace("Online Facebook Friends Fault");
+			logger.error("Online Facebook Friends Fault");
 		}
 	}
 }

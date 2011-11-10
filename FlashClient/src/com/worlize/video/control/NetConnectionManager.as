@@ -16,6 +16,8 @@ package com.worlize.video.control
 	import mx.controls.Alert;
 	import mx.controls.Text;
 	import mx.events.FlexEvent;
+	import mx.logging.ILogger;
+	import mx.logging.Log;
 	
 	[Event(type="com.worlize.video.events.NetConnectionManagerEvent", name="connecting")]
 	[Event(type="com.worlize.video.events.NetConnectionManagerEvent", name="connected")]
@@ -29,6 +31,8 @@ package com.worlize.video.control
 		public static const STATE_CONNECTED:String = "connected";
 		public static const STATE_DISCONNECTING:String = "disconnecting";
 		public static const STATE_DISCONNECTED:String = "disconnected";
+		
+		private var logger:ILogger = Log.getLogger("com.worlize.video.control.NetConnectionManager");
 		
 		[Bindable]
 		public var netConnection:NetConnection;
@@ -74,8 +78,9 @@ package com.worlize.video.control
 		}
 		
 		public function connect(...arguments):void {
+			var message:String;
 			if (netConnection.connected) {
-				trace("NetConnection is already connected.  Disconnecting first.");
+				logger.info("NetConnection is already connected.  Disconnecting first.");
 				nextConnectWaiting = true;
 				connectArgs = arguments;
 				setState(STATE_DISCONNECTING);
@@ -92,10 +97,14 @@ package com.worlize.video.control
 				connectArgs = arguments;
 			}
 			catch (securityError:SecurityError) {
-				Alert.show("There was a SecurityError while trying to connect to the streaming server.", "Stream Connection Error");
+				message = "There was a SecurityError while trying to connect to the streaming server." 
+				logger.error(message + ": " + securityError.toString());
+				Alert.show(message, "Stream Connection Error");
 			}
 			catch (ioError:IOError) {
-				Alert.show("There was an I/O Error while trying to connect to the streaming server.", "Stream Connection Error");
+				message = "There was an I/O Error while trying to connect to the streaming server.";
+				logger.error(message + ": " + ioError.toString());
+				Alert.show(message, "Stream Connection Error");
 			}
 		}
 		
@@ -130,7 +139,7 @@ package com.worlize.video.control
 		}
 		
 		protected function handleNetStatus(event:NetStatusEvent):void {
-			trace("NetConnection NetStatus: " + event.info.level + " - " + event.info.code + " - " + event.info.description);
+			logger.debug("NetConnection NetStatus: " + event.info.level + " - " + event.info.code + " - " + event.info.description);
 			
 			var connectedEvent:NetConnectionManagerEvent;
 			var disconnectedEvent:NetConnectionManagerEvent;
@@ -153,7 +162,7 @@ package com.worlize.video.control
 					if (nextConnectWaiting) {
 						// Close expected, we now want to
 						// make a new separate connection
-						trace("Ok, previous NetConnection is closed, opening new one.");
+						logger.info("Ok, previous NetConnection is closed, opening new one.");
 						nextConnectWaiting = false;
 						setState(STATE_DISCONNECTED);
 						secondStageConnectTimer.reset();
@@ -230,7 +239,7 @@ package com.worlize.video.control
 					break;
 					
 				default:
-					trace("Unhandled NetStatus: " + event.info.code);
+					logger.warn("Unhandled NetStatus: " + event.info.code);
 					break;
 			}
 		}

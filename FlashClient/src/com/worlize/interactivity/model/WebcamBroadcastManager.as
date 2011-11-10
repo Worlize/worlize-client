@@ -17,6 +17,8 @@ package com.worlize.interactivity.model
 	import flash.system.SecurityPanel;
 	
 	import mx.events.FlexEvent;
+	import mx.logging.ILogger;
+	import mx.logging.Log;
 
 	[Event(type="com.worlize.interactivity.event.WebcamBroadcastEvent", name="broadcastStart")]
 	[Event(type="com.worlize.interactivity.event.WebcamBroadcastEvent", name="broadcastStop")]
@@ -25,6 +27,8 @@ package com.worlize.interactivity.model
 	{
 		public static const MIC_MODE_OPEN:String = "micModeOpen";
 		public static const MIC_MODE_PUSH_TO_TALK:String = "micModePushToTalk";
+	
+		private var logger:ILogger = Log.getLogger('com.worlize.interactivity.model.WebcamBroadcastManager');
 		
 		protected var netStream:NetStream;
 		public var video:Video;
@@ -168,18 +172,18 @@ package com.worlize.interactivity.model
 			// by another application.
 			if (camera !== null) {
 				if (camera.muted) {
-					trace("Camera.muted = true, requesting access.");
+					logger.info("Camera.muted = true, requesting access.");
 					// User previously denied access to the camera.  Re-prompt.
 					requestedStreamName = streamName;
 					camera.addEventListener(StatusEvent.STATUS, function(event:StatusEvent):void {
-						trace("Status event");
+						logger.debug("Status event: " + event.code);
 					});
 					camera.addEventListener(StatusEvent.STATUS, handleCameraStatusChange);
 					Security.showSettings(SecurityPanel.PRIVACY);
 				}
 				else {
 					// User granted access to the camera.. continue.
-					trace("Camera.muted = false, continuing to start broadcast.");
+					logger.info("Camera.muted = false, continuing to start broadcast.");
 					continueBroadcastCamera(streamName);
 				}
 			}
@@ -189,7 +193,7 @@ package com.worlize.interactivity.model
 		}
 		
 		private function handleCameraStatusChange(event:StatusEvent):void {
-			trace("Handling camera StatusEvent - code: " + event.code);
+			logger.info("Handling camera StatusEvent - code: " + event.code);
 			if (event.code === 'Camera.Unmuted') {
 				// User granted access to the camera.. continue.
 				if (requestedStreamName) {
@@ -200,7 +204,7 @@ package com.worlize.interactivity.model
 			else if (event.code === 'Camera.Muted') {
 				// User denied access to the camera.  Stop any existing broadcast.
 				if (broadcastEnabled) {
-					trace("Camera access was revoked while broadcasting");
+					logger.warn("Camera access was revoked while broadcasting");
 					var revokedEvent:WebcamBroadcastEvent = new WebcamBroadcastEvent(WebcamBroadcastEvent.CAMERA_PERMISSION_REVOKED);
 					dispatchEvent(revokedEvent);
 					stopBroadcast();
@@ -218,7 +222,7 @@ package com.worlize.interactivity.model
 			
 			// Already broadcasting but changing the stream name.
 			if (broadcastEnabled && _streamName !== streamName) {
-				trace("Already broadcasting but changing the stream name.");
+				logger.info("Already broadcasting but changing the stream name.");
 				stopBroadcast();
 			}
 			
@@ -234,7 +238,7 @@ package com.worlize.interactivity.model
 		}
 		
 		protected function startBroadcast():void {
-			trace("Beginning broadcast '" + streamName + "'");
+			logger.info("Beginning broadcast '" + streamName + "'");
 			
 			if (micMode === MIC_MODE_PUSH_TO_TALK) {
 				muteMic();
@@ -264,7 +268,7 @@ package com.worlize.interactivity.model
 		}
 		
 		private function handleNetStreamNetStatus(event:NetStatusEvent):void {
-			trace("InteractivityUser NetStream: " + event.info.code + " (" + event.info.description + ")");
+			logger.debug("InteractivityUser NetStream: " + event.info.code + " (" + event.info.description + ")");
 			switch (event.info.code) {
 				case "NetStream.Publish.Start":
 					setBroadcasting(true);
@@ -290,7 +294,7 @@ package com.worlize.interactivity.model
 					break;
 						
 				default:
-					trace("Unhandled NetStream NetStatus Event: " + event.info.code);
+					logger.warn("Unhandled NetStream NetStatus Event: " + event.info.code);
 					break;
 			}
 		}

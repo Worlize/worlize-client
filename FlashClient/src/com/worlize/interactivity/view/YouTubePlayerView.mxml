@@ -42,9 +42,13 @@
 			import mx.controls.Alert;
 			import mx.events.FlexEvent;
 			import mx.events.SandboxMouseEvent;
+			import mx.logging.ILogger;
+			import mx.logging.Log;
 			import mx.rpc.events.FaultEvent;
 			
 			import org.osmf.events.TimeEvent;
+			
+			private var logger:ILogger = Log.getLogger('com.worlize.interactivity.view.YouTubePlayerView');
 			
 			private var _youTubePlayerDefinition:YouTubePlayerDefinition;
 						
@@ -456,11 +460,11 @@
 			}
 			
 			private function handlePlayerLocked(event:WorlizeYouTubeEvent):void {
-				trace("locked");
+				logger.info("locked");
 			}
 			
 			private function handlePlayerUnlocked(event:WorlizeYouTubeEvent):void {
-				trace("unlocked");
+				logger.info("unlocked");
 			}
 				
 			private function formatSecondsToTime(value:int):String {
