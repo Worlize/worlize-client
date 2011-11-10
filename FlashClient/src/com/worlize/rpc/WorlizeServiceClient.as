@@ -7,6 +7,8 @@ package com.worlize.rpc
 	import flash.net.URLLoader;
 	import flash.net.URLRequest;
 	
+	import mx.logging.ILogger;
+	import mx.logging.Log;
 	import mx.rpc.AsyncToken;
 	import mx.rpc.Fault;
 	import mx.rpc.events.FaultEvent;
@@ -17,6 +19,7 @@ package com.worlize.rpc
 	[Event(name="fault",type="mx.rpc.events.FaultEvent")]
 	public class WorlizeServiceClient extends EventDispatcher
 	{
+		private var logger:ILogger = Log.getLogger('com.worlize.rpc.WorlizeServiceClient');		
 		
 		private var service:HTTPService;
 		public var lastResult:WorlizeResultEvent;
@@ -34,10 +37,12 @@ package com.worlize.rpc
 		}
 		
 		public function cancel():void {
+			logger.info("Cancel");
 			service.cancel();
 		}
 		
 		public function send(url:String, method:String, params:Object = null):void {
+			logger.info("Send url: " + url + " method: " + method);
 			if (params === null) {
 				params = {};
 			}
@@ -59,6 +64,8 @@ package com.worlize.rpc
 		}
 		
 		private function handleResult(event:ResultEvent):void {
+			logger.info("Got result for url: " + service.url + " method: " + service.method);
+			logger.debug("Result Data: " + event.result);
 			loading = false;
 			lastResult = new WorlizeResultEvent(WorlizeResultEvent.RESULT, event.bubbles, event.cancelable, event.result, event.token, event.message);
 			try {
@@ -66,6 +73,7 @@ package com.worlize.rpc
 				dispatchEvent(lastResult);
 			}
 			catch(error:Error) {
+				logger.error("JSON parsing error while decoding service result.");
 				var fault:Fault = new Fault("JSONParseFault", "Cannot parse JSON response from server", error.message);
 				var faultEvent:FaultEvent = new FaultEvent(FaultEvent.FAULT, event.bubbles, event.cancelable, fault, event.token, event.message);
 				dispatchEvent(faultEvent);
@@ -73,6 +81,7 @@ package com.worlize.rpc
 		}
 		
 		private function handleFault(event:FaultEvent):void {
+			logger.warn("Fault: " + event.toString());
 			loading = false;
 			dispatchEvent(event.clone());
 		}
