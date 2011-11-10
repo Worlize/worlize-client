@@ -101,8 +101,9 @@
 				Log.addTarget(traceTarget);
 				
 				arrayTarget = new ArrayLogTarget();
+				arrayTarget.maxLogEntries = 300;
 				arrayTarget.filters = ['*'];
-				arrayTarget.level = LogEventLevel.INFO;
+				arrayTarget.level = LogEventLevel.DEBUG;
 				arrayTarget.includeDate = false;
 				arrayTarget.includeTime = true;
 				arrayTarget.includeCategory = true;
