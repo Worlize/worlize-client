@@ -117,15 +117,8 @@
 				event.preventDefault();
 				
 				// Prepare to log the error to the server
-				var serviceClient:WorlizeServiceClient = new WorlizeServiceClient();
-				serviceClient.addEventListener(FaultEvent.FAULT, function(event:FaultEvent):void {
-					// If there is an error reporting the error we can't do much..
-				});
-				serviceClient.addEventListener(WorlizeResultEvent.RESULT, function(event:WorlizeResultEvent):void {
-					// There's no result to handle.
-				});
-				
 				var detail:Object = {
+					flash_version: Capabilities.version,
 					log_text: arrayTarget.getLogText()
 				};
 				
@@ -159,6 +152,14 @@
 						detail.message = "Object does not implement toString()";
 					}
 				}
+				
+				var serviceClient:WorlizeServiceClient = new WorlizeServiceClient();
+				serviceClient.addEventListener(FaultEvent.FAULT, function(event:FaultEvent):void {
+					// If there is an error reporting the error we can't do much..
+				});
+				serviceClient.addEventListener(WorlizeResultEvent.RESULT, function(event:WorlizeResultEvent):void {
+					// There's no result to handle.
+				});
 				serviceClient.send('/client_errors.json', HTTPMethod.POST, detail);
 				
 				Alert.show("Uhoh!  Something went wrong.  An error report has been sent to our engineers, and we'll try to get it taken care of as soon as possible!",
