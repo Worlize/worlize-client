@@ -214,7 +214,6 @@ package com.worlize.interactivity.rpc
 		// Incoming Message Handlers
 		private var incomingMessageHandlers:Object = {
 			"user_enter": handleUserNew,
-			"handshake": handleHandshakeResponse,
 			"say": handleReceiveTalk,
 			"whisper": handleReceiveWhisper,
 			"move": handleMove,
@@ -313,12 +312,7 @@ package com.worlize.interactivity.rpc
 		}
 		
 		private function handlePresenceConnected(event:WorlizeCommEvent):void {
-			presenceConnection.send({
-				msg: "handshake",
-				data: {
-					session_guid: worlizeConfig.interactivitySession.sessionGuid
-				}
-			});
+			logger.info("Presence Connection Established.");
 		}
 		
 		private function handlePresenceDisconnected(event:WorlizeCommEvent):void {
@@ -332,13 +326,14 @@ package com.worlize.interactivity.rpc
 		}
 		
 		private function handleConnected(event:WorlizeCommEvent):void {
+			logger.info("Room Server Connection Established.");
+			roomConnectionState = WorlizeConnectionState.CONNECTED;
 			expectingDisconnect = false;
-			roomConnection.send({
-				msg: "handshake",
-				data: {
-					session_guid: worlizeConfig.interactivitySession.sessionGuid
-				}
-			});
+			var connectEvent:InteractivityEvent = new InteractivityEvent(InteractivityEvent.CONNECT_COMPLETE);
+			dispatchEvent(connectEvent);
+			var notification:ConnectionNotification = new ConnectionNotification(ConnectionNotification.CONNECTION_ESTABLISHED);
+			NotificationCenter.postNotification(notification);
+			currentRoom.selfUserId = id;
 		}
 		
 		private var disconnectedMessageShowing:Boolean = false;
@@ -814,21 +809,6 @@ package com.worlize.interactivity.rpc
 			currentRoom.resetYoutubePlayers();
 			for each (var youtubePlayerDefinition:YouTubePlayerDefinition in room.youtubePlayers) {
 				currentRoom.addYoutubePlayer(youtubePlayerDefinition);
-			}
-		}
-		
-		private function handleHandshakeResponse(data:Object):void {
-			if (data.success) {
-				roomConnectionState = WorlizeConnectionState.CONNECTED;
-				expectingDisconnect = false;
-				var event:InteractivityEvent = new InteractivityEvent(InteractivityEvent.CONNECT_COMPLETE);
-				dispatchEvent(event);
-				var notification:ConnectionNotification = new ConnectionNotification(ConnectionNotification.CONNECTION_ESTABLISHED);
-				NotificationCenter.postNotification(notification);
-				currentRoom.selfUserId = id;
-			}
-			else {
-				disconnect();
 			}
 		}
 		

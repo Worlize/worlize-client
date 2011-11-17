@@ -44,7 +44,7 @@ package com.worlize.rpc
 		
 		public function connect():void {
 			var url:String = config.useTLS ? 'wss://' : 'ws://';
-			url += (config.hostname + ":" + config.port + "/" + config.interactivitySession.serverId + "/");
+			url += (config.hostname + ":" + config.port + "/" + config.interactivitySession.serverId + "/?session=" + config.interactivitySession.sessionGuid);
 			
 			webSocket = new WebSocket(url, FlexGlobals.topLevelApplication.url, 'worlize-interact');
 			
