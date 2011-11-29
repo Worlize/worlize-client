@@ -93,7 +93,7 @@
 			protected function initLogger():void {
 				var traceTarget:TraceTarget = new TraceTarget();
 				traceTarget.filters = ['*'];
-				traceTarget.level = LogEventLevel.DEBUG;
+				traceTarget.level = LogEventLevel.INFO;
 				traceTarget.includeDate = false;
 				traceTarget.includeTime = false;
 				traceTarget.includeCategory = true;
