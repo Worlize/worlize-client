@@ -419,19 +419,22 @@
 			}
 			
 			private function handleHomeClick():void {
-				var homeEntrance:String = WorlizeConfig.getInstance().currentUser.worldEntrance;
-				if (homeEntrance) {
-					if (client.currentRoom.id === homeEntrance) {
-						var notification:VisualNotification = new VisualNotification(
-							"You are already at the entrance to your home world!",
-							"Home"
-						);
-						notification.show();
-					}
-					else {
-						client.gotoRoom(homeEntrance);
-					}
-				}
+				client.gotoRoom('home');
+				// FIXME: The currentUser.worldEntrance value will be wrong if
+				// the user has deleted the first room in their world.
+//				var homeEntrance:String = WorlizeConfig.getInstance().currentUser.worldEntrance;
+//				if (homeEntrance) {
+//					if (client.currentRoom.id === homeEntrance) {
+//						var notification:VisualNotification = new VisualNotification(
+//							"You are already at the entrance to your home world!",
+//							"Home"
+//						);
+//						notification.show();
+//					}
+//					else {
+//						client.gotoRoom('home');
+//					}
+//				}
 			}
 			
 			public function get baseURI():String {

@@ -686,11 +686,13 @@ package com.worlize.interactivity.rpc
 		}
 		
 		private function handleGotoRoomMessage(data:Object):void {
+			logger.debug("Received goto_room message from server, directing to room guid " + (data as String));
 			gotoRoom(data as String);
 		}
 		
 		private function handleRoomRedirect(data:Object):void {
 			logger.info("Room Redirect for room " + data.room);
+			expectingDisconnect = true
 			actuallyGotoRoom(data.room as String);
 		}
 		
@@ -893,8 +895,10 @@ package com.worlize.interactivity.rpc
 		}
 		
 		public function disconnect():void {
-			expectingDisconnect = true;
-			roomConnection.disconnect();
+			if (roomConnection) {
+				expectingDisconnect = true;
+				roomConnection.disconnect();				
+			}
 			resetState();
 		}
 		
@@ -1220,34 +1224,33 @@ package com.worlize.interactivity.rpc
 		private function actuallyGotoRoom(roomId:String):void {
 			logger.info("Actually going to room " + roomId);
 
-			resetState();
-			
-			var gotoNextRoom:Function = function():void {
-				var gotoRoomCommand:GotoRoomCommand = new GotoRoomCommand();
-				gotoRoomCommand.addEventListener(GotoRoomResultEvent.GOTO_ROOM_RESULT, function(event:GotoRoomResultEvent):void {
-					worlizeConfig.interactivitySession = event.interactivitySession;
-					
-					if (currentWorld.guid != worlizeConfig.interactivitySession.worldGuid) {
-						currentWorld.load(worlizeConfig.interactivitySession.worldGuid);
-					} 
-					
+			var gotoRoomCommand:GotoRoomCommand = new GotoRoomCommand();
+			gotoRoomCommand.addEventListener(GotoRoomResultEvent.GOTO_ROOM_RESULT, function(event:GotoRoomResultEvent):void {
+				worlizeConfig.interactivitySession = event.interactivitySession;
+				
+				if (currentWorld.guid != worlizeConfig.interactivitySession.worldGuid) {
+					currentWorld.load(worlizeConfig.interactivitySession.worldGuid);
+				} 
+				
+				if (roomConnection && roomConnection.connected) {
+					expectingDisconnect = true;
+					var disconnectHandler:Function = function(event:WorlizeCommEvent):void {
+						RoomConnection(event.target).removeEventListener(WorlizeCommEvent.DISCONNECTED, disconnectHandler);
+						resetState();
+						connect();
+					};
+					roomConnection.addEventListener(WorlizeCommEvent.DISCONNECTED, disconnectHandler);
+					roomConnection.disconnect();
+				}
+				else {
+					resetState();
 					connect();
-				});
-				gotoRoomCommand.execute(roomId);
-			};
-			
-			if (roomConnection && roomConnection.connected) {
-				expectingDisconnect = true;
-				var disconnectHandler:Function = function(event:WorlizeCommEvent):void {
-					RoomConnection(event.target).removeEventListener(WorlizeCommEvent.DISCONNECTED, disconnectHandler);
-					gotoNextRoom();
-				};
-				roomConnection.addEventListener(WorlizeCommEvent.DISCONNECTED, disconnectHandler);
-				roomConnection.disconnect();
-			}
-			else {
-				gotoNextRoom();
-			}
+				}
+			});
+			gotoRoomCommand.addEventListener(FaultEvent.FAULT, function(event:FaultEvent):void {
+				currentRoom.logMessage("Unable to go to the requested room: it does not exist.");
+			});
+			gotoRoomCommand.execute(roomId);
 		}
 		
 		public function reconnectToRoomServer():void {

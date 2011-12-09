@@ -34,7 +34,7 @@ package com.worlize.command
 			}
 		}
 		private function handleFault(event:FaultEvent):void {
-			
+			dispatchEvent(event.clone());
 		}
 	}
 }
