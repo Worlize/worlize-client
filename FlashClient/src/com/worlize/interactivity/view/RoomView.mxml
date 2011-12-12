@@ -488,7 +488,7 @@
 					 
 					if (
 							rightCheck > width ||
-							bottomCheck > height ||
+							bottomCheck > (height - 26) ||
 							leftCheck < 0 ||
 							topCheck < 0
 					   ) { 
