@@ -288,6 +288,12 @@
 				}
 			}
 			
+			protected function handleBottomBarMouseDown(event:MouseEvent):void
+			{
+				event.preventDefault();
+				event.stopImmediatePropagation();
+			}
+			
 		]]>
 	</fx:Script>
 	
@@ -414,13 +420,15 @@
 							 securityError="handleSecurityError(event)"
 							 room="{client.currentRoom}" />
 	</s:Group>
-
-	<s:Rect id="bottomBar" bottom="0" left="0" right="0" height="26">
-		<s:fill>
-			<s:SolidColor color="#f0f0f1" alpha="0.55" />
-		</s:fill>
-	</s:Rect>
 	
+	<s:Group id="bottomBarContainer" bottom="0" left="0" right="0" height="26" mouseDown="handleBottomBarMouseDown(event)">
+		<s:Rect id="bottomBar" bottom="0" left="0" right="0" top="0">
+			<s:fill>
+				<s:SolidColor color="#f0f0f1" alpha="0.55" />
+			</s:fill>
+		</s:Rect>
+	</s:Group>
+
 	<s:HGroup bottom="2" left="531" gap="6" mouseUp="focusChatBox()">
 
 		<s:Button id="logWindowButton"
