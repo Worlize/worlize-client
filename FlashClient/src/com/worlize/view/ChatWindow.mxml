@@ -288,8 +288,7 @@
 				}
 			}
 			
-			protected function handleBottomBarMouseDown(event:MouseEvent):void
-			{
+			protected function handleBottomBarMouseDown(event:MouseEvent):void {
 				event.preventDefault();
 				event.stopImmediatePropagation();
 			}
