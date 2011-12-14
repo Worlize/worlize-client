@@ -182,8 +182,6 @@
 				stage.addEventListener(Event.RESIZE, handleStageResize);
 				updateFriendsListAutoDisplay();
 				
-				ExternalInterface.call('checkForDialogs');
-				
 				if (ExternalInterface.call('getFacebookLoginStatus')) {
 					logOutToolTip = "Log out of Worlize and Facebook";
 				}

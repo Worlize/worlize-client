@@ -312,7 +312,9 @@ package com.worlize.interactivity.rpc
 		}
 		
 		private function handlePresenceConnected(event:WorlizeCommEvent):void {
-			logger.info("Presence Connection Established.");
+			logger.info("Presence Connection Established");
+			logger.info("Now that the presence connection is established, checking for promo dialogs to display.");
+			ExternalInterface.call('checkForDialogs');
 		}
 		
 		private function handlePresenceDisconnected(event:WorlizeCommEvent):void {
