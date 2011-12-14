@@ -90,6 +90,7 @@ package com.worlize.model.locker
 				}
 			}
 			avatarInstances.addItemAt(notification.avatarInstance, 0);
+			updateCount();
 		}
 		
 		private function addEmptySlot():void {

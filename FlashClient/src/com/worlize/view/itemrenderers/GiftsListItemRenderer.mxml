@@ -2,7 +2,7 @@
 <s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
 				xmlns:s="library://ns.adobe.com/flex/spark" 
 				xmlns:mx="library://ns.adobe.com/flex/mx"
-				height="46" autoDrawBackground="false">
+				height="46" width="100%" autoDrawBackground="false">
 	
 	<s:states>
 		<s:State name="normal" />
@@ -15,6 +15,7 @@
 			import com.worlize.model.friends.FriendsList;
 			import com.worlize.model.friends.FriendsListEntry;
 			import com.worlize.model.gifts.Gift;
+			import com.worlize.model.gifts.GiftType;
 			import com.worlize.view.windows.FriendsWindow;
 			
 			import mx.collections.ArrayCollection;
@@ -29,6 +30,12 @@
 			
 			private var _data:Gift;
 			
+			[Bindable]
+			private var thumbWidth:int = 40;
+			
+			[Bindable]
+			private var textMessage:String = "";
+			
 			[Bindable(event='dataChange')]
 			override public function set data(newValue:Object):void {
 				if (_data !== newValue) {
@@ -38,11 +45,40 @@
 					else {
 						_data = null;
 					}
+					buildTextMessage();
+					updateThumbWidth();
 					dispatchEvent(new FlexEvent('dataChange'));
 				}
 			}
 			override public function get data():Object {
 				return _data;
+			}
+			
+			protected function buildTextMessage():void {
+				if (_data && _data is Gift) {
+					var gift:Gift = data as Gift;
+					if (gift.sender) {
+						textMessage = "You've received a gift from " + gift.sender.username;						
+					}
+					else {
+						textMessage = "You've received a gift";
+					}
+				}
+				else {
+					textMessage = "";
+				}
+			}
+			
+			protected function updateThumbWidth():void {
+				if (_data && _data is Gift) {
+					var gift:Gift = data as Gift;
+					if (gift.type === GiftType.BACKGROUND) {
+						thumbWidth = 66;
+					}
+					else {
+						thumbWidth = 40;
+					}
+				}
 			}
 			
 		]]>
@@ -54,7 +90,7 @@
 		</s:fill>
 	</s:Rect>
 	
-	<s:Rect width="42" height="42"
+	<s:Rect width="{thumbWidth+2}" height="41"
 			top="2" left="2">
 		<s:stroke>
 			<s:SolidColorStroke color="#666666" weight="1" joints="miter" caps="square" />
@@ -64,15 +100,15 @@
 		</s:fill>
 	</s:Rect>
 	
-	<mx:Image width="40" height="40" top="3" left="3" 
+	<mx:Image width="{thumbWidth}" height="40" top="3" left="3" 
 			  source="{Gift(data).thumbnailURL}" />
 	
-	<s:HGroup left="56" right="3" verticalAlign="middle"
+	<s:HGroup left="{thumbWidth+16}" right="3" verticalAlign="middle"
 			  height="100%">
-		<s:Label fontFamily="Arial" width="140"
+		<s:Label fontFamily="Arial" width="{180-thumbWidth}"
 				 color="#444444"
 				 fontSize="12" lineBreak="toFit"
-				 text="You've received a gift from {Gift(data).sender.username}" />
+				 text="{textMessage}" />
 
 		<mx:Spacer width="100%" />
 		

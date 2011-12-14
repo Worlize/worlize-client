@@ -77,18 +77,19 @@ package com.worlize.model.locker
 		}
 		
 		private function handleInWorldObjectAdded(notification:InWorldObjectNotification):void {
+			instanceMap[notification.inWorldObjectInstance.guid] = notification.inWorldObjectInstance;
 			for (var i:int = 0, len:int = instances.length; i < len; i++) {
 				var instance:InWorldObjectInstance = InWorldObjectInstance(instances.getItemAt(i));
 				if (instance.emptySlot) {
 					instances.removeItemAt(i);
 					delete instanceMap[instance.guid];
-					instances.addItemAt(notification.inWorldObjectInstance, i);
-					instanceMap[notification.inWorldObjectInstance.guid] = notification.inWorldObjectInstance;
+					instances.addItemAt(notification.inWorldObjectInstance, 0);
 					updateCount();
 					return;
 				}
 			}
 			instances.addItem(notification.inWorldObjectInstance);
+			updateCount();
 		}
 		
 		public function load():void {

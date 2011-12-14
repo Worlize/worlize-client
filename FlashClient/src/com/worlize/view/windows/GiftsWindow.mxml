@@ -8,7 +8,7 @@
 								 showCloseButton="false"
 								 removedFromStage="handleRemovedFromStage()"
 								 mouseDownOutside="handleMouseDownOutside(event)"
-								 width="370" xmlns:layout="flexlib.scheduling.scheduleClasses.layout.*" xmlns:controls="controls.*">
+								 width="380" xmlns:layout="flexlib.scheduling.scheduleClasses.layout.*" xmlns:controls="controls.*">
 	
 	<fx:Script>
 		<![CDATA[

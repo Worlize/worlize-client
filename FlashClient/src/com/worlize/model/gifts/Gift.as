@@ -34,14 +34,18 @@ package com.worlize.model.gifts
 			instance.type = data.type;
 			instance.note = data.note;
 			
-			var sender:UserListEntry = new UserListEntry();
-			sender = new UserListEntry();
-			sender.userGuid = data.sender.guid;
-			sender.username = data.sender.username;
-			instance.sender = sender;
+			if (data.sender) {
+				var sender:UserListEntry = new UserListEntry();
+				sender = new UserListEntry();
+				sender.userGuid = data.sender.guid;
+				sender.username = data.sender.username;
+				instance.sender = sender;				
+			}
 			
 			switch (instance.type) {
 				case GiftType.AVATAR:
+				case GiftType.BACKGROUND:
+				case GiftType.OBJECT:
 					instance.thumbnailURL = data.item.thumbnail;
 					instance.itemGuid = data.item.guid;
 					break;

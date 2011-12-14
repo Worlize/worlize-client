@@ -56,18 +56,19 @@ package com.worlize.model.locker
 		}
 		
 		private function handleBackgroundInstanceAdded(notification:BackgroundImageNotification):void {
+			backgroundInstanceMap[notification.backgroundInstance.guid] = notification.backgroundInstance;
 			for (var i:int = 0, len:int = backgroundInstances.length; i < len; i++) {
 				var instance:BackgroundImageInstance = BackgroundImageInstance(backgroundInstances.getItemAt(i));
 				if (instance.emptySlot) {
 					backgroundInstances.removeItemAt(i);
 					delete backgroundInstanceMap[instance.guid];
-					backgroundInstances.addItemAt(notification.backgroundInstance, i);
-					backgroundInstanceMap[notification.backgroundInstance.guid] = notification.backgroundInstance;
+					backgroundInstances.addItemAt(notification.backgroundInstance, 0);
 					updateCount();
 					return;
 				}
 			}
 			backgroundInstances.addItem(notification.backgroundInstance);
+			updateCount();
 		}
 		
 		public function load():void {

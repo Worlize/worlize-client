@@ -488,10 +488,14 @@ package com.worlize.interactivity.rpc
 		private function handleGiftReceived(data:Object):void {
 			var gift:Gift = Gift.fromData(data.gift);
 			GiftsList.getInstance().addGift(gift);
-			var notification:VisualNotification = new VisualNotification(
-				"You've received a gift from " + gift.sender.username + "!  Click \"Gifts\" at the top of the screen to accept it!",
-				"Gift Received!"
-			);
+			var message:String;
+			if (gift.sender) {
+				message = "You've received a gift from " + gift.sender.username + "!  Click \"Gifts\" at the top of the screen to accept it!";
+			}
+			else {
+				message = "You've received a gift!  Click \"Gifts\" at the top of the screen to accept it!";
+			}
+			var notification:VisualNotification = new VisualNotification(message, "Gift Received!");
 			notification.show();
 		}
 		
