@@ -9,7 +9,7 @@
 						  resizable="true"
 						  windowIcon="@Embed('assets/icons/large/w_icon_myworlz.png')"
 						  creationComplete="handleCreationComplete()"
-						  width="500" minWidth="500" maxWidth="500"
+						  width="525" minWidth="525" maxWidth="525"
 						  height="500" minHeight="371" xmlns:controls="controls.*">
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
