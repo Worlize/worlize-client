@@ -116,10 +116,15 @@
 				// Prevent the default error dialog in the debug player
 				event.preventDefault();
 				
+				var logText:String = arrayTarget.getLogText();
+				if (logText.length > 61,440) { // Only send the last 60KiB of logs
+					logText = logText.slice(logText.length-61,440);
+				}
+				
 				// Prepare to log the error to the server
 				var detail:Object = {
 					flash_version: Capabilities.version,
-					log_text: arrayTarget.getLogText()
+					log_text: logText
 				};
 				
 				if (event.error is Error) {
