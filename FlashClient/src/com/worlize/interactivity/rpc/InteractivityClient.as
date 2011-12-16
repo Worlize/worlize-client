@@ -254,6 +254,7 @@ package com.worlize.interactivity.rpc
 			"youtube_seek": handleYouTubeSeek,
 			"gift_received": handleGiftReceived,
 			"background_instance_added": handleBackgroundInstanceAdded,
+			"background_instance_updated": handleBackgroundInstanceUpdated,
 			"avatar_instance_added": handleAvatarInstanceAdded,
 			"avatar_instance_deleted": handleAvatarInstanceDeleted,
 			"in_world_object_instance_added": handleInWorldObjectInstanceAdded,
@@ -484,6 +485,13 @@ package com.worlize.interactivity.rpc
 			var backgroundInstance:BackgroundImageInstance = BackgroundImageInstance.fromData(data);
 			var notification:BackgroundImageNotification = new BackgroundImageNotification(BackgroundImageNotification.BACKGROUND_INSTANCE_ADDED);
 			notification.backgroundInstance = backgroundInstance;
+			NotificationCenter.postNotification(notification);
+		}
+		
+		private function handleBackgroundInstanceUpdated(data:Object):void {
+			var notification:BackgroundImageNotification = new BackgroundImageNotification(BackgroundImageNotification.BACKGROUND_INSTANCE_UPDATED);
+			notification.updatedBackgroundInstanceGuid = data.guid;
+			notification.updatedBackgroundInstanceData = data;
 			NotificationCenter.postNotification(notification);
 		}
 		

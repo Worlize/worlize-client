@@ -40,14 +40,19 @@ package com.worlize.model.locker
 			super(target);
 			NotificationCenter.addListener(BackgroundImageNotification.BACKGROUND_INSTANCE_ADDED, handleBackgroundInstanceAdded);
 			NotificationCenter.addListener(BackgroundImageNotification.BACKGROUND_INSTANCE_DELETED, handleBackgroundDeleted);
+			NotificationCenter.addListener(BackgroundImageNotification.BACKGROUND_INSTANCE_UPDATED, handleBackgroundInstanceUpdated);
 		}
 		
 		private function handleBackgroundDeleted(notification:BackgroundImageNotification):void {
-			for (var i:int = 0, len:int = backgroundInstances.length; i < len; i++) {
+			removeBackgroundInstanceByGuid(notification.deletedInstanceGuid);
+		}
+		
+		private function removeBackgroundInstanceByGuid(guid:String):void {
+			for (var i:int = 0, len:int = backgroundInstances.length; i < len; i ++) {
 				var instance:BackgroundImageInstance = BackgroundImageInstance(backgroundInstances.getItemAt(i));
-				if (instance.guid == notification.deletedInstanceGuid) {
+				if (instance.guid === guid) {
 					backgroundInstances.removeItemAt(i);
-					delete backgroundInstanceMap[instance.guid];
+					delete backgroundInstanceMap[guid];
 					addEmptySlot();
 					updateCount();
 					return;
@@ -69,6 +74,13 @@ package com.worlize.model.locker
 			}
 			backgroundInstances.addItem(notification.backgroundInstance);
 			updateCount();
+		}
+		
+		private function handleBackgroundInstanceUpdated(notification:BackgroundImageNotification):void {
+			var existingInstance:BackgroundImageInstance = backgroundInstanceMap[notification.updatedBackgroundInstanceGuid];
+			if (existingInstance) {
+				existingInstance.updateData(notification.updatedBackgroundInstanceData);				
+			}
 		}
 		
 		public function load():void {
