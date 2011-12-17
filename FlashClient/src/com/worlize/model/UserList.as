@@ -8,6 +8,8 @@ package com.worlize.model
 	import flash.events.IEventDispatcher;
 	
 	import mx.collections.ArrayCollection;
+	import mx.collections.Sort;
+	import mx.collections.SortField;
 	import mx.rpc.events.FaultEvent;
 	
 	public class UserList extends EventDispatcher
@@ -29,6 +31,12 @@ package com.worlize.model
 		public function UserList(target:IEventDispatcher=null)
 		{
 			super(target);
+			var sort:Sort = new Sort();
+			sort.fields = [
+				new SortField('username', true, false)
+			];
+			users.sort = sort;
+			users.refresh();
 		}
 		
 		
@@ -36,7 +44,7 @@ package com.worlize.model
 			if (worldGuid) {
 				this.worldGuid = worldGuid;
 			}
-			if (this.worldGuid === null) { return; }
+			if (this.worldGuid === null || state === STATE_LOADING) { return; }
 			state = STATE_LOADING;
 			var client:WorlizeServiceClient = new WorlizeServiceClient();
 			client.addEventListener(WorlizeResultEvent.RESULT, function(event:WorlizeResultEvent):void {

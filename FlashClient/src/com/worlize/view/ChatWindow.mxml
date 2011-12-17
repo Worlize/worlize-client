@@ -358,7 +358,7 @@
 				click="showUserList()"
 				styleName="chatWindowVisitorsTitle"
 				toolTip="Click for User List"
-				text="Visitors: {client.currentWorld.userList.users.length}" />
+				text="Visitors: {client.currentWorld.roomList.totalUserCount}" />
 				
 			<mx:Image source="@Embed(source='src/assets/icons/icon_visitor_list_dropdown.png')"
 					  click="showUserList()"

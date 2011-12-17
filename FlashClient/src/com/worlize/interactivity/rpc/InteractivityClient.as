@@ -30,8 +30,11 @@ package com.worlize.interactivity.rpc
 	import com.worlize.model.PreferencesManager;
 	import com.worlize.model.PublicWorldsList;
 	import com.worlize.model.RoomDefinition;
+	import com.worlize.model.RoomList;
+	import com.worlize.model.RoomListEntry;
 	import com.worlize.model.SimpleAvatar;
 	import com.worlize.model.SimpleAvatarStore;
+	import com.worlize.model.UserList;
 	import com.worlize.model.UserListEntry;
 	import com.worlize.model.VideoAvatar;
 	import com.worlize.model.WorldDefinition;
@@ -221,6 +224,7 @@ package com.worlize.interactivity.rpc
 			"set_color": handleUserColor,
 			"user_leave": handleUserLeaving,
 			"room_definition": handleRoomDefinition,
+			"room_population_update": handleRoomPopulationUpdate,
 			"global_msg": handleGlobalMessage,
 			"new_hotspot": handleNewHotspot,
 			"hotspot_moved": handleHotspotMoved,
@@ -828,6 +832,66 @@ package com.worlize.interactivity.rpc
 			}
 		}
 		
+		// Keep the user/room list in sync
+		private function handleRoomPopulationUpdate(data:Object):void {
+			logger.debug("Room Population Update Message");
+			
+			var userList:UserList = currentWorld.userList;
+			var roomList:RoomList = currentWorld.roomList;
+			var userListEntry:UserListEntry;
+			var roomListEntry:RoomListEntry;
+			var i:int;
+			
+			for each (roomListEntry in roomList.rooms) {
+				if (roomListEntry.guid === data.guid) {
+					break;
+				}
+			}
+			if (roomListEntry) {
+				roomListEntry.userCount = data.userCount;
+			}
+			else {
+				// apparently the room wasn't in the list.  Let's add it.
+				roomListEntry = new RoomListEntry();
+				roomListEntry.guid = data.guid;
+				roomListEntry.name = data.name;
+				roomListEntry.userCount = data.userCount;
+				roomList.rooms.addItem(roomListEntry);
+			}
+			
+			if (data.userAdded) {
+				// If the user is already in the list, update their data.
+				// Otherwise, add the user to the list.
+				var foundUser:Boolean = false;
+				for each (userListEntry in userList.users) {
+					if (userListEntry.userGuid === data.userAdded.guid) {
+						foundUser = true;
+						userListEntry.roomGuid = data.guid;
+						userListEntry.roomName = data.name;
+					}
+				}
+				if (!foundUser) {
+					userListEntry = new UserListEntry();
+					userListEntry.username = data.userAdded.userName;
+					userListEntry.userGuid = data.userAdded.guid;
+					userListEntry.roomGuid = data.guid;
+					userListEntry.roomName = data.name;
+					userList.users.addItem(userListEntry);
+				}
+			}
+			
+			if (data.userRemoved) {
+				// Find the user in the user list and remove them
+				for (i=0; i < userList.users.length; i ++) {
+					userListEntry = userList.users.getItemAt(i) as UserListEntry;
+					if (userListEntry.userGuid === data.userRemoved.guid) {
+						userList.users.removeItemAt(i);
+						break;
+					}
+				}
+			}
+		}
+		
 		public function setCyborg(cyborgScript:String):void {
 			cyborgHotspot = new Hotspot();
 			cyborgHotspot.scriptString = cyborgScript;
@@ -1242,9 +1306,19 @@ package com.worlize.interactivity.rpc
 			gotoRoomCommand.addEventListener(GotoRoomResultEvent.GOTO_ROOM_RESULT, function(event:GotoRoomResultEvent):void {
 				worlizeConfig.interactivitySession = event.interactivitySession;
 				
-				if (currentWorld.guid != worlizeConfig.interactivitySession.worldGuid) {
-					currentWorld.load(worlizeConfig.interactivitySession.worldGuid);
-				} 
+				// Make sure to refresh the information about the current world
+				// when going to a new room.
+				currentWorld.load(worlizeConfig.interactivitySession.worldGuid);
+				
+				// Make sure to update the room count since we won't receive a
+				// room_population_update message after we disconnect.
+				for (var i:int=0; i < currentWorld.roomList.rooms.length; i ++) {
+					var roomListEntry:RoomListEntry = currentWorld.roomList.rooms.getItemAt(i) as RoomListEntry;
+					if (roomListEntry.guid === currentRoom.id) {
+						roomListEntry.userCount --;
+						break;
+					}
+				}
 				
 				if (roomConnection && roomConnection.connected) {
 					expectingDisconnect = true;
@@ -1503,7 +1577,7 @@ package com.worlize.interactivity.rpc
 			if (currentRoom.getUserById(userId) != null) {
 				currentRoom.removeUserById(userId);
 			}
-
+			
 			//if user left room and ESP is active when they sign off
 			if (currentRoom.selectedUser && currentRoom.selectedUser.id == userId)
 			{

@@ -12,7 +12,7 @@ package com.worlize.model
 			var user:UserListEntry = new UserListEntry();
 			user.roomGuid = data.room_guid;
 			user.roomName = data.room_name;
-			user.username = data.user_name;
+			user.username = data.username;
 			user.userGuid = data.user_guid;
 			return user;
 		}
