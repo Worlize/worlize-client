@@ -118,7 +118,10 @@
 				serviceClient.send("/rooms/" + client.currentRoom.id + ".json", HTTPMethod.PUT, {
 					"room[name]": nameField.text
 				});
-				
+			}
+			
+			private function saveSnowEnabled():void {
+				client.updateRoomProperty('snowEnabled', fallingSnowCheckbox.selected);
 			}
 			
 			private function deleteRoom():void {
@@ -163,7 +166,8 @@
 				 id="nameField"
 				 text="{client.currentRoom.name}"
 			 />
-
+	<s:CheckBox label="Falling Snow" id="fallingSnowCheckbox" selected="{client.currentRoom.snowEnabled}" change="saveSnowEnabled()" />
+	
 	<mx:Spacer height="100%" />
 	
 	<s:HGroup width="100%">

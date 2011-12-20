@@ -17,6 +17,7 @@ package com.worlize.model
 		public var hotspots:Vector.<Hotspot> = new Vector.<Hotspot>();
 		public var objects:Array = [];
 		public var youtubePlayers:Vector.<YouTubePlayerDefinition> = new Vector.<YouTubePlayerDefinition>();
+		public var properties:Object = {};
 		
 		public function RoomDefinition()
 		{
@@ -50,6 +51,9 @@ package com.worlize.model
 					youTubePlayerDefinition.roomGuid = room.guid;
 					room.youtubePlayers.push(youTubePlayerDefinition);
 				}
+			}
+			if (data.properties) {
+				room.properties = data.properties;
 			}
 			return room;
 		}

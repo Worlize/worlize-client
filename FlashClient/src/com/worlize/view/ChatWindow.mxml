@@ -20,7 +20,7 @@
 	</s:states>
 	
 	<s:filters>
-		<s:GlowFilter blurX="4" blurY="4" alpha="0.47" color="#000000" quality="{BitmapFilterQuality.MEDIUM}" />
+		<s:GlowFilter blurX="5" blurY="5" alpha="0.47" color="#000000" quality="{BitmapFilterQuality.LOW}" />
 	</s:filters>
 	
 	<fx:Metadata>

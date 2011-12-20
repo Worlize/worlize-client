@@ -43,6 +43,7 @@ package com.worlize.interactivity.model
 		public var id:String;
 		public var name:String = "Connecting";
 		public var backgroundFile:String;
+		public var snowEnabled:Boolean = false;
 		public var users:ArrayCollection = new ArrayCollection();
 		public var usersHash:Object = {};
 		public var roomFlags:int;
@@ -83,6 +84,44 @@ package com.worlize.interactivity.model
 		{
 			lastMessageTimer.addEventListener(TimerEvent.TIMER, handleLastMessageTimer);
 			statusDisappearTimer.addEventListener(TimerEvent.TIMER, handleStatusDisappearTimer);
+		}
+		
+		public function resetProperties():void {
+			updateProperties({}, true);
+		}
+		
+		public function updateProperties(properties:Object, shouldReset:Boolean = false):void {
+			var mergedProperties:Object;
+			var propertyName:String;
+			if (shouldReset) {
+				// set room defaults here
+				mergedProperties = {
+					snowEnabled: false
+				};
+			}
+			else {
+				mergedProperties = {};
+			}
+			
+			for (propertyName in properties) {
+				if (properties.hasOwnProperty(propertyName)) {
+					mergedProperties[propertyName] = properties[propertyName];
+				}
+			}
+			
+			for (propertyName in mergedProperties) {
+				updateProperty(propertyName, mergedProperties[propertyName]);
+			}
+		}
+		
+		public function updateProperty(name:String, value:*):void {
+			switch(name) {
+				case 'snowEnabled':
+					snowEnabled = Boolean(value);
+					break;
+				default:
+					break;
+			}
 		}
 		
 		public function resetYoutubePlayers():void {

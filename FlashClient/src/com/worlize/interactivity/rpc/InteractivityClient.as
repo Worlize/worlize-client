@@ -221,6 +221,7 @@ package com.worlize.interactivity.rpc
 			"background_instance_added": handleBackgroundInstanceAdded,
 			"background_instance_updated": handleBackgroundInstanceUpdated,
 			"balance_updated": handleBalanceUpdated,
+			"disconnect": handleDisconnectMessage,
 			"friend_added": handleFriendAdded,
 			"friend_removed": handleFriendRemoved,
 			"friend_request_accepted": handleFriendRequestAccepted,
@@ -254,6 +255,7 @@ package com.worlize.interactivity.rpc
 			"set_simple_avatar": handleSetSimpleAvatar,
 			"set_video_avatar": handleSetVideoAvatar,
 			"set_video_server": handleSetVideoServer,
+			"update_room_property": handleUpdateRoomProperty,
 			"user_enter": handleUserNew,
 			"user_leave": handleUserLeaving,
 			"whisper": handleReceiveWhisper,
@@ -435,6 +437,11 @@ package com.worlize.interactivity.rpc
 		
 		private function handleSetVideoServer(data:Object):void {
 			netConnectionManager.connect(data as String);
+		}
+		
+		private function handleDisconnectMessage(data:Object):void {
+			logger.info("Server sent disconnect message.");
+//			Alert.show(data.error_code + " - " + data.error_message, "Disconnect");
 		}
 		
 		private function handlePaymentCompleted(data:Object):void {
@@ -830,12 +837,18 @@ package com.worlize.interactivity.rpc
 			for each (var youtubePlayerDefinition:YouTubePlayerDefinition in room.youtubePlayers) {
 				currentRoom.addYoutubePlayer(youtubePlayerDefinition);
 			}
+			
+			// Update room properties, resetting to defaults for all values if
+			// no value is supplied for a given property in the room definition.
+			currentRoom.updateProperties(room.properties, true);
+		}
+		
+		private function handleUpdateRoomProperty(data:Object):void {
+			currentRoom.updateProperty(data.name, data.value);
 		}
 		
 		// Keep the user/room list in sync
 		private function handleRoomPopulationUpdate(data:Object):void {
-			logger.debug("Room Population Update Message");
-			
 			var userList:UserList = currentWorld.userList;
 			var roomList:RoomList = currentWorld.roomList;
 			var userListEntry:UserListEntry;
@@ -978,6 +991,18 @@ package com.worlize.interactivity.rpc
 				roomConnection.disconnect();				
 			}
 			resetState();
+		}
+		
+		public function updateRoomProperty(propertyName:String, value:*):void {
+			if (canAuthor) {
+				roomConnection.send({
+					msg: "update_room_property",
+					data: {
+						name: propertyName,
+						value: value
+					}
+				});
+			}
 		}
 		
 		public function youTubeLoad(playerGuid:String, videoId:String, duration:int, title:String, autoPlay:Boolean = true):void {
