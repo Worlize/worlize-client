@@ -401,6 +401,7 @@ package com.worlize.interactivity.rpc
 		
 		private function routeIncomingMessage(message:Object):void {
 			if (message && message.msg) {
+				logger.debug("Incoming Message: " + message.msg);
 				var data:Object = null;
 				if (message['data']) {
 					data = message.data;
