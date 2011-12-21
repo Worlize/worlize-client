@@ -120,7 +120,12 @@ package com.worlize.interactivity.view
 				else {
 					transform.volume = 0.5;
 				}
-				netStream.soundTransform = transform;				
+				try {
+					netStream.soundTransform = transform;
+				}
+				catch(e:Error) {
+					logger.error(e.toString() + ": Stack trace if available: " + e.getStackTrace());
+				}
 			}
 		}
 		
