@@ -279,6 +279,10 @@
 			}
 			
 			private function toggleWebcam():void {
+				if (!client.currentUser) {
+					client.naked();
+					return;
+				}
 				var manager:WebcamBroadcastManager = client.webcamBroadcastManager;
 				if (client.webcamBroadcastManager.broadcasting) {
 					client.naked();

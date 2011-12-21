@@ -202,6 +202,7 @@
 					alternatingItemColors="[#FFFFFF, #F4F4F4]"
 					rollOverColor="#DAEEF7"
 					itemRendererFunction="{selectItemRenderer}"
+					horizontalScrollPolicy="off"
 					changing="handleDirectorySelectionChanging(event)"
 					dataProvider="{directory}" />
 		</s:Group>

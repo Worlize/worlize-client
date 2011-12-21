@@ -1169,12 +1169,16 @@ package com.worlize.interactivity.rpc
 		}
 		
 		public function naked():void {
-			currentUser.simpleAvatar = null;
-			currentUser.videoAvatarStreamName = null;
-			webcamBroadcastManager.stopBroadcast();
-			roomConnection.send({
-				msg: "naked"
-			});
+			if (roomConnected) {
+				if (currentUser) {
+					currentUser.simpleAvatar = null;
+					currentUser.videoAvatarStreamName = null;
+				}
+				webcamBroadcastManager.stopBroadcast();
+				roomConnection.send({
+					msg: "naked"
+				});
+			}
 		}
 		
 		public function setSimpleAvatar(guid:String):void {
