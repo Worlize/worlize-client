@@ -1,6 +1,5 @@
 package com.worlize.model.friends
 {
-	import com.adobe.serialization.json.JSON;
 	import com.worlize.event.FriendsListEvent;
 	import com.worlize.event.NotificationCenter;
 	import com.worlize.notification.FriendsNotification;
@@ -526,7 +525,7 @@ package com.worlize.model.friends
 		private function handleOnlineFacebookFriendsResult(event:ResultEvent):void {
 			logger.info("Got friends result");
 			// TODO: Fixme... the UID field is overflowing AS3's 32-bit int datatype.
-			var resultJSON:Object = JSON.decode(event.result as String);
+			var resultJSON:Object = JSON.parse(event.result as String);
 			
 			if (resultJSON) {
 				disableAutoUpdate();

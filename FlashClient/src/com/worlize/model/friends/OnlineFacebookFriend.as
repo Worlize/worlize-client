@@ -1,6 +1,5 @@
 package com.worlize.model.friends
 {
-	import com.adobe.serialization.json.JSON;
 	import com.worlize.model.CurrentUser;
 	
 	import flash.external.ExternalInterface;
@@ -39,7 +38,7 @@ package com.worlize.model.friends
 				message: "I'm online chatting right now in Worlize.  Come join me!  Hope to see you soon!",
 				to: facebookId,
 				title: 'Invite ' + name + ' to Join You',
-				data: JSON.encode({
+				data: JSON.stringify({
 					action: 'join',
 					inviter_guid: CurrentUser.getInstance().guid
 				})

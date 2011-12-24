@@ -1,6 +1,5 @@
 package com.worlize.control
 {
-	import com.adobe.serialization.json.JSON;
 	import com.worlize.event.NotificationCenter;
 	import com.worlize.model.AvatarInstance;
 	import com.worlize.model.SimpleAvatar;
@@ -38,7 +37,7 @@ package com.worlize.control
 		
 		override protected function handleFileUploadComplete(event:DataEvent):void {
 			try {
-				var response:Object = JSON.decode(event.data);
+				var response:Object = JSON.parse(event.data);
 				if (response.success) {
 					var data:Object = response.data;
 					// We're notified of the new avatar via a message sent
