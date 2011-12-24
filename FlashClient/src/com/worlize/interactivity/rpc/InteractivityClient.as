@@ -1,6 +1,7 @@
 package com.worlize.interactivity.rpc
 {
 	import com.adobe.net.URI;
+	import com.adobe.serialization.json.JSON;
 	import com.worlize.command.GotoRoomCommand;
 	import com.worlize.components.visualnotification.VisualNotification;
 	import com.worlize.components.visualnotification.VisualNotificationManager;
@@ -412,7 +413,7 @@ package com.worlize.interactivity.rpc
 					handlerFunction(data);
 				}
 				else {
-					logger.warn("Unhandled message: " + JSON.stringify(message));
+					logger.warn("Unhandled message: " + JSON.encode(message));
 				}
 			}
 		}

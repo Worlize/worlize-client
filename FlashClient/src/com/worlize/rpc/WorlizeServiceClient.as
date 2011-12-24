@@ -1,5 +1,7 @@
 package com.worlize.rpc
 {
+	import com.adobe.serialization.json.JSON;
+	
 	import flash.events.EventDispatcher;
 	import flash.events.IEventDispatcher;
 	import flash.net.URLLoader;
@@ -67,7 +69,7 @@ package com.worlize.rpc
 			loading = false;
 			lastResult = new WorlizeResultEvent(WorlizeResultEvent.RESULT, event.bubbles, event.cancelable, event.result, event.token, event.message);
 			try {
-				lastResult.resultJSON = JSON.parse(String(event.result));
+				lastResult.resultJSON = JSON.decode(String(event.result));
 				dispatchEvent(lastResult);
 			}
 			catch(error:Error) {

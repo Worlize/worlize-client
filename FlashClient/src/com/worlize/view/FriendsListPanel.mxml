@@ -16,6 +16,7 @@
 	<!-- titleBarColor="#1076a4" -->
 	<fx:Script>
 		<![CDATA[
+			import com.adobe.serialization.json.JSON;
 			import com.worlize.components.visualnotification.VisualNotification;
 			import com.worlize.event.FriendsListEvent;
 			import com.worlize.event.NotificationCenter;
@@ -94,7 +95,7 @@
 					exclude_ids: fbFriendIds,
 					filters: ['all'],
 					title: 'Invite Friends to Worlize',
-					data: JSON.stringify({
+					data: JSON.encode({
 						action: 'join',
 						inviter_guid: CurrentUser.getInstance().guid
 					})

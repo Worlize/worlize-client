@@ -1,5 +1,6 @@
 package com.worlize.rpc
 {
+	import com.adobe.serialization.json.JSON;
 	import com.worlize.interactivity.event.WorlizeCommEvent;
 	import com.worlize.model.WorlizeConfig;
 	import com.worlize.websocket.WebSocket;
@@ -38,7 +39,7 @@ package com.worlize.rpc
 		}
 		
 		public function send(message:Object):void {
-			webSocket.sendUTF(JSON.stringify(message));
+			webSocket.sendUTF(JSON.encode(message));
 		}
 		
 		public function connect():void {
@@ -73,7 +74,7 @@ package com.worlize.rpc
 		private function handleWebSocketMessage(event:WebSocketEvent):void {
 			var commEvent:WorlizeCommEvent = new WorlizeCommEvent(WorlizeCommEvent.MESSAGE);
 			try {
-				commEvent.message = JSON.parse(event.message.utf8Data);
+				commEvent.message = JSON.decode(event.message.utf8Data);
 			}
 			catch (e:Error) {
 				commEvent.message = null;

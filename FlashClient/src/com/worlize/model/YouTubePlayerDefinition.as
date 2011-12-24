@@ -1,5 +1,6 @@
 package com.worlize.model
 {
+	import com.adobe.serialization.json.JSON;
 	import com.worlize.interactivity.event.WorlizeYouTubeEvent;
 	import com.worlize.rpc.HTTPMethod;
 	import com.worlize.rpc.WorlizeResultEvent;
@@ -97,7 +98,7 @@ package com.worlize.model
 				Alert.show("There was a fault encountered while updating the YouTube Player data.", "Error");
 			});
 			client.send("/rooms/" + roomGuid + "/youtube_players/" + guid + ".json", HTTPMethod.PUT, {
-				"data": JSON.stringify(data)
+				"data": JSON.encode(data)
 			});
 		}
 		

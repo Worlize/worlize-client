@@ -1,5 +1,6 @@
 package com.worlize.model
 {
+	import com.adobe.serialization.json.JSON;
 	import com.worlize.event.NotificationCenter;
 	import com.worlize.event.PreferencesEvent;
 	import com.worlize.rpc.HTTPMethod;
@@ -80,7 +81,7 @@ package com.worlize.model
 			service.addEventListener(FaultEvent.FAULT, function(event:FaultEvent):void {
 				// do nothing
 			});
-			service.send('/preferences', HTTPMethod.PUT, { data: JSON.stringify(prefs) } );
+			service.send('/preferences', HTTPMethod.PUT, { data: JSON.encode(prefs) } );
 		}
 		
 		private function handleLoadResult(event:WorlizeResultEvent):void {

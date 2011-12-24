@@ -1,5 +1,6 @@
 package com.worlize.command
 {
+	import com.adobe.serialization.json.JSON;
 	import com.worlize.rpc.HTTPMethod;
 	import com.worlize.rpc.WorlizeResultEvent;
 	import com.worlize.rpc.WorlizeServiceClient;
@@ -25,7 +26,7 @@ package com.worlize.command
 				y: y
 			};
 			if (points) {
-				params['points'] = JSON.stringify(points);
+				params['points'] = JSON.encode(points);
 			}
 			client.send("/rooms/" + roomGuid + "/hotspots/" + hotspotGuid + ".json", HTTPMethod.PUT, params);
 		} 
