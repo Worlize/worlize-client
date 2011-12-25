@@ -1,6 +1,5 @@
 package com.worlize.control
 {
-	import com.adobe.serialization.json.JSON;
 	import com.worlize.event.NotificationCenter;
 	import com.worlize.model.InWorldObjectInstance;
 	import com.worlize.notification.InWorldObjectNotification;
@@ -23,7 +22,7 @@ package com.worlize.control
 		override protected function handleFileUploadComplete(event:DataEvent):void {
 			super.handleFileUploadComplete(event);
 			try {
-				var response:Object = JSON.decode(event.data);
+				var response:Object = JSON.parse(event.data);
 				if (response.success) {
 					var data:Object = response.data;
 					
