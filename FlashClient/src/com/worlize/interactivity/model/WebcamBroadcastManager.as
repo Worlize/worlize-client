@@ -53,11 +53,13 @@ package com.worlize.interactivity.model
 		
 		function WebcamBroadcastManager(target:IEventDispatcher=null) {
 			microphone = Microphone.getMicrophone();
-			microphone.codec = SoundCodec.SPEEX;
-			microphone.setSilenceLevel(0);
-			microphone.encodeQuality = 6;
-			microphone.enableVAD = false;
-			microphone.gain = 0;
+			if (microphone !== null) {
+				microphone.codec = SoundCodec.SPEEX;
+				microphone.setSilenceLevel(0);
+				microphone.encodeQuality = 6;
+				microphone.enableVAD = false;
+				microphone.gain = 0;
+			}
 			
 			super(target);
 		}
@@ -250,7 +252,9 @@ package com.worlize.interactivity.model
 			
 			netStream = new NetStream(netConnectionManager.netConnection);
 			netStream.attachCamera(camera);
-			netStream.attachAudio(microphone);
+			if (microphone) {
+				netStream.attachAudio(microphone);
+			}
 			netStream.bufferTime = 0;
 			netStream.addEventListener(NetStatusEvent.NET_STATUS, handleNetStreamNetStatus);
 			
