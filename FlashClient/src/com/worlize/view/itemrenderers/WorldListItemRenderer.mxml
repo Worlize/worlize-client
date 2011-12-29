@@ -13,7 +13,6 @@
 		<![CDATA[
 			import com.worlize.interactivity.rpc.InteractivityClient;
 			import com.worlize.model.WorldListEntry;
-			import com.worlize.view.windows.FriendsWindow;
 			import com.worlize.view.windows.WorldsWindow;
 			
 			import mx.collections.ArrayCollection;

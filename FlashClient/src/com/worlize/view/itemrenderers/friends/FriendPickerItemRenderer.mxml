@@ -18,7 +18,6 @@
 			import com.worlize.interactivity.rpc.InteractivityClient;
 			import com.worlize.model.friends.FriendsList;
 			import com.worlize.model.friends.FriendsListEntry;
-			import com.worlize.view.windows.FriendsWindow;
 			
 			import mx.binding.utils.ChangeWatcher;
 			import mx.collections.ArrayCollection;

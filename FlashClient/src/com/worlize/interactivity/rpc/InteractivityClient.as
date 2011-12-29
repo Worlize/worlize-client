@@ -45,6 +45,7 @@ package com.worlize.interactivity.rpc
 	import com.worlize.model.gifts.Gift;
 	import com.worlize.model.gifts.GiftsList;
 	import com.worlize.model.locker.AvatarLocker;
+	import com.worlize.model.locker.Slots;
 	import com.worlize.notification.AvatarNotification;
 	import com.worlize.notification.BackgroundImageNotification;
 	import com.worlize.notification.ConnectionNotification;
@@ -254,6 +255,7 @@ package com.worlize.interactivity.rpc
 			"set_simple_avatar": handleSetSimpleAvatar,
 			"set_video_avatar": handleSetVideoAvatar,
 			"set_video_server": handleSetVideoServer,
+			"slots_updated": handleSlotsUpdated,
 			"update_room_property": handleUpdateRoomProperty,
 			"user_enter": handleUserNew,
 			"user_leave": handleUserLeaving,
@@ -436,6 +438,22 @@ package com.worlize.interactivity.rpc
 		
 		private function handleSetVideoServer(data:Object):void {
 			netConnectionManager.connect(data as String);
+		}
+		
+		private function handleSlotsUpdated(data:Object):void {
+			var slots:Slots = CurrentUser.getInstance().slots;
+			if (typeof(data.avatar_slots) === 'number') {
+				slots.avatarSlots = data.avatar_slots;
+			}
+			if (typeof(data.background_slots) === 'number') {
+				slots.backgroundSlots = data.background_slots;
+			}
+			if (typeof(data.in_world_object_slots) === 'number') {
+				slots.inWorldObjectSlots = data.in_world_object_slots;
+			}
+			if (typeof(data.prop_slots) === 'number') {
+				slots.propSlots = data.prop_slots;
+			}
 		}
 		
 		private function handleDisconnectMessage(data:Object):void {

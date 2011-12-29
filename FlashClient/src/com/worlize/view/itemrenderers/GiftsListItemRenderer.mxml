@@ -16,7 +16,6 @@
 			import com.worlize.model.friends.FriendsListEntry;
 			import com.worlize.model.gifts.Gift;
 			import com.worlize.model.gifts.GiftType;
-			import com.worlize.view.windows.FriendsWindow;
 			
 			import mx.collections.ArrayCollection;
 			import mx.controls.Alert;

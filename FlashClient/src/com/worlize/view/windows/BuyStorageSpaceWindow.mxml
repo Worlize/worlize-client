@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="utf-8"?>
+<components:WorlizeFloatingPanel xmlns:fx="http://ns.adobe.com/mxml/2009" 
+								 xmlns:s="library://ns.adobe.com/flex/spark" 
+								 xmlns:mx="library://ns.adobe.com/flex/mx"
+								 xmlns:components="com.worlize.view.components.*"
+								 width="400" height="340"
+								 showTitle="false"
+								 showCloseButton="true"
+								 titleBarColor="#059f14"
+								 resizable="false"
+								 creationComplete="handleCreationComplete()"
+								 addedToStage="handleAddedToStage(event)"
+								 removedFromStage="handleRemovedFromStage(event)"
+								 currentState="idle" xmlns:controls="controls.*">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<components:states>
+		<s:State name="idle" stateGroups="normal" />
+		<s:State name="purchasing" stateGroups="normal" />
+		<s:State name="loading" />
+	</components:states>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.model.CurrentUser;
+			import com.worlize.model.locker.Slots;
+			import com.worlize.view.components.WorlizeWindow;
+			
+			import flex.utils.spark.resize.ResizeManager;
+			
+			import mx.binding.utils.ChangeWatcher;
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.events.ResizeEvent;
+			import mx.managers.PopUpManager;
+			
+			import spark.events.TitleWindowBoundsEvent;
+			
+			private static var _open:Boolean = false;
+			private static var _instance:BuyStorageSpaceWindow;
+			
+			[Bindable]
+			private var titleText:String = "Buy Locker Space";
+			
+			[Bindable]
+			private var _slotKind:String;
+			
+			[Bindable]
+			private var slots:Slots = CurrentUser.getInstance().slots;
+			
+			[Bindable]
+			private var slotPrice:int = 0;
+			
+			private function handleCreationComplete():void {
+				
+			}
+			
+			private function handleAddedToStage(event:Event):void {
+				slots.addEventListener('stateChange', handleSlotsStateChange);
+				slots.addEventListener('pricingStateChange', handleSlotsStateChange);
+				slots.loadPrices();
+				updateState();
+			}
+			
+			private function handleRemovedFromStage(event:Event):void {
+				slots.removeEventListener('stateChange', handleSlotsStateChange);
+				slots.removeEventListener('pricingStateChange', handleSlotsStateChange);
+			}
+			
+			public static function open(slotKind:String, parent:DisplayObject):void {
+				if (_open) {
+					PopUpManager.bringToFront(_instance);
+					_instance.setFocus();
+					_instance.slotKind = slotKind;
+				}
+				else {
+					_instance = new BuyStorageSpaceWindow();
+					_instance.addEventListener(CloseEvent.CLOSE, function(event:CloseEvent):void {
+						close();
+					});
+					_instance.slotKind = slotKind;
+					PopUpManager.addPopUp(_instance, parent);
+					PopUpManager.centerPopUp(_instance);
+					_open = true;
+				}
+			}
+			
+			public static function close():void {
+				if (_open && _instance) {
+					PopUpManager.removePopUp(_instance);
+					_open = false;
+				}
+			}
+			
+			private function handleSlotsStateChange(event:Event):void {
+				updateState();
+			}
+			
+			private function updateState():void {
+				if (slots.state === Slots.STATE_ERROR || slots.pricingState === Slots.STATE_ERROR) {
+					close();
+					return;
+				}
+				if (slots.state === Slots.STATE_LOADING || slots.pricingState === Slots.STATE_LOADING) {
+					currentState = 'loading';
+				}
+				else {
+					currentState = 'idle';
+				}
+				switch(slotKind) {
+					case 'avatar':
+						slotPrice = slots.avatarSlotPrice;
+						break;
+					case 'background':
+						slotPrice = slots.backgroundSlotPrice;
+						break;
+					case 'in_world_object':
+						slotPrice = slots.inWorldObjectSlotPrice;
+						break;
+					case 'prop':
+						slotPrice = slots.propSlotPrice;
+						break;
+				}
+			}
+			
+			public function set slotKind(slotKind:String):void {
+				if (['avatar','background','in_world_object','prop'].indexOf(slotKind) === -1) {
+					throw new Error("Invalid slot kind: " + slotKind);
+				}
+				if (_slotKind === slotKind) { return; }
+				
+				_slotKind = slotKind;
+				
+				switch(_slotKind) {
+					case "avatar":
+						titleText = "Buy Avatar Locker Space";
+						break;
+					case "background":
+						titleText = "Buy Backgrounds Locker Space";
+						break;
+					case "in_world_object":
+						titleText = "Buy Objects Locker Space";
+						break;
+					case "prop":
+						titleText = "Buy Props Locker Space";
+						break;
+				}
+			}
+			
+			public function get slotKind():String {
+				return _slotKind;
+			}
+			
+			private function doPurchase():void {
+				currentState = "purchasing";
+				slots.buySlots(slotKind, quantityGroup.selectedValue as int, handlePurchaseComplete);
+			}
+			
+			private function handlePurchaseComplete(err:*, result:*):void {
+				currentState = "idle";
+				if (err) {
+					Alert.show(err.toString(), "Error");
+					return;
+				}
+				var qty:int = quantityGroup.selectedValue as int;
+				Alert.show("You have successfully purchased " + qty + " Avatar " + (qty === 1 ? " space." : " spaces."), "Success");  
+				close();
+			}
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<s:RadioButtonGroup id="quantityGroup" />
+	</fx:Declarations>
+	
+	<components:layout>
+		<s:VerticalLayout gap="20"
+						  paddingLeft="20" paddingRight="20"
+						  paddingTop="20" paddingBottom="20" />
+	</components:layout>
+	
+	<s:Label text="&lt;{titleText}&gt;"
+			 fontFamily="PTSansNarrowBold"
+			 fontSize="30"
+			 color="#059f14" />
+	
+	<s:VGroup horizontalAlign="center" width="100%">
+		<s:Label fontFamily="PTSansNarrowBold"
+				 fontSize="18"
+				 color="#096112"
+				 width="85%"
+				 text="Increase your storage capacity by purchasing more spaces for your locker!  Select how many you would like to buy:" />
+	</s:VGroup>
+	
+	<s:Group includeIn="loading" width="100%" height="100%">
+		<controls:Spinner id="loadingSpinner"
+						  autoPlay="true"
+						  mouseEnabled="false"
+						  mouseChildren="false"
+						  size="44" numTicks="13"
+						  tickWidth="3" speed="600"
+						  horizontalCenter="0"
+						  verticalCenter="0"
+						  fadeSpeed="500" tickColor="#222222" />
+	</s:Group>
+	
+	<s:Group includeIn="normal" width="100%" height="100%">
+		<s:layout>
+			<s:VerticalLayout gap="10" horizontalAlign="center" />
+		</s:layout>
+
+		<s:VGroup horizontalAlign="left" gap="10">
+			<s:RadioButton styleName="buyLockerSlotQuantityOption" groupName="quantityGroup"
+						   value="{1}" label="1 space for {slotPrice} Worlize {slotPrice == 1 ? 'Buck' : 'Bucks'}" />
+			<s:RadioButton styleName="buyLockerSlotQuantityOption" groupName="quantityGroup"
+						   value="{5}" label="5 spaces for {slotPrice * 5} Worlize Bucks" />
+			<s:RadioButton styleName="buyLockerSlotQuantityOption" groupName="quantityGroup"
+						   value="{10}" label="10 spaces for {slotPrice * 10} Worlize Bucks" />
+		</s:VGroup>
+		
+		<s:Spacer height="100%" />
+		
+		<s:HGroup width="100%" horizontalAlign="right">
+			<controls:Spinner includeIn="purchasing"
+							  id="purchasingSpinner"
+							  autoPlay="true"
+							  mouseEnabled="false"
+							  mouseChildren="false"
+							  size="22" numTicks="10"
+							  tickWidth="2" speed="600"
+							  horizontalCenter="0"
+							  verticalCenter="0"
+							  fadeSpeed="500" tickColor="#222222" />
+			<s:Button label="Purchase Locker Spaces" click="doPurchase()"
+					  enabled="{quantityGroup.selection !== null}"
+					  enabled.purchasing="false"/>
+		</s:HGroup>
+		
+	</s:Group>
+		
+</components:WorlizeFloatingPanel>

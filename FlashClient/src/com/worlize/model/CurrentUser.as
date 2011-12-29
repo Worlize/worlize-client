@@ -1,6 +1,7 @@
 package com.worlize.model
 {
 	import com.adobe.utils.DateUtil;
+	import com.worlize.model.locker.Slots;
 	import com.worlize.rpc.HTTPMethod;
 	import com.worlize.rpc.WorlizeResultEvent;
 	import com.worlize.rpc.WorlizeServiceClient;
@@ -31,10 +32,7 @@ package com.worlize.model
 		public var lastName:String;
 		public var coins:int;
 		public var bucks:int;
-		public var backgroundSlots:int;
-		public var avatarSlots:int;
-		public var propSlots:int;
-		public var inWorldObjectSlots:int;
+		public var slots:Slots = new Slots();
 		public var twitter:String;
 		public var email:String;
 		public var birthday:Date;
@@ -61,10 +59,10 @@ package com.worlize.model
 			if (event.resultJSON.success) {
 				var data:Object = event.resultJSON.data;
 				admin = data.admin;
-				avatarSlots = data.avatar_slots;
-				backgroundSlots = data.background_slots;
-				inWorldObjectSlots = data.in_world_object_slots;
-				propSlots = data.prop_lots;
+				slots.avatarSlots = data.avatar_slots;
+				slots.backgroundSlots = data.background_slots;
+				slots.inWorldObjectSlots = data.in_world_object_slots;
+				slots.propSlots = data.prop_lots;
 				if (data.birthday) {
 					birthday = new Date(Date.parse(data.birthday.replace(/-/g, '/')));					
 				}

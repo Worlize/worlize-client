@@ -12,7 +12,6 @@
 	<fx:Script>
 		<![CDATA[
 			import com.worlize.model.userSearch.UserSearchResultLineItem;
-			import com.worlize.view.windows.FriendsWindow;
 			
 			import mx.collections.ArrayCollection;
 			import mx.controls.Alert;

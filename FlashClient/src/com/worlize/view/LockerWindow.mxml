@@ -27,17 +27,22 @@
 			import com.worlize.event.NotificationCenter;
 			import com.worlize.interactivity.rpc.InteractivityClient;
 			import com.worlize.model.AvatarInstance;
+			import com.worlize.model.CurrentUser;
 			import com.worlize.model.PreferencesManager;
 			import com.worlize.model.SimpleAvatar;
 			import com.worlize.model.locker.AvatarLocker;
+			import com.worlize.model.locker.Slots;
 			import com.worlize.notification.AvatarNotification;
+			import com.worlize.view.windows.BuyStorageSpaceWindow;
 			
 			import flex.utils.spark.resize.ResizeManager;
 			
 			import mx.binding.utils.ChangeWatcher;
 			import mx.controls.Alert;
+			import mx.controls.Menu;
 			import mx.events.CloseEvent;
 			import mx.events.IndexChangedEvent;
+			import mx.events.MenuEvent;
 			import mx.events.MoveEvent;
 			import mx.events.ResizeEvent;
 			import mx.events.StateChangeEvent;
@@ -160,6 +165,42 @@
 				);
 				notification.show();
 			}
+			
+			private function showBuySlotsWindow():void {
+				BuyStorageSpaceWindow.open('avatar', systemManager.getSandboxRoot());
+			}
+				
+//				var slots:Slots = CurrentUser.getInstance().slots;
+//				
+//				// Get prices
+//				slots.loadPrices(function(err:*, result:*):void {
+//					if (err) {
+//						Alert.show("There was an error while loading locker expansion pricing information: " + err, "Error");
+//						return;
+//					}
+//					
+//					// Display the menu
+//					var menuData:Array = [];
+//					menuData.push({ type: 'normal', label: 'Buy 1 space for ' + slots.avatarSlotPrice + ' buck', quantity: 1 });
+//					menuData.push({ type: 'normal', label: 'Buy 5 spaces for ' + (slots.avatarSlotPrice * 5) + ' bucks', quantity: 5 });
+//					menuData.push({ type: 'normal', label: 'Buy 10 spaces for ' + (slots.avatarSlotPrice * 10) + ' bucks', quantity: 10 });
+//					var menu:Menu = Menu.createMenu(null, menuData, true);
+//					menu.addEventListener(MenuEvent.ITEM_CLICK, function(event:MenuEvent):void {
+//						// Buy the new slots
+//						slots.buySlots('avatar', event.item.quantity, function(err:*, result:*):void {
+//							if (err) {
+//								Alert.show(err as String, "Unable to buy storage");
+//								return;
+//							}
+//							
+//							// Show the confirmation
+//							var qty:int = result.quantity_purchased 
+//							Alert.show("You have successfully purchased " + qty + " more Avatar " + (qty === 1 ? " space." : " spaces."), "Success");  
+//						});
+//					}, false, 0, true);
+//					menu.show(stage.mouseX, stage.mouseY);
+//				});
+//			}
 		]]>
 	</fx:Script>
 	
@@ -167,8 +208,8 @@
 	
 	<components:controlBarContent>
 		<components:CapacityButton
-			click="showComingSoon()"
-			line1="Capacity: {avatarLocker.capacity}"
+			click="showBuySlotsWindow()"
+			line1="Capacity: {CurrentUser.getInstance().slots.avatarSlots}"
 			line2="Used: {avatarLocker.count}"
 			toolTip="Click to buy more locker space"/>
 		<!--

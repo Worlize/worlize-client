@@ -30,6 +30,12 @@ global {
 	focusColor: #FFFFFF;
 }
 
+.buyLockerSlotQuantityOption s|Label {
+	color: #333333;
+	fontFamily: PTSansNarrowBold;
+	fontSize: 18pt;
+}	
+
 s|Label {
 /*	fontFamily: "Lucida Grande", "Arial";
 	fontSize: 12px; */

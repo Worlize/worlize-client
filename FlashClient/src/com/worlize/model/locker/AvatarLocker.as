@@ -1,7 +1,9 @@
 package com.worlize.model.locker
 {
+	import com.worlize.event.LockerEvent;
 	import com.worlize.event.NotificationCenter;
 	import com.worlize.model.AvatarInstance;
+	import com.worlize.model.CurrentUser;
 	import com.worlize.model.SimpleAvatar;
 	import com.worlize.model.SimpleAvatarStore;
 	import com.worlize.model.gifts.Gift;
@@ -16,6 +18,8 @@ package com.worlize.model.locker
 	import flash.events.IEventDispatcher;
 	
 	import mx.collections.ArrayCollection;
+	import mx.logging.ILogger;
+	import mx.logging.Log;
 	import mx.rpc.events.FaultEvent;
 	
 	[Bindable]
@@ -28,14 +32,17 @@ package com.worlize.model.locker
 		
 		private static var _instance:AvatarLocker;
 		
-		public var capacity:int;
-		public var count:int;
-		public var emptySlots:int;
+		public var currentUser:CurrentUser = CurrentUser.getInstance();
+		
+		public var count:int = 0;
+		public var emptySlots:int = 0;
 
 		public var avatarInstances:ArrayCollection = new ArrayCollection();
 		private var avatarInstanceMap:Object = {};
 		
 		public var state:String = STATE_INIT; 
+		
+		private var logger:ILogger = Log.getLogger("com.worlize.model.locker.AvatarLocker");
 		
 		public function AvatarLocker(target:IEventDispatcher=null)
 		{
@@ -45,6 +52,8 @@ package com.worlize.model.locker
 			}
 			NotificationCenter.addListener(AvatarNotification.AVATAR_INSTANCE_DELETED, handleAvatarDeleted);
 			NotificationCenter.addListener(AvatarNotification.AVATAR_INSTANCE_ADDED, handleAvatarInstanceAdded);
+			
+			currentUser.slots.addEventListener(LockerEvent.AVATAR_LOCKER_CAPACTIY_CHANGED, handleAvatarLockerCapacityChanged);
 		}
 		
 		public static function getInstance():AvatarLocker {
@@ -52,6 +61,43 @@ package com.worlize.model.locker
 				_instance = new AvatarLocker();
 			}
 			return _instance;
+		}
+		
+		private function handleAvatarLockerCapacityChanged(event:LockerEvent):void {
+			var oldCapacity:int = event.oldCapacity;
+			var newCapacity:int = event.newCapacity;
+			var i:int;
+			
+			if (isNaN(oldCapacity)) { oldCapacity = 0 };
+			
+			
+			avatarInstances.disableAutoUpdate();
+			if (newCapacity - oldCapacity > 0) {
+				var slotsToAdd:int = newCapacity - oldCapacity;
+				// if there were previously fewer slots than the user had avatars...
+				if (emptySlots < 0) {
+					slotsToAdd += emptySlots;
+				}
+				for (i = 0; i < slotsToAdd; i++) {
+					addEmptySlot();
+				}
+			}
+			else if (newCapacity - oldCapacity < 0) {
+				var slotsToRemove:int = oldCapacity - newCapacity;
+				for (i = 0; i < slotsToRemove; i++) {
+					try {
+						removeEmptySlot();
+					}
+					catch(e:Error) {
+						// bail out
+						logger.warn("Tried to remove an empty slot but there are none left to remove.");
+						break;
+					}
+				}
+			}
+			avatarInstances.enableAutoUpdate();
+			
+			updateCount();
 		}
 		
 		public function getAvatarInstaceByGuid(guid:String):AvatarInstance {
@@ -99,6 +145,17 @@ package com.worlize.model.locker
 			avatarInstances.addItem(instance);
 		}
 		
+		private function removeEmptySlot():void {
+			for (var i:int = avatarInstances.length-1; i > 0; i--) {
+				var instance:AvatarInstance = AvatarInstance(avatarInstances.getItemAt(i));
+				if (instance.emptySlot) {
+					avatarInstances.removeItemAt(i);
+					return;
+				}
+			}
+			throw new Error("There are no empty slots to remove.");
+		}
+		
 		private function updateCount():void {
 			var count:int = 0;
 			for (var i:int = 0, len:int = avatarInstances.length; i < len; i++) {
@@ -107,7 +164,7 @@ package com.worlize.model.locker
 				}
 			}
 			this.count = count;
-			emptySlots = capacity - this.count;
+			emptySlots = currentUser.slots.avatarSlots - this.count;
 		}
 		
 		public function load():void {
@@ -127,7 +184,7 @@ package com.worlize.model.locker
 					avatarInstances.addItem(avatarInstance);
 					simpleAvatarStore.injectAvatar(avatarInstance.avatar);
 				}
-				capacity = event.resultJSON.capacity;
+				var capacity:int = currentUser.slots.avatarSlots = event.resultJSON.capacity;
 				count = event.resultJSON.count;
 				emptySlots = capacity - count;
 				for (var i:int = 0; i < emptySlots; i++) {
