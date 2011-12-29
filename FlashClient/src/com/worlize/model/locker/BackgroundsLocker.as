@@ -1,8 +1,10 @@
 package com.worlize.model.locker
 {
+	import com.worlize.event.LockerEvent;
 	import com.worlize.event.NotificationCenter;
 	import com.worlize.model.BackgroundImageAsset;
 	import com.worlize.model.BackgroundImageInstance;
+	import com.worlize.model.CurrentUser;
 	import com.worlize.notification.BackgroundImageNotification;
 	import com.worlize.rpc.HTTPMethod;
 	import com.worlize.rpc.WorlizeResultEvent;
@@ -26,21 +28,61 @@ package com.worlize.model.locker
 		
 		private var logger:ILogger = Log.getLogger('com.worlize.model.locker.BackgroundsLocker');
 		
-		public var capacity:int;
-		public var count:int;
-		public var emptySlots:int;
+		public var currentUser:CurrentUser = CurrentUser.getInstance();
+		
+		public var count:int = 0;
+		public var emptySlots:int = 0;
+		
 		public var backgroundInstances:ArrayCollection = new ArrayCollection();
 		private var backgroundInstanceMap:Object = {};
 		
 		public var state:String = STATE_INIT; 
 
-		
 		public function BackgroundsLocker(target:IEventDispatcher=null)
 		{
 			super(target);
 			NotificationCenter.addListener(BackgroundImageNotification.BACKGROUND_INSTANCE_ADDED, handleBackgroundInstanceAdded);
 			NotificationCenter.addListener(BackgroundImageNotification.BACKGROUND_INSTANCE_DELETED, handleBackgroundDeleted);
 			NotificationCenter.addListener(BackgroundImageNotification.BACKGROUND_INSTANCE_UPDATED, handleBackgroundInstanceUpdated);
+			
+			currentUser.slots.addEventListener(LockerEvent.BACKGROUND_LOCKER_CAPACITY_CHANGED, handleBackgroundLockerCapacityChanged);
+		}
+		
+		private function handleBackgroundLockerCapacityChanged(event:LockerEvent):void {
+			var oldCapacity:int = event.oldCapacity;
+			var newCapacity:int = event.newCapacity;
+			var i:int;
+			
+			if (isNaN(oldCapacity)) { oldCapacity = 0 };
+			
+			
+			backgroundInstances.disableAutoUpdate();
+			if (newCapacity - oldCapacity > 0) {
+				var slotsToAdd:int = newCapacity - oldCapacity;
+				// if there were previously fewer slots than the user had avatars...
+				if (emptySlots < 0) {
+					slotsToAdd += emptySlots;
+				}
+				for (i = 0; i < slotsToAdd; i++) {
+					addEmptySlot();
+				}
+			}
+			else if (newCapacity - oldCapacity < 0) {
+				var slotsToRemove:int = oldCapacity - newCapacity;
+				for (i = 0; i < slotsToRemove; i++) {
+					try {
+						removeEmptySlot();
+					}
+					catch(e:Error) {
+						// bail out
+						logger.warn("Tried to remove an empty slot but there are none left to remove.");
+						break;
+					}
+				}
+			}
+			backgroundInstances.enableAutoUpdate();
+			
+			updateCount();
 		}
 		
 		private function handleBackgroundDeleted(notification:BackgroundImageNotification):void {
@@ -111,7 +153,7 @@ package com.worlize.model.locker
 					backgroundInstances.addItem(asset);
 					backgroundInstanceMap[asset.guid] = asset;
 				}
-				capacity = result.capacity;
+				var capacity:int = currentUser.slots.backgroundSlots = result.capacity;
 				count = result.count;
 				emptySlots = capacity - count;
 				for (var i:int = 0; i < emptySlots; i++) {
@@ -133,13 +175,24 @@ package com.worlize.model.locker
 				}
 			}
 			this.count = count;
-			emptySlots = capacity - this.count;
+			emptySlots = currentUser.slots.backgroundSlots - this.count;
 		}
 		
 		private function addEmptySlot():void {
 			var asset:BackgroundImageInstance = new BackgroundImageInstance();
 			asset.emptySlot = true;
 			backgroundInstances.addItem(asset);
+		}
+		
+		private function removeEmptySlot():void {
+			for (var i:int = backgroundInstances.length-1; i > 0; i--) {
+				var instance:BackgroundImageInstance = BackgroundImageInstance(backgroundInstances.getItemAt(i));
+				if (instance.emptySlot) {
+					backgroundInstances.removeItemAt(i);
+					return;
+				}
+			}
+			throw new Error("There are no empty slots to remove.");
 		}
 		
 		private function handleFault(event:FaultEvent):void {

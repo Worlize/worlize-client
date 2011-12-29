@@ -1,6 +1,8 @@
 package com.worlize.model.locker
 {
+	import com.worlize.event.LockerEvent;
 	import com.worlize.event.NotificationCenter;
+	import com.worlize.model.CurrentUser;
 	import com.worlize.model.InWorldObjectInstance;
 	import com.worlize.notification.InWorldObjectNotification;
 	import com.worlize.rpc.HTTPMethod;
@@ -15,6 +17,7 @@ package com.worlize.model.locker
 	import mx.logging.Log;
 	import mx.rpc.events.FaultEvent;
 	
+	[Bindable]
 	public class InWorldObjectLocker extends EventDispatcher
 	{
 		public static const STATE_INIT:String = "init";
@@ -24,16 +27,11 @@ package com.worlize.model.locker
 		
 		private var logger:ILogger = Log.getLogger('com.worlize.model.locker.InWorldObjectLocker');
 		
-		[Bindable]
-		public var capacity:int;
+		public var currentUser:CurrentUser = CurrentUser.getInstance();
 		
-		[Bindable]
 		public var count:int;
-		
-		[Bindable]
 		public var emptySlots:int;
 		
-		[Bindable]
 		public var instances:ArrayCollection = new ArrayCollection();
 		private var instanceMap:Object = {};
 		
@@ -47,6 +45,45 @@ package com.worlize.model.locker
 			NotificationCenter.addListener(InWorldObjectNotification.IN_WORLD_OBJECT_INSTANCE_DELETED, handleInWorldObjectDeleted);
 			NotificationCenter.addListener(InWorldObjectNotification.IN_WORLD_OBJECT_ADDED_TO_ROOM, handleInWorldObjectAddedToRoom);
 			NotificationCenter.addListener(InWorldObjectNotification.IN_WORLD_OBJECT_REMOVED_FROM_ROOM, handleInWorldObjectRemovedFromRoom);
+			
+			currentUser.slots.addEventListener(LockerEvent.IN_WORLD_OBJECT_LOCKER_CAPACITY_CHANGED, handleInWorldObjectLockerCapacityChanged);
+		}
+		
+		private function handleInWorldObjectLockerCapacityChanged(event:LockerEvent):void {
+			var oldCapacity:int = event.oldCapacity;
+			var newCapacity:int = event.newCapacity;
+			var i:int;
+			
+			if (isNaN(oldCapacity)) { oldCapacity = 0 };
+			
+			
+			instances.disableAutoUpdate();
+			if (newCapacity - oldCapacity > 0) {
+				var slotsToAdd:int = newCapacity - oldCapacity;
+				// if there were previously fewer slots than the user had avatars...
+				if (emptySlots < 0) {
+					slotsToAdd += emptySlots;
+				}
+				for (i = 0; i < slotsToAdd; i++) {
+					addEmptySlot();
+				}
+			}
+			else if (newCapacity - oldCapacity < 0) {
+				var slotsToRemove:int = oldCapacity - newCapacity;
+				for (i = 0; i < slotsToRemove; i++) {
+					try {
+						removeEmptySlot();
+					}
+					catch(e:Error) {
+						// bail out
+						logger.warn("Tried to remove an empty slot but there are none left to remove.");
+						break;
+					}
+				}
+			}
+			instances.enableAutoUpdate();
+			
+			updateCount();
 		}
 
 		private function handleInWorldObjectAddedToRoom(notification:InWorldObjectNotification):void {
@@ -111,7 +148,7 @@ package com.worlize.model.locker
 					instances.addItem(instance);
 					instanceMap[instance.guid] = instance;
 				}
-				capacity = result.capacity;
+				var capacity:int = currentUser.slots.inWorldObjectSlots = result.capacity;
 				count = result.count;
 				emptySlots = capacity - count;
 				for (var i:int = 0; i < emptySlots; i++) {
@@ -133,13 +170,24 @@ package com.worlize.model.locker
 				}
 			}
 			this.count = count;
-			emptySlots = capacity - this.count;
+			emptySlots = currentUser.slots.inWorldObjectSlots - this.count;
 		}
 		
 		private function addEmptySlot():void {
 			var asset:InWorldObjectInstance = new InWorldObjectInstance();
 			asset.emptySlot = true;
 			instances.addItem(asset);
+		}
+		
+		private function removeEmptySlot():void {
+			for (var i:int = instances.length-1; i > 0; i--) {
+				var instance:InWorldObjectInstance = InWorldObjectInstance(instances.getItemAt(i));
+				if (instance.emptySlot) {
+					instances.removeItemAt(i);
+					return;
+				}
+			}
+			throw new Error("There are no empty slots to remove.");
 		}
 		
 		private function handleFault(event:FaultEvent):void {

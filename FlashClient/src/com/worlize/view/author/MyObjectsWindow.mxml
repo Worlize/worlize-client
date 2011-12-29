@@ -19,9 +19,11 @@
 			import com.worlize.control.InWorldObjectUploader;
 			import com.worlize.event.AuthorModeNotification;
 			import com.worlize.event.NotificationCenter;
+			import com.worlize.model.CurrentUser;
 			import com.worlize.model.PreferencesManager;
 			import com.worlize.model.locker.InWorldObjectLocker;
 			import com.worlize.view.itemrenderers.InWorldObjectLockerItemRenderer;
+			import com.worlize.view.windows.BuyStorageSpaceWindow;
 			
 			import flex.utils.spark.resize.ResizeManager;
 			
@@ -119,24 +121,30 @@
 					uploader.browse();
 				}
 				else {
-					Alert.show("You don't have enough empty slots.  Either delete some existing objects or purchase more slots.", "Insufficient Space"); 
+					Alert.show(
+						"You've run out of space.  You'll have to delete some existing objects to make room, or purchase some more space.  Would you like to purchase more space now?",
+						"Oh no!",
+						Alert.YES | Alert.NO,
+						null,
+						function(event:CloseEvent):void {
+							if (event.detail === Alert.YES) {
+								BuyStorageSpaceWindow.open('in_world_object', systemManager.getSandboxRoot());
+							}
+						}
+					); 
 				}
 			}
 			
-			private function showComingSoon():void {
-				var notification:VisualNotification = new VisualNotification(
-					"In the not-so-distant future you will be able to use your coins and bucks to buy additional locker space!",
-					"Hang tight!"
-				);
-				notification.show();
+			private function showBuySlotsWindow():void {
+				BuyStorageSpaceWindow.open('in_world_object', systemManager.getSandboxRoot());
 			}
 		]]>
 	</fx:Script>
 	
 	<components:controlBarContent>
 		<components:CapacityButton
-			click="showComingSoon()"
-			line1="Capacity: {inWorldObjectLocker.capacity}"
+			click="showBuySlotsWindow()"
+			line1="Capacity: {CurrentUser.getInstance().slots.inWorldObjectSlots}"
 			line2="Used: {inWorldObjectLocker.count}"
 			toolTip="Click to buy more locker space"/>
 	</components:controlBarContent>

@@ -24,6 +24,8 @@
 	
 	<fx:Script>
 		<![CDATA[
+			import com.worlize.components.visualnotification.VisualNotification;
+			import com.worlize.control.VirtualCurrencyProducts;
 			import com.worlize.model.CurrentUser;
 			import com.worlize.model.locker.Slots;
 			import com.worlize.view.components.WorlizeWindow;
@@ -112,15 +114,19 @@
 				switch(slotKind) {
 					case 'avatar':
 						slotPrice = slots.avatarSlotPrice;
+						titleText = "Buy Avatar Locker Space";
 						break;
 					case 'background':
 						slotPrice = slots.backgroundSlotPrice;
+						titleText = "Buy Background Locker Space";
 						break;
 					case 'in_world_object':
 						slotPrice = slots.inWorldObjectSlotPrice;
+						titleText = "Buy Object Locker Space";
 						break;
 					case 'prop':
 						slotPrice = slots.propSlotPrice;
+						titleText = "Buy Prop Locker Space";
 						break;
 				}
 			}
@@ -133,20 +139,9 @@
 				
 				_slotKind = slotKind;
 				
-				switch(_slotKind) {
-					case "avatar":
-						titleText = "Buy Avatar Locker Space";
-						break;
-					case "background":
-						titleText = "Buy Backgrounds Locker Space";
-						break;
-					case "in_world_object":
-						titleText = "Buy Objects Locker Space";
-						break;
-					case "prop":
-						titleText = "Buy Props Locker Space";
-						break;
-				}
+				quantityGroup.selection = null;
+				
+				updateState();
 			}
 			
 			public function get slotKind():String {
@@ -161,11 +156,51 @@
 			private function handlePurchaseComplete(err:*, result:*):void {
 				currentState = "idle";
 				if (err) {
+					if (result.insufficient_funds) {
+						Alert.show(
+							"You don't have enough Worlize Bucks to complete your purchase.  Would you like to add some now?",
+							"Aww, not enough cash!",
+							Alert.YES | Alert.NO,
+							null, 
+							function(event:CloseEvent):void {
+								if (event.detail === Alert.YES) {
+									VirtualCurrencyProducts.show();
+								}
+								else {
+									BuyStorageSpaceWindow.close();
+								}
+							}
+						);
+						return;
+					}
 					Alert.show(err.toString(), "Error");
 					return;
 				}
 				var qty:int = quantityGroup.selectedValue as int;
-				Alert.show("You have successfully purchased " + qty + " Avatar " + (qty === 1 ? " space." : " spaces."), "Success");  
+				var typeString:String;
+				switch(slotKind) {
+					case "avatar":
+						typeString = "avatar";
+						break;
+					case "background":
+						typeString = "background";
+						break;
+					case "in_world_object":
+						typeString = "object";
+						break;
+					case "prop":
+						typeString = "prop";
+						break;
+				}
+				
+				var notification:VisualNotification = new VisualNotification(
+					"You now have " + qty + " more " + typeString + " " + (qty === 1 ? "space" : "spaces") + "!",
+					"Woohoo!",
+					null,
+					10000
+				);
+				notification.show();
+				
 				close();
 			}
 		]]>
@@ -228,7 +263,7 @@
 							  autoPlay="true"
 							  mouseEnabled="false"
 							  mouseChildren="false"
-							  size="22" numTicks="10"
+							  size="21" numTicks="10"
 							  tickWidth="2" speed="600"
 							  horizontalCenter="0"
 							  verticalCenter="0"

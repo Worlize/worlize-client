@@ -138,7 +138,17 @@
 					avatarUploader.browse();
 				}
 				else {
-					Alert.show("You don't have enough empty slots.  Either delete some existing avatars or purchase more slots.", "Insufficient Space"); 
+					Alert.show(
+						"You don't have enough space!  You'll have to delete some old crusty avatars to make room, or buy some more space.  Would you like to buy more space now?",
+						"Aww, man!",
+						Alert.YES | Alert.NO,
+						null,
+						function(event:CloseEvent):void {
+							if (event.detail === Alert.YES) {
+								showBuySlotsWindow();
+							}
+						}
+					); 
 				}
 			}
 			
@@ -157,50 +167,11 @@
 					InteractivityClient.getInstance().setSimpleAvatar(selectedAvatarInstance.avatar.guid);
 				}
 			}
-
-			private function showComingSoon():void {
-				var notification:VisualNotification = new VisualNotification(
-					"In the not-so-distant future you will be able to use your coins and bucks to buy additional locker space!",
-					"Hang tight!"
-				);
-				notification.show();
-			}
 			
 			private function showBuySlotsWindow():void {
 				BuyStorageSpaceWindow.open('avatar', systemManager.getSandboxRoot());
 			}
-				
-//				var slots:Slots = CurrentUser.getInstance().slots;
-//				
-//				// Get prices
-//				slots.loadPrices(function(err:*, result:*):void {
-//					if (err) {
-//						Alert.show("There was an error while loading locker expansion pricing information: " + err, "Error");
-//						return;
-//					}
-//					
-//					// Display the menu
-//					var menuData:Array = [];
-//					menuData.push({ type: 'normal', label: 'Buy 1 space for ' + slots.avatarSlotPrice + ' buck', quantity: 1 });
-//					menuData.push({ type: 'normal', label: 'Buy 5 spaces for ' + (slots.avatarSlotPrice * 5) + ' bucks', quantity: 5 });
-//					menuData.push({ type: 'normal', label: 'Buy 10 spaces for ' + (slots.avatarSlotPrice * 10) + ' bucks', quantity: 10 });
-//					var menu:Menu = Menu.createMenu(null, menuData, true);
-//					menu.addEventListener(MenuEvent.ITEM_CLICK, function(event:MenuEvent):void {
-//						// Buy the new slots
-//						slots.buySlots('avatar', event.item.quantity, function(err:*, result:*):void {
-//							if (err) {
-//								Alert.show(err as String, "Unable to buy storage");
-//								return;
-//							}
-//							
-//							// Show the confirmation
-//							var qty:int = result.quantity_purchased 
-//							Alert.show("You have successfully purchased " + qty + " more Avatar " + (qty === 1 ? " space." : " spaces."), "Success");  
-//						});
-//					}, false, 0, true);
-//					menu.show(stage.mouseX, stage.mouseY);
-//				});
-//			}
+
 		]]>
 	</fx:Script>
 	
