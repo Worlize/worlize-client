@@ -14,9 +14,16 @@ package com.worlize.command
 	[Event(name='gotoRoomResult', type='com.worlize.event.GotoRoomResultEvent')]
 	public class GotoRoomCommand extends EventDispatcher
 	{
+		public var complete:Boolean = false;
+		public var canceled:Boolean = false;
+		
 		public function GotoRoomCommand(target:IEventDispatcher=null)
 		{
 			super(target);
+		}
+		
+		public function cancel():void {
+			canceled = true;
 		}
 		
 		public function execute(roomGuid:String):void {
@@ -27,6 +34,8 @@ package com.worlize.command
 		}
 		
 		private function handleResult(event:WorlizeResultEvent):void {
+			complete = true;
+			if (canceled) { return; }
 			if (event.resultJSON.success) {
 				var resultEvent:GotoRoomResultEvent = new GotoRoomResultEvent(GotoRoomResultEvent.GOTO_ROOM_RESULT);
 				resultEvent.interactivitySession = InteractivitySession.fromData(event.resultJSON.interactivity_session);
@@ -34,6 +43,8 @@ package com.worlize.command
 			}
 		}
 		private function handleFault(event:FaultEvent):void {
+			complete = true;
+			if (canceled) { return; }
 			dispatchEvent(event.clone());
 		}
 	}

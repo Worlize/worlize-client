@@ -233,7 +233,7 @@
 			}
 			
 			private function toggleAuthorMode():void {
-				if (authorModeState.enabled || !client.roomConnected) {
+				if (authorModeState.enabled || !client.connected) {
 					authorModeState.disableAuthorMode();
 				}
 				else {
@@ -419,7 +419,7 @@
 		</s:layout>
 		
 		<view1:RoomView id="roomView"
-							 enabled="{client.roomConnected}"
+							 enabled="{client.connected}"
 							 securityError="handleSecurityError(event)"
 							 room="{client.currentRoom}" />
 	</s:Group>
@@ -476,7 +476,7 @@
 	 	fontStyle="{client.currentRoom.selectedUser ? 'italic' : 'normal'}"
 		paddingLeft="4"
 		paddingTop="1"
-		enabled="{client.roomConnected}"
+		enabled="{client.connected}"
 		id="chatBox" keyDown="handleChatKeyDown(event);" maxChars="254"/>
 	
 	<s:Label includeIn="connecting"

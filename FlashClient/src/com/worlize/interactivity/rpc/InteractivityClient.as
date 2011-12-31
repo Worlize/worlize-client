@@ -53,6 +53,7 @@ package com.worlize.interactivity.rpc
 	import com.worlize.notification.FriendsNotification;
 	import com.worlize.notification.InWorldObjectNotification;
 	import com.worlize.notification.RoomChangeNotification;
+	import com.worlize.rpc.ConnectionManager;
 	import com.worlize.rpc.HTTPMethod;
 	import com.worlize.rpc.PresenceConnection;
 	import com.worlize.rpc.RoomConnection;
@@ -125,31 +126,6 @@ package com.worlize.interactivity.rpc
 		
 		[Bindable]
 		public var currentWorld:WorldDefinition = new WorldDefinition();
-		[Bindable]
-		public var utf8:Boolean = false;
-		[Bindable]
-		public var port:uint = 0;
-		[Bindable]
-		public var host:String = null;
-		[Bindable]
-		public var initialRoom:uint = 0;
-		
-		private var _roomConnectionState:String = WorlizeConnectionState.CONNECTING;
-		[Bindable(event="roomConnectionStateChanged")]
-		public function get roomConnectionState():String {
-			return _roomConnectionState;
-		}
-		public function set roomConnectionState(newValue:String):void {
-			if (_roomConnectionState !== newValue) {
-				_roomConnectionState = newValue;
-				dispatchEvent(new FlexEvent("roomConnectionStateChanged"));
-			}
-		}
-		
-		[Bindable(event="roomConnectionStateChanged")]
-		public function get roomConnected():Boolean {
-			return _roomConnectionState === WorlizeConnectionState.CONNECTED;
-		}
 		
 		[Bindable]
 		public var currentRoom:CurrentRoom = new CurrentRoom();
@@ -163,17 +139,10 @@ package com.worlize.interactivity.rpc
 		public var whochat:String = null;
 		public var needToRunSignonHandlers:Boolean = true; 
 		
-		private var assetRequestQueueTimer:Timer = null;
-		private var assetRequestQueue:Array = [];
-		private var assetRequestQueueCounter:int = 0;
-		private var assetsLastRequestedAt:Date = new Date();
-		
 		private var chatQueue:Vector.<ChatRecord> = new Vector.<ChatRecord>;
 		private var currentChatItem:ChatRecord;
 		
 		public var cyborgHotspot:Hotspot = new Hotspot();
-		
-		private var recentLogonUserIds:ArrayCollection = new ArrayCollection();
 		
 		public var worlizeConfig:WorlizeConfig = WorlizeConfig.getInstance();
 		
@@ -198,21 +167,10 @@ package com.worlize.interactivity.rpc
 		[Bindable]
 		public var worldsList:PublicWorldsList = PublicWorldsList.getInstance();
 		
-		private var expectingDisconnect:Boolean = false;
+		[Bindable]
+		public var connection:ConnectionManager;
 		
-		private var temporaryUserFlags:int;
-		// We get the user flags before we have the current user
-		
-		public var notificationManager:VisualNotificationManager = VisualNotificationManager.getInstance();
-		
-		public var roomConnection:RoomConnection;
-		
-		public var presenceConnection:PresenceConnection;
-		
-		// States
-		public static const STATE_DISCONNECTED:int = 0;
-		public static const STATE_HANDSHAKING:int = 1;
-		public static const STATE_READY:int = 2; 
+		public var expectingDisconnect:Boolean = false;
 		
 		// Incoming Message Handlers
 		private var incomingMessageHandlers:Object = {
@@ -247,6 +205,8 @@ package com.worlize.interactivity.rpc
 			"presence_status_change": handlePresenceStatusChange,
 			"request_permission_to_join": handleRequestPermissionToJoin,
 			"room_definition": handleRoomDefinition,
+			"room_entry_denied": handleRoomEntryDenied,
+			"room_entry_granted": handleRoomEntryGranted,
 			"room_population_update": handleRoomPopulationUpdate,
 			"room_redirect": handleRoomRedirect,
 			"say": handleReceiveTalk,
@@ -295,7 +255,18 @@ package com.worlize.interactivity.rpc
 			
 			currentWorld.load(worlizeConfig.interactivitySession.worldGuid);
 			
+			connection = new ConnectionManager();
+			connection.addEventListener(WorlizeCommEvent.CONNECTED, handleConnected);
+			connection.addEventListener(WorlizeCommEvent.DISCONNECTED, handleDisconnected);
+			connection.addEventListener(WorlizeCommEvent.CONNECTION_FAIL, handleConnectionFail);
+			connection.addEventListener(WorlizeCommEvent.MESSAGE, handleIncomingMessage);
+			
 			ChangeWatcher.watch(this, ['currentWorld', 'ownerGuid'], handleWorldOwnerChange);
+		}
+		
+		[Bindable(event="connectedChange")]
+		public function get connected():Boolean {
+			return connection.connected;
 		}
 		
 		private function handleWorldOwnerChange(event:Event):void {
@@ -310,39 +281,27 @@ package com.worlize.interactivity.rpc
 			}
 		}
 		
-		private function initPresenceConnection():void {
-			presenceConnection = new PresenceConnection();
-			presenceConnection.addEventListener(WorlizeCommEvent.CONNECTED, handlePresenceConnected);
-			presenceConnection.addEventListener(WorlizeCommEvent.DISCONNECTED, handlePresenceDisconnected);
-			presenceConnection.addEventListener(WorlizeCommEvent.MESSAGE, handlePresenceMessage);
-			presenceConnection.connect();
+		public function connect():void {
+			InteractivityClient.loaderContext.checkPolicyFile = true;
+			connection.connect();
 		}
 		
-		private function handlePresenceConnected(event:WorlizeCommEvent):void {
-			logger.info("Presence Connection Established");
-			logger.info("Now that the presence connection is established, checking for promo dialogs to display.");
-			ExternalInterface.call('checkForDialogs');
-		}
-		
-		private function handlePresenceDisconnected(event:WorlizeCommEvent):void {
-			showDisconnectedMessage();
-		}
-		
-		private function handlePresenceMessage(event:WorlizeCommEvent):void {
-			if (event.message) {
-				routeIncomingMessage(event.message);
-			}
+		public function disconnect():void {
+			expectingDisconnect = true;
+			connection.disconnect();
+			resetState();
 		}
 		
 		private function handleConnected(event:WorlizeCommEvent):void {
-			logger.info("Room Server Connection Established.");
-			roomConnectionState = WorlizeConnectionState.CONNECTED;
-			expectingDisconnect = false;
+			logger.info("Server Connection Established.");
 			var connectEvent:InteractivityEvent = new InteractivityEvent(InteractivityEvent.CONNECT_COMPLETE);
 			dispatchEvent(connectEvent);
 			var notification:ConnectionNotification = new ConnectionNotification(ConnectionNotification.CONNECTION_ESTABLISHED);
 			NotificationCenter.postNotification(notification);
-			currentRoom.selfUserId = id;
+			dispatchEvent(new FlexEvent("connectedChange"));
+			
+			logger.info("Now that the connection is established, checking for promo dialogs to display.");
+			ExternalInterface.call('checkForDialogs');
 		}
 		
 		private var disconnectedMessageShowing:Boolean = false;
@@ -359,47 +318,34 @@ package com.worlize.interactivity.rpc
 						ExternalInterface.call('redirectToHomepage');
 						return;
 					}
-					if (!roomConnected) {
-						reconnectToRoomServer();
-					}
-					if (presenceConnection && !presenceConnection.connected) {
-						presenceConnection.connect();
-					}
+					connect();
 				}
 			);
 		}
 		
 		private function handleDisconnected(event:WorlizeCommEvent):void {
-			roomConnectionState = WorlizeConnectionState.CLOSED;
-			roomConnection.removeEventListener(WorlizeCommEvent.CONNECTED, handleConnected);
-			roomConnection.removeEventListener(WorlizeCommEvent.DISCONNECTED, handleDisconnected);
-			roomConnection.removeEventListener(WorlizeCommEvent.CONNECTION_FAIL, handleRoomConnectionFail);
-			roomConnection.removeEventListener(WorlizeCommEvent.MESSAGE, handleIncomingMessage);
-			roomConnection = null;
-			
+			var notification:ConnectionNotification = new ConnectionNotification(ConnectionNotification.DISCONNECTED);
+			NotificationCenter.postNotification(notification);
+
 			if (expectingDisconnect) {
 				// do nothing
 				logger.info("Disconnected from room server, but was expecting disconnection.");
 			}
 			else {
-				logger.error("Disconnected from room server!");
+				logger.error("Disconnected from server!");
 				resetState();
-				var notification:ConnectionNotification = new ConnectionNotification(ConnectionNotification.DISCONNECTED);
-				NotificationCenter.postNotification(notification);
 				showDisconnectedMessage();
 			}
 			expectingDisconnect = false;
+			dispatchEvent(new FlexEvent("connectedChange"));
 		}
 		
-		private function handleRoomConnectionFail(event:WorlizeCommEvent):void {
-			expectingDisconnect = true;
-			reconnectToRoomServer();
+		private function handleConnectionFail(event:WorlizeCommEvent):void {
+
 		}
 		
 		private function handleIncomingMessage(event:WorlizeCommEvent):void {
-			if (event.message) {
-				routeIncomingMessage(event.message);
-			}
+			routeIncomingMessage(event.message);
 		}
 		
 		private function routeIncomingMessage(message:Object):void {
@@ -697,7 +643,7 @@ package com.worlize.interactivity.rpc
 				"View your friends list to confirm your new friendship.",
 				"Friend Request"
 			);
-			notificationManager.showNotification(notification);
+			VisualNotificationManager.getInstance().showNotification(notification);
 			var entry:PendingFriendsListEntry = PendingFriendsListEntry.fromData(data.user);
 			friendsList.friendsForFriendsList.addItem(entry);
 			friendsList.updateHeadingCounts();
@@ -768,7 +714,7 @@ package com.worlize.interactivity.rpc
 		}
 		
 		private function handlePing(data:Object):void {
-			roomConnection.send({
+			connection.send({
 				msg: "pong"
 			});
 		}
@@ -825,6 +771,7 @@ package com.worlize.interactivity.rpc
 			currentRoom.id = room.guid;
 			currentRoom.name = room.name;
 			currentRoom.backgroundFile = room.backgroundImageURL;
+			currentRoom.selfUserId = id;
 			
 			if (shouldInsertHistory) {
 				roomHistoryManager.addItem(currentRoom.id, currentRoom.name, currentWorld.name);
@@ -858,6 +805,32 @@ package com.worlize.interactivity.rpc
 			// Update room properties, resetting to defaults for all values if
 			// no value is supplied for a given property in the room definition.
 			currentRoom.updateProperties(room.properties, true);
+		}
+		
+		private function handleRoomEntryDenied(data:Object):void {
+			currentRoom.localMessage(data.message);
+		}
+
+		// Entry into the requested room was granted so prepare for entry by
+		// loading the correct world definition and updating the local room
+		// list.
+		private function handleRoomEntryGranted(data:Object):void {
+			logger.info("Room entry granted!  Room Guid: " + data.roomGuid + " World Guid: " + data.worldGuid);
+			resetState();
+			
+			// Make sure to refresh the information about the current world
+			// when going to a new room.
+			currentWorld.load(data.worldGuid);
+			
+			// Make sure to update the room count since we won't receive a
+			// room_population_update message after we disconnect.
+			for (var i:int=0; i < currentWorld.roomList.rooms.length; i ++) {
+				var roomListEntry:RoomListEntry = currentWorld.roomList.rooms.getItemAt(i) as RoomListEntry;
+				if (roomListEntry.guid === currentRoom.id) {
+					roomListEntry.userCount --;
+					break;
+				}
+			}
 		}
 		
 		private function handleUpdateRoomProperty(data:Object):void {
@@ -960,70 +933,20 @@ package com.worlize.interactivity.rpc
 		// ***************************************************************
 		// Begin public functions for user interaction
 		// ***************************************************************
-		
-		public function connect():void {
-			if (roomConnectionState === WorlizeConnectionState.CONNECTING) {
-				cancelRoomConnection();
-			}
-			
-			InteractivityClient.loaderContext.checkPolicyFile = true;
-			
-			if (presenceConnection === null) {
-				initPresenceConnection();
-			}
-			
-			if (roomConnection) {
-				roomConnection.removeEventListener(WorlizeCommEvent.CONNECTED, handleConnected);
-				roomConnection.removeEventListener(WorlizeCommEvent.DISCONNECTED, handleDisconnected);
-				roomConnection.removeEventListener(WorlizeCommEvent.CONNECTION_FAIL, handleRoomConnectionFail);
-				roomConnection.removeEventListener(WorlizeCommEvent.MESSAGE, handleIncomingMessage);
-			}
-			
-			roomConnectionState = WorlizeConnectionState.CONNECTING;
-			roomConnection = new RoomConnection();
-			
-			roomConnection.addEventListener(WorlizeCommEvent.CONNECTED, handleConnected);
-			roomConnection.addEventListener(WorlizeCommEvent.DISCONNECTED, handleDisconnected);
-			roomConnection.addEventListener(WorlizeCommEvent.CONNECTION_FAIL, handleRoomConnectionFail);
-			roomConnection.addEventListener(WorlizeCommEvent.MESSAGE, handleIncomingMessage);
-			
-			roomConnection.connect();
-		}
-		
-		public function cancelRoomConnection():void {
-			if (roomConnection) {
-				roomConnection.removeEventListener(WorlizeCommEvent.CONNECTED, handleConnected);
-				roomConnection.removeEventListener(WorlizeCommEvent.DISCONNECTED, handleDisconnected);
-				roomConnection.removeEventListener(WorlizeCommEvent.CONNECTION_FAIL, handleRoomConnectionFail);
-				roomConnection.removeEventListener(WorlizeCommEvent.MESSAGE, handleIncomingMessage);
-				roomConnection.disconnect();
-				roomConnection = null;
-				roomConnectionState = WorlizeConnectionState.CLOSED;
-			}
-		}
-		
-		public function disconnect():void {
-			if (roomConnection) {
-				expectingDisconnect = true;
-				roomConnection.disconnect();				
-			}
-			resetState();
-		}
-		
 		public function updateRoomProperty(propertyName:String, value:*):void {
 			if (canAuthor) {
-				roomConnection.send({
+				connection.send({
 					msg: "update_room_property",
 					data: {
 						name: propertyName,
 						value: value
 					}
-				});
+				}, true);
 			}
 		}
 		
 		public function youTubeLoad(playerGuid:String, videoId:String, duration:int, title:String, autoPlay:Boolean = true):void {
-			roomConnection.send({
+			connection.send({
 				msg: "youtube_load",
 				data: {
 					player: playerGuid,
@@ -1032,74 +955,74 @@ package com.worlize.interactivity.rpc
 					duration: duration,
 					title: title
 				}
-			});
+			}, true);
 		}
 		
 		public function youTubeStop(playerGuid:String):void {
-			roomConnection.send({
+			connection.send({
 				msg: "youtube_stop",
 				data: {
 					player: playerGuid
 				}
-			});
+			}, true);
 		}
 		
 		public function youTubePause(playerGuid:String):void {
-			roomConnection.send({
+			connection.send({
 				msg: "youtube_pause",
 				data: {
 					player: playerGuid
 				}
-			});
+			}, true);
 		}
 		
 		public function youTubeSeek(playerGuid:String, seekTo:int):void {
-			roomConnection.send({
+			connection.send({
 				msg: "youtube_seek",
 				data: {
 					player: playerGuid,
 					seek_to: seekTo
 				}
-			});
+			}, true);
 		}
 		
 		public function youTubePlay(playerGuid:String):void {
-			roomConnection.send({
+			connection.send({
 				msg: "youtube_play",
 				data: {
 					player: playerGuid
 				}
-			});
+			}, true);
 		}
 		
 		public function roomChat(message:String):void {
-			if (!roomConnected || message == null || message.length == 0) {
+			if (!connected || message == null || message.length == 0) {
 				return;
 			}
 //			trace("Saying: " + message);
 
-			roomConnection.send({
+			connection.send({
 				msg: "say",
 				data: message
-			});
+			}, true);
 		}
 		
 		public function privateMessage(message:String, targetUserGuid:String):void {
-			if (!roomConnected || message == null || message.length == 0) {
+			if (!connected || message == null || message.length == 0) {
 				return;
 			}
 			
-			roomConnection.send({
+			connection.send({
 				msg: "whisper",
 				data: {
 					to_user: targetUserGuid,
 					text: message
 				}
-			});
+			}, true);
 		}
 		
 		public function say(message:String):void {
-			if (!roomConnected || message == null || message.length == 0) {
+			if (!connected || message == null || message.length == 0) {
 				return;
 			}
 			
@@ -1127,35 +1050,35 @@ package com.worlize.interactivity.rpc
 		}
 		
 		public function globalMessage(message:String):void {
-			if (!roomConnected || message == null || message.length == 0) {
+			if (!connected || message == null || message.length == 0) {
 				return;
 			}
 			
 			if (message.length > 254) {
 				message = message.substr(0, 254);
 			}
-			roomConnection.send({
+			connection.send({
 				msg: "global_msg",
 				data: message
 			});
 		}
 		
 		public function roomMessage(message:String):void {
-			if (!roomConnected || message == null || message.length == 0) {
+			if (!connected || message == null || message.length == 0) {
 				return;
 			}
 			if (message.length > 254) {
 				message = message.substr(0, 254);
 			}
 			
-			roomConnection.send({
+			connection.send({
 				msg: "room_msg",
 				data: message
 			});
 		}
 		
 		public function superUserMessage(message:String):void {
-			if (!roomConnected || message == null || message.length == 0) {
+			if (!connected || message == null || message.length == 0) {
 				return;
 			}
 
@@ -1163,7 +1086,7 @@ package com.worlize.interactivity.rpc
 				message = message.substr(0, 254);
 			}
 			
-			roomConnection.send({
+			connection.send({
 				msg: "susr_msg",
 				data: message
 			});
@@ -1186,13 +1109,13 @@ package com.worlize.interactivity.rpc
 		}
 		
 		public function naked():void {
-			if (roomConnected) {
+			if (connected) {
 				if (currentUser) {
 					currentUser.simpleAvatar = null;
 					currentUser.videoAvatarStreamName = null;
 				}
 				webcamBroadcastManager.stopBroadcast();
-				roomConnection.send({
+				connection.send({
 					msg: "naked"
 				});
 			}
@@ -1202,7 +1125,7 @@ package com.worlize.interactivity.rpc
 			currentUser.simpleAvatar = SimpleAvatarStore.getInstance().getAvatar(guid);
 			webcamBroadcastManager.stopBroadcast();
 			currentUser.videoAvatarStreamName = null;
-			roomConnection.send({
+			connection.send({
 				msg: "set_simple_avatar",
 				data: guid
 			});
@@ -1214,7 +1137,7 @@ package com.worlize.interactivity.rpc
 		}
 		
 		private function handleCameraBroadcastStart(event:WebcamBroadcastEvent):void {
-			roomConnection.send({
+			connection.send({
 				msg: 'set_video_avatar'
 			});
 		}
@@ -1226,7 +1149,7 @@ package com.worlize.interactivity.rpc
 		}
 		
 		public function move(x:int, y:int):void {
-			if (!roomConnected || !currentUser) {
+			if (!connected || !currentUser) {
 				return;
 			}
 			
@@ -1236,7 +1159,7 @@ package com.worlize.interactivity.rpc
 			y = Math.max(y, 22);
 			y = Math.min(y, currentRoom.roomView.backgroundImage.height - 22);
 			
-			roomConnection.send({
+			connection.send({
 				msg: "move",
 				data: [x,y]
 			});
@@ -1246,7 +1169,7 @@ package com.worlize.interactivity.rpc
 		}
 		
 		public function setFace(face:int):void {
-			if (!roomConnected || currentUser.face == face) {
+			if (!connected || currentUser.face == face) {
 				return;
 			}
 			
@@ -1255,14 +1178,14 @@ package com.worlize.interactivity.rpc
 			
 			currentUser.face = face;
 			
-			roomConnection.send({
+			connection.send({
 				msg: "set_face",
 				data: face
 			});
 		}
 		
 		public function setColor(color:int):void {
-			if (!roomConnected || currentUser.color == color) {
+			if (!connected || currentUser.color == color) {
 				return;
 			}
 			
@@ -1271,7 +1194,7 @@ package com.worlize.interactivity.rpc
 			
 			currentUser.color = color;
 			
-			roomConnection.send({
+			connection.send({
 				msg: "set_color",
 				data: color
 			});
@@ -1345,56 +1268,13 @@ package com.worlize.interactivity.rpc
 			}
 		}
 		
-		private function actuallyGotoRoom(roomId:String):void {
-			logger.info("Actually going to room " + roomId);
-
-			var gotoRoomCommand:GotoRoomCommand = new GotoRoomCommand();
-			gotoRoomCommand.addEventListener(GotoRoomResultEvent.GOTO_ROOM_RESULT, function(event:GotoRoomResultEvent):void {
-				worlizeConfig.interactivitySession = event.interactivitySession;
-				
-				// Make sure to refresh the information about the current world
-				// when going to a new room.
-				currentWorld.load(worlizeConfig.interactivitySession.worldGuid);
-				
-				// Make sure to update the room count since we won't receive a
-				// room_population_update message after we disconnect.
-				for (var i:int=0; i < currentWorld.roomList.rooms.length; i ++) {
-					var roomListEntry:RoomListEntry = currentWorld.roomList.rooms.getItemAt(i) as RoomListEntry;
-					if (roomListEntry.guid === currentRoom.id) {
-						roomListEntry.userCount --;
-						break;
-					}
-				}
-				
-				if (roomConnection && roomConnection.connected) {
-					expectingDisconnect = true;
-					var disconnectHandler:Function = function(event:WorlizeCommEvent):void {
-						RoomConnection(event.target).removeEventListener(WorlizeCommEvent.DISCONNECTED, disconnectHandler);
-						resetState();
-						connect();
-					};
-					roomConnection.addEventListener(WorlizeCommEvent.DISCONNECTED, disconnectHandler);
-					roomConnection.disconnect();
-				}
-				else {
-					resetState();
-					connect();
-				}
-			});
-			gotoRoomCommand.addEventListener(FaultEvent.FAULT, function(event:FaultEvent):void {
-				currentRoom.logMessage("Unable to go to the requested room: it does not exist.");
-			});
-			gotoRoomCommand.execute(roomId);
-		}
-		
-		public function reconnectToRoomServer():void {
-			if (worlizeConfig.interactivitySession && worlizeConfig.interactivitySession.roomGuid) {
-				actuallyGotoRoom(worlizeConfig.interactivitySession.roomGuid);
-			}
+		private function actuallyGotoRoom(roomGuid:String):void {
+			logger.info("Actually going to room " + roomGuid);
+			connection.gotoRoom(roomGuid);
 		}
 		
 		public function lockDoor(roomId:String, spotId:int):void {
-			roomConnection.send({
+			connection.send({
 				msg: 'lock_door',
 				data: {
 					door_id: spotId
@@ -1403,7 +1283,7 @@ package com.worlize.interactivity.rpc
 		}
 		
 		public function unlockDoor(roomGuid:String, spotId:int):void {
-			roomConnection.send({
+			connection.send({
 				msg: 'unlock_door',
 				data: {
 					roomGuid: roomGuid,

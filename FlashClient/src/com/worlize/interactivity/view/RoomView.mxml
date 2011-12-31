@@ -557,13 +557,13 @@
 						continue;
 					}
 					
-					innerLoop: for (var i:int = 0; i < currentlyDisplayedChatMessages.length; i ++) {
+					for (var i:int = 0; i < currentlyDisplayedChatMessages.length; i ++) {
 						var m:ChatMessage = ChatMessage(currentlyDisplayedChatMessages.getItemAt(i));
 						if (!m.isStickyBubble && m.chatBubble.hitTestObject(chatBubble)) {
 							overlapped = true;
 							chatBubble.tryNextPosition();
 							chatBubble.validateNow();
-							break innerLoop;
+							break;
 						}
 					}
 					if (!overlapped) {
