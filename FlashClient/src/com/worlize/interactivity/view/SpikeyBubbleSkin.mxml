@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SparkSkin xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark" xmlns:mx="library://ns.adobe.com/flex/halo"
+			 implements="com.worlize.interactivity.view.IChatBubbleSkin"
+			 x.bottomRight="20"
+			 x.topRight="20"
+			 x.bottomLeft="{width*-1-20}"
+			 x.topLeft="{width*-1-20}"
+			 y.bottomRight="-10"
+			 y.bottomLeft="-10"
+			 y.topRight="{height*-1+5}"
+			 y.topLeft="{height*-1+5}"
+			 >
+	<fx:Metadata>
+		[HostComponent("com.worlize.interactivity.view.ChatBubble")]
+	</fx:Metadata>
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			private var _tintColor:uint = 0xFFFFAA;
+			
+			private static const SpikeHeight:Number = 16;
+			private static const SpikeWidth:Number = 12;
+			private static const SpikeDisplace:Number = 20;
+			private static const RandomAmplitude:Number = 10;
+			
+			[Bindable('tintColorChanged')]
+			public function get tintColor():uint {
+				return _tintColor;
+			}
+			
+			public function set tintColor(newValue:uint):void {
+				_tintColor = newValue;
+				dispatchEvent(new FlexEvent('tintColorChanged'));
+			}
+			
+			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void {
+				super.updateDisplayList(unscaledWidth, unscaledHeight);
+				drawSpikes();
+			}
+			
+			private function drawSpikes():void {
+				if (!backgroundElement) { return; }
+				var w:Number = backgroundElement.width;
+				var h:Number = backgroundElement.height;
+				var g:Graphics = backgroundElement.graphics;
+				g.clear();
+				g.beginFill(_tintColor);
+				
+				var hPoints:int,vPoints:int,hWidth:Number,vWidth:Number,x:int,y:int,penX:Number,penY:Number;
+				
+				hPoints = w/SpikeWidth;
+				if (hPoints < 2) {
+					hPoints = 2;
+				}
+				vPoints = h/SpikeWidth;
+				if (vPoints < 2) {
+					vPoints = 2;
+				}
+				hWidth = w/hPoints;
+				vWidth = h/vPoints;
+				
+				var left:Number = 0;
+				var top:Number = 0;
+				var right:Number = w;
+				var bottom:Number = h;
+				
+				g.moveTo(0,0);
+				for (x = 0; x < hPoints; ++x) {
+					penX = left + x*hWidth + hWidth/2 + (x*SpikeDisplace)/(hPoints-1) - SpikeDisplace/2;
+					penY = top - SpikeHeight;
+					g.lineTo(penX, penY);
+					g.lineTo(x*hWidth + hWidth, top);
+				}
+				for (y = 0; y < vPoints; ++y) {
+					penX = right + SpikeHeight;
+					penY = top + y*vWidth + vWidth/2 + (y*SpikeDisplace)/(vPoints-1) - SpikeDisplace/2;
+					g.lineTo(penX, penY);
+					g.lineTo(right, y*vWidth + vWidth);
+				}
+				for (x = 0; x < hPoints; ++x) {
+					penX = right - x*hWidth - hWidth/2 + ((hPoints-1-x)*SpikeDisplace)/(hPoints-1) - SpikeDisplace/2;
+					penY = bottom + SpikeHeight;
+					g.lineTo(penX, penY);
+					g.lineTo(right - x*hWidth - hWidth, bottom);
+				}
+				for (y = 0; y < vPoints; ++y) {
+					penX = left - SpikeHeight;
+					penY = bottom - y*vWidth - vWidth/2 + ((vPoints-1-y)*SpikeDisplace)/(vPoints-1) - SpikeDisplace/2;
+					g.lineTo(penX, penY);
+					g.lineTo(left, bottom - y*vWidth - vWidth);
+				}
+				g.lineTo(0,0);
+				g.endFill();
+			}
+		]]>
+	</fx:Script>
+	
+	<s:filters>
+		<s:DropShadowFilter blurX="6" blurY="10" distance="2" alpha="0.75" strength="1" angle="60" />
+	</s:filters>
+	
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	
+	<s:states>
+		<s:State name="bottomRight" stateGroups="bottom,right" />
+		<s:State name="bottomLeft" stateGroups="bottom,left" />
+		<s:State name="topRight" stateGroups="top,right" />
+		<s:State name="topLeft" stateGroups="top,left" />
+	</s:states>
+	
+	<s:Group
+		top.bottomRight="-5"
+		top.bottomLeft="-5"
+		bottom.topLeft="-4"
+		bottom.topRight="-4"
+		left.bottomRight="12"
+		left.topRight="12"
+		right.bottomLeft="12"
+		right.topLeft="12">
+		
+		<s:SpriteVisualElement id="backgroundElement" left="1" right="1" top="1" bottom="1">
+			<s:filters>
+				<s:BevelFilter
+					angle="45"
+					distance="3"
+					strength="1"
+					blurX="14"
+					blurY="14"
+					type="inner"
+					quality="3"
+					highlightColor="0xFFFFFF"
+					highlightAlpha="0.15"
+					shadowColor="0x000000"
+					shadowAlpha="0.15"
+					knockout="false">
+				</s:BevelFilter>
+			</s:filters>
+		</s:SpriteVisualElement>
+		
+		<s:RichText id="textElement"
+					maxWidth="125"
+					maxHeight="300"
+					textAlign="left"
+					verticalAlign="top"
+					lineBreak="toFit"
+					maxDisplayedLines="0"
+					left="10"
+					top="10"
+					bottom="10"
+					right="10"		
+					/>
+	</s:Group>
+	
+</s:SparkSkin>

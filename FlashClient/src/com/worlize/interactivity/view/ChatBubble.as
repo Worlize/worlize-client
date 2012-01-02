@@ -2,6 +2,8 @@ package com.worlize.interactivity.view
 {
 	import flash.events.Event;
 	
+	import mx.core.IVisualElement;
+	
 	import spark.components.RichText;
 	import spark.components.supportClasses.SkinnableComponent;
 	import spark.primitives.supportClasses.GraphicElement;
@@ -18,7 +20,7 @@ package com.worlize.interactivity.view
 		public var textElement:RichText;
 		
 		[SkinPart(required="false")]
-		public var backgroundElement:GraphicElement;
+		public var backgroundElement:IVisualElement;
 		
 		private var _text:String;
 			

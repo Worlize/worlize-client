@@ -8,6 +8,7 @@
 	
 	<fx:Script>
 		<![CDATA[
+			import com.worlize.interactivity.view.SpikeyBubbleSkin;
 			import com.worlize.interactivity.view.StickyBubbleSkin;
 		]]>
 	</fx:Script>
@@ -66,6 +67,7 @@
 			<s:Label text="Chat Bubble Type:" />
 			<s:RadioButton label="Chat" value="{ChatBubbleSkin}" selected="true" group="{bubbleTypeGroup}" />
 			<s:RadioButton label="Thought" value="{ThoughtBubbleSkin}" group="{bubbleTypeGroup}" />
+			<s:RadioButton label="Exclamation" value="{SpikeyBubbleSkin}" group="{bubbleTypeGroup}" />
 			<s:RadioButton label="Sticky" value="{StickyBubbleSkin}" group="{bubbleTypeGroup}" />
 		</s:VGroup>
 		

@@ -545,6 +545,9 @@
 					case ChatBubbleStyle.THOUGHT:
 						chatBubble.setStyle('skinClass', Class(com.worlize.interactivity.view.ThoughtBubbleSkin));
 						break;
+					case ChatBubbleStyle.EXCLAMATION:
+						chatBubble.setStyle('skinClass', Class(com.worlize.interactivity.view.SpikeyBubbleSkin));
+						break;
 					case ChatBubbleStyle.STICKY:
 						chatBubble.setStyle('skinClass', Class(com.worlize.interactivity.view.StickyBubbleSkin));
 						break;
