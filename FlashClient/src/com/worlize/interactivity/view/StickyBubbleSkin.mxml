@@ -8,7 +8,8 @@
 			 y.bottomRight="-10"
 			 y.bottomLeft="-10"
 			 y.topRight="{height*-1+5}"
-			 y.topLeft="{height*-1+5}">
+			 y.topLeft="{height*-1+5}"
+			 >
 	<fx:Metadata>
 		[HostComponent("com.worlize.interactivity.view.ChatBubble")]
 	</fx:Metadata>
@@ -17,12 +18,12 @@
 		<![CDATA[
 			import mx.events.FlexEvent;
 			private var _tintColor:uint = 0xFFFFAA;
-
+			
 			[Bindable('tintColorChanged')]
 			public function get tintColor():uint {
 				return _tintColor;
 			}
-
+			
 			public function set tintColor(newValue:uint):void {
 				_tintColor = newValue;
 				dispatchEvent(new FlexEvent('tintColorChanged'));
@@ -30,58 +31,30 @@
 		]]>
 	</fx:Script>
 	
-	<s:filters>
-		<s:DropShadowFilter blurX="6" blurY="10" distance="2" alpha="0.75" strength="1" angle="60" />
-	</s:filters>
-	
 	<s:layout>
 		<s:BasicLayout/>
 	</s:layout>
 	
 	<s:states>
-		<s:State name="bottomRight" />
-		<s:State name="bottomLeft" />
-		<s:State name="topRight" />
-		<s:State name="topLeft" />
+		<s:State name="bottomRight" stateGroups="bottom,right" />
+		<s:State name="bottomLeft" stateGroups="bottom,left" />
+		<s:State name="topRight" stateGroups="top,right" />
+		<s:State name="topLeft" stateGroups="top,left" />
 	</s:states>
 	
-	<s:Path data="M 3.0 5.0 L 22.0 16.0 L 22.0 5.0 L 3.0 5.0" includeIn="bottomRight" top="4">
-		<s:fill>
-			<s:SolidColor color="{tintColor}" alpha="1" />
-		</s:fill>
-	</s:Path>
-
-	<s:Path data="M 22.0 5.0 L 3.0 16.0 L 3.0 5.0 L 22.0 5.0" includeIn="bottomLeft" top="4" right="2">
-		<s:fill>
-			<s:SolidColor color="{tintColor}" alpha="1" />
-		</s:fill>
-	</s:Path>
-
-	<s:Path data="M 3.0 -5.0 L 22.0 -5.0 L 22.0 -20.0 L 3.0 -5.0" includeIn="topRight" bottom="7">
-		<s:fill>
-			<s:SolidColor color="{tintColor}" alpha="1" />
-		</s:fill>
-	</s:Path>
-	
-	<s:Path data="M 22.0 -5.0 L -3.0 -5.0 L -3.0 -20.0 L 22.0 -5.0" includeIn="topLeft" bottom="7" right="2">
-		<s:fill>
-			<s:SolidColor color="{tintColor}" alpha="1" />
-		</s:fill>
-	</s:Path>
-
 	<s:Group
-		top.bottomRight="-5"
-		top.bottomLeft="-5"
+		top.bottomRight="2"
+		top.bottomLeft="2"
 		bottom.topLeft="-4"
 		bottom.topRight="-4"
-		left.bottomRight="12"
-		left.topRight="12"
-		right.bottomLeft="12"
-		right.topLeft="12">
-				
+		left.bottomRight="-22"
+		left.topRight="-22"
+		right.bottomLeft="-22"
+		right.topLeft="-22">
+		
 		<s:Rect
 			id="backgroundElement"
-			radiusX="14" radiusY="14"
+			radiusX="3" radiusY="3"
 			left="1"
 			right="1"
 			bottom="1"
@@ -106,22 +79,32 @@
 					shadowAlpha="0.15"
 					knockout="false">
 				</s:BevelFilter>
+				<s:DropShadowFilter blurX="6" blurY="10" distance="2" alpha="0.75" strength="1" angle="60" />
 			</s:filters>
 			
 		</s:Rect>
 		
 		<s:RichText id="textElement"
-			maxWidth="125"
-			maxHeight="300"
-			textAlign="left"
-			verticalAlign="top"
-			lineBreak="toFit"
-			maxDisplayedLines="0"
-			left="10"
-			top="10"
-			bottom="10"
-			right="10"		
-		/>
+					maxWidth="125"
+					maxHeight="300"
+					textAlign="left"
+					verticalAlign="top"
+					lineBreak="toFit"
+					maxDisplayedLines="0"
+					top="7"
+					bottom="6"
+					left.right="8"
+					left.left="9"
+					right.right="9"
+					right.left="8"
+					/>
+		
+		<s:Image top="-10"
+				 right.right="-6"
+				 left.left="-6"
+				 scaleX.left="-1"
+				 source="@Embed(source='src/assets/images/sticky-bubble-pushpin.png')" />
+		
 	</s:Group>
 	
 </s:SparkSkin>

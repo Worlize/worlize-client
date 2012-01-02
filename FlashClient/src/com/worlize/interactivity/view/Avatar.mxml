@@ -14,9 +14,11 @@
 		<![CDATA[
 			import com.worlize.event.AvatarEvent;
 			import com.worlize.interactivity.model.InteractivityUser;
+			import com.worlize.interactivity.model.WebcamBroadcastManager;
 			import com.worlize.interactivity.rpc.InteractivityClient;
 			import com.worlize.model.CurrentUser;
 			import com.worlize.model.SimpleAvatar;
+			import com.worlize.video.control.NetConnectionManager;
 			
 			import mx.binding.utils.ChangeWatcher;
 			import mx.core.FlexBitmap;
@@ -30,7 +32,10 @@
 			public var user:InteractivityUser = new InteractivityUser();
 			
 			[Bindable]
-			public var client:InteractivityClient = InteractivityClient.getInstance();
+			public var netConnectionManager:NetConnectionManager;
+			
+			[Bindable]
+			public var webcamBroadcastManager:WebcamBroadcastManager;
 			
 			private var video:Video;
 			
@@ -156,8 +161,8 @@
 
 	<view:VideoAvatarPlayer id="videoAvatarPlayer" width="160" height="120"
 							verticalCenter="-40" horizontalCenter="0"
-							netConnectionManager="{client.netConnectionManager}"
-							webcamBroadcastManager="{client.webcamBroadcastManager}"
+							netConnectionManager="{netConnectionManager}"
+							webcamBroadcastManager="{webcamBroadcastManager}"
 							streamName="{user.videoAvatarStreamName}"
 							visible="{videoAvatarPlayer.playing}"
 							mouseOver="handleMouseOver(event)" mouseOut="handleMouseOut(event)"

@@ -8,9 +8,18 @@
 	
 	<fx:Script>
 		<![CDATA[
-			import mx.events.ColorPickerEvent;
-			import com.worlize.interactivity.view.ChatBubbleSkin;
+			import com.worlize.interactivity.view.StickyBubbleSkin;
+		]]>
+	</fx:Script>
+	<fx:Script>
+		<![CDATA[
 			import com.worlize.interactivity.model.InteractivityUser;
+			import com.worlize.interactivity.view.ChatBubbleSkin;
+			import com.worlize.interactivity.view.ThoughtBubbleSkin;
+			
+			import mx.events.ColorPickerEvent;
+			
+			import spark.components.supportClasses.Skin;
 			[Bindable]
 			private var user:InteractivityUser = new InteractivityUser();
 			private function handleCreationComplete():void {
@@ -23,8 +32,18 @@
 			private function handleColorChange(event:ColorPickerEvent):void {
 				chatBubble.tintColor = event.color;
 			}
+			
+			protected function handleBubbleTypeChange(event:Event):void
+			{
+				chatBubble.setStyle('skinClass', bubbleTypeGroup.selectedValue as Class);
+			}
+			
 		]]>
 	</fx:Script>
+	
+	<fx:Declarations>
+		<s:RadioButtonGroup id="bubbleTypeGroup" change="handleBubbleTypeChange(event)" />
+	</fx:Declarations>
 	
 	<s:TextArea
 		left="10" top="10"
@@ -38,11 +57,20 @@
 		isWhisper="{whisperCheckbox.selected}"
 		click="trace('Click');" />
 	
-	<mx1:ColorPicker left="10" bottom="80" id="colorPicker" change="handleColorChange(event)" />
-	
-	<s:Button bottom="10" left="10" label="Try Next Position" 
-		click="chatBubble.tryNextPosition()" />
+	<s:VGroup bottom="10" left="10">
+		<mx1:ColorPicker id="colorPicker" change="handleColorChange(event)" />
 		
-	<s:CheckBox bottom="40" left="10" label="Whisper" id="whisperCheckbox" />
+		<s:CheckBox label="Whisper" id="whisperCheckbox" />
+		
+		<s:VGroup gap="2" paddingTop="10" paddingBottom="10">
+			<s:Label text="Chat Bubble Type:" />
+			<s:RadioButton label="Chat" value="{ChatBubbleSkin}" selected="true" group="{bubbleTypeGroup}" />
+			<s:RadioButton label="Thought" value="{ThoughtBubbleSkin}" group="{bubbleTypeGroup}" />
+			<s:RadioButton label="Sticky" value="{StickyBubbleSkin}" group="{bubbleTypeGroup}" />
+		</s:VGroup>
+		
+		<s:Button label="Try Next Position" 
+				  click="chatBubble.tryNextPosition()" />
+	</s:VGroup>
 	
 </s:Application>

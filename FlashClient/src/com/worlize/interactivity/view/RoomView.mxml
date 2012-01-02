@@ -33,11 +33,13 @@
 			import com.worlize.interactivity.event.InteractivitySecurityErrorEvent;
 			import com.worlize.interactivity.event.RoomEvent;
 			import com.worlize.interactivity.iptscrae.command.CLIENTTYPECommand;
+			import com.worlize.interactivity.model.ChatBubbleStyle;
 			import com.worlize.interactivity.model.ChatMessage;
 			import com.worlize.interactivity.model.CurrentRoom;
 			import com.worlize.interactivity.model.Hotspot;
 			import com.worlize.interactivity.model.InteractivityConfig;
 			import com.worlize.interactivity.model.InteractivityUser;
+			import com.worlize.interactivity.model.WebcamBroadcastManager;
 			import com.worlize.interactivity.rpc.InteractivityClient;
 			import com.worlize.model.RoomDefinition;
 			import com.worlize.model.friends.FriendsList;
@@ -45,6 +47,7 @@
 			import com.worlize.model.userSearch.UserSearchResultLineItem;
 			import com.worlize.notification.WorlizeNotification;
 			import com.worlize.state.AuthorModeState;
+			import com.worlize.video.control.NetConnectionManager;
 			
 			import mx.binding.utils.ChangeWatcher;
 			import mx.collections.ArrayCollection;
@@ -88,6 +91,45 @@
 			
 			private var snowPlaying:Boolean = false;
 			private var snow:SnowDisplay;
+			
+			private var _webcamBroadcastManager:WebcamBroadcastManager;
+			private var _netConnectionManager:NetConnectionManager;
+			
+			[Bindable(event="webcamBroadcastManagerChanged")]
+			public function set webcamBroadcastManager(newValue:WebcamBroadcastManager):void {
+				if (_webcamBroadcastManager !== newValue) {
+					_webcamBroadcastManager = newValue;
+					// Update existing avatar instances
+					for (var userGuid:String in avatarsByUser) {
+						var avatar:Avatar = avatarsByUser[userGuid];
+						if (avatar) {
+							avatar.webcamBroadcastManager = newValue;
+						}
+					}
+					dispatchEvent(new FlexEvent("webcamBroadcastManagerChanged"));
+				}
+			}
+			public function get webcamBroadcastManager():WebcamBroadcastManager {
+				return _webcamBroadcastManager;
+			}
+			
+			[Bindable(event="netConnectionManagerChanged")]
+			public function set netConnectionManager(newValue:NetConnectionManager):void {
+				if (_netConnectionManager !== newValue) {
+					_netConnectionManager = newValue;
+					// Update existing avatar instances
+					for (var userGuid:String in avatarsByUser) {
+						var avatar:Avatar = avatarsByUser[userGuid];
+						if (avatar) {
+							avatar.netConnectionManager = newValue;
+						}
+					}
+					dispatchEvent(new FlexEvent("netConnectionManagerChanged"));
+				}
+			}
+			public function get netConnectionManager():NetConnectionManager {
+				return _netConnectionManager;
+			}
 			
 			[Bindable(event="scaleFactorChanged")]
 			public function get scaleFactor():Number {
@@ -239,7 +281,7 @@
 				
 			
 			private function handleUserMoved(event:RoomEvent):void {
-				
+				removeChatBubblesForUser(event.user);
 			}
 			
 			private function handleSelectedUserChanged(event:Event):void {
@@ -301,6 +343,7 @@
 			private function updateSelfPosition():void {
 				var self:InteractivityUser = room.getSelfUser();
 				if (!self) { return; }
+				removeChatBubblesForUser(self);
 				var x:int = this.contentMouseX;
 				var y:int = this.contentMouseY;
 				if (x < 22) { x = 22; }
@@ -442,15 +485,20 @@
 					SoundPlayer.getInstance().playSound(event.soundName);
 				}
 				
-				if (event.logOnly) { return; }
+				if (event.logOnly || event.chatText.length < 1) { return; }
 				
 				var message:ChatMessage = new ChatMessage();
 				message.isWhisper = event.whisper;
+				message.bubbleStyle = event.bubbleStyle;
 				message.text = event.chatText;
-				if (message.text.length < 1) { return; }
+				
 				message.tint = event.user ? Avatar.chatBubbleTintColors[event.user.color] : 0xF9F9F9;
 				message.user = event.user;
-				if (event.user) {
+				if (event.locationSet) {
+					message.x = event.x;
+					message.y = event.y;
+				}
+				else if (event.user) {
 					message.x = event.user.x;
 					message.y = event.user.y;
 				}
@@ -486,18 +534,24 @@
 				
 				if (message.user && stickyMessagesByUser[message.user]) {
 					var oldMessage:ChatMessage = stickyMessagesByUser[message.user];
-					try {
-						delete stickyMessagesByUser[message.user];
-					}
-					catch (e:Error) { /* do nothing */ }
-					try {
-						textGroup.removeElement(oldMessage.chatBubble);
-					}
-					catch (e:Error) { /* do nothing */ }
+					delete stickyMessagesByUser[oldMessage.user];
+					var index:int = currentlyDisplayedChatMessages.getItemIndex(oldMessage);
+					currentlyDisplayedChatMessages.removeItemAt(index);
+					textGroup.removeElement(oldMessage.chatBubble);
 				}
 				
 				var chatBubble:ChatBubble = new ChatBubble();
-				chatBubble.setStyle('skinClass', Class(com.worlize.interactivity.view.ChatBubbleSkin));
+				switch(message.bubbleStyle) {
+					case ChatBubbleStyle.THOUGHT:
+						chatBubble.setStyle('skinClass', Class(com.worlize.interactivity.view.ThoughtBubbleSkin));
+						break;
+					case ChatBubbleStyle.STICKY:
+						chatBubble.setStyle('skinClass', Class(com.worlize.interactivity.view.StickyBubbleSkin));
+						break;
+					default:
+						chatBubble.setStyle('skinClass', Class(com.worlize.interactivity.view.ChatBubbleSkin));
+						break;
+				}
 				chatBubble.text = message.text;
 				chatBubble.x = message.x;
 				chatBubble.y = message.y;
@@ -581,7 +635,7 @@
 				message.chatBubble = chatBubble;
 				
 				if (!message.isStickyBubble) {
-					setTimeout(removeChatBubble, 3000 + (message.text.length * 70), message);
+					message.hideTimeout = setTimeout(removeChatBubble, 3000 + (message.text.length * 70), message);
 				}
 				else if (message.user) {
 					stickyMessagesByUser[message.user] = message;
@@ -590,10 +644,46 @@
 				return true;
 			}
 			
+			private function removeChatBubblesForUser(user:InteractivityUser):void {
+				var i:int;
+				var chatMessage:ChatMessage;
+				// De-queue any pending chat bubbles first
+				for (i = chatQueue.length - 1; i >= 0; i --) {
+					chatMessage = ChatMessage(chatQueue[i]);
+					if (chatMessage.user) {
+						if (chatMessage.user.id === user.id) {
+							chatQueue.splice(i, 1);
+						}
+					}
+				}
+				
+				// Then remove any sticky bubbles
+				chatMessage = stickyMessagesByUser[user];
+				if (chatMessage != null) {
+					var index:int = currentlyDisplayedChatMessages.getItemIndex(chatMessage);
+					currentlyDisplayedChatMessages.removeItemAt(index);
+					textGroup.removeElement(chatMessage.chatBubble);
+					delete stickyMessagesByUser[user];
+				}
+				
+				// Then get rid of all other kinds
+				for (i = currentlyDisplayedChatMessages.length - 1; i >= 0; i --) {
+					chatMessage = ChatMessage(currentlyDisplayedChatMessages.getItemAt(i));
+					if (chatMessage.user) {
+						if (chatMessage.user.id === user.id) {
+							removeChatBubble(chatMessage);
+						}
+					}
+				}
+			}
+			
 			private function removeChatBubble(message:ChatMessage):void {
 				try {
-					var bubble:ChatBubble = message.chatBubble;
-					var fade:Fade = new Fade(bubble);
+					if (message.hideTimeout) {
+						clearTimeout(message.hideTimeout);
+						message.hideTimeout = 0;
+					}
+					var fade:Fade = new Fade(message.chatBubble);
 					fade.duration = 300;
 					fade.alphaFrom = 1;
 					fade.alphaTo = 0;
@@ -607,11 +697,12 @@
 			}
 			
 			private function handleChatBubbleFadeComplete(event:EffectEvent):void {
+				var bubble:ChatBubble = ChatBubble(Animate(event.target).target);
 				try {
-					textGroup.removeElement(Animate(event.target).target as IVisualElement);
+					textGroup.removeElement(bubble);
 				}
 				catch(e:Error) {
-					logger.warn("Unable to remove element after fadeout animation. ", Animate(event.target).target);
+					logger.warn("Unable to remove element after fadeout animation.  Chat message: " + bubble.text + " - [" + bubble + "]");
 					// do nothing
 				}
 			}
@@ -620,6 +711,8 @@
 				var avatar:Avatar = new Avatar();
 				avatar.user = event.user;
 				avatar.alpha = 1;
+				avatar.netConnectionManager = netConnectionManager;
+				avatar.webcamBroadcastManager = webcamBroadcastManager;
 				avatar.addEventListener(MouseEvent.MOUSE_DOWN, handleAvatarMouseDown);
 				avatar.addEventListener(MouseEvent.MOUSE_DOWN, handleAvatarDragMouseDown);
 				avatarsGroup.addElement(avatar);
@@ -660,11 +753,7 @@
 					delete nameTagsByUser[event.user];
 				}
 				
-				var chatMessage:ChatMessage = stickyMessagesByUser[event.user];
-				if (chatMessage != null) {
-					textGroup.removeElement(chatMessage.chatBubble);
-					delete stickyMessagesByUser[event.user];
-				}
+				removeChatBubblesForUser(event.user);
 			}
 			
 			private function handleRoomCleared(event:RoomEvent):void {

@@ -8,7 +8,8 @@
 			 y.bottomRight="-10"
 			 y.bottomLeft="-10"
 			 y.topRight="{height*-1+5}"
-			 y.topLeft="{height*-1+5}">
+			 y.topLeft="{height*-1+5}"
+			 >
 	<fx:Metadata>
 		[HostComponent("com.worlize.interactivity.view.ChatBubble")]
 	</fx:Metadata>
@@ -17,12 +18,12 @@
 		<![CDATA[
 			import mx.events.FlexEvent;
 			private var _tintColor:uint = 0xFFFFAA;
-
+			
 			[Bindable('tintColorChanged')]
 			public function get tintColor():uint {
 				return _tintColor;
 			}
-
+			
 			public function set tintColor(newValue:uint):void {
 				_tintColor = newValue;
 				dispatchEvent(new FlexEvent('tintColorChanged'));
@@ -39,36 +40,32 @@
 	</s:layout>
 	
 	<s:states>
-		<s:State name="bottomRight" />
-		<s:State name="bottomLeft" />
-		<s:State name="topRight" />
-		<s:State name="topLeft" />
+		<s:State name="bottomRight" stateGroups="bottom,right" />
+		<s:State name="bottomLeft" stateGroups="bottom,left" />
+		<s:State name="topRight" stateGroups="top,right" />
+		<s:State name="topLeft" stateGroups="top,left" />
 	</s:states>
 	
-	<s:Path data="M 3.0 5.0 L 22.0 16.0 L 22.0 5.0 L 3.0 5.0" includeIn="bottomRight" top="4">
-		<s:fill>
-			<s:SolidColor color="{tintColor}" alpha="1" />
-		</s:fill>
-	</s:Path>
-
-	<s:Path data="M 22.0 5.0 L 3.0 16.0 L 3.0 5.0 L 22.0 5.0" includeIn="bottomLeft" top="4" right="2">
-		<s:fill>
-			<s:SolidColor color="{tintColor}" alpha="1" />
-		</s:fill>
-	</s:Path>
-
-	<s:Path data="M 3.0 -5.0 L 22.0 -5.0 L 22.0 -20.0 L 3.0 -5.0" includeIn="topRight" bottom="7">
-		<s:fill>
-			<s:SolidColor color="{tintColor}" alpha="1" />
-		</s:fill>
-	</s:Path>
+	<s:Group id="thoughtCircles"
+			 left.right="0"
+			 right.left="0"
+			 top.bottom="-5"
+			 bottom.top="20"
+			 scaleY.top="-1" scaleX.left="-1">
+		<s:Ellipse top="0" left="0"
+				   height="4" width="4">
+			<s:fill>
+				<s:SolidColor color="{tintColor}" alpha="1" />
+			</s:fill>
+		</s:Ellipse>
+		<s:Ellipse top="2" left="6"
+				   height="6" width="6">
+			<s:fill>
+				<s:SolidColor color="{tintColor}" alpha="1" />
+			</s:fill>
+		</s:Ellipse>
+	</s:Group>
 	
-	<s:Path data="M 22.0 -5.0 L -3.0 -5.0 L -3.0 -20.0 L 22.0 -5.0" includeIn="topLeft" bottom="7" right="2">
-		<s:fill>
-			<s:SolidColor color="{tintColor}" alpha="1" />
-		</s:fill>
-	</s:Path>
-
 	<s:Group
 		top.bottomRight="-5"
 		top.bottomLeft="-5"
@@ -78,7 +75,7 @@
 		left.topRight="12"
 		right.bottomLeft="12"
 		right.topLeft="12">
-				
+		
 		<s:Rect
 			id="backgroundElement"
 			radiusX="14" radiusY="14"
@@ -111,17 +108,17 @@
 		</s:Rect>
 		
 		<s:RichText id="textElement"
-			maxWidth="125"
-			maxHeight="300"
-			textAlign="left"
-			verticalAlign="top"
-			lineBreak="toFit"
-			maxDisplayedLines="0"
-			left="10"
-			top="10"
-			bottom="10"
-			right="10"		
-		/>
+					maxWidth="125"
+					maxHeight="300"
+					textAlign="left"
+					verticalAlign="top"
+					lineBreak="toFit"
+					maxDisplayedLines="0"
+					left="10"
+					top="10"
+					bottom="10"
+					right="10"		
+					/>
 	</s:Group>
 	
 </s:SparkSkin>

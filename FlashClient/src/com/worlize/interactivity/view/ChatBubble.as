@@ -35,8 +35,8 @@ package com.worlize.interactivity.view
 		[Bindable('tintColorChanged')]
 		public function set tintColor(newValue:uint):void {
 			_tintColor = newValue;
-			if (skin && skin is ChatBubbleSkin)
-				ChatBubbleSkin(skin).tintColor = _tintColor;
+			if (skin && skin is IChatBubbleSkin)
+				IChatBubbleSkin(skin).tintColor = _tintColor;
 			dispatchEvent(new Event('tintColorChanged'));
 		}
 		
@@ -51,6 +51,10 @@ package com.worlize.interactivity.view
 				textElement.text = _text; 
 			}
 			dispatchEvent(new Event('textChanged'));
+		}
+		
+		public function get text():String {
+			return _text;
 		}
 		
 		private var _isWhisper:Boolean = false;
@@ -79,7 +83,7 @@ package com.worlize.interactivity.view
 				textElement.setStyle('fontStyle', _isWhisper ? 'italic' : 'normal');
 			}
 			if ( instance == backgroundElement ) {
-				ChatBubbleSkin(skin).tintColor = _tintColor;
+				IChatBubbleSkin(skin).tintColor = _tintColor;
 			}
 		}
 		

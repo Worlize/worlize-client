@@ -99,8 +99,8 @@ package com.worlize.interactivity.view
 					removeNetConnectionManagerListeners();
 				}
 				_netConnectionManager = newValue;
-				addNetConnectionManagerListeners();
 				if (_netConnectionManager) {
+					addNetConnectionManagerListeners();
 					playStream();
 				}
 				else {
@@ -180,14 +180,20 @@ package com.worlize.interactivity.view
 		protected function playLocalStream():void {
 			var camera:Camera = InteractivityClient.getInstance().webcamBroadcastManager.camera;
 			if (camera) {
-				video.scaleX = -1;
-				video.x = 160;
+				logger.info("Playing local stream");
+				// Mirror local display to feel more natural.
+				// Update: Disabled local mirroring because what you see is no
+				// longer the same as what others see and that seems to be a
+				// more substantial problem for multi-user interaction.
+//				video.scaleX = -1;
+//				video.x = 160;
 				video.attachCamera(camera);
 				playing = true;
 			}
 		}
 		
 		protected function playRemoteStream():void {
+			logger.info("Playing remote stream " + streamName);
 			netStream = new NetStream(netConnectionManager.netConnection);
 			netStream.addEventListener(NetStatusEvent.NET_STATUS, handleNetStreamNetStatus, false, 0, true);
 			netStream.play(streamName);				
@@ -203,6 +209,7 @@ package com.worlize.interactivity.view
 		}
 		
 		protected function stopLocalStream():void {
+			logger.info("Stopping local stream");
 			video.attachCamera(null);
 			video.attachNetStream(null);
 			playing = false;
@@ -210,6 +217,7 @@ package com.worlize.interactivity.view
 		
 		protected function stopRemoteStream():void {
 			if (netStream) {
+				logger.info("Stopping remote stream " + netStream.info.resourceName);
 				netStream.receiveVideo(false);
 				netStream.receiveAudio(false);
 				netStream.close();

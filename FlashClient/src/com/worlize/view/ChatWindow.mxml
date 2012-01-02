@@ -420,6 +420,8 @@
 		
 		<view1:RoomView id="roomView"
 							 enabled="{client.connected}"
+							 webcamBroadcastManager="{client.webcamBroadcastManager}"
+							 netConnectionManager="{client.netConnectionManager}"
 							 securityError="handleSecurityError(event)"
 							 room="{client.currentRoom}" />
 	</s:Group>
