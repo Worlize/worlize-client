@@ -29,6 +29,7 @@
 		<![CDATA[
 			import com.flashandmath.dg.display.SnowDisplay;
 			import com.worlize.event.NotificationCenter;
+			import com.worlize.interactivity.event.AvatarSelectEvent;
 			import com.worlize.interactivity.event.ChatEvent;
 			import com.worlize.interactivity.event.InteractivitySecurityErrorEvent;
 			import com.worlize.interactivity.event.RoomEvent;
@@ -373,38 +374,32 @@
 			}
 			
 
-			private function handleAvatarMouseDown(event:MouseEvent):void {
-				if (event.currentTarget is Avatar) {
-					event.stopPropagation();
-					
-					if (currentMenu) {
-						currentMenu.hide();
-					}
-					
-					var user:InteractivityUser = Avatar(event.currentTarget).user;
-					if (user.id == room.selfUserId) {
-						return;
-					}
-					
-					var menuData:Array = [];
-					if (room.selectedUser != user) {
-						menuData.push({ type: 'normal', label: 'Whisper to ' + user.name, action: 'whisper', user: user});
-					}
-					else {
-						menuData.push({ type: 'normal', label: 'Stop whispering to ' + user.name, action: 'stopWhispering', user: user});
-					}
-					
-					if (!FriendsList.getInstance().getFriendsListEntryByGuid(user.id)) {
-						menuData.push({ type: 'normal', label: 'Add ' + user.name + ' as friend', action: 'addFriend', user: user}); 
-					}
-					else {
-						menuData.push({ type: 'normal', label: 'Unfriend ' + user.name, action: 'removeFriend', user: user}); 
-					}
-					
-					currentMenu = Menu.createMenu(null, menuData, true);
-					currentMenu.addEventListener(MenuEvent.ITEM_CLICK, handleUserContextMenuItemClick, false, 0, true);
-					currentMenu.show(stage.mouseX, stage.mouseY);
+			private function handleAvatarShowContextMenu(event:AvatarSelectEvent):void {
+				trace("Context menu requested!");
+				if (currentMenu) {
+					currentMenu.hide();
 				}
+				
+				var user:InteractivityUser = room.getUserById(event.userId);
+				
+				var menuData:Array = [];
+				if (room.selectedUser != user) {
+					menuData.push({ type: 'normal', label: 'Whisper to ' + user.name, action: 'whisper', user: user});
+				}
+				else {
+					menuData.push({ type: 'normal', label: 'Stop whispering to ' + user.name, action: 'stopWhispering', user: user});
+				}
+				
+				if (!FriendsList.getInstance().getFriendsListEntryByGuid(user.id)) {
+					menuData.push({ type: 'normal', label: 'Add ' + user.name + ' as friend', action: 'addFriend', user: user}); 
+				}
+				else {
+					menuData.push({ type: 'normal', label: 'Unfriend ' + user.name, action: 'removeFriend', user: user}); 
+				}
+				
+				currentMenu = Menu.createMenu(null, menuData, true);
+				currentMenu.addEventListener(MenuEvent.ITEM_CLICK, handleUserContextMenuItemClick, false, 0, true);
+				currentMenu.show(stage.mouseX, stage.mouseY);
 			}
 			
 			private function handleUserContextMenuItemClick(event:MenuEvent):void {
@@ -716,7 +711,7 @@
 				avatar.alpha = 1;
 				avatar.netConnectionManager = netConnectionManager;
 				avatar.webcamBroadcastManager = webcamBroadcastManager;
-				avatar.addEventListener(MouseEvent.MOUSE_DOWN, handleAvatarMouseDown);
+				avatar.addEventListener(AvatarSelectEvent.SHOW_CONTEXT_MENU, handleAvatarShowContextMenu);
 				avatar.addEventListener(MouseEvent.MOUSE_DOWN, handleAvatarDragMouseDown);
 				avatarsGroup.addElement(avatar);
 				avatar.validateDisplayList();
@@ -744,7 +739,7 @@
 			private function handleUserLeft(event:RoomEvent):void {
 				var avatar:Avatar = avatarsByUser[event.user];
 				if (avatar != null) {
-					avatar.removeEventListener(MouseEvent.MOUSE_DOWN, handleAvatarMouseDown);
+					avatar.removeEventListener(AvatarSelectEvent.AVATAR_SELECT, handleAvatarShowContextMenu);
 					avatar.removeEventListener(MouseEvent.MOUSE_DOWN, handleAvatarDragMouseDown);
 					avatarsGroup.removeElement(avatar);
 					delete avatarsByUser[event.user];
@@ -761,7 +756,7 @@
 			
 			private function handleRoomCleared(event:RoomEvent):void {
 				for each (var avatar:Object in avatarsByUser) {
-					Avatar(avatar).removeEventListener(MouseEvent.MOUSE_DOWN, handleAvatarMouseDown);
+					Avatar(avatar).removeEventListener(MouseEvent.MOUSE_DOWN, handleAvatarShowContextMenu);
 					Avatar(avatar).removeEventListener(MouseEvent.MOUSE_DOWN, handleAvatarDragMouseDown);
 				}
 				avatarsGroup.removeAllElements();

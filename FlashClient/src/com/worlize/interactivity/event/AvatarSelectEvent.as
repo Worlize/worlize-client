@@ -5,11 +5,13 @@ package com.worlize.interactivity.event
 	public class AvatarSelectEvent extends Event
 	{
 		public static const AVATAR_SELECT:String = "avatarSelect";
-		public var userId:int = -1;
-		public function AvatarSelectEvent(type:String, userId:int)
+		public static const SHOW_CONTEXT_MENU:String = "showContextMenu";
+		
+		public var userId:String;
+		
+		public function AvatarSelectEvent(type:String, bubbles:Boolean=false, cancelable:Boolean=false)
 		{
-			this.userId = userId;
-			super(AVATAR_SELECT, false, true);
+			super(type, bubbles, cancelable);
 		}
 		
 	}

@@ -33,6 +33,7 @@ package com.worlize.control
 			url = "/locker/avatars";
 			var imageFilter:FileFilter = new FileFilter("Image Files (*.jpg, *.jpeg, *.png, *.gif)", "*.jpg;*.jpeg;*.png;*.gif");
 			fileTypeFilters = [imageFilter];
+			checkAnimatedGifs = true;
 		}
 		
 		override protected function handleFileUploadComplete(event:DataEvent):void {
@@ -42,6 +43,9 @@ package com.worlize.control
 					var data:Object = response.data;
 					// We're notified of the new avatar via a message sent
 					// through the interactivity server...
+				}
+				else {
+					Alert.show("We weren't able to process the file you uploaded.", "Oops!");
 				}
 			}
 			catch(e:Error) {

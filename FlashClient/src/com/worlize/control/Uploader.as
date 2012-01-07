@@ -1,5 +1,8 @@
 package com.worlize.control
 {
+	import com.worlize.gif.GIFDecoder;
+	import com.worlize.gif.events.AsyncDecodeErrorEvent;
+	import com.worlize.gif.events.GIFDecoderEvent;
 	import com.worlize.rpc.WorlizeServiceClient;
 	
 	import flash.events.DataEvent;
@@ -14,6 +17,7 @@ package com.worlize.control
 	import flash.net.URLRequest;
 	import flash.net.URLRequestMethod;
 	import flash.net.URLVariables;
+	import flash.utils.flash_proxy;
 	
 	import mx.controls.Alert;
 	import mx.events.StateChangeEvent;
@@ -46,6 +50,11 @@ package com.worlize.control
 		[Bindable]
 		public var percentComplete:Number = 0;
 		
+		[Bindable]
+		public var checkAnimatedGifs:Boolean = true;
+		
+		private var isAnimatedGif:Boolean = false;
+		
 		[Bindable(event="stateBindingChanged")]
 		public function set state(newValue:String):void {
 			if (_state != newValue) {
@@ -62,6 +71,7 @@ package com.worlize.control
 		
 		public function browse():void {
 			if (browsing) { return; }
+			isAnimatedGif = false;
 			browsing = true;
 			fileRef = new FileReference();
 			fileRef.addEventListener(Event.SELECT, handleFileSelected);
@@ -78,7 +88,49 @@ package com.worlize.control
 		
 		protected function handleFileSelected(event:Event):void {
 			browsing = false;
-			logger.info("File selected");
+			logger.info("File selected: " + fileRef.name);
+			
+			if (checkAnimatedGifs && fileRef.name.match(/^.*\.gif$/i)) {
+				checkAnimatedGif();
+			}
+			else {
+				uploadData();
+			}
+		}
+		
+		protected function checkAnimatedGif():void {
+			logger.info("Validating GIF: Loading GIF data into memory.");
+			fileRef.addEventListener(Event.COMPLETE, handleGifLoadComplete);
+			fileRef.load();
+		}
+		
+		// Once the file is loaded we can verify the data
+		protected function handleGifLoadComplete(event:Event):void {
+			logger.info("GIF data loaded - " + fileRef.size + " bytes - " + fileRef.name);
+			fileRef.removeEventListener(Event.COMPLETE, handleGifLoadComplete);
+			
+			function handleGifDecodeComplete(event:GIFDecoderEvent):void {
+				isAnimatedGif = (gifDecoder.frameDecodedCount > 1);
+				gifDecoder.cleanup();
+				logger.info("Animated GIF: " + isAnimatedGif);
+				uploadData();
+			}
+			
+			function handleGifDecodeError(event:AsyncDecodeErrorEvent):void {
+				logger.info("Unable to decode GIF file: " + event.text);
+				Alert.show("The selected GIF file could not be decoded: " + event.text, "Aww, shucks!");
+			}
+
+			logger.info("Attempting to decode GIF file");
+			var gifDecoder:GIFDecoder = new GIFDecoder();
+			gifDecoder.addEventListener(GIFDecoderEvent.DECODE_COMPLETE, handleGifDecodeComplete);
+			gifDecoder.addEventListener(AsyncDecodeErrorEvent.ASYNC_DECODE_ERROR, handleGifDecodeError);
+			gifDecoder.decodeBytes(fileRef.data);
+		}
+		
+		protected function uploadData():void {
+			logger.info("Attempting to begin upload");
+			
 			// We have to manually do the URLRequest instead of going through
 			// a WorlizeServiceClient subclass...
 			var request:URLRequest = new URLRequest(url);
@@ -95,6 +147,9 @@ package com.worlize.control
 				cookieStrings.push(encodeURIComponent(cookieKey) + "=" + encodeURIComponent(cookieValue));
 			}
 			params.cookie = cookieStrings.join("; ");
+			if (checkAnimatedGifs) {
+				params.animated_gif = isAnimatedGif;
+			}
 			request.data = params;
 			
 			fileRef.addEventListener(DataEvent.UPLOAD_COMPLETE_DATA, handleFileUploadComplete);
@@ -102,7 +157,6 @@ package com.worlize.control
 			fileRef.addEventListener(Event.OPEN, handleUploadBegin);
 			fileRef.addEventListener(ProgressEvent.PROGRESS, handleUploadProgress);
 			fileRef.upload(request, 'filedata');
-			
 		}
 		
 		protected function handleFileBrowseCancel(event:Event):void {
@@ -125,12 +179,12 @@ package com.worlize.control
 		}
 		
 		protected function handleFileUploadComplete(event:DataEvent):void {
-			logger.info("UploadComplete");
+			logger.info("Upload Complete");
 			state = STATE_READY;
 		}
 		
 		protected function handleFileComplete(event:Event):void {
-			logger.info("FileComplete");
+			logger.info("File Complete");
 			state = STATE_READY;
 		}
 		

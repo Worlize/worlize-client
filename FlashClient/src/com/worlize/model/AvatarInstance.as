@@ -18,6 +18,7 @@ package com.worlize.model
 		public var gifter:UserListEntry;
 		public var emptySlot:Boolean = false;
 		public var editable:Boolean = false;
+		public var animatedGIF:Boolean = false;
 		
 		public static function fromData(data:Object):AvatarInstance {
 			var avatarInstance:AvatarInstance = new AvatarInstance();
@@ -26,7 +27,10 @@ package com.worlize.model
 			avatarInstance.editGuid = data.edit_guid;
 			avatarInstance.aviaryGuid = data.aviary_guid;
 			avatarInstance.avatar = SimpleAvatar.fromData(data.avatar);
-			avatarInstance.editable = (avatarInstance.userGuid === avatarInstance.avatar.creatorGuid);
+			avatarInstance.animatedGIF = data.avatar.animated_gif;
+			avatarInstance.editable = !avatarInstance.animatedGIF; 
+					//(avatarInstance.userGuid === avatarInstance.avatar.creatorGuid);
+			
 			if (data.gifter) {
 				var gifter:UserListEntry = new UserListEntry();
 				gifter.userGuid = data.gifter.guid;

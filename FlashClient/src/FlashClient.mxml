@@ -177,6 +177,9 @@
 			}
 			
 			private function handleApplicationComplete():void {
+				// Set Frame Rate to 30fps
+				stage.frameRate = 30;
+				
 				// Test global event handling
 //				setTimeout(function():void {
 //					throw new Error("Foo Bar Error");
