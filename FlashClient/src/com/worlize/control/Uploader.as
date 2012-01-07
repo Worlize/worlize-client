@@ -161,13 +161,15 @@ package com.worlize.control
 		
 		protected function handleFileBrowseCancel(event:Event):void {
 			logger.info("Browse Canceled.");
+			state = STATE_READY;
 			browsing = false;
 		}
 		
 		protected function handleIOErrorEvent(event:IOErrorEvent):void {
 			logger.error("IOErrorEvent: " + event.toString());
 			browsing = false;
-			Alert.show("There was an IO Error while trying to upload the file.", "Error");
+			state = STATE_READY;
+			Alert.show("There was an IO Error while trying to upload the file.  Your file may be too large.", "Error");
 			fileRef = null;
 		}
 		
