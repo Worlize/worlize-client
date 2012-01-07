@@ -48,6 +48,26 @@
 			[Bindable]
 			public var webcamBroadcastManager:WebcamBroadcastManager;
 			
+			public function get avatarHeight():Number {
+				if (user.videoAvatarStreamName) {
+					return 120;
+				}
+				else if (user.showFace) {
+					return 50;
+				}
+				return imageContainer.height;
+			}
+			
+			public function get avatarWidth():Number {
+				if (user.videoAvatarStreamName) {
+					return 160;
+				}
+				else if (user.showFace) {
+					return 50;
+				}
+				return imageContainer.width;
+			}
+			
 			private var video:Video;
 			
 			private var loader:Loader;
@@ -285,7 +305,7 @@
 						   mouseEnabled="false"
 						   mouseChildren="false"
 						   width="200" height="200"
-						   verticalCenter="-25" horizontalCenter="0" />
+						   bottom="0" horizontalCenter="0" />
 	
 	<mx1:ProgressBar horizontalCenter="0" verticalCenter="10"
 					 label=""

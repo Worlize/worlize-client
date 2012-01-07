@@ -495,7 +495,7 @@
 				}
 				else if (event.user) {
 					message.x = event.user.x;
-					message.y = event.user.y;
+					message.y = event.user.y - (avatarsByUser[event.user] as Avatar).avatarHeight/2 + 25;
 				}
 				else {
 					message.x = 0;
