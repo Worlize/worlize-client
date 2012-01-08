@@ -207,6 +207,7 @@ package com.worlize.interactivity.rpc
 			"room_definition": handleRoomDefinition,
 			"room_entry_denied": handleRoomEntryDenied,
 			"room_entry_granted": handleRoomEntryGranted,
+			"room_msg": handleRoomMsg,
 			"room_population_update": handleRoomPopulationUpdate,
 			"room_redirect": handleRoomRedirect,
 			"say": handleReceiveTalk,
@@ -831,6 +832,10 @@ package com.worlize.interactivity.rpc
 					break;
 				}
 			}
+		}
+		
+		private function handleRoomMsg(data:Object):void {
+			currentRoom.roomMessage(data.text);
 		}
 		
 		private function handleUpdateRoomProperty(data:Object):void {
