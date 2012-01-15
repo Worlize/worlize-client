@@ -15,6 +15,15 @@ package com.worlize.interactivity.view
 		
 		private var client:InteractivityClient = InteractivityClient.getInstance();
 		
+		[Embed(source="assets/sounds/pop.mp3")]
+		private static const userEnterSound:Class;
+		
+		[Embed(source="assets/sounds/taptaptap.mp3")]
+		private static const whisperAlertSound:Class;
+		
+		[Embed(source="assets/sounds/request-received.mp3")]
+		private static const requestReceivedSound:Class;
+		
 //		[Embed(source="assets/sounds/amen.mp3")]
 //		private static const amen:Class;
 //		
@@ -108,17 +117,21 @@ package com.worlize.interactivity.view
 //			playSoundAsset(SoundAsset(new doorOpen()));
 		}
 		
-		public function playConnectionPing():void {
-//			playSoundAsset(SoundAsset(new fader()));
+		public function playUserEnterSound():void {
+			playSoundAsset(SoundAsset(new userEnterSound()));
 		}
 		
 		public function playWhisperBell():void {
-//			playSoundAsset(SoundAsset(new chime()));
+			playSoundAsset(SoundAsset(new whisperAlertSound()));
+		}
+		
+		public function playRequestReceivedSound():void {
+			playSoundAsset(SoundAsset(new requestReceivedSound()));
 		}
 		
 		private function playSoundAsset(soundAsset:SoundAsset):void {
-				var soundTransform:SoundTransform = new SoundTransform(1,0);
-				soundAsset.play(0,0,soundTransform);
+			var soundTransform:SoundTransform = new SoundTransform(1,0);
+			soundAsset.play(0,0,soundTransform);
 		}
 		
 		public function playSound(soundName:String):void {

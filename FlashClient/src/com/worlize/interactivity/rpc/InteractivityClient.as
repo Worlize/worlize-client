@@ -170,6 +170,8 @@ package com.worlize.interactivity.rpc
 		[Bindable]
 		public var connection:ConnectionManager;
 		
+		private var receivingInitialRoomOccupants:Boolean = false;
+		
 		public var expectingDisconnect:Boolean = false;
 		
 		// Incoming Message Handlers
@@ -482,6 +484,7 @@ package com.worlize.interactivity.rpc
 			}
 			var notification:VisualNotification = new VisualNotification(message, "Gift Received!");
 			notification.show();
+			SoundPlayer.getInstance().playRequestReceivedSound();
 		}
 		
 		private function handleYouTubePause(data:Object):void {
@@ -648,6 +651,7 @@ package com.worlize.interactivity.rpc
 			var entry:PendingFriendsListEntry = PendingFriendsListEntry.fromData(data.user);
 			friendsList.friendsForFriendsList.addItem(entry);
 			friendsList.updateHeadingCounts();
+			SoundPlayer.getInstance().playRequestReceivedSound();
 		}
 		
 		private function handleNewObject(data:Object):void {
@@ -806,6 +810,12 @@ package com.worlize.interactivity.rpc
 			// Update room properties, resetting to defaults for all values if
 			// no value is supplied for a given property in the room definition.
 			currentRoom.updateProperties(room.properties, true);
+			
+			// Now we're ready to receive user_enter messages for all the
+			// existing room occupants.  We don't want to play a notification
+			// sound for every single one of them so we set this flag to true
+			// until we receive the user_enter message for ourself.
+			receivingInitialRoomOccupants = true;
 		}
 		
 		private function handleRoomEntryDenied(data:Object):void {
@@ -1335,8 +1345,21 @@ package com.worlize.interactivity.rpc
 			
 			logger.info("User " + user.name + " entered.");
 			
+			if (!receivingInitialRoomOccupants) {
+				SoundPlayer.getInstance().playUserEnterSound();
+			}
+			
 			if (user.id == id) {
 				// Self entered
+				
+				// When we receive our own user_enter message, we know we're
+				// done receiving the pre-existing room occupants.  We can now
+				// set receivingInitialRoomOccupants to false so that any
+				// additional entrants to the room will play the user entered
+				// sound alert.
+				receivingInitialRoomOccupants = false;
+				
+				
 				// Signon handlers
 				setTimeout(function():void {
 					if (needToRunSignonHandlers) {

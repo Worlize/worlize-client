@@ -502,6 +502,12 @@
 					message.y = 10;
 				}
 				
+				if (message.isWhisper) {
+					if (!ExternalInterface.call('checkIsFocused')) {
+						SoundPlayer.getInstance().playWhisperBell();
+					}
+				}
+				
 				chatQueue.push(message);
 				
 				checkChatQueue();
