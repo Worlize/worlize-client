@@ -14,6 +14,9 @@
 				var notification:VisualNotification = new VisualNotification(
 					notificationText.text,
 					notificationTitle.text,
+					notificationTitle.text,
+					0xFFFFFFFF,
+					false,
 					handleNotificationClick,
 					durationSlider.value
 				);

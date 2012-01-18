@@ -1,7 +1,6 @@
 package com.worlize.model
 {
 	import com.worlize.command.DeleteAvatarInstanceCommand;
-	import com.worlize.components.visualnotification.VisualNotification;
 	import com.worlize.model.gifts.IGiftable;
 	import com.worlize.rpc.HTTPMethod;
 	import com.worlize.rpc.WorlizeResultEvent;

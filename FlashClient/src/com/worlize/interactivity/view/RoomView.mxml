@@ -28,6 +28,7 @@
 	<fx:Script>
 		<![CDATA[
 			import com.flashandmath.dg.display.SnowDisplay;
+			import com.worlize.components.visualnotification.VisualNotification;
 			import com.worlize.event.NotificationCenter;
 			import com.worlize.interactivity.event.AvatarSelectEvent;
 			import com.worlize.interactivity.event.ChatEvent;
@@ -505,6 +506,13 @@
 				if (message.isWhisper) {
 					if (!ExternalInterface.call('checkIsFocused')) {
 						SoundPlayer.getInstance().playWhisperBell();
+						var notification:VisualNotification = new VisualNotification();
+						notification.onlyUseNative = true;
+						notification.onlyWhenInactive = true;
+						notification.titleFlashText = "Whisper from " + event.user.name;
+						notification.title = "Whisper from " + event.user.name;
+						notification.text = event.chatText;
+						notification.show();
 					}
 				}
 				

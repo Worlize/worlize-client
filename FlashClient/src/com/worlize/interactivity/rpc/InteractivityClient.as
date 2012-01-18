@@ -476,13 +476,16 @@ package com.worlize.interactivity.rpc
 			var gift:Gift = Gift.fromData(data.gift);
 			GiftsList.getInstance().addGift(gift);
 			var message:String;
+			var titleMessage:String;
 			if (gift.sender) {
 				message = "You've received a gift from " + gift.sender.username + "!  Click \"Gifts\" at the top of the screen to accept it!";
+				titleMessage = "New gift from " + gift.sender.username + "!";
 			}
 			else {
 				message = "You've received a gift!  Click \"Gifts\" at the top of the screen to accept it!";
+				titleMessage = "New gift received!";
 			}
-			var notification:VisualNotification = new VisualNotification(message, "Gift Received!");
+			var notification:VisualNotification = new VisualNotification(message, "Gift Received!", titleMessage);
 			notification.show();
 			SoundPlayer.getInstance().playRequestReceivedSound();
 		}
@@ -575,6 +578,15 @@ package com.worlize.interactivity.rpc
 				null,
 				Alert.YES
 			);
+			SoundPlayer.getInstance().playRequestReceivedSound();
+			
+			var notification:VisualNotification = new VisualNotification();
+			notification.onlyWhenInactive = true;
+			notification.title = "Invitation Received";
+			notification.text = data.user.username + " invited you to come to \"" + data.room_name + "\" at " + data.world_name + ". " +
+				                "Switch back to worlize to respond to their request.";
+			notification.titleFlashText = data.user.username + " invited you to join them.";
+			notification.show();
 		}
 		
 		private function handleRequestPermissionToJoin(data:Object):void {
@@ -596,6 +608,14 @@ package com.worlize.interactivity.rpc
 						null,
 						Alert.YES
 			);
+			SoundPlayer.getInstance().playRequestReceivedSound();
+			
+			var notification:VisualNotification = new VisualNotification();
+			notification.onlyWhenInactive = true;
+			notification.title = "Request to Visit";
+			notification.text = data.user.username + " wants to join you. Switch back to Worlize to respond to their request.";
+			notification.titleFlashText = data.user.username + " wants to join you.";
+			notification.show();
 		}
 		
 		private function handlePermissionToJoinGranted(data:Object):void {
@@ -642,12 +662,14 @@ package com.worlize.interactivity.rpc
 		}
 		
 		private function handleNewFriendRequest(data:Object):void {
-			var notification:VisualNotification = new VisualNotification(
+			var notification:VisualNotification = new VisualNotification();
+			notification.text =
 				"You have received a friend request from " + data.user.username +".  " +
-				"View your friends list to confirm your new friendship.",
-				"Friend Request"
-			);
-			VisualNotificationManager.getInstance().showNotification(notification);
+				"View your friends list to confirm your new friendship.";
+			notification.title = "Friend Request";
+			notification.titleFlashText = "New Friend Request from " + data.user.username + "!";
+			notification.show();
+			
 			var entry:PendingFriendsListEntry = PendingFriendsListEntry.fromData(data.user);
 			friendsList.friendsForFriendsList.addItem(entry);
 			friendsList.updateHeadingCounts();
@@ -1347,6 +1369,13 @@ package com.worlize.interactivity.rpc
 			
 			if (!receivingInitialRoomOccupants) {
 				SoundPlayer.getInstance().playUserEnterSound();
+				var notification:VisualNotification = new VisualNotification();
+				notification.onlyWhenInactive = true;
+				notification.onlyUseNative = true;
+				notification.title = user.name + " entered the room.";
+				notification.text = "";
+				notification.titleFlashText = user.name + " entered the room.";
+				notification.show();
 			}
 			
 			if (user.id == id) {

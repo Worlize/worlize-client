@@ -15,7 +15,6 @@
 	
 	<fx:Script>
 		<![CDATA[
-			import com.worlize.components.visualnotification.VisualNotification;
 			import com.worlize.control.BackgroundUploader;
 			import com.worlize.control.Uploader;
 			import com.worlize.event.AuthorModeNotification;

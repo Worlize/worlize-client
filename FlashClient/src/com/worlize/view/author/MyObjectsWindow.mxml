@@ -15,7 +15,6 @@
 	
 	<fx:Script>
 		<![CDATA[
-			import com.worlize.components.visualnotification.VisualNotification;
 			import com.worlize.control.InWorldObjectUploader;
 			import com.worlize.event.AuthorModeNotification;
 			import com.worlize.event.NotificationCenter;
