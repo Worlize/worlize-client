@@ -503,15 +503,25 @@
 					message.y = 10;
 				}
 				
-				if (message.isWhisper) {
-					if (!ExternalInterface.call('checkIsFocused')) {
+				var notification:VisualNotification;
+				if (!ExternalInterface.call('checkIsFocused')) {
+					if (message.isWhisper) {
 						SoundPlayer.getInstance().playWhisperBell();
-						var notification:VisualNotification = new VisualNotification();
+						notification = new VisualNotification();
 						notification.onlyUseNative = true;
 						notification.onlyWhenInactive = true;
 						notification.titleFlashText = "Whisper from " + event.user.name;
 						notification.title = "Whisper from " + event.user.name;
 						notification.text = event.chatText;
+						notification.show();
+					}
+					else {
+						var shortText:String = event.chatText.slice(0, Math.max(event.chatText.length, 25));
+						if (shortText.length < event.chatText.length) {
+							shortText += "...";
+						}
+						notification = new VisualNotification();
+						notification.titleFlashText = event.user.name + " says: " + shortText;
 						notification.show();
 					}
 				}
