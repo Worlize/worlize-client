@@ -194,10 +194,18 @@
 				if (urlLoader) {
 					urlLoader.removeEventListener(ProgressEvent.PROGRESS, handleLoaderProgress);
 					urlLoader.removeEventListener(Event.COMPLETE, handleAnimatedGifComplete);
+					urlLoader.removeEventListener(IOErrorEvent.IO_ERROR, handleAvatarIOError);
+					urlLoader.removeEventListener(SecurityErrorEvent.SECURITY_ERROR, handleAvatarSecurityError);
+					try {
+						urlLoader.close();
+					}
+					catch (e:Error) { /* do nothing */ }
 				}
 				if (loader) {
 					loader.contentLoaderInfo.removeEventListener(ProgressEvent.PROGRESS, handleLoaderProgress);
 					loader.contentLoaderInfo.removeEventListener(Event.COMPLETE, handleNormalImageComplete);
+					loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR, handleAvatarIOError);
+					loader.close()
 				}
 				
 				// Start loading avatar
@@ -207,6 +215,8 @@
 					urlLoader.dataFormat = URLLoaderDataFormat.BINARY;
 					urlLoader.addEventListener(ProgressEvent.PROGRESS, handleLoaderProgress);
 					urlLoader.addEventListener(Event.COMPLETE, handleAnimatedGifComplete);
+					urlLoader.addEventListener(IOErrorEvent.IO_ERROR, handleAvatarIOError);
+					urlLoader.addEventListener(SecurityErrorEvent.SECURITY_ERROR, handleAvatarSecurityError);
 					urlLoader.load(urlRequest);
 				}
 				else {
@@ -214,8 +224,19 @@
 					loader = new Loader();
 					loader.contentLoaderInfo.addEventListener(ProgressEvent.PROGRESS, handleLoaderProgress);
 					loader.contentLoaderInfo.addEventListener(Event.COMPLETE, handleNormalImageComplete);
+					loader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, handleAvatarIOError);
 					loader.load(urlRequest, context);
 				}
+			}
+			
+			private function handleAvatarIOError(event:IOErrorEvent):void {
+				logger.error("IO Error while loading avatar " + user.simpleAvatar.guid + ": " +
+							 "Error ID: " + event.errorID + " Text: " + event.text);
+			}
+			
+			private function handleAvatarSecurityError(event:SecurityErrorEvent):void {
+				logger.error("Security Error while loading avatar " + user.simpleAvatar.guid + ": " +
+							 "Error ID: " + event.errorID + " Text: " + event.text);
 			}
 			
 			private function handleLoaderProgress(event:ProgressEvent):void {
