@@ -184,6 +184,9 @@
 				var gifRegex:RegExp = /^.*\.gif$/i;
 				var urlRequest:URLRequest = new URLRequest(url);
 				
+				var context:LoaderContext = new LoaderContext(true);
+				context.allowCodeImport = false;
+				
 				// If changing avatars quickly, the loader might be changed out
 				// from underneath the app before the image finishes loading,
 				// and then the event handler would try to refer to a null
@@ -211,7 +214,7 @@
 					loader = new Loader();
 					loader.contentLoaderInfo.addEventListener(ProgressEvent.PROGRESS, handleLoaderProgress);
 					loader.contentLoaderInfo.addEventListener(Event.COMPLETE, handleNormalImageComplete);
-					loader.load(urlRequest);
+					loader.load(urlRequest, context);
 				}
 			}
 			
