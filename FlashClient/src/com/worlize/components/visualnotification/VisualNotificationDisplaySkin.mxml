@@ -112,6 +112,7 @@
 		
 		<s:Label id="textDisplay"
 				 text="{hostComponent.notification.text}"
+				 includeInLayout="{hostComponent.notification.text &amp;&amp; hostComponent.notification.text.length > 0}"
 				 color="#EEEEEE"
 				 maxWidth="300"
 				 textAlign="justify"
