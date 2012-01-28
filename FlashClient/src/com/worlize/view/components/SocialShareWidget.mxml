@@ -11,6 +11,7 @@
 		<![CDATA[
 			import com.worlize.components.visualnotification.VisualNotification;
 			import com.worlize.interactivity.model.CurrentRoom;
+			import com.worlize.interactivity.rpc.InteractivityClient;
 			import com.worlize.model.WorldDefinition;
 			import com.worlize.view.windows.EmbedCodeWindow;
 			
@@ -74,7 +75,7 @@
 				ExternalInterface.call('showFacebookDialog', {
 					method: 'feed',
 					link: link,
-					picture: facebookPicture,
+					picture: getFacebookPicture(),
 					name: facebookName,
 					caption: facebookCaption,
 					description: facebookDescription
@@ -93,6 +94,19 @@
 			
 			private function handleEmbedButtonClick(event:MouseEvent):void {
 				EmbedCodeWindow.open(systemManager.getSandboxRoot());
+			}
+			
+			private function getFacebookPicture():String {
+				if (facebookPicture) {
+					return facebookPicture;
+				}
+				var client:InteractivityClient = InteractivityClient.getInstance();
+				if (client.currentUser && client.currentUser.simpleAvatar) {
+					return client.currentUser.simpleAvatar.thumbnailURL;
+				}
+				else {
+					return "https://www.worlize.com/images/share-facebook-link-picture-2.png";
+				}
 			}
 		]]>
 	</fx:Script>

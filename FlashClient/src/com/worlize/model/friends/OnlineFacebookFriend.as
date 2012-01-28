@@ -1,8 +1,15 @@
 package com.worlize.model.friends
 {
+	import com.adobe.net.URI;
+	import com.worlize.interactivity.model.InteractivityUser;
+	import com.worlize.interactivity.rpc.InteractivityClient;
 	import com.worlize.model.CurrentUser;
+	import com.worlize.model.SimpleAvatar;
 	
 	import flash.external.ExternalInterface;
+	
+	import mx.core.Application;
+	import mx.core.FlexGlobals;
 
 	[Bindable]
 	public class OnlineFacebookFriend
@@ -31,18 +38,60 @@ package com.worlize.model.friends
 			this.onlinePresence = data.fb_online_presence;
 			this.facebookId = data.id;
 		}
-		
+				
 		public function invite():void {
+			var client:InteractivityClient = InteractivityClient.getInstance();
+			if (!client.currentUser) {
+				return;
+			}
+			
+			var picture:String;
+			var avatar:SimpleAvatar = client.currentUser.simpleAvatar;
+			if (avatar && avatar.thumbnailURL) {
+				picture = avatar.thumbnailURL;
+			}
+			else {
+				picture = "https://www.worlize.com/images/share-facebook-link-picture-2.png";
+			}
+			
+			var appURI:URI = new URI(FlexGlobals.topLevelApplication.url);
+			var base:String = appURI.scheme + "://" + appURI.authority;
+			var shareLink:String = base + "/users/" + encodeURIComponent(client.worlizeConfig.currentUser.username) + "/join";
+			
 			ExternalInterface.call('showFacebookDialog', {
-				method: 'apprequests',
-				message: "I'm online chatting right now in Worlize.  Come join me!  Hope to see you soon!",
+				method: 'feed',
+				link: shareLink,
+				picture: picture,
+				name: "I'm chatting Live in Worlize Right Now!  Come Join Me!",
+				caption: "In the world of Worlize I'm known as " + client.currentUser.name,
+				description: "Worlize is a place of collaborative imagination where you can be whomever you want and " +
+							 "your world can be anything you dream up!",
 				to: facebookId,
-				title: 'Invite ' + name + ' to Join You',
-				data: JSON.stringify({
-					action: 'join',
-					inviter_guid: CurrentUser.getInstance().guid
-				})
+				actions: JSON.stringify([
+					{
+						name: "Chat Now",
+						link: shareLink
+					}
+				])
 			});
+			
+			// Send direct message
+//			ExternalInterface.call('showFacebookDialog', {
+//				method: 'send',
+//				link: shareLink,
+//				to: facebookId,
+//				picture: picture,
+//				name: "I'm chatting Live in Worlize Right Now!  Come Join Me!",
+//				description: "In the world of Worlize I'm known as " + client.currentUser.name + ". " + 
+//				             "Worlize is a place of collaborative imagination where you can be whomever you want and " +
+//				             "your world can be anything you dream up!"
+//			});
+			
+			// For app requests dialog:
+			//				data: JSON.stringify({
+			//					action: 'join',
+			//					inviter_guid: CurrentUser.getInstance().guid
+			//				})
 		}
 	}
 }
