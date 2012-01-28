@@ -504,7 +504,7 @@
 				}
 				
 				var notification:VisualNotification;
-				if (!ExternalInterface.call('checkIsFocused')) {
+				if (!ExternalInterface.call('checkIsFocused') && message.user.id !== room.selfUserId) {
 					if (message.isWhisper) {
 						SoundPlayer.getInstance().playWhisperBell();
 						notification = new VisualNotification();
