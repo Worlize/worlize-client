@@ -196,16 +196,13 @@
 					urlLoader.removeEventListener(Event.COMPLETE, handleAnimatedGifComplete);
 					urlLoader.removeEventListener(IOErrorEvent.IO_ERROR, handleAvatarIOError);
 					urlLoader.removeEventListener(SecurityErrorEvent.SECURITY_ERROR, handleAvatarSecurityError);
-					try {
-						urlLoader.close();
-					}
-					catch (e:Error) { /* do nothing */ }
+					try { urlLoader.close(); } catch (e:Error) { /* do nothing */ }
 				}
 				if (loader) {
 					loader.contentLoaderInfo.removeEventListener(ProgressEvent.PROGRESS, handleLoaderProgress);
 					loader.contentLoaderInfo.removeEventListener(Event.COMPLETE, handleNormalImageComplete);
 					loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR, handleAvatarIOError);
-					loader.close()
+					try { loader.close(); } catch(e:Error) { /* do nothing */ }
 				}
 				
 				// Start loading avatar
