@@ -3,19 +3,21 @@ package com.worlize.model.friends
 	import com.worlize.components.visualnotification.VisualNotification;
 	import com.worlize.components.visualnotification.VisualNotificationManager;
 	import com.worlize.interactivity.rpc.InteractivityClient;
+	import com.worlize.model.UserPresenceStatus;
 	import com.worlize.rpc.HTTPMethod;
 	import com.worlize.rpc.WorlizeResultEvent;
 	import com.worlize.rpc.WorlizeServiceClient;
+	
+	import flash.events.EventDispatcher;
 	
 	import mx.controls.Alert;
 	import mx.events.FlexEvent;
 	import mx.rpc.Fault;
 	import mx.rpc.events.FaultEvent;
 	import mx.utils.UIDUtil;
-	import com.worlize.model.UserPresenceStatus;
 
 	[Bindable]
-	public class FriendsListEntry
+	public class FriendsListEntry extends EventDispatcher
 	{
 		public static const TYPE_FACEBOOK:String = "facebook";
 		public static const TYPE_WORLIZE:String = "worlize";
@@ -47,13 +49,19 @@ package com.worlize.model.friends
 		[Bindable(event="presenceStatusChanged")]
 		public function set presenceStatus(newValue:String):void {
 			var changed:Boolean = false;
+			var notifyFriendIsOnline:Boolean = false;
 			if (_presenceStatus !== newValue) {
+				var oldValue:String = _presenceStatus;
 				_presenceStatus = newValue;
 				switch(newValue) {
 					case UserPresenceStatus.ONLINE:
 					case UserPresenceStatus.AWAY:
 					case UserPresenceStatus.IDLE:
 						listPriority = FriendsList.LIST_PRIORITY_ONLINE_FRIEND;
+						if (oldValue === UserPresenceStatus.OFFLINE ||
+							oldValue === UserPresenceStatus.INVISIBLE) {
+							notifyFriendIsOnline = true;
+						}
 						break;
 					case UserPresenceStatus.OFFLINE:
 					case UserPresenceStatus.INVISIBLE:
@@ -64,6 +72,12 @@ package com.worlize.model.friends
 						break;
 				}
 				dispatchEvent(new FlexEvent('presenceStatusChanged'));
+				if (notifyFriendIsOnline) {
+					var notification:VisualNotification = new VisualNotification();
+					notification.title = this.username + " logged on";
+					notification.titleFlashText = this.username + " logged on";
+					notification.show();
+				}
 			}
 		}
 		public function get presenceStatus():String {
@@ -105,7 +119,7 @@ package com.worlize.model.friends
 			}
 		}
 		
-		public function toString():String {
+		override public function toString():String {
 			return username;
 		}
 		
