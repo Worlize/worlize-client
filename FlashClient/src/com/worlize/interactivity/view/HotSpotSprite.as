@@ -11,6 +11,7 @@ package com.worlize.interactivity.view
 	import flash.events.ContextMenuEvent;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
+	import flash.filters.GlowFilter;
 	import flash.geom.Point;
 	import flash.ui.ContextMenu;
 	import flash.ui.ContextMenuItem;
@@ -284,10 +285,10 @@ package com.worlize.interactivity.view
 				graphics.lineStyle(1, 0xFFFFFF, 0.7);
 			}
 			else if (authorMode) {
-				graphics.lineStyle(1, 0x000000, 0.7);
+				graphics.lineStyle(1, 0x000000, 1.0);
 			}
 			else if (mouseOver) {
-				graphics.lineStyle(1, 0x000000);
+				graphics.lineStyle(1, 0x000000, 0.0);
 			}
 			else {
 				graphics.lineStyle(1, 0x000000, 0);
@@ -301,7 +302,7 @@ package com.worlize.interactivity.view
 				graphics.beginFill(0x444444, 0.25);
 			}
 			else if (mouseOver) {
-				graphics.beginFill(0x444444, 0.4);
+				graphics.beginFill(0xFFFFFF, 0.2);
 			}
 			else {
 				graphics.beginFill(0x000000, 0.0);
@@ -315,6 +316,14 @@ package com.worlize.interactivity.view
 			graphics.lineTo(firstPoint.x, firstPoint.y);
 			graphics.endFill();
 			
+			if (mouseOver && !authorMode) {
+				filters = [
+					new GlowFilter(0xf2f200, 1, 20, 20, 2, 3, false, true)
+				];
+			}
+			else {
+				filters = [];
+			}
 		}
 
 		private function handleHotSpotMouseDown(event:MouseEvent):void {

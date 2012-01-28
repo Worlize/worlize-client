@@ -8,6 +8,6 @@ package com.worlize.interactivity.model
 		}
 
 		public static var fadeBackgroundImages:Boolean = true;
-		public static var highlightHotspotsOnMouseover:Boolean = false;
+		public static var highlightHotspotsOnMouseover:Boolean = true;
 	}
 }
