@@ -288,7 +288,7 @@ package com.worlize.interactivity.view
 				graphics.lineStyle(1, 0x000000, 1.0);
 			}
 			else if (mouseOver) {
-				graphics.lineStyle(1, 0x000000, 0.0);
+				graphics.lineStyle(1, 0xFFFFFF, 0.0);
 			}
 			else {
 				graphics.lineStyle(1, 0x000000, 0);
@@ -302,7 +302,7 @@ package com.worlize.interactivity.view
 				graphics.beginFill(0x444444, 0.25);
 			}
 			else if (mouseOver) {
-				graphics.beginFill(0xFFFFFF, 0.2);
+				graphics.beginFill(0xf2f200, 0.2);
 			}
 			else {
 				graphics.beginFill(0x000000, 0.0);
