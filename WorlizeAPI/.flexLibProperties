@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<flexLibProperties includeAllClasses="true" useMultiPlatformConfig="false" version="3">
+  <includeClasses>
+    <classEntry path="com.worlize.EmbeddedAPI"/>
+    <classEntry path="com.worlize.model.Room"/>
+    <classEntry path="com.worlize.model.User"/>
+    <classEntry path="com.worlize.event.RoomEvent"/>
+    <classEntry path="com.worlize.event.ChatEvent"/>
+    <classEntry path="com.worlize.event.APIEvent"/>
+  </includeClasses>
+  <includeResources/>
+  <namespaceManifests/>
+</flexLibProperties>
