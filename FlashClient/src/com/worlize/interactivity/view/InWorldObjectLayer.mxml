@@ -13,6 +13,7 @@
 			import com.worlize.event.AuthorModeNotification;
 			import com.worlize.event.NotificationCenter;
 			import com.worlize.model.InWorldObjectInstance;
+			import com.worlize.state.AuthorModeState;
 			
 			import mx.collections.ArrayCollection;
 			import mx.events.CollectionEvent;
@@ -45,6 +46,7 @@
 						view = new InWorldObjectView();
 						view.inWorldObjectInstance = inWorldObjectInstance;
 						viewsByInWorldObjectInstance[inWorldObjectInstance] = view;
+						view.selected = (AuthorModeState.getInstance().selectedItem === inWorldObjectInstance);
 						addElement(view);
 					}
 				}
@@ -64,32 +66,8 @@
 			}
 			
 			private function handleCreationComplete():void {
-				NotificationCenter.addListener(AuthorModeNotification.AUTHOR_ENABLED, handleAuthorEnabled);
-				NotificationCenter.addListener(AuthorModeNotification.AUTHOR_DISABLED, handleAuthorDisabled);
-				NotificationCenter.addListener(AuthorModeNotification.SELECTED_ITEM_CHANGED, handleSelectedItemChanged);
 			}
 			
-			private function handleAuthorEnabled(notification:AuthorModeNotification):void {
-				
-			}
-			private function handleAuthorDisabled(notification:AuthorModeNotification):void {
-				for (var i:int = 0; i < numElements; i++) {
-					var view:InWorldObjectView = InWorldObjectView(getElementAt(i));
-					view.alpha = 1.0;
-				}
-			}
-			private function handleSelectedItemChanged(notification:AuthorModeNotification):void {
-				for (var i:int = 0; i < numElements; i++) {
-					var view:InWorldObjectView =
-						InWorldObjectView(getElementAt(i));
-					if (view.inWorldObjectInstance === notification.newValue) {
-						view.alpha = 0.5;
-					}
-					else {
-						view.alpha = 1.0;
-					}
-				}
-			}
 		]]>
 	</fx:Script>
 </s:Group>

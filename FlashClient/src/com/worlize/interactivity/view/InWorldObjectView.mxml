@@ -1,22 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:Image xmlns:fx="http://ns.adobe.com/mxml/2009" 
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
 		  xmlns:s="library://ns.adobe.com/flex/spark" 
 		  xmlns:mx="library://ns.adobe.com/flex/mx"
 		  xmlns:view="com.worlize.interactivity.view.*"
-		  source="{inWorldObjectInstance.inWorldObject.fullsizeURL}"
 		  creationComplete="handleCreationComplete()"
 		  addedToStage="handleAddedToStage()"
 		  removedFromStage="handleRemovedFromStage()"
 		  mouseDown="handleMouseDown(event)"
 		  mouseOver="handleMouseOver(event)"
 		  mouseOut="handleMouseOut(event)"
-		  loaderContext="{InteractivityClient.loaderContext}"
-		  smoothBitmapContent="true"
+		  currentState="normal"
 		  x="{inWorldObjectInstance.x - (width/2)}"
 		  y="{inWorldObjectInstance.y - (height/2)}">
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
+	
+	<s:states>
+		<s:State name="normal" stateGroups="selected" />
+		<s:State name="normalSelected" />
+		<s:State name="author" stateGroups="authorMode" />
+		<s:State name="authorSelected" stateGroups="authorMode,selected" />
+	</s:states>
 	
 	<fx:Script>
 		<![CDATA[
@@ -34,6 +39,9 @@
 			[Bindable]
 			private var _authorMode:Boolean = false;
 			
+			[Bindable]
+			private var _selected:Boolean = false;
+			
 			private var dragging:Boolean = false;
 			
 			private var startPoint:Point;
@@ -44,6 +52,7 @@
 			public function set authorMode(newValue:Boolean):void {
 				if (_authorMode != newValue) {
 					_authorMode = newValue;
+					updateState();
 					dispatchEvent(new FlexEvent('authorModeChanged'));
 				}
 			}
@@ -51,17 +60,45 @@
 				return _authorMode;
 			}
 			
+			[Bindable(event="selectedChanged")]
+			public function set selected(newValue:Boolean):void {
+				if (_selected !== newValue) {
+					_selected = newValue;
+					updateState();
+					dispatchEvent(new FlexEvent('selectedChanged'));
+				}
+			}
+			public function get selected():Boolean {
+				return _selected;
+			}
+			
+			private function updateState():void {
+				var parts:Array = [];
+				if (_authorMode) {
+					parts.push("author");
+				}
+				else {
+					parts.push("normal");
+				}
+				if (_selected) {
+					parts.push("Selected");
+				}
+				currentState = parts.join('');
+			}
+			
 			private function handleCreationComplete():void {
-				
+				updateState();
 			}
 			
 			private function handleAddedToStage():void {
 				NotificationCenter.addListener(AuthorModeNotification.AUTHOR_ENABLED, handleAuthorModeEnabled);
 				NotificationCenter.addListener(AuthorModeNotification.AUTHOR_DISABLED, handleAuthorModeDisabled);
+				NotificationCenter.addListener(AuthorModeNotification.SELECTED_ITEM_CHANGED, handleSelectedItemChanged);
 				authorMode = AuthorModeState.getInstance().enabled;
 			}
 			
 			private function handleRemovedFromStage():void {
+				NotificationCenter.removeListener(AuthorModeNotification.SELECTED_ITEM_CHANGED, handleSelectedItemChanged);
 				NotificationCenter.removeListener(AuthorModeNotification.AUTHOR_ENABLED, handleAuthorModeEnabled);
 				NotificationCenter.removeListener(AuthorModeNotification.AUTHOR_DISABLED, handleAuthorModeDisabled);
 			}
@@ -72,6 +109,10 @@
 			
 			private function handleAuthorModeDisabled(notification:AuthorModeNotification):void {
 				authorMode = false;
+			}
+			
+			private function handleSelectedItemChanged(notification:AuthorModeNotification):void {
+				selected = (notification.newValue === inWorldObjectInstance);
 			}
 			
 			private function handleMouseOver(event:MouseEvent):void {
@@ -146,4 +187,30 @@
 			}
 		]]>
 	</fx:Script>
-</mx:Image>
+	
+	<mx:Image source="{inWorldObjectInstance.inWorldObject.fullsizeURL}"
+			  loaderContext="{InteractivityClient.loaderContext}"
+			  smoothBitmapContent="true" />
+
+	<s:Group top="0" left="0" right="0" bottom="0" includeIn="authorMode">
+		<s:Rect top="-1" left="-1" right="-1" bottom="-1">
+			<s:stroke>
+				<s:SolidColorStroke weight="3"
+									color.author="#FFFFFF" alpha.author="0.5"
+									color.authorSelected="#000000" alpha.authorSelected="1" />
+			</s:stroke>
+			<s:fill>
+				<s:SolidColor color.author="#444444" alpha.author="0.25"
+							  color.authorSelected="#EEEEEE" alpha.authorSelected="0.25" />
+			</s:fill>
+		</s:Rect>
+		<s:Rect top="0" left="0" right="0" bottom="0">
+			<s:stroke>
+				<s:SolidColorStroke weight="1"
+									color.author="#000000"
+									color.authorSelected="#DDDDDD" />
+			</s:stroke>
+		</s:Rect>
+	</s:Group>
+	
+</s:Group>

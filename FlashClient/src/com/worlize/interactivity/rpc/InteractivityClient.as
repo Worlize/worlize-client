@@ -678,7 +678,7 @@ package com.worlize.interactivity.rpc
 		
 		private function handleNewObject(data:Object):void {
 			if (data.room == currentRoom.id && data.object) {
-				currentRoom.addObject(data.object.guid, data.object.x, data.object.y, data.object.fullsize_url);
+				currentRoom.addObject(data.object);
 			}
 		}
 		
@@ -820,7 +820,8 @@ package com.worlize.interactivity.rpc
 			// In-World Objects
 			currentRoom.resetInWorldObjects();
 			for each (var objectData:Object in room.objects) {
-				currentRoom.addObject(objectData.guid, objectData.x, objectData.y, objectData.fullsize_url, objectData.dest);
+				
+				currentRoom.addObject(objectData);
 			}
 			
 			// YouTube Players

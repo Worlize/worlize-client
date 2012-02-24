@@ -159,14 +159,27 @@ package com.worlize.interactivity.model
 			inWorldObjectsByGuid = {};
 		}
 		
-		public function addObject(guid:String, x:int, y:int, fullsizeURL:String, dest:String = null):void {
+		public function addObject(objectData:Object):void {
+			//objectData.guid, objectData.x, objectData.y, objectData.fullsize_url, objectData.dest
 			var inWorldObjectInstance:InWorldObjectInstance = new InWorldObjectInstance();
-			inWorldObjectInstance.guid = guid;
-			inWorldObjectInstance.x = x;
-			inWorldObjectInstance.y = y;
-			inWorldObjectInstance.dest = dest;
+			inWorldObjectInstance.guid = objectData.guid;
+			inWorldObjectInstance.x = objectData.x;
+			inWorldObjectInstance.y = objectData.y;
+			
 			inWorldObjectInstance.inWorldObject = new InWorldObject();
-			inWorldObjectInstance.inWorldObject.fullsizeURL = fullsizeURL;
+			inWorldObjectInstance.inWorldObject.kind = objectData.kind;
+			
+			if (objectData.kind === 'app') {
+				inWorldObjectInstance.inWorldObject.appURL = objectData.app_url;
+				inWorldObjectInstance.inWorldObject.fullsizeURL = objectData.app_url;
+				inWorldObjectInstance.inWorldObject.smallIconURL = objectData.small_icon;
+				inWorldObjectInstance.inWorldObject.width = objectData.width;
+				inWorldObjectInstance.inWorldObject.height = objectData.height;
+			}
+			else {
+				inWorldObjectInstance.dest = objectData.dest;
+				inWorldObjectInstance.inWorldObject.fullsizeURL = objectData.fullsize_url;
+			}
 			var roomListEntry:RoomListEntry = new RoomListEntry();
 			roomListEntry.guid = id;
 			roomListEntry.name = name;
@@ -177,7 +190,7 @@ package com.worlize.interactivity.model
 			
 			var notification:InWorldObjectNotification =
 				new InWorldObjectNotification(InWorldObjectNotification.IN_WORLD_OBJECT_ADDED_TO_ROOM);
-			notification.instanceGuid = guid;
+			notification.instanceGuid = objectData.guid;
 			notification.room = roomListEntry;
 			NotificationCenter.postNotification(notification);
 		}
