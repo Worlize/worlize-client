@@ -8,6 +8,8 @@ package com.worlize.control
 	import flash.events.IEventDispatcher;
 	import flash.net.FileFilter;
 	
+	import mx.controls.Alert;
+	
 	public class InWorldObjectUploader extends Uploader
 	{
 		public function InWorldObjectUploader(target:IEventDispatcher=null)
@@ -28,6 +30,9 @@ package com.worlize.control
 					
 					// The server now notifies us of any object instances added
 					// to the locker via the interactivity server.
+				}
+				else {
+					Alert.show(response.description, "Unable to upload object");
 				}
 			}
 			catch(e:Error) {
