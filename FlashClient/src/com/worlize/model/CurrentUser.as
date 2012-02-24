@@ -26,6 +26,7 @@ package com.worlize.model
 		
 		public var guid:String;
 		public var admin:Boolean;
+		public var developer:Boolean;
 		public var createdAt:Date;
 		public var username:String;
 		public var name:String;
@@ -57,32 +58,36 @@ package com.worlize.model
 			client.send('/users/' + guid + ".json", HTTPMethod.GET);
 		}
 		
+		public function updateFromData(data:Object):void {
+			admin = data.admin;
+			developer = data.developer;
+			slots.avatarSlots = data.avatar_slots;
+			slots.backgroundSlots = data.background_slots;
+			slots.inWorldObjectSlots = data.in_world_object_slots;
+			slots.propSlots = data.prop_lots;
+			if (data.birthday) {
+				birthday = new Date(Date.parse(data.birthday.replace(/-/g, '/')));					
+			}
+			bucks = data.bucks;
+			coins = data.coins;
+			createdAt = DateUtil.parseW3CDTF(data.created_at);
+			email = data.email;
+			guid = data.guid;
+			state = data.state;
+			twitter = data.twitter;
+			facebookProfile = data.facebook_profile;
+			twitterProfile = data.twitter_profile;
+			facebookId = data.facebook_id;
+			username = data.username;
+			name = data.name;
+			worldEntrance = data.world_entrance;
+			worldName = data.world_name;
+			worldGuid = data.world_guid;
+		}
+		
 		private function handleResult(event:WorlizeResultEvent):void {
 			if (event.resultJSON.success) {
-				var data:Object = event.resultJSON.data;
-				admin = data.admin;
-				slots.avatarSlots = data.avatar_slots;
-				slots.backgroundSlots = data.background_slots;
-				slots.inWorldObjectSlots = data.in_world_object_slots;
-				slots.propSlots = data.prop_lots;
-				if (data.birthday) {
-					birthday = new Date(Date.parse(data.birthday.replace(/-/g, '/')));					
-				}
-				bucks = data.bucks;
-				coins = data.coins;
-				createdAt = DateUtil.parseW3CDTF(data.created_at);
-				email = data.email;
-				guid = data.guid;
-				state = data.state;
-				twitter = data.twitter;
-				facebookProfile = data.facebook_profile;
-				twitterProfile = data.twitter_profile;
-				facebookId = data.facebook_id;
-				username = data.username;
-				name = data.name;
-				worldEntrance = data.world_entrance;
-				worldName = data.world_name;
-				worldGuid = data.world_guid;
+				updateFromData(event.resultJSON.data);
 			}
 		}
 		

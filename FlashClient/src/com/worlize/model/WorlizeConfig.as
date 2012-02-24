@@ -51,7 +51,7 @@ package com.worlize.model
 				interactivitySession = InteractivitySession.fromData(config.interactivity_session);
 				WorlizeServiceClient.authenticityToken = config.authenticity_token;
 				WorlizeServiceClient.cookies = config.cookies;
-				currentUser.load(config.user_guid);
+				currentUser.updateFromData(config.current_user);
 				Marketplace.marketplaceEnabled = config.marketplace_enabled;
 			}
 			logger.info("User Guid: " + interactivitySession.userGuid);

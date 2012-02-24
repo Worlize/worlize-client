@@ -1,6 +1,7 @@
 package com.worlize.control
 {
 	import com.worlize.event.NotificationCenter;
+	import com.worlize.model.CurrentUser;
 	import com.worlize.model.InWorldObjectInstance;
 	import com.worlize.notification.InWorldObjectNotification;
 	
@@ -16,9 +17,12 @@ package com.worlize.control
 		{
 			super(target);
 			url = "/locker/in_world_objects";
-			var imageFilter:FileFilter = new FileFilter("Image Files (*.jpg, *.jpeg, *.png, *.gif)", "*.jpg;*.jpeg;*.png;*.gif");
-			var flashFilter:FileFilter = new FileFilter("Flash Movie (*.swf)", "*.swf");
-			fileTypeFilters = [imageFilter,flashFilter];
+			var filters:Array = [];
+			filters.push(new FileFilter("Image Files (*.jpg, *.jpeg, *.png, *.gif)", "*.jpg;*.jpeg;*.png;*.gif"));
+			if (CurrentUser.getInstance().developer) {
+				filters.push(new FileFilter("Flash Movie (*.swf)", "*.swf"));
+			}
+			fileTypeFilters = filters;
 		}
 		
 		override protected function handleFileUploadComplete(event:DataEvent):void {
