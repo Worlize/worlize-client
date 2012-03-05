@@ -8,6 +8,7 @@ package com.worlize.interactivity.rpc
 	import com.worlize.event.AuthorModeNotification;
 	import com.worlize.event.GotoRoomResultEvent;
 	import com.worlize.event.NotificationCenter;
+	import com.worlize.interactivity.api.APIController;
 	import com.worlize.interactivity.event.InteractivityEvent;
 	import com.worlize.interactivity.event.InteractivitySecurityErrorEvent;
 	import com.worlize.interactivity.event.WebcamBroadcastEvent;
@@ -170,6 +171,8 @@ package com.worlize.interactivity.rpc
 		[Bindable]
 		public var connection:ConnectionManager;
 		
+		public var apiController:APIController;
+		
 		private var receivingInitialRoomOccupants:Boolean = false;
 		
 		public var expectingDisconnect:Boolean = false;
@@ -257,6 +260,8 @@ package com.worlize.interactivity.rpc
 			webcamBroadcastManager.addEventListener(WebcamBroadcastEvent.CAMERA_PERMISSION_REVOKED, handleCameraPermissionRevoked);
 			
 			currentWorld.load(worlizeConfig.interactivitySession.worldGuid);
+			
+			apiController = new APIController(this);
 			
 			connection = new ConnectionManager();
 			connection.addEventListener(WorlizeCommEvent.CONNECTED, handleConnected);
@@ -716,6 +721,7 @@ package com.worlize.interactivity.rpc
 			if (user) {
 				user.simpleAvatar = null;
 				user.videoAvatarStreamName = null;
+				apiController.userAvatarChanged(user);
 			}
 		}
 		
@@ -724,6 +730,7 @@ package com.worlize.interactivity.rpc
 			if (user) {
 				user.videoAvatarStreamName = null;
 				user.simpleAvatar = SimpleAvatarStore.getInstance().getAvatar(data.avatar.guid);
+				apiController.userAvatarChanged(user);
 			}
 		}
 		
@@ -737,6 +744,7 @@ package com.worlize.interactivity.rpc
 				else {
 					user.videoAvatarStreamName = data.user;					
 				}
+				apiController.userAvatarChanged(user);
 			}
 		}
 		
@@ -1156,6 +1164,7 @@ package com.worlize.interactivity.rpc
 				connection.send({
 					msg: "naked"
 				});
+				apiController.userAvatarChanged(currentUser);
 			}
 		}
 		
@@ -1167,6 +1176,7 @@ package com.worlize.interactivity.rpc
 				msg: "set_simple_avatar",
 				data: guid
 			});
+			apiController.userAvatarChanged(currentUser);
 		}
 		
 		public function setVideoAvatar():void {
@@ -1178,6 +1188,7 @@ package com.worlize.interactivity.rpc
 			connection.send({
 				msg: 'set_video_avatar'
 			});
+			apiController.userAvatarChanged(currentUser);
 		}
 		
 		private function handleCameraPermissionRevoked(event:WebcamBroadcastEvent):void {
@@ -1202,8 +1213,7 @@ package com.worlize.interactivity.rpc
 				data: [x,y]
 			});
 			
-			currentUser.x = x;
-			currentUser.y = y;
+			currentRoom.moveUser(currentUser.id, x, y);
 		}
 		
 		public function setFace(face:int):void {
@@ -1220,6 +1230,8 @@ package com.worlize.interactivity.rpc
 				msg: "set_face",
 				data: face
 			});
+			
+			apiController.userFaceChanged(currentUser);
 		}
 		
 		public function setColor(color:int):void {
@@ -1237,7 +1249,7 @@ package com.worlize.interactivity.rpc
 				data: color
 			});
 			
-			return;
+			apiController.userColorChanged(currentUser);
 		}
 		
 		public function createNewRoom(roomName:String = null):void {
@@ -1475,6 +1487,9 @@ package com.worlize.interactivity.rpc
 				}
 				
 				currentChatItem.chatstr = chatstr;
+				
+				apiController.processChat(currentChatItem);
+				
 				
 				if (currentChatItem.direction == ChatRecord.INCHAT) {
 

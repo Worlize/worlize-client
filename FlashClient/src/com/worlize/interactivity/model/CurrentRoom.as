@@ -170,6 +170,8 @@ package com.worlize.interactivity.model
 			inWorldObjectInstance.inWorldObject.kind = objectData.kind;
 			
 			if (objectData.kind === 'app') {
+				inWorldObjectInstance.inWorldObject.guid = objectData.object_guid;
+				inWorldObjectInstance.inWorldObject.name = objectData.name;
 				inWorldObjectInstance.inWorldObject.appURL = objectData.app_url;
 				inWorldObjectInstance.inWorldObject.fullsizeURL = objectData.app_url;
 				inWorldObjectInstance.inWorldObject.smallIconURL = objectData.small_icon;
@@ -311,6 +313,10 @@ package com.worlize.interactivity.model
 			return null;
 		}
 		
+		public function getInWorldObjectInstanceById(id:String):InWorldObjectInstance {
+			return inWorldObjectsByGuid[id];
+		}
+		
 		public function getUserByIndex(userIndex:int):InteractivityUser {
 			return InteractivityUser(users.getItemAt(userIndex));
 		}
@@ -432,11 +438,13 @@ package com.worlize.interactivity.model
 		
 		public function moveUser(userId:String, x:int, y:int):void {
 			var user:InteractivityUser = getUserById(userId);
-			user.x = x;
-			user.y = y;
-			var event:RoomEvent = new RoomEvent(RoomEvent.USER_MOVED, user);
-			dispatchEvent(event);
-//			trace("User " + userId + " moved to " + x + "," + y);
+			if (user) {
+				user.x = x;
+				user.y = y;
+				var event:RoomEvent = new RoomEvent(RoomEvent.USER_MOVED, user);
+				dispatchEvent(event);
+				//			trace("User " + userId + " moved to " + x + "," + y);
+			}
 		}
 	}
 }

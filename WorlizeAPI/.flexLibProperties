@@ -1,12 +1,24 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <flexLibProperties includeAllClasses="true" useMultiPlatformConfig="false" version="3">
   <includeClasses>
-    <classEntry path="com.worlize.EmbeddedAPI"/>
-    <classEntry path="com.worlize.model.Room"/>
-    <classEntry path="com.worlize.model.User"/>
-    <classEntry path="com.worlize.event.RoomEvent"/>
-    <classEntry path="com.worlize.event.ChatEvent"/>
-    <classEntry path="com.worlize.event.APIEvent"/>
+    <classEntry path="com.worlize.api.WorlizeAPI"/>
+    <classEntry path="com.worlize.api.model.Room"/>
+    <classEntry path="com.worlize.api.model.User"/>
+    <classEntry path="com.worlize.api.event.RoomEvent"/>
+    <classEntry path="com.worlize.api.event.ChatEvent"/>
+    <classEntry path="com.worlize.api.event.APIEvent"/>
+    <classEntry path="com.worlize.api.rpc.SharedEventsRPCRequest"/>
+    <classEntry path="com.worlize.api.model.RoomObject"/>
+    <classEntry path="com.worlize.api.model.World"/>
+    <classEntry path="com.worlize.api.data.SharedArray"/>
+    <classEntry path="com.worlize.api.model.ThisRoom"/>
+    <classEntry path="com.worlize.api.model.ThisUser"/>
+    <classEntry path="com.worlize.api.model.ThisRoomObject"/>
+    <classEntry path="com.worlize.api.event.DataEvent"/>
+    <classEntry path="com.worlize.api.event.ChangeEvent"/>
+    <classEntry path="com.worlize.api.model.Hotspot"/>
+    <classEntry path="com.worlize.api.event.UserEvent"/>
+    <classEntry path="com.worlize.api.model.Avatar"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

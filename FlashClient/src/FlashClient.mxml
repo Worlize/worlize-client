@@ -10,9 +10,9 @@
 	xmlns:visualnotification="com.worlize.components.visualnotification.*"
 	minWidth="970" minHeight="522"
 	skinClass="FlashClientApplicationSkin"
+	initialize="handleInitialize(event)"
 	applicationComplete="handleApplicationComplete()"
-	creationComplete="handleCreationComplete()"
-	uncaughtError="handleUncaughtError(event)">
+	creationComplete="handleCreationComplete()">
 	<s:layout>
 		<s:BasicLayout/>
 	</s:layout>
@@ -61,6 +61,7 @@
 			import mx.controls.Alert;
 			import mx.core.mx_internal;
 			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
 			import mx.events.PropertyChangeEvent;
 			import mx.logging.ILogger;
 			import mx.logging.Log;
@@ -112,8 +113,12 @@
 			
 			protected function handleUncaughtError(event:UncaughtErrorEvent):void
 			{
-				// Prevent the default error dialog in the debug player
-				event.preventDefault();
+				removeEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, handleUncaughtError);
+				
+				if (Capabilities.isDebugger) {
+					// Prevent the default error dialog in the debug player
+					event.preventDefault();
+				}
 				
 				var logText:String = arrayTarget.getLogText();
 				var truncatedLogText:String = "";
@@ -456,6 +461,10 @@
 			private function focusChatBox():void {
 				var notification:WorlizeNotification = new WorlizeNotification(WorlizeNotification.FOCUS_CHAT_BOX_NOTIFICATION);
 				NotificationCenter.postNotification(notification);
+			}
+			
+			protected function handleInitialize(event:FlexEvent):void {
+				addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, handleUncaughtError);
 			}
 			
 		]]>

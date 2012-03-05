@@ -12,6 +12,7 @@ package com.worlize.interactivity.record
 		public var whotarget:String;
 		public var chatstr:String;
 		public var whisper:Boolean;
+		public var canceled:Boolean;
 		public var eventHandlers:Vector.<IptTokenList>;
 		private var _originalChatstr:String;
 		
@@ -22,6 +23,7 @@ package com.worlize.interactivity.record
 			this.whotarget = whotarget;
 			this.chatstr = chatstr;
 			this.whisper = isWhisper;
+			this.canceled = false;
 			this._originalChatstr = chatstr;
 		}
 		

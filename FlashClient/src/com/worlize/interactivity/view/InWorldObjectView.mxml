@@ -10,31 +10,51 @@
 		  mouseOver="handleMouseOver(event)"
 		  mouseOut="handleMouseOut(event)"
 		  currentState="normal"
-		  x="{inWorldObjectInstance.x - (width/2)}"
-		  y="{inWorldObjectInstance.y - (height/2)}">
+		  x="{inWorldObjectInstance.x}"
+		  y="{inWorldObjectInstance.y}" xmlns:api="com.worlize.interactivity.api.*">
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
 	
 	<s:states>
 		<s:State name="normal" stateGroups="selected" />
+		<s:State name="normalError" stateGroups="error" />
 		<s:State name="normalSelected" />
+		<s:State name="normalSelectedError" stateGroups="error" />
 		<s:State name="author" stateGroups="authorMode" />
-		<s:State name="authorSelected" stateGroups="authorMode,selected" />
+		<s:State name="authorError" stateGroups="authorMode,error" />
+		<s:State name="authorSelected" stateGroups="authorModeAndSelected" />
+		<s:State name="authorSelectedError" stateGroups="authorModeAndSelected,error" />
 	</s:states>
 	
 	<fx:Script>
 		<![CDATA[
 			import com.worlize.event.AuthorModeNotification;
 			import com.worlize.event.NotificationCenter;
+			import com.worlize.interactivity.api.AppLoader;
+			import com.worlize.interactivity.api.event.AppLoaderEvent;
 			import com.worlize.interactivity.rpc.InteractivityClient;
+			import com.worlize.model.InWorldObject;
 			import com.worlize.model.InWorldObjectInstance;
 			import com.worlize.model.RoomDefinition;
 			import com.worlize.state.AuthorModeState;
 			
+			import mx.controls.Image;
 			import mx.events.FlexEvent;
-			[Bindable]
-			public var inWorldObjectInstance:InWorldObjectInstance;
+	
+			private var _objInst:InWorldObjectInstance;
+			
+			[Bindable(event="inWorldObjectInstanceChange")]
+			public function set inWorldObjectInstance(newValue:InWorldObjectInstance):void {
+				if (_objInst !== newValue) {
+					_objInst = newValue;
+					loadObject();
+					dispatchEvent(new FlexEvent("inWorldObjectInstanceChange"));
+				}
+			}
+			public function get inWorldObjectInstance():InWorldObjectInstance {
+				return _objInst;
+			}
 			
 			[Bindable]
 			private var _authorMode:Boolean = false;
@@ -72,6 +92,16 @@
 				return _selected;
 			}
 			
+			protected function loadObject():void {
+				if (appLoader.source !== null) {
+					appLoader.unloadAndStop(true);
+				}
+				
+				if (_objInst.inWorldObject.kind === InWorldObject.KIND_APP) {
+					appLoader.load(_objInst);
+				}
+			}
+			
 			private function updateState():void {
 				var parts:Array = [];
 				if (_authorMode) {
@@ -82,6 +112,9 @@
 				}
 				if (_selected) {
 					parts.push("Selected");
+				}
+				if (appLoader.hasError) {
+					parts.push("Error");
 				}
 				currentState = parts.join('');
 			}
@@ -101,6 +134,8 @@
 				NotificationCenter.removeListener(AuthorModeNotification.SELECTED_ITEM_CHANGED, handleSelectedItemChanged);
 				NotificationCenter.removeListener(AuthorModeNotification.AUTHOR_ENABLED, handleAuthorModeEnabled);
 				NotificationCenter.removeListener(AuthorModeNotification.AUTHOR_DISABLED, handleAuthorModeDisabled);
+				
+				appLoader.unloadAndStop();
 			}
 			
 			private function handleAuthorModeEnabled(notification:AuthorModeNotification):void {
@@ -185,30 +220,55 @@
 					inWorldObjectInstance.y = desty;
 				}
 			}
+			
+			protected function handleAppLoaderComplete(event:Event):void {
+				trace("App Loader Dimensions: " + appLoader.width + "x" + appLoader.height);
+			}
+			
+			protected function handleAppBombed(event:AppLoaderEvent):void {
+				updateState();
+			}
+			
 		]]>
 	</fx:Script>
 	
-	<mx:Image source="{inWorldObjectInstance.inWorldObject.fullsizeURL}"
-			  loaderContext="{InteractivityClient.loaderContext}"
-			  smoothBitmapContent="true" />
-
-	<s:Group top="0" left="0" right="0" bottom="0" includeIn="authorMode">
+	<api:AppLoader top="0" left="0" id="appLoader"
+				   width="{inWorldObjectInstance.width}"
+				   height="{inWorldObjectInstance.height}"
+				   appBombed="handleAppBombed(event)"
+				   complete="handleAppLoaderComplete(event)" />
+	
+	<s:Rect top="0" left="0" right="0" bottom="0" includeIn="error">
+		<s:stroke>
+			<s:SolidColorStroke weight="4" color="#700000" alpha="1" />
+		</s:stroke>
+		<s:fill>
+			<s:SolidColor color="#d0291d" alpha="0.4" />
+		</s:fill>
+	</s:Rect>
+	
+	<s:Image includeIn="error" width="64" height="64"
+			 horizontalCenter="0" verticalCenter="0"
+			 mouseEnabled="false" mouseChildren="false"
+			 source="@Embed(source='src/assets/icons/app-bomb-64.png')" />
+	
+	<s:Group top="0" left="0" right="0" bottom="0" includeIn="authorMode,authorModeAndSelected">
 		<s:Rect top="-1" left="-1" right="-1" bottom="-1">
 			<s:stroke>
 				<s:SolidColorStroke weight="3"
-									color.author="#FFFFFF" alpha.author="0.5"
-									color.authorSelected="#000000" alpha.authorSelected="1" />
+									color.authorMode="#FFFFFF" alpha.authorMode="0.5"
+									color.authorModeAndSelected="#000000" alpha.authorModeAndSelected="1" />
 			</s:stroke>
 			<s:fill>
-				<s:SolidColor color.author="#444444" alpha.author="0.25"
-							  color.authorSelected="#EEEEEE" alpha.authorSelected="0.25" />
+				<s:SolidColor color.authorMode="#444444" alpha.authorMode="0.25"
+							  color.authorModeAndSelected="#EEEEEE" alpha.authorModeAndSelected="0.25" />
 			</s:fill>
 		</s:Rect>
 		<s:Rect top="0" left="0" right="0" bottom="0">
 			<s:stroke>
 				<s:SolidColorStroke weight="1"
-									color.author="#000000"
-									color.authorSelected="#DDDDDD" />
+									color.authorMode="#000000"
+									color.authorModeAndSelected="#DDDDDD" />
 			</s:stroke>
 		</s:Rect>
 	</s:Group>

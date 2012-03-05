@@ -17,6 +17,8 @@ package com.worlize.model
 		public var guid:String;
 		public var x:int;
 		public var y:int;
+		public var width:Number;
+		public var height:Number;
 		public var room:RoomListEntry;
 		public var dest:String;
 		public var emptySlot:Boolean = false;

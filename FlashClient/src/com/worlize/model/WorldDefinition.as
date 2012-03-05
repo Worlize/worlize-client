@@ -36,7 +36,14 @@ package com.worlize.model
 		}
 		
 		public function load(worldGuid:String):void {
-			if (worldGuid === null) { return; }
+			if (worldGuid === null || worldGuid === guid) { return; }
+			
+			// Reset data
+			name = null;
+			guid = worldGuid;
+			canCreateNewRoom = false;
+			ownerGuid = null;
+			
 			var client:WorlizeServiceClient = new WorlizeServiceClient();
 			client.addEventListener(WorlizeResultEvent.RESULT, handleResult);
 			client.addEventListener(FaultEvent.FAULT, handleFault);
