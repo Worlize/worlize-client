@@ -202,6 +202,7 @@ package com.worlize.interactivity.rpc
 			"new_friend_request": handleNewFriendRequest,
 			"new_hotspot": handleNewHotspot,
 			"new_object": handleNewObject,
+			"obj_msg": handleObjectMessageReceived,
 			"object_moved": handleObjectMoved,
 			"object_removed": handleObjectRemoved,
 			"object_updated": handleObjectUpdated, // dest changed
@@ -687,6 +688,12 @@ package com.worlize.interactivity.rpc
 			}
 		}
 		
+		private function handleObjectMessageReceived(data:Object):void {
+			if (data.room === currentRoom.id) {
+				apiController.sendObjectMessageLocal(data.from, data.msg, data.to);
+			}
+		}
+		
 		private function handleObjectMoved(data:Object):void {
 			if (data.room == currentRoom.id && data.object) {
 				currentRoom.moveObject(data.object.guid, data.object.x, data.object.y);
@@ -1039,6 +1046,21 @@ package com.worlize.interactivity.rpc
 					player: playerGuid
 				}
 			}, true);
+		}
+		
+		public function broadcastObjectMessage(fromGuid:String, message:String, toGuid:String, toUserGuid:String=null):void {
+			var data:Object = {
+				from: fromGuid,
+				msg: message,
+				to: toGuid
+			};
+			if (toUserGuid) {
+				data.toUser = toUserGuid;
+			}
+			connection.send({
+				msg: "obj_msg",
+				data: data
+			});
 		}
 		
 		public function roomChat(message:String):void {

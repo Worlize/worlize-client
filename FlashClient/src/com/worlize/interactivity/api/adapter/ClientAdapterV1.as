@@ -10,11 +10,14 @@ package com.worlize.interactivity.api.adapter
 	import com.worlize.model.InWorldObject;
 	import com.worlize.model.InWorldObjectInstance;
 	import com.worlize.model.WorldDefinition;
+	import com.worlize.state.AuthorModeState;
 	
+	import flash.display.DisplayObject;
 	import flash.display.Loader;
 	import flash.events.ErrorEvent;
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
+	import flash.events.MouseEvent;
 	import flash.events.UncaughtErrorEvent;
 	import flash.geom.Point;
 	import flash.system.Capabilities;
@@ -35,6 +38,7 @@ package com.worlize.interactivity.api.adapter
 		private var logger:ILogger = Log.getLogger('com.worlize.interactivity.api.adapter.ClientAdapterV1');
 		
 		private var _state:uint = ClientAdapterState.INIT;
+		private var _appGuid:String;
 		
 		public function ClientAdapterV1() {
 			
@@ -44,16 +48,21 @@ package com.worlize.interactivity.api.adapter
 			return _state;
 		}
 		
+		public function get appGuid():String {
+			return _appGuid;
+		}
+		
 		public function attachClient(client:AppLoader):void {
 			if (this.client && this.client !== client) { throw new Error("Client already attached"); }
 			client.addEventListener(Event.UNLOAD, handleClientUnload);
+			_appGuid = client.inWorldObjectInstance.guid;
 			this.client = client;
 		}
 		
 		public function attachHost(host:APIController):void {
 			if (this.host && this.host !== host) { throw new Error("Host already attached"); }
 			this.host = host;
-			host.addClient(this);
+			host.addClientAdapter(this);
 		}
 		
 		public function handshakeClient(data:Object):void {
@@ -85,6 +94,7 @@ package com.worlize.interactivity.api.adapter
 			data.thisRoom = currentRoomToObject(thisRoom);
 			data.thisWorld = worldDefinitionToObject(thisWorld);
 			data.thisObject = inWorldObjectInstanceToObject(thisObject);
+			data.authorMode = host.authorMode;
 			
 			_state = ClientAdapterState.READY;
 		}
@@ -97,10 +107,11 @@ package com.worlize.interactivity.api.adapter
 			if (client) {
 				client = null;
 			}
-			if (this.host) {
-				this.host.removeClient(this);
-				this.host = null;
+			if (host) {
+				host.removeClientAdapter(this);
+				host = null;
 			}
+			_appGuid = null;
 			_state = ClientAdapterState.UNLOADED;
 		}
 		
@@ -122,9 +133,14 @@ package com.worlize.interactivity.api.adapter
 			sharedEvents.addEventListener("client_setAvatar", handleClientSetAvatar);
 			sharedEvents.addEventListener("client_sendChat", handleClientSendChat);
 			sharedEvents.addEventListener("client_setRoomDimLevel", handleClientSetRoomDimLevel);
+			sharedEvents.addEventListener("client_moveRoomObject", handleClientMoveRoomObject);
+			sharedEvents.addEventListener("client_resizeRoomObject", handleClientResizeRoomObject);
 			sharedEvents.addEventListener("client_logMessage", handleClientLogMessage);
 			sharedEvents.addEventListener("client_roomAnnouncement", handleClientRoomAnnouncement);
 			sharedEvents.addEventListener("client_roomLocalAnnouncement", handleClientRoomLocalAnnouncement);
+			sharedEvents.addEventListener("client_sendObjectMessage", handleClientSendObjectMessage);
+			sharedEvents.addEventListener("client_sendObjectMessageLocal", handleClientSendObjectMessageLocal);
+			sharedEvents.addEventListener("client_getRoomMouseCoords", handleClientGetRoomMouseCoords);
 		}
 		
 		protected function removeSharedEventListeners():void {
@@ -135,9 +151,14 @@ package com.worlize.interactivity.api.adapter
 			sharedEvents.removeEventListener("client_setAvatar", handleClientSetAvatar);
 			sharedEvents.removeEventListener("client_sendChat", handleClientSendChat);
 			sharedEvents.removeEventListener("client_setRoomDimLevel", handleClientSetRoomDimLevel);
+			sharedEvents.removeEventListener("client_moveObject", handleClientMoveRoomObject);
+			sharedEvents.removeEventListener("client_resizeObject", handleClientResizeRoomObject);
 			sharedEvents.removeEventListener("client_logMessage", handleClientLogMessage);
 			sharedEvents.removeEventListener("client_roomAnnouncement", handleClientRoomAnnouncement);
 			sharedEvents.removeEventListener("client_roomLocalAnnouncement", handleClientRoomLocalAnnouncement);
+			sharedEvents.removeEventListener("client_sendObjectMessage", handleClientSendObjectMessage);
+			sharedEvents.removeEventListener("client_sendObjectMessageLocal", handleClientSendObjectMessageLocal);
+			sharedEvents.removeEventListener("client_getRoomMouseCoords", handleClientGetRoomMouseCoords);
 		}
 		
 		private function handleClientRequestBomb(event:Event):void {
@@ -173,11 +194,11 @@ package com.worlize.interactivity.api.adapter
 		private function handleClientSetAvatar(event:Event):void {
 			var eo:Object = event;
 			if (eo.data) {
-				if (eo.data.avatar === null) {
+				if (eo.data.guid === null) {
 					host.setThisUserNaked();
 				}
-				if (eo.data.avatar is String) {
-					host.setThisUserAvatar(eo.data.avatar);
+				if (eo.data.guid is String) {
+					host.setThisUserAvatar(eo.data.guid);
 				}
 			}
 		}
@@ -193,6 +214,21 @@ package com.worlize.interactivity.api.adapter
 			var eo:Object = event;
 			if (eo.data && eo.data.dimLevel is int) {
 				host.dimRoom(eo.data.dimLevel);
+			}
+		}
+		
+		private function handleClientMoveRoomObject(event:Event):void {
+			var eo:Object = event;
+			if (eo.data && eo.data.x is Number && eo.data.y is Number) {
+				client.inWorldObjectInstance.moveLocal(eo.data.x, eo.data.y);
+			}
+		}
+		
+		private function handleClientResizeRoomObject(event:Event):void {
+			var eo:Object = event;
+			if (eo.data && eo.data.width is Number && eo.data.height is Number) {
+				client.inWorldObjectInstance.sizedByScript = true;
+				client.inWorldObjectInstance.resizeLocal(eo.data.width, eo.data.height);
 			}
 		}
 		
@@ -217,9 +253,51 @@ package com.worlize.interactivity.api.adapter
 			}
 		}
 		
+		private function handleClientSendObjectMessage(event:Event):void {
+			if (client === null) { return; }
+			var eo:Object = event;
+			if (eo.data && eo.data.message is String && eo.data.toObjectGuid is String) {
+				if (eo.data.toUserGuid is String) {
+					host.sendObjectMessage(
+						client.inWorldObjectInstance.guid,
+						eo.data.message,
+						eo.data.toObjectGuid,
+						eo.data.toUserGuid
+					);
+					return;
+				}
+				host.sendObjectMessage(
+					client.inWorldObjectInstance.guid,
+					eo.data.message,
+					eo.data.toObjectGuid
+				);
+			}
+		}
+		
+		private function handleClientSendObjectMessageLocal(event:Event):void {
+			if (client === null) { return; }
+			var eo:Object = event;
+			if (eo.data && eo.data.message is String && eo.data.toObjectGuid is String) {
+				host.sendObjectMessageLocal(client.inWorldObjectInstance.guid, eo.data.message, eo.data.toObjectGuid);
+			}
+		}
+		
+		private function handleClientGetRoomMouseCoords(event:Event):void {
+			var eo:Object = event;
+			eo.data = {
+				mouseX: Math.max(Math.min(host.thisRoom.roomView.mouseX, 950), 0),
+				mouseY: Math.max(Math.min(host.thisRoom.roomView.mouseY, 570), 0)
+			};
+		}
 		
 		
 		
+		
+		public function authorModeChanged(authorMode:Boolean):void {
+			var event:APIBridgeEvent = new APIBridgeEvent("host_authorModeChanged");
+			event.data = authorMode;
+			sharedEvents.dispatchEvent(event);
+		}
 		
 		public function processChat(record:ChatRecord):void {
 			if (_state !== ClientAdapterState.READY) { return; }
@@ -234,9 +312,12 @@ package com.worlize.interactivity.api.adapter
 				user: record.whochat,
 				text: record.chatstr
 			};
-			record.canceled = !sharedEvents.dispatchEvent(event);
+			record.canceled = !sharedEvents.dispatchEvent(event) || record.canceled;
 			
-			if (event.data.text is String) {
+			if (record.canceled) {
+				record.chatstr = "";
+			}
+			else if (event.data.text is String) {
 				record.chatstr = event.data.text;
 			}
 		}
@@ -255,6 +336,44 @@ package com.worlize.interactivity.api.adapter
 		
 		public function allUsersLeft():void {
 			var event:APIBridgeEvent = new APIBridgeEvent("host_allUsersLeft");
+			sharedEvents.dispatchEvent(event);
+		}
+		
+		public function objectAdded(roomObject:InWorldObjectInstance):void {
+			if (roomObject.inWorldObject.kind !== InWorldObject.KIND_APP) { return; }
+			var event:APIBridgeEvent = new APIBridgeEvent("host_roomObjectAdded");
+			event.data = { roomObject: inWorldObjectInstanceToObject(roomObject) };
+			sharedEvents.dispatchEvent(event);
+		}
+		
+		public function objectRemoved(roomObject:InWorldObjectInstance):void {
+			if (roomObject.inWorldObject.kind !== InWorldObject.KIND_APP) { return; }			
+			var event:APIBridgeEvent = new APIBridgeEvent("host_roomObjectRemoved");
+			event.data = {
+				guid: roomObject.guid
+			};
+			sharedEvents.dispatchEvent(event);
+		}
+		
+		public function objectMoved(roomObject:InWorldObjectInstance):void {
+			if (roomObject.inWorldObject.kind !== InWorldObject.KIND_APP) { return; }
+			var event:APIBridgeEvent = new APIBridgeEvent("host_roomObjectMoved");
+			event.data = {
+				guid: roomObject.guid,
+				x: roomObject.x,
+				y: roomObject.y
+			};
+			sharedEvents.dispatchEvent(event);
+		}
+		
+		public function objectResized(roomObject:InWorldObjectInstance):void {
+			if (roomObject.inWorldObject.kind !== InWorldObject.KIND_APP) { return; }
+			var event:APIBridgeEvent = new APIBridgeEvent("host_roomObjectResized");
+			event.data = {
+				guid: roomObject.guid,
+				width: roomObject.width,
+				height: roomObject.height
+			};
 			sharedEvents.dispatchEvent(event);
 		}
 		
@@ -293,7 +412,7 @@ package com.worlize.interactivity.api.adapter
 			
 			event.data = {
 				userGuid: user.id,
-				avatar: obj.avatar
+				avatar: userToAvatarObject(user)
 			};
 			sharedEvents.dispatchEvent(event);
 		}
@@ -304,8 +423,38 @@ package com.worlize.interactivity.api.adapter
 			sharedEvents.dispatchEvent(event);
 		}
 		
+		public function receiveMessage(message:String, fromGuid:String):void {
+			var event:APIBridgeEvent = new APIBridgeEvent("host_roomObjectMessageReceived");
+			event.data = {
+				message: message,
+				from: fromGuid
+			};
+			sharedEvents.dispatchEvent(event);
+		}
 		
+		public function applicationMouseUp(mouseEvent:MouseEvent):void {
+			var event:APIBridgeEvent = new APIBridgeEvent("host_applicationMouseUp");
+			event.data = {
+				altKey: mouseEvent.altKey,
+				ctrlKey: mouseEvent.ctrlKey,
+				shiftKey: mouseEvent.shiftKey
+			};
+			sharedEvents.dispatchEvent(event);
+		}
 		
+		public function roomMouseMove(mouseEvent:MouseEvent):void {
+			var currentTarget:DisplayObject = mouseEvent.currentTarget as DisplayObject;
+			var event:APIBridgeEvent = new APIBridgeEvent("host_roomMouseMove");
+			event.data = {
+				localX: currentTarget.mouseX,
+				localY: currentTarget.mouseY,
+				altKey: mouseEvent.altKey,
+				buttonDown: mouseEvent.buttonDown,
+				ctrlKey: mouseEvent.ctrlKey,
+				shiftKey: mouseEvent.shiftKey
+			};
+			sharedEvents.dispatchEvent(event);
+		}
 		
 		
 		
@@ -352,7 +501,9 @@ package com.worlize.interactivity.api.adapter
 				name: room.name,
 				users: [],
 				objects: [],
-				hotspots: []
+				hotspots: [],
+				width: 950,
+				height: 570
 			};
 			
 			for each (var objInst:InWorldObjectInstance in room.inWorldObjects) {
@@ -399,6 +550,7 @@ package com.worlize.interactivity.api.adapter
 				instanceGuid: instance.guid,
 				guid: instance.inWorldObject.guid,
 				name: instance.inWorldObject.name,
+				creatorGuid: instance.inWorldObject.creatorGuid,
 				identifier: "",
 				x: instance.x,
 				y: instance.y,
@@ -416,20 +568,29 @@ package com.worlize.interactivity.api.adapter
 				x: user.x,
 				y: user.y,
 				face: user.face,
-				color: user.color
+				color: user.color,
+				avatar: userToAvatarObject(user)
 			};
 			
+			return data;
+		}
+		
+		protected function userToAvatarObject(user:InteractivityUser):Object {
 			if (user.simpleAvatar) {
-				data.avatar = user.simpleAvatar.guid;
+				return {
+					type: "image",
+					guid: user.simpleAvatar.guid,
+					thumbnailURL: user.simpleAvatar.thumbnailURL
+				};
 			}
 			else if (user.videoAvatarStreamName) {
-				data.avatar = "webcam";
+				return {
+					type: "webcam"
+				};
 			}
-			else {
-				data.avatar = null;
-			}
-			
-			return data;
+			return {
+				type: "default"
+			};
 		}
 	}
 }

@@ -25,6 +25,13 @@ package com.worlize.api.model
 			return _guid;
 		}
 		
+		public function toJSON():Object {
+			return {
+				name: _name,
+				guid: _guid
+			};
+		}
+		
 		override public function toString():String {
 			return "[Room guid=" + _guid + " name=" + _name + "]";
 		}

@@ -7,6 +7,7 @@ package com.worlize.model
 		public static const KIND_APP:String = "app";
 		
 		public var guid:String;
+		public var creatorGuid:String;
 		public var kind:String;
 		public var name:String;
 		public var iconURL:String;
@@ -23,6 +24,7 @@ package com.worlize.model
 		public static function fromData(data:Object):InWorldObject {
 			var object:InWorldObject = new InWorldObject();
 			object.guid = data.guid;
+			object.creatorGuid = data.creator;
 			object.name = data.name;
 			object.kind = data.kind;
 			if (object.kind === KIND_APP) {

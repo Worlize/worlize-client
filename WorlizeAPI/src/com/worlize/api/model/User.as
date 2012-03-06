@@ -21,7 +21,7 @@ package com.worlize.api.model
 		protected var _y:int;
 		protected var _face:int;
 		protected var _color:int;
-		protected var _avatar:String;
+		protected var _avatar:Avatar;
 		
 		public function User() {
 			super(null);
@@ -51,8 +51,20 @@ package com.worlize.api.model
 			return _color;
 		}
 		
-		public function get avatar():String {
+		public function get avatar():Avatar {
 			return _avatar;
+		}
+		
+		public function toJSON():Object {
+			return {
+				name: _name,
+				guid: _guid,
+				x: _x,
+				y: _y,
+				face: _face,
+				color: _color,
+				avatar: _avatar ? _avatar.toJSON() : null
+			};
 		}
 		
 		override public function toString():String {
@@ -69,7 +81,7 @@ package com.worlize.api.model
 			}
 		}
 		
-		worlize_internal function updateAvatar(avatar:String):void {
+		worlize_internal function updateAvatar(avatar:Avatar):void {
 			if (_avatar !== avatar) {
 				_avatar = avatar;
 				var event:UserEvent = new UserEvent(UserEvent.AVATAR_CHANGED);
@@ -104,7 +116,7 @@ package com.worlize.api.model
 			user._y = data.y;
 			user._face = data.face;
 			user._color = data.color;
-			user._avatar = data.avatar;
+			user._avatar = Avatar.fromData(data.avatar);
 			return user;
 		}
 	}

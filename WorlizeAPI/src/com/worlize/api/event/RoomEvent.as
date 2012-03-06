@@ -8,6 +8,8 @@ package com.worlize.api.event
 	{
 		public static const USER_ENTERED:String = "userEntered";
 		public static const USER_LEFT:String = "userLeft";
+		public static const OBJECT_ADDED:String = "objectAdded";
+		public static const OBJECT_REMOVED:String = "objectRemoved";
 		
 		public var user:User;
 		

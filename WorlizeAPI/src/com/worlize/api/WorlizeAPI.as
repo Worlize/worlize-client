@@ -1,7 +1,10 @@
 package com.worlize.api
 {
 	import com.worlize.api.event.APIEvent;
+	import com.worlize.api.event.AuthorEvent;
 	import com.worlize.api.event.ChatEvent;
+	import com.worlize.api.event.MessageEvent;
+	import com.worlize.api.model.RoomObject;
 	import com.worlize.api.model.ThisRoom;
 	import com.worlize.api.model.ThisRoomObject;
 	import com.worlize.api.model.ThisUser;
@@ -13,11 +16,13 @@ package com.worlize.api
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
 	import flash.events.IEventDispatcher;
+	import flash.events.MouseEvent;
 	import flash.events.TimerEvent;
 	import flash.events.UncaughtErrorEvent;
 	import flash.system.Security;
 	import flash.utils.Timer;
 	
+	[Event(name="mouseUp",type="flash.events.MouseEvent")]
 	public class WorlizeAPI extends EventDispatcher
 	{
 		use namespace worlize_internal;
@@ -38,6 +43,9 @@ package com.worlize.api
 		private var _thisRoom:ThisRoom;
 		private var _thisUser:ThisUser;
 		private var _thisObject:ThisRoomObject;
+		private var _authorMode:Boolean;
+		
+		public var config:Object;
 		
 		public function get thisWorld():World {
 			return _thisWorld;
@@ -71,8 +79,7 @@ package com.worlize.api
 			return _instance;
 		}
 		
-		public function WorlizeAPI(rootObject:DisplayObject)
-		{
+		public function WorlizeAPI(rootObject:DisplayObject) {
 			super(null);
 			if (_instance !== null) {
 				throw new Error("You may only create one EmbeddedAPI instance.");
@@ -91,6 +98,10 @@ package com.worlize.api
 			var event:APIEvent = new APIEvent(APIEvent.LOG_MESSAGE);
 			event.data = { text: text };
 			sharedEvents.dispatchEvent(event);
+		}
+		
+		public function saveConfig():void {
+			
 		}
 		
 		private function addLoaderInfoListeners():void {
@@ -112,7 +123,7 @@ package com.worlize.api
 				APIVersion: 1
 			};
 			event.data = data;
-			loaderInfo.sharedEvents.dispatchEvent(event);
+			sharedEvents.dispatchEvent(event);
 			
 			if (!(data.thisUser && data.thisObject && data.thisWorld && data.thisRoom)) {
 				// Create empty mock objects, we're not actually running inside a host app
@@ -126,14 +137,11 @@ package com.worlize.api
 			_thisUser = ThisUser.fromData(event.data.thisUser);
 			_thisObject = ThisRoomObject.fromData(event.data.thisObject);
 			_thisWorld = World.fromData(event.data.thisWorld);
-			_thisRoom = ThisRoom.fromData(event.data.thisRoom);
-			
-			_thisRoom.setThisUser(_thisUser);
+			_thisRoom = ThisRoom.fromData(event.data.thisRoom, _thisUser, _thisObject);
+			_authorMode = event.data.authorMode;
+			config = event.data.config;
 			
 			addSharedEventHandlers();
-			
-//			rootObject.width = _thisObject.width;
-//			rootObject.height = _thisObject.height;
 			
 			_initialized = true;
 			
@@ -144,7 +152,34 @@ package com.worlize.api
 		}
 		
 		private function addSharedEventHandlers():void {
-			_thisRoom.addSharedEventHandlers(loaderInfo.sharedEvents);
+			_thisRoom.addSharedEventHandlers(sharedEvents);
+			sharedEvents.addEventListener("host_roomObjectMessageReceived", handleRoomObjectMessageReceived);
+			sharedEvents.addEventListener("host_applicationMouseUp", handleApplicationMouseUp);
+			sharedEvents.addEventListener("host_authorModeChanged", handleAuthorModeChanged);
+		}
+		
+		private function handleRoomObjectMessageReceived(event:Event):void {
+			var eo:Object = event;
+			var fromObject:RoomObject = _thisRoom.getObjectByGuid(eo.data.from);
+			if (fromObject) {
+				var msgEvent:MessageEvent = new MessageEvent(MessageEvent.MESSAGE_RECEIVED);
+				msgEvent.from = fromObject;
+				msgEvent.message = eo.data.message;
+				_thisObject.dispatchEvent(msgEvent);
+			}
+		}
+		
+		private function handleApplicationMouseUp(event:Event):void {
+			var eo:Object = event;
+			dispatchEvent(new MouseEvent(MouseEvent.MOUSE_UP, false, false, 0, 0, null, eo.data.ctrlKey, eo.data.altKey, eo.data.shiftKey, false, 0));
+		}
+		
+		private function handleAuthorModeChanged(event:Event):void {
+			var newValue:Boolean = Boolean((event as Object).data);
+			if (_authorMode !== newValue) {
+				var type:String = _authorMode ? AuthorEvent.AUTHOR_MODE_ENABLED : AuthorEvent.AUTHOR_MODE_DISABLED;
+				dispatchEvent(new AuthorEvent(type));
+			}
 		}
 		
 		private function handleLoaderInfoInit(event:Event):void {

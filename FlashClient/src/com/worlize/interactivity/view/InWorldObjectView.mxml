@@ -216,8 +216,7 @@
 						desty = 570-26;
 					}
 					
-					inWorldObjectInstance.x = destx;
-					inWorldObjectInstance.y = desty;
+					inWorldObjectInstance.moveLocal(destx,desty);
 				}
 			}
 			

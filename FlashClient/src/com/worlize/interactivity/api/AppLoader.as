@@ -43,6 +43,10 @@ package com.worlize.interactivity.api
 			return _objInstance;
 		}
 		
+		public function get appGuid():String {
+			return _objInstance.guid;
+		}
+		
 		public function get clientAdapter():IAPIClientAdapter {
 			return _adapter;
 		}
@@ -111,8 +115,8 @@ package com.worlize.interactivity.api
 						return;
 					}
 					try {
-						_adapter.attachHost(interactivityClient.apiController);
 						_adapter.attachClient(this);
+						_adapter.attachHost(interactivityClient.apiController);
 						_adapter.handshakeClient(e.data);
 						logger.info("API Client handshake complete");
 					}
@@ -134,8 +138,9 @@ package com.worlize.interactivity.api
 			var validationError:Boolean = false;
 			var validationMessage:String;
 			
-			inWorldObjectInstance.width = loader.contentLoaderInfo.width;
-			inWorldObjectInstance.height = loader.contentLoaderInfo.height;
+			if (!inWorldObjectInstance.sizedByScript) {
+				inWorldObjectInstance.resizeLocal(loader.contentLoaderInfo.width, loader.contentLoaderInfo.height);
+			}
 			
 			if (loader.contentLoaderInfo.contentType !== "application/x-shockwave-flash") {
 				validationError = true;

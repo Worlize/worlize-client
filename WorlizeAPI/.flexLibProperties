@@ -19,6 +19,9 @@
     <classEntry path="com.worlize.api.model.Hotspot"/>
     <classEntry path="com.worlize.api.event.UserEvent"/>
     <classEntry path="com.worlize.api.model.Avatar"/>
+    <classEntry path="com.worlize.api.event.RoomObjectEvent"/>
+    <classEntry path="com.worlize.api.event.MessageEvent"/>
+    <classEntry path="com.worlize.api.event.AuthorEvent"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

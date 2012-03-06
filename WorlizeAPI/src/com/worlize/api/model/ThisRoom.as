@@ -4,11 +4,13 @@ package com.worlize.api.model
 	import com.worlize.api.event.APIEvent;
 	import com.worlize.api.event.ChatEvent;
 	import com.worlize.api.event.RoomEvent;
+	import com.worlize.api.event.RoomObjectEvent;
 	import com.worlize.api.event.UserEvent;
 	import com.worlize.worlize_internal;
 	
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
+	import flash.events.MouseEvent;
 	
 	[Event(name="incomingChat",type="com.worlize.api.event.ChatEvent")]
 	[Event(name="outgoingChat",type="com.worlize.api.event.ChatEvent")]
@@ -18,36 +20,64 @@ package com.worlize.api.model
 	[Event(name="userAvatarChanged",type="com.worlize.api.event.UserEvent")]
 	[Event(name="userFaceChanged",type="com.worlize.api.event.UserEvent")]
 	[Event(name="userColorChanged",type="com.worlize.api.event.UserEvent")]
+	[Event(name="objectResized",type="com.worlize.api.event.RoomObjectEvent")]
+	[Event(name="objectMoved",type="com.worlize.api.event.RoomObjectEvent")]
+	[Event(name="objectAdded",type="com.worlize.api.event.RoomEvent")]
+	[event(name="objectRemoved",type="com.worlize.api.event.RoomEvent")]
 	[Event(name="mouseMove",type="flash.events.MouseEvent")]
 	public class ThisRoom extends Room
 	{
 		use namespace worlize_internal;
 		
-		protected var _users:Vector.<User>;
-		protected var _objects:Vector.<RoomObject>;
-		protected var _hotspots:Vector.<Hotspot>;		
+		protected var _users:Vector.<User> = new Vector.<User>();
+		protected var _objects:Vector.<RoomObject> = new Vector.<RoomObject>();
+		protected var _hotspots:Vector.<Hotspot> = new Vector.<Hotspot>();
 		protected var _dimLevel:Number = 1.0;
+		protected var _width:int;
+		protected var _height:int;
 
 		public function get users():Vector.<User> {
-			return _users;
+			return _users.slice();
 		}
 		
 		public function get objects():Vector.<RoomObject> {
-			return _objects;
+			return _objects.slice();
 		}
 		
 		public function get hotspots():Vector.<Hotspot> {
-			return _hotspots;
+			return _hotspots.slice();
 		}
 
 		public function get dimLevel():uint {
 			return _dimLevel;
 		}
 		
+		public function get width():int {
+			return _width;
+		}
+		
+		public function get height():int {
+			return _height;
+		}
+		
 		public function set dimLevel(newValue:uint):void {
 			var event:APIEvent = new APIEvent(APIEvent.SET_ROOM_DIMLEVEL);
 			event.data = { dimLevel: newValue };
 			WorlizeAPI.sharedEvents.dispatchEvent(event);
+		}
+		
+		public function get mouseX():Number {
+			var event:APIEvent = new APIEvent(APIEvent.GET_ROOM_MOUSE_COORDS);
+			var eo:Object = event;
+			WorlizeAPI.sharedEvents.dispatchEvent(event);
+			return eo.data.mouseX;
+		}
+		
+		public function get mouseY():Number {
+			var event:APIEvent = new APIEvent(APIEvent.GET_ROOM_MOUSE_COORDS);
+			var eo:Object = event;
+			WorlizeAPI.sharedEvents.dispatchEvent(event);
+			return eo.data.mouseY;
 		}
 		
 		public function announce(text:String):void {
@@ -73,11 +103,31 @@ package com.worlize.api.model
 		
 		public function getObjectByGuid(guid:String):RoomObject {
 			for each (var obj:RoomObject in _objects) {
-				if (obj.guid === guid) {
+				if (obj.instanceGuid === guid) {
 					return obj;
 				}
 			}
 			return null;
+		}
+		
+		override public function toJSON():Object {
+			var obj:Object = super.toJSON();
+			var usersArray:Array = obj['users'] = [];
+			for each (var user:User in _users) {
+				usersArray.push(user.toJSON());
+			}
+			
+			var objectsArray:Array = obj['objects'] = [];
+			for each (var roomObject:RoomObject in _objects) {
+				objectsArray.push(roomObject.toJSON());
+			}
+			
+			var hotspotsArray:Array = obj['hotspots'] = [];
+			for each (var hotspot:Hotspot in _hotspots) {
+				hotspotsArray.push(hotspot.toJSON());
+			}
+			
+			return obj;
 		}
 		
 		override public function toString():String {
@@ -86,6 +136,27 @@ package com.worlize.api.model
 		
 		private function redispatchUserEvent(event:UserEvent):void {
 			dispatchEvent(event);
+		}
+		
+		private function redispatchRoomObjectEvent(event:RoomObjectEvent):void {
+			dispatchEvent(event);
+		}
+		
+		worlize_internal function addObject(obj:RoomObject):void {
+			_objects.push(obj);
+			addRoomObjectEventListeners(obj);
+		}
+		
+		worlize_internal function removeObject(objGuid:String):RoomObject {
+			for (var i:int=0; i < _objects.length; i++) {
+				if (_objects[i].instanceGuid === objGuid) {
+					var obj:RoomObject = _objects[i];
+					removeRoomObjectEventListeners(obj);
+					_objects.splice(i, 1);
+					return obj;
+				}
+			}
+			return null;
 		}
 		
 		worlize_internal function addUser(user:User):void {
@@ -99,6 +170,9 @@ package com.worlize.api.model
 					var user:User = _users[i];
 					_users.splice(i, 1);
 					removeUserEventListeners(user);
+					var e:RoomEvent = new RoomEvent(RoomEvent.USER_LEFT);
+					e.user = user;
+					dispatchEvent(e);
 					return user;
 				}
 			}
@@ -119,19 +193,39 @@ package com.worlize.api.model
 			user.removeEventListener(UserEvent.MOVED, redispatchUserEvent);
 		}
 		
-		worlize_internal static function fromData(data:Object):ThisRoom {
+		private function addRoomObjectEventListeners(obj:RoomObject):void {
+			obj.addEventListener(RoomObjectEvent.MOVED, redispatchRoomObjectEvent);
+			obj.addEventListener(RoomObjectEvent.RESIZED, redispatchRoomObjectEvent);
+		}
+		
+		private function removeRoomObjectEventListeners(obj:RoomObject):void {
+			obj.removeEventListener(RoomObjectEvent.MOVED, redispatchRoomObjectEvent);
+			obj.removeEventListener(RoomObjectEvent.RESIZED, redispatchRoomObjectEvent);
+		}
+		
+		worlize_internal static function fromData(data:Object, thisUser:ThisUser, thisObject:ThisRoomObject):ThisRoom {
 			var room:ThisRoom = new ThisRoom();
 			room._guid = data.guid;
 			room._name = data.name;
+			room._width = data.width;
+			room._height = data.height;
 			
-			room._users = new Vector.<User>();
 			for each (var userData:Object in data.users) {
-				room._users.push(User.fromData(userData));
+				if (userData.guid === thisUser.guid) {
+					room.addUser(thisUser);
+				}
+				else {
+					room.addUser(User.fromData(userData));
+				}
 			}
 			
-			room._objects = new Vector.<RoomObject>();
 			for each (var objectData:Object in data.objects) {
-				room._objects.push(RoomObject.fromData(objectData));
+				if (objectData.instanceGuid === thisObject.instanceGuid) {
+					room.addObject(thisObject);
+				}
+				else {
+					room.addObject(RoomObject.fromData(objectData));
+				}
 			}
 			
 			return room;
@@ -149,10 +243,24 @@ package com.worlize.api.model
 			}
 		}
 		
+		worlize_internal function setThisObject(obj:ThisRoomObject):void {
+			for (var i:int=0; i < _objects.length; i++) {
+				var existingObject:RoomObject = _objects[i];
+				if (existingObject.instanceGuid === obj.instanceGuid) {
+					removeRoomObjectEventListeners(existingObject);
+					addRoomObjectEventListeners(obj);
+					_objects.splice(i, 1, obj);
+					return;
+				}
+			}
+		}
+		
 		worlize_internal function addSharedEventHandlers(sharedEvents:EventDispatcher):void {
+			sharedEvents.addEventListener('host_roomMouseMove', handleRoomMouseMove);
 			sharedEvents.addEventListener('host_chatEvent', handleChat);
 			sharedEvents.addEventListener('host_userEntered', handleUserEnter);
 			sharedEvents.addEventListener('host_userLeft', handleUserLeave);
+			sharedEvents.addEventListener('host_allUsersLeft', handleAllUsersLeft);
 			sharedEvents.addEventListener('host_userMoved', handleUserMoved);
 			sharedEvents.addEventListener('host_userAvatarChanged', handleUserAvatarChanged);
 			sharedEvents.addEventListener('host_userFaceChanged', handleUserFaceChanged);
@@ -161,11 +269,20 @@ package com.worlize.api.model
 			sharedEvents.addEventListener('host_roomObjectAdded', handleObjectAdded);
 			sharedEvents.addEventListener('host_roomObjectRemoved', handleObjectRemoved);
 			sharedEvents.addEventListener('host_roomObjectMoved', handleObjectMoved);
-			sharedEvents.addEventListener('host_roomObjectChanged', handleObjectChanged);
 			sharedEvents.addEventListener('host_roomObjectResized', handleObjectResized);
 			sharedEvents.addEventListener('host_hotspotAdded', handleHotspotAdded);
 			sharedEvents.addEventListener('host_hotspotRemoved', handleHotspotRemoved);
 			sharedEvents.addEventListener('host_hotspotChanged', handleHotspotChanged);
+		}
+		
+		private function handleRoomMouseMove(event:Event):void {
+			var data:Object = event['data'];
+			dispatchEvent(
+				new MouseEvent(MouseEvent.MOUSE_MOVE, false, false,
+							   data.localX, data.localY, null,
+							   data.ctrlKey, data.altKey,
+							   data.shiftKey, data.buttonDown, 0)
+			);
 		}
 		
 		private function handleChat(event:Event):void {
@@ -175,7 +292,7 @@ package com.worlize.api.model
 			var chatEvent:ChatEvent = new ChatEvent(type, false, true);
 			chatEvent.isWhisper = e.data.isWhisper;
 			chatEvent.text = e.data.text;
-			if (e.data.whisperTarget) {
+			if (e.data.recipient) {
 				chatEvent.recipient = getUserByGuid(e.data.recipient);
 			}
 			if (e.data.user) {
@@ -200,10 +317,11 @@ package com.worlize.api.model
 		
 		private function handleUserLeave(event:Event):void {
 			var user:User = removeUser((event as Object).data.userGuid);
-			if (user) {
-				var e:RoomEvent = new RoomEvent(RoomEvent.USER_LEFT);
-				e.user = user;
-				dispatchEvent(e);
+		}
+		
+		private function handleAllUsersLeft(event:Event):void {
+			for (var i:int = 0, len:int = _users.length; i < len; i++) {
+				removeUser(_users[0].guid);
 			}
 		}
 		
@@ -219,7 +337,7 @@ package com.worlize.api.model
 			var eo:Object = event;
 			var user:User = getUserByGuid(eo.data.userGuid);
 			if (user) {
-				user.updateAvatar(eo.data.avatar);
+				user.updateAvatar(Avatar.fromData(eo.data.avatar));
 			}
 		}
 		
@@ -245,23 +363,27 @@ package com.worlize.api.model
 		}
 		
 		private function handleObjectAdded(event:Event):void {
-			
+			addObject(RoomObject.fromData(event['data'].roomObject));
 		}
 		
 		private function handleObjectRemoved(event:Event):void {
-			
+			removeObject(event['data'].guid);
 		}
 		
 		private function handleObjectResized(event:Event):void {
-			
-		}
-		
-		private function handleObjectChanged(event:Event):void {
-			
+			var eo:Object = event;
+			var roomObj:RoomObject = getObjectByGuid(eo.data.guid);
+			if (roomObj) {
+				roomObj.updateSize(eo.data.width, eo.data.height);
+			}
 		}
 		
 		private function handleObjectMoved(event:Event):void {
-			
+			var eo:Object = event;
+			var roomObj:RoomObject = getObjectByGuid(eo.data.guid);
+			if (roomObj) {
+				roomObj.updatePosition(eo.data.x, eo.data.y);
+			}
 		}
 		
 		private function handleHotspotAdded(event:Event):void {

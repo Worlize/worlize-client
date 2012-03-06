@@ -4,6 +4,9 @@ package com.worlize.api.model
 	import com.worlize.api.event.APIEvent;
 	import com.worlize.worlize_internal;
 	
+	[Event(name="messageReceived",type="com.worlize.api.event.MessageEvent")]
+	[Event(name="objectResized",type="com.worlize.api.event.RoomObjectEvent")]
+	[Event(name="objectMoved",type="com.worlize.api.event.RoomObjectEvent")]
 	public class ThisRoomObject extends RoomObject
 	{
 		use namespace worlize_internal;
@@ -27,8 +30,8 @@ package com.worlize.api.model
 		public function moveTo(x:Number, y:Number):void {
 			var event:APIEvent = new APIEvent(APIEvent.MOVE_OBJECT);
 			event.data = {
-				x: _x,
-				y: _y
+				x: x,
+				y: y
 			};
 			WorlizeAPI.sharedEvents.dispatchEvent(event);
 		}
@@ -36,8 +39,8 @@ package com.worlize.api.model
 		public function setSize(width:Number, height:Number):void {
 			var event:APIEvent = new APIEvent(APIEvent.RESIZE_OBJECT);
 			event.data = {
-				width: _width,
-				height: _height
+				width: width,
+				height: height
 			};
 			WorlizeAPI.sharedEvents.dispatchEvent(event);
 		}

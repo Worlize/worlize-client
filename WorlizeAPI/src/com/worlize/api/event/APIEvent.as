@@ -9,6 +9,8 @@ package com.worlize.api.event
 		
 		public static const MOVE_OBJECT:String = "client_moveRoomObject";
 		public static const RESIZE_OBJECT:String = "client_resizeRoomObject";
+		public static const SEND_OBJECT_MESSAGE:String = "client_sendObjectMessage";
+		public static const SEND_OBJECT_MESSAGE_LOCAL:String = "client_sendObjectMessageLocal";
 		
 		public static const MOVE_USER:String = "client_moveUser";
 		public static const SET_USER_FACE:String = "client_setUserFace";
@@ -22,6 +24,8 @@ package com.worlize.api.event
 		public static const ROOM_ANNOUNCE_MESSAGE:String = "client_roomAnnouncement";
 		
 		public static const SET_ROOM_DIMLEVEL:String = "client_setRoomDimlevel";
+		
+		public static const GET_ROOM_MOUSE_COORDS:String = "client_getRoomMouseCoords";
 		
 		// For when something goes wrong inside the client and we want to be shutdown and unloaded
 		public static const REQUEST_BOMB:String = "client_requestBomb";

@@ -8,25 +8,36 @@ package com.worlize.api.model
 	{
 		use namespace worlize_internal;
 		
-		public function set y(newValue:int):void {
-			move(_x, newValue);
-		}
+		public function setAvatar(avatarOrGuid:Object):void {
+			var avatarGuid:String;
+			if (avatarOrGuid is Avatar) {
+				avatarGuid = (avatarOrGuid as Avatar).guid;
+			}
+			else if (avatarOrGuid === null) {
+				avatarOrGuid = null;
+			}
+			else if (avatarOrGuid is String) {
+				avatarGuid = avatarOrGuid as String;
+			}
+			else {
+				throw new ArgumentError("Invalid parameter passed to setAvatar.");
+			}
+			
+			if (_avatar === null && avatarGuid === null) { return; };
+			if (_avatar !== null && avatar.guid === avatarGuid) { return; }
 
-		public function set x(newValue:int):void {
-			move(newValue, _y);
+			if (avatarGuid === null || avatarGuid.match(WorlizeAPI.GUID_REGEXP)) {
+				var event:APIEvent = new APIEvent(APIEvent.SET_AVATAR);
+				event.data = { guid: avatarGuid };
+				WorlizeAPI.sharedEvents.dispatchEvent(event);
+			}
+			else {
+				throw new ArgumentError("Invalid avatar guid: " + avatarGuid);
+			}
 		}
 		
-		public function set avatar(newValue:String):void {
-			if (_avatar !== newValue) {
-				if (newValue === null || newValue.match(WorlizeAPI.GUID_REGEXP)) {
-					var event:APIEvent = new APIEvent(APIEvent.SET_AVATAR);
-					event.data = { avatar: newValue };
-					WorlizeAPI.sharedEvents.dispatchEvent(event);
-				}
-				else {
-					throw new ArgumentError("Invalid avatar value: " + newValue);
-				}
-			}
+		public function removeAvatar():void {
+			setAvatar(null);
 		}
 		
 		public function set face(newValue:int):void {
@@ -73,7 +84,7 @@ package com.worlize.api.model
 			user._y = data.y;
 			user._face = data.face;
 			user._color = data.color;
-			user._avatar = data.avatar;
+			user._avatar = Avatar.fromData(data.avatar);
 			return user;
 		}
 	}

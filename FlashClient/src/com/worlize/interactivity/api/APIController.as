@@ -1,5 +1,7 @@
 package com.worlize.interactivity.api
 {
+	import com.worlize.event.AuthorModeNotification;
+	import com.worlize.event.NotificationCenter;
 	import com.worlize.interactivity.api.adapter.ClientAdapterV1;
 	import com.worlize.interactivity.api.adapter.IAPIClientAdapter;
 	import com.worlize.interactivity.event.ChatEvent;
@@ -9,8 +11,13 @@ package com.worlize.interactivity.api
 	import com.worlize.interactivity.record.ChatRecord;
 	import com.worlize.interactivity.rpc.InteractivityClient;
 	import com.worlize.model.WorldDefinition;
+	import com.worlize.state.AuthorModeState;
+	
+	import flash.events.MouseEvent;
 	
 	import mx.binding.utils.ChangeWatcher;
+	import mx.core.Application;
+	import mx.core.FlexGlobals;
 	import mx.events.PropertyChangeEvent;
 	import mx.logging.ILogger;
 	import mx.logging.Log;
@@ -24,16 +31,35 @@ package com.worlize.interactivity.api
 		
 		protected var interactivityClient:InteractivityClient;
 		
-		protected var apiClients:Vector.<IAPIClientAdapter>;
+		protected var apiClientAdapters:Vector.<IAPIClientAdapter>;
+		
+		protected var apiClientAdaptersByGuid:Object;
+		
+		protected var mouseEventsAdded:Boolean = false;
 		
 		public function APIController(interactivityClient:InteractivityClient) {
-			apiClients = new Vector.<IAPIClientAdapter>();
+			apiClientAdapters = new Vector.<IAPIClientAdapter>();
+			apiClientAdaptersByGuid = {};
 			this.interactivityClient = interactivityClient;
-			addInteractivityClientEvents()
+			addInteractivityClientEvents();
+			addNotificationListeners();
 			logger.debug("APIController Instantiated.");
 		}
 		
 		protected var dimLevelChangeWatcher:ChangeWatcher;
+		
+		protected function addMouseEvents():void {
+			if (mouseEventsAdded) { return; }
+			FlexGlobals.topLevelApplication.addEventListener(MouseEvent.MOUSE_UP, handleApplicationMouseUp);
+			thisRoom.roomView.addEventListener(MouseEvent.MOUSE_MOVE, handleRoomMouseMove);
+			mouseEventsAdded = true;
+		}
+		
+		protected function removeMouseEvents():void {
+			mouseEventsAdded = false;
+			FlexGlobals.topLevelApplication.removeEventListener(MouseEvent.MOUSE_UP, handleApplicationMouseUp);
+			thisRoom.roomView.removeEventListener(MouseEvent.MOUSE_MOVE, handleRoomMouseMove);
+		}
 		
 		protected function addInteractivityClientEvents():void {
 			var room:CurrentRoom = interactivityClient.currentRoom;
@@ -41,6 +67,10 @@ package com.worlize.interactivity.api
 			room.addEventListener(RoomEvent.USER_LEFT, handleUserLeft);
 			room.addEventListener(RoomEvent.USER_MOVED, handleUserMoved);
 			room.addEventListener(RoomEvent.ROOM_CLEARED, handleRoomCleared);
+			room.addEventListener(RoomEvent.OBJECT_ADDED, handleObjectAdded);
+			room.addEventListener(RoomEvent.OBJECT_REMOVED, handleObjectRemoved);
+			room.addEventListener(RoomEvent.OBJECT_MOVED, handleObjectMoved);
+			room.addEventListener(RoomEvent.OBJECT_RESIZED, handleObjectResized);
 			dimLevelChangeWatcher = ChangeWatcher.watch(room, 'dimLevel', handleRoomDimLevelChanged);
 		}
 		
@@ -50,7 +80,21 @@ package com.worlize.interactivity.api
 			room.removeEventListener(RoomEvent.USER_LEFT, handleUserLeft);
 			room.removeEventListener(RoomEvent.USER_MOVED, handleUserMoved);
 			room.removeEventListener(RoomEvent.ROOM_CLEARED, handleRoomCleared);
+			room.removeEventListener(RoomEvent.OBJECT_ADDED, handleObjectAdded);
+			room.removeEventListener(RoomEvent.OBJECT_REMOVED, handleObjectRemoved);
+			room.removeEventListener(RoomEvent.OBJECT_MOVED, handleObjectMoved);
+			room.removeEventListener(RoomEvent.OBJECT_RESIZED, handleObjectResized);
 			dimLevelChangeWatcher.unwatch();
+		}
+		
+		protected function addNotificationListeners():void {
+			NotificationCenter.addListener(AuthorModeNotification.AUTHOR_ENABLED, handleAuthorEnabled);
+			NotificationCenter.addListener(AuthorModeNotification.AUTHOR_DISABLED, handleAuthorDisabled);
+		}
+		
+		protected function removeNotificationListeners():void {
+			NotificationCenter.removeListener(AuthorModeNotification.AUTHOR_ENABLED, handleAuthorEnabled);
+			NotificationCenter.removeListener(AuthorModeNotification.AUTHOR_DISABLED, handleAuthorDisabled);
 		}
 
 		public function getClientAdapterForVersion(version:int):IAPIClientAdapter {
@@ -60,67 +104,119 @@ package com.worlize.interactivity.api
 					adapter = new ClientAdapterV1();
 					break;
 				default:
-					logger.error("Unable to provide client API Adapter for requested API version: " + version);
+					logger.error("Unable to provide API Client Adapter for requested API version: " + version);
 					break;
-			}
-			if (adapter !== null) {
-				adapter.attachHost(this);
 			}
 			return adapter;
 		}
 		
-		public function addClient(client:IAPIClientAdapter):void {
-			if (apiClients.indexOf(client) === -1) {
-				apiClients.push(client);
+		public function addClientAdapter(client:IAPIClientAdapter):void {
+			if (!mouseEventsAdded) {
+				addMouseEvents();
+			}
+			if (apiClientAdapters.indexOf(client) === -1) {
+				apiClientAdapters.push(client);
+				apiClientAdaptersByGuid[client.appGuid] = client;
 			}
 		}
 		
-		public function removeClient(client:IAPIClientAdapter):void {
-			var index:int = apiClients.indexOf(client);
+		public function removeClientAdapter(client:IAPIClientAdapter):void {
+			delete apiClientAdaptersByGuid[client.appGuid];
+			var index:int = apiClientAdapters.indexOf(client);
 			if (index !== -1) {
-				apiClients.splice(index, 1);
+				apiClientAdapters.splice(index, 1);
+			}
+			if (apiClientAdapters.length === 0) {
+				removeMouseEvents();
 			}
 		}
 		
-		public function getClients():Vector.<IAPIClientAdapter> {
-			return apiClients;
+		public function getClientAdapters():Vector.<IAPIClientAdapter> {
+			return apiClientAdapters.slice();
 		}
 		
 		public function getClientByGuid(guid:String):IAPIClientAdapter {
-//			for each (var client:IAPIClientAdapter in apiClients) {
-//				
-//			}
-			return null;
+			return apiClientAdaptersByGuid[guid];
+		}
+		
+		// Mouse Event Handlers
+		protected function handleApplicationMouseUp(event:MouseEvent):void {
+			for each (var client:IAPIClientAdapter in apiClientAdapters) {
+				client.applicationMouseUp(event);
+			}
+		}
+		
+		protected function handleRoomMouseMove(event:MouseEvent):void {
+			for each (var client:IAPIClientAdapter in apiClientAdapters) {
+				client.roomMouseMove(event);
+			}
+		}
+		
+		// Notification Handlers
+		protected function handleAuthorEnabled(notification:AuthorModeNotification):void {
+			for each (var client:IAPIClientAdapter in apiClientAdapters) {
+				client.authorModeChanged(true);
+			}
+		}
+		
+		protected function handleAuthorDisabled(notification:AuthorModeNotification):void {
+			for each (var client:IAPIClientAdapter in apiClientAdapters) {
+				client.authorModeChanged(false);
+			}
 		}
 		
 		
 		// Room Event Handlers
 		protected function handleUserEntered(event:RoomEvent):void {
-			for each (var client:IAPIClientAdapter in apiClients) {
+			for each (var client:IAPIClientAdapter in apiClientAdapters) {
 				client.userEntered(event.user);
 			}
 		}
 		
 		protected function handleUserLeft(event:RoomEvent):void {
-			for each (var client:IAPIClientAdapter in apiClients) {
+			for each (var client:IAPIClientAdapter in apiClientAdapters) {
 				client.userLeft(event.user);
 			}
 		}
 		
 		protected function handleUserMoved(event:RoomEvent):void {
-			for each (var client:IAPIClientAdapter in apiClients) {
+			for each (var client:IAPIClientAdapter in apiClientAdapters) {
 				client.userMoved(event.user);
 			}
 		}
 		
 		protected function handleRoomCleared(event:RoomEvent):void {
-			for each (var client:IAPIClientAdapter in apiClients) {
+			for each (var client:IAPIClientAdapter in apiClientAdapters) {
 				client.allUsersLeft();
 			}
 		}
 		
+		protected function handleObjectAdded(event:RoomEvent):void {
+			for each (var client:IAPIClientAdapter in apiClientAdapters) {
+				client.objectAdded(event.roomObject);
+			}
+		}
+		
+		protected function handleObjectRemoved(event:RoomEvent):void {
+			for each (var client:IAPIClientAdapter in apiClientAdapters) {
+				client.objectRemoved(event.roomObject);
+			}
+		}
+		
+		protected function handleObjectMoved(event:RoomEvent):void {
+			for each (var client:IAPIClientAdapter in apiClientAdapters) {
+				client.objectMoved(event.roomObject);
+			}
+		}
+		
+		protected function handleObjectResized(event:RoomEvent):void {
+			for each (var client:IAPIClientAdapter in apiClientAdapters) {
+				client.objectResized(event.roomObject);
+			}
+		}
+		
 		protected function handleRoomDimLevelChanged(event:PropertyChangeEvent):void {
-			for each (var client:IAPIClientAdapter in apiClients) {
+			for each (var client:IAPIClientAdapter in apiClientAdapters) {
 				client.roomDimLevelChanged(Math.round(int(event.newValue)*100));
 			}
 		}
@@ -142,6 +238,9 @@ package com.worlize.interactivity.api
 			return interactivityClient.currentWorld;
 		}
 		
+		public function get authorMode():Boolean {
+			return AuthorModeState.getInstance().enabled;
+		}
 		
 		
 		// Methods meant to be called from the client
@@ -203,29 +302,60 @@ package com.worlize.interactivity.api
 			thisRoom.dimRoom(dimLevel);
 		}
 		
+		public function moveObject(objectGuid:String, x:int, y:int):void {
+			thisRoom.moveObject(objectGuid, x, y);
+		}
+		
+		public function resizeObject(objectGuid:String, width:int, height:int):void {
+			thisRoom.resizeObject(objectGuid, width, height);
+		}
+		
+		// Broadcast a data message to the specified object via the server for
+		// event synchronization across users.
+		public function sendObjectMessage(fromObjectGuid:String, message:String, toObjectGuid:String, toUserGuid:String=null):void {
+			var toAdapter:IAPIClientAdapter = apiClientAdaptersByGuid[toObjectGuid];
+			var fromAdapter:IAPIClientAdapter = apiClientAdaptersByGuid[fromObjectGuid];
+			if (toAdapter && fromAdapter) {
+				if (toUserGuid !== null && thisRoom.getUserById(toUserGuid) === null) {
+					return;
+				}
+				interactivityClient.broadcastObjectMessage(fromObjectGuid, message, toObjectGuid, toUserGuid);
+			}
+		}
+		
+		// Broadcast a data message to the specified object on this computer
+		// only, without going through the server.
+		public function sendObjectMessageLocal(fromObjectGuid:String, message:String, toObjectGuid:String):void {
+			var toAdapter:IAPIClientAdapter = apiClientAdaptersByGuid[toObjectGuid];
+			var fromAdapter:IAPIClientAdapter = apiClientAdaptersByGuid[fromObjectGuid];
+			if (toAdapter && fromAdapter) {
+				toAdapter.receiveMessage(message, fromAdapter.appGuid);
+			}
+		}
+		
 		
 		// Methods meant to be called by InteractivityClient
 		
 		public function processChat(record:ChatRecord):void {
-			for each (var client:IAPIClientAdapter in apiClients) {
+			for each (var client:IAPIClientAdapter in apiClientAdapters) {
 				client.processChat(record);
 			}
 		}
 		
 		public function userAvatarChanged(user:InteractivityUser):void {
-			for each (var client:IAPIClientAdapter in apiClients) {
+			for each (var client:IAPIClientAdapter in apiClientAdapters) {
 				client.userAvatarChanged(user);
 			}
 		}
 		
 		public function userFaceChanged(user:InteractivityUser):void {
-			for each (var client:IAPIClientAdapter in apiClients) {
+			for each (var client:IAPIClientAdapter in apiClientAdapters) {
 				client.userFaceChanged(user);
 			}
 		}
 		
 		public function userColorChanged(user:InteractivityUser):void {
-			for each (var client:IAPIClientAdapter in apiClients) {
+			for each (var client:IAPIClientAdapter in apiClientAdapters) {
 				client.userColorChanged(user);
 			}
 		}

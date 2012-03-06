@@ -1,17 +1,21 @@
 package com.worlize.model
 {
 	import com.worlize.event.NotificationCenter;
+	import com.worlize.interactivity.event.RoomEvent;
 	import com.worlize.notification.InWorldObjectNotification;
 	import com.worlize.rpc.HTTPMethod;
 	import com.worlize.rpc.WorlizeResultEvent;
 	import com.worlize.rpc.WorlizeServiceClient;
 	
+	import flash.events.EventDispatcher;
+	
 	import mx.logging.ILogger;
 	import mx.logging.Log;
 	import mx.rpc.events.FaultEvent;
+	import mx.utils.object_proxy;
 
 	[Bindable]
-	public class InWorldObjectInstance
+	public class InWorldObjectInstance extends EventDispatcher
 	{
 		public var inWorldObject:InWorldObject;
 		public var guid:String;
@@ -22,6 +26,8 @@ package com.worlize.model
 		public var room:RoomListEntry;
 		public var dest:String;
 		public var emptySlot:Boolean = false;
+		
+		public var sizedByScript:Boolean = false;
 		
 		public static function fromData(data:Object):InWorldObjectInstance {
 			var object:InWorldObjectInstance = new InWorldObjectInstance();
@@ -34,6 +40,22 @@ package com.worlize.model
 			}
 			object.emptySlot = false;
 			return object;
+		}
+		
+		public function moveLocal(x:int, y:int):void {
+			this.x = x;
+			this.y = y;
+			var event:RoomEvent = new RoomEvent(RoomEvent.OBJECT_MOVED);
+			event.roomObject = this;
+			dispatchEvent(event);
+		}
+		
+		public function resizeLocal(width:int, height:int):void {
+			this.width = width;
+			this.height = height;
+			var event:RoomEvent = new RoomEvent(RoomEvent.OBJECT_RESIZED);
+			event.roomObject = this;
+			dispatchEvent(event);
 		}
 		
 		public function requestDelete():void {
