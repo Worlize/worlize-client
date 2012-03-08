@@ -22,6 +22,7 @@
     <classEntry path="com.worlize.api.event.RoomObjectEvent"/>
     <classEntry path="com.worlize.api.event.MessageEvent"/>
     <classEntry path="com.worlize.api.event.AuthorEvent"/>
+    <classEntry path="com.worlize.api.data.SyncedList"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

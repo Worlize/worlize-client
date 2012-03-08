@@ -278,7 +278,7 @@ package com.worlize.interactivity.api.adapter
 			if (client === null) { return; }
 			var eo:Object = event;
 			if (eo.data && eo.data.message is String && eo.data.toObjectGuid is String) {
-				host.sendObjectMessageLocal(client.inWorldObjectInstance.guid, eo.data.message, eo.data.toObjectGuid);
+				host.sendObjectMessageLocal(client.inWorldObjectInstance.guid, host.thisUser.id, eo.data.message, eo.data.toObjectGuid);
 			}
 		}
 		

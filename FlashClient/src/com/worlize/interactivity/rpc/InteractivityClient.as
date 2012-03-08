@@ -690,7 +690,7 @@ package com.worlize.interactivity.rpc
 		
 		private function handleObjectMessageReceived(data:Object):void {
 			if (data.room === currentRoom.id) {
-				apiController.sendObjectMessageLocal(data.from, data.msg, data.to);
+				apiController.sendObjectMessageLocal(data.from, data.fromUser, data.msg, data.to);
 			}
 		}
 		

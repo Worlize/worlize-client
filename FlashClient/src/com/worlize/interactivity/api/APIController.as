@@ -325,7 +325,7 @@ package com.worlize.interactivity.api
 		
 		// Broadcast a data message to the specified object on this computer
 		// only, without going through the server.
-		public function sendObjectMessageLocal(fromObjectGuid:String, message:String, toObjectGuid:String):void {
+		public function sendObjectMessageLocal(fromObjectGuid:String, fromUserGuid:String, message:String, toObjectGuid:String):void {
 			var toAdapter:IAPIClientAdapter = apiClientAdaptersByGuid[toObjectGuid];
 			var fromAdapter:IAPIClientAdapter = apiClientAdaptersByGuid[fromObjectGuid];
 			if (toAdapter && fromAdapter) {
