@@ -37,17 +37,20 @@ package com.worlize.api.model
 		}
 		
 		public function setSize(width:Number, height:Number):void {
-			var event:APIEvent = new APIEvent(APIEvent.RESIZE_OBJECT);
-			event.data = {
-				width: width,
-				height: height
-			};
-			WorlizeAPI.sharedEvents.dispatchEvent(event);
+			if (_width !== width || _height !== height) {
+				var event:APIEvent = new APIEvent(APIEvent.RESIZE_OBJECT);
+				event.data = {
+					width: width,
+					height: height
+				};
+				WorlizeAPI.sharedEvents.dispatchEvent(event);
+			}
 		}
 		
 		worlize_internal static function fromData(data:Object):ThisRoomObject {
 			var obj:ThisRoomObject = new ThisRoomObject();
 			obj._instanceGuid = data.instanceGuid;
+			obj._state = data.state;
 			obj._guid = data.guid;
 			obj._name = data.name;
 			obj._identifier = data.identifier;

@@ -14,6 +14,7 @@ package com.worlize.interactivity.api
 	import com.worlize.state.AuthorModeState;
 	
 	import flash.events.MouseEvent;
+	import flash.utils.ByteArray;
 	
 	import mx.binding.utils.ChangeWatcher;
 	import mx.core.Application;
@@ -71,6 +72,7 @@ package com.worlize.interactivity.api
 			room.addEventListener(RoomEvent.OBJECT_REMOVED, handleObjectRemoved);
 			room.addEventListener(RoomEvent.OBJECT_MOVED, handleObjectMoved);
 			room.addEventListener(RoomEvent.OBJECT_RESIZED, handleObjectResized);
+			room.addEventListener(RoomEvent.OBJECT_STATE_CHANGED, handleObjectStateChanged);
 			dimLevelChangeWatcher = ChangeWatcher.watch(room, 'dimLevel', handleRoomDimLevelChanged);
 		}
 		
@@ -84,6 +86,7 @@ package com.worlize.interactivity.api
 			room.removeEventListener(RoomEvent.OBJECT_REMOVED, handleObjectRemoved);
 			room.removeEventListener(RoomEvent.OBJECT_MOVED, handleObjectMoved);
 			room.removeEventListener(RoomEvent.OBJECT_RESIZED, handleObjectResized);
+			room.removeEventListener(RoomEvent.OBJECT_STATE_CHANGED, handleObjectStateChanged);
 			dimLevelChangeWatcher.unwatch();
 		}
 		
@@ -215,6 +218,12 @@ package com.worlize.interactivity.api
 			}
 		}
 		
+		protected function handleObjectStateChanged(event:RoomEvent):void {
+			for each (var client:IAPIClientAdapter in apiClientAdapters) {
+				client.objectStateChanged(event.roomObject);
+			}
+		}
+		
 		protected function handleRoomDimLevelChanged(event:PropertyChangeEvent):void {
 			for each (var client:IAPIClientAdapter in apiClientAdapters) {
 				client.roomDimLevelChanged(Math.round(int(event.newValue)*100));
@@ -248,15 +257,15 @@ package com.worlize.interactivity.api
 			thisRoom.logMessage(message);
 		}
 		
-		public function logMessage(message:String):void {
+		public function logMessage(message:String, appGuid:String = null):void {
 			thisRoom.logMessage(message);
 		}
 		
-		public function localMessage(message:String):void {
+		public function localMessage(message:String, appGuid:String = null):void {
 			thisRoom.localMessage(message);
 		}
 		
-		public function roomMessage(message:String):void {
+		public function roomMessage(message:String, appGuid:String = null):void {
 			interactivityClient.roomMessage(message);
 		}
 		
@@ -282,11 +291,11 @@ package com.worlize.interactivity.api
 			}
 		}
 		
-		public function say(text:String, whisperToGuid:String):void {
+		public function say(text:String, whisperToUserGuid:String):void {
 			if (text) {
-				if (whisperToGuid) {
+				if (whisperToUserGuid) {
 					// It's a whisper
-					var recipient:InteractivityUser = thisRoom.getUserById(whisperToGuid);
+					var recipient:InteractivityUser = thisRoom.getUserById(whisperToUserGuid);
 					if (recipient) {
 						// make sure we have a real recipient
 						interactivityClient.privateMessage(text, recipient.id);
@@ -311,25 +320,35 @@ package com.worlize.interactivity.api
 		}
 		
 		// Broadcast a data message to the specified object via the server for
-		// event synchronization across users.
-		public function sendObjectMessage(fromObjectGuid:String, message:String, toObjectGuid:String, toUserGuid:String=null):void {
-			var toAdapter:IAPIClientAdapter = apiClientAdaptersByGuid[toObjectGuid];
-			var fromAdapter:IAPIClientAdapter = apiClientAdaptersByGuid[fromObjectGuid];
-			if (toAdapter && fromAdapter) {
+		// event synchronization across clients.
+		public function sendObjectMessage(fromAppInstanceGuid:String, message:ByteArray, toAppInstanceGuid:String, toUserGuid:String=null):void {
+			var fromAdapter:IAPIClientAdapter = apiClientAdaptersByGuid[fromAppInstanceGuid];
+			if (fromAdapter && message) {
 				if (toUserGuid !== null && thisRoom.getUserById(toUserGuid) === null) {
 					return;
 				}
-				interactivityClient.broadcastObjectMessage(fromObjectGuid, message, toObjectGuid, toUserGuid);
+				interactivityClient.broadcastObjectMessage(fromAppInstanceGuid, message, toAppInstanceGuid, toUserGuid);
 			}
 		}
 		
 		// Broadcast a data message to the specified object on this computer
 		// only, without going through the server.
-		public function sendObjectMessageLocal(fromObjectGuid:String, fromUserGuid:String, message:String, toObjectGuid:String):void {
-			var toAdapter:IAPIClientAdapter = apiClientAdaptersByGuid[toObjectGuid];
-			var fromAdapter:IAPIClientAdapter = apiClientAdaptersByGuid[fromObjectGuid];
-			if (toAdapter && fromAdapter) {
-				toAdapter.receiveMessage(message, fromAdapter.appGuid);
+		public function sendObjectMessageLocal(fromAppInstanceGuid:String, message:ByteArray, toAppInstanceGuid:String, fromUserGuid:String):void {
+			var fromUser:InteractivityUser = thisRoom.getUserById(fromUserGuid);
+			var fromAdapter:IAPIClientAdapter = apiClientAdaptersByGuid[fromAppInstanceGuid];
+			if (fromAdapter) {
+				if (toAppInstanceGuid !== null) {
+					var toAdapter:IAPIClientAdapter = apiClientAdaptersByGuid[toAppInstanceGuid];
+					if (toAdapter) {
+						toAdapter.receiveMessage(message, fromAdapter.appGuid, fromUser? fromUserGuid : null);
+					}
+				}
+				else {
+					// broadcast to all objects
+					for each (var client:IAPIClientAdapter in apiClientAdapters) {
+						client.receiveMessage(message, fromAdapter.appGuid, fromUser ? fromUserGuid : null);
+					}
+				}
 			}
 		}
 		

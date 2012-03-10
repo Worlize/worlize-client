@@ -12,6 +12,7 @@ package com.worlize.model
 	{
 		public var name:String;
 		public var guid:String;
+		public var ownerGuid:String;
 		public var world:WorldDefinition;
 		public var backgroundImageURL:String;
 		public var hotspots:Vector.<Hotspot> = new Vector.<Hotspot>();
@@ -26,6 +27,7 @@ package com.worlize.model
 		public static function fromData(data:Object):RoomDefinition {
 			var room:RoomDefinition = new RoomDefinition();
 			room.name = String(data.name);
+			room.ownerGuid = data.owner_guid;
 			if (data.guid) {
 				room.guid = String(data.guid);
 			}

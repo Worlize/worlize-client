@@ -4,7 +4,6 @@ package com.worlize.interactivity.api.adapter
 	import com.worlize.interactivity.api.AppLoader;
 	import com.worlize.interactivity.api.event.APIBridgeEvent;
 	import com.worlize.interactivity.model.CurrentRoom;
-	import com.worlize.interactivity.model.Hotspot;
 	import com.worlize.interactivity.model.InteractivityUser;
 	import com.worlize.interactivity.record.ChatRecord;
 	import com.worlize.model.InWorldObject;
@@ -18,9 +17,12 @@ package com.worlize.interactivity.api.adapter
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
 	import flash.events.MouseEvent;
+	import flash.events.TimerEvent;
 	import flash.events.UncaughtErrorEvent;
 	import flash.geom.Point;
 	import flash.system.Capabilities;
+	import flash.utils.ByteArray;
+	import flash.utils.Timer;
 	
 	import mx.core.mx_internal;
 	import mx.logging.ILogger;
@@ -37,15 +39,17 @@ package com.worlize.interactivity.api.adapter
 		
 		private var logger:ILogger = Log.getLogger('com.worlize.interactivity.api.adapter.ClientAdapterV1');
 		
-		private var _state:uint = ClientAdapterState.INIT;
 		private var _appGuid:String;
 		
 		public function ClientAdapterV1() {
 			
 		}
 		
-		public function get state():uint {
-			return _state;
+		public function get state():String {
+			if (client) {
+				return client.inWorldObjectInstance.state;
+			}
+			return InWorldObjectInstance.STATE_INIT;
 		}
 		
 		public function get appGuid():String {
@@ -55,7 +59,7 @@ package com.worlize.interactivity.api.adapter
 		public function attachClient(client:AppLoader):void {
 			if (this.client && this.client !== client) { throw new Error("Client already attached"); }
 			client.addEventListener(Event.UNLOAD, handleClientUnload);
-			_appGuid = client.inWorldObjectInstance.guid;
+			_appGuid = client.appGuid;
 			this.client = client;
 		}
 		
@@ -72,7 +76,7 @@ package com.worlize.interactivity.api.adapter
 				if (host) {
 					host.addErrorToLog(errorMessage);
 				}
-				_state = ClientAdapterState.ERROR;
+				client.inWorldObjectInstance.state = InWorldObjectInstance.STATE_LOAD_ERROR;
 				throw new Error(errorMessage);
 			}
 			
@@ -84,19 +88,26 @@ package com.worlize.interactivity.api.adapter
 			var thisObject:InWorldObjectInstance = client.inWorldObjectInstance;
 			
 			if (thisUser === null) {
-				_state = ClientAdapterState.ERROR;
+				thisObject.state = InWorldObjectInstance.STATE_LOAD_ERROR;
 				removeSharedEventListeners();
 				throw new Error("Unable to initialize client without a current user");
 				return;
 			}
 			
+			thisObject.state = InWorldObjectInstance.STATE_HANDSHAKING;
+			
 			data.thisUser = userToObject(thisUser);
+			data.thisUser.canAuthor = thisUser.id === thisRoom.ownerGuid;
 			data.thisRoom = currentRoomToObject(thisRoom);
 			data.thisWorld = worldDefinitionToObject(thisWorld);
 			data.thisObject = inWorldObjectInstanceToObject(thisObject);
 			data.authorMode = host.authorMode;
-			
-			_state = ClientAdapterState.READY;
+		}
+		
+		protected function handleClientFinishHandshake(event:Event):void {
+			if (state === InWorldObjectInstance.STATE_HANDSHAKING) {
+				client.inWorldObjectInstance.state = InWorldObjectInstance.STATE_READY;
+			}
 		}
 		
 		protected function handleClientUnload(event:Event):void {
@@ -105,6 +116,7 @@ package com.worlize.interactivity.api.adapter
 				sharedEvents = null;
 			}
 			if (client) {
+				client.inWorldObjectInstance.state = InWorldObjectInstance.STATE_UNLOADED;
 				client = null;
 			}
 			if (host) {
@@ -112,13 +124,12 @@ package com.worlize.interactivity.api.adapter
 				host = null;
 			}
 			_appGuid = null;
-			_state = ClientAdapterState.UNLOADED;
 		}
 		
 		public function unload():void {
 			if (client) {
 				client.unloadAndStop();
-				_state = ClientAdapterState.UNLOADING;
+				client.inWorldObjectInstance.state = InWorldObjectInstance.STATE_UNLOADING;
 			}
 		}
 		
@@ -126,6 +137,7 @@ package com.worlize.interactivity.api.adapter
 			var loader:Loader = client.contentHolder as Loader;
 			sharedEvents = loader.contentLoaderInfo.sharedEvents;
 			
+			sharedEvents.addEventListener("client_finishHandshake", handleClientFinishHandshake);
 			sharedEvents.addEventListener("client_requestBomb", handleClientRequestBomb);
 			sharedEvents.addEventListener("client_moveUser", handleClientMoveUser);
 			sharedEvents.addEventListener("client_setUserFace", handleClientSetUserFace);
@@ -138,12 +150,13 @@ package com.worlize.interactivity.api.adapter
 			sharedEvents.addEventListener("client_logMessage", handleClientLogMessage);
 			sharedEvents.addEventListener("client_roomAnnouncement", handleClientRoomAnnouncement);
 			sharedEvents.addEventListener("client_roomLocalAnnouncement", handleClientRoomLocalAnnouncement);
-			sharedEvents.addEventListener("client_sendObjectMessage", handleClientSendObjectMessage);
-			sharedEvents.addEventListener("client_sendObjectMessageLocal", handleClientSendObjectMessageLocal);
+			sharedEvents.addEventListener("client_sendAppMessage", handleClientSendAppMessage);
+			sharedEvents.addEventListener("client_sendAppMessageLocal", handleClientSendAppMessageLocal);
 			sharedEvents.addEventListener("client_getRoomMouseCoords", handleClientGetRoomMouseCoords);
 		}
 		
 		protected function removeSharedEventListeners():void {
+			sharedEvents.removeEventListener("client_finishHandshake", handleClientFinishHandshake);
 			sharedEvents.removeEventListener("client_requestBomb", handleClientRequestBomb);
 			sharedEvents.removeEventListener("client_moveUser", handleClientMoveUser);
 			sharedEvents.removeEventListener("client_setUserFace", handleClientSetUserFace);
@@ -156,8 +169,8 @@ package com.worlize.interactivity.api.adapter
 			sharedEvents.removeEventListener("client_logMessage", handleClientLogMessage);
 			sharedEvents.removeEventListener("client_roomAnnouncement", handleClientRoomAnnouncement);
 			sharedEvents.removeEventListener("client_roomLocalAnnouncement", handleClientRoomLocalAnnouncement);
-			sharedEvents.removeEventListener("client_sendObjectMessage", handleClientSendObjectMessage);
-			sharedEvents.removeEventListener("client_sendObjectMessageLocal", handleClientSendObjectMessageLocal);
+			sharedEvents.removeEventListener("client_sendAppMessage", handleClientSendAppMessage);
+			sharedEvents.removeEventListener("client_sendAppMessageLocal", handleClientSendAppMessageLocal);
 			sharedEvents.removeEventListener("client_getRoomMouseCoords", handleClientGetRoomMouseCoords);
 		}
 		
@@ -253,15 +266,15 @@ package com.worlize.interactivity.api.adapter
 			}
 		}
 		
-		private function handleClientSendObjectMessage(event:Event):void {
+		private function handleClientSendAppMessage(event:Event):void {
 			if (client === null) { return; }
 			var eo:Object = event;
-			if (eo.data && eo.data.message is String && eo.data.toObjectGuid is String) {
+			if (eo.data && eo.data.message is ByteArray) {
 				if (eo.data.toUserGuid is String) {
 					host.sendObjectMessage(
 						client.inWorldObjectInstance.guid,
 						eo.data.message,
-						eo.data.toObjectGuid,
+						eo.data.toAppInstanceGuid,
 						eo.data.toUserGuid
 					);
 					return;
@@ -269,16 +282,16 @@ package com.worlize.interactivity.api.adapter
 				host.sendObjectMessage(
 					client.inWorldObjectInstance.guid,
 					eo.data.message,
-					eo.data.toObjectGuid
+					eo.data.toAppInstanceGuid
 				);
 			}
 		}
 		
-		private function handleClientSendObjectMessageLocal(event:Event):void {
+		private function handleClientSendAppMessageLocal(event:Event):void {
 			if (client === null) { return; }
 			var eo:Object = event;
-			if (eo.data && eo.data.message is String && eo.data.toObjectGuid is String) {
-				host.sendObjectMessageLocal(client.inWorldObjectInstance.guid, host.thisUser.id, eo.data.message, eo.data.toObjectGuid);
+			if (eo.data && eo.data.message is ByteArray) {
+				host.sendObjectMessageLocal(client.inWorldObjectInstance.guid, eo.data.message, eo.data.toAppInstanceGuid, host.thisUser.id);
 			}
 		}
 		
@@ -294,13 +307,15 @@ package com.worlize.interactivity.api.adapter
 		
 		
 		public function authorModeChanged(authorMode:Boolean):void {
+			if (sharedEvents === null) { return; }
 			var event:APIBridgeEvent = new APIBridgeEvent("host_authorModeChanged");
 			event.data = authorMode;
 			sharedEvents.dispatchEvent(event);
 		}
 		
 		public function processChat(record:ChatRecord):void {
-			if (_state !== ClientAdapterState.READY) { return; }
+			if (sharedEvents === null) { return; }
+			if (state !== InWorldObjectInstance.STATE_READY) { return; }
 			
 			var type:String = (record.direction === ChatRecord.INCHAT) ? "incomingChat" : "outgoingChat";
 			
@@ -323,23 +338,27 @@ package com.worlize.interactivity.api.adapter
 		}
 
 		public function userEntered(user:InteractivityUser):void {
+			if (sharedEvents === null) { return; }
 			var event:APIBridgeEvent = new APIBridgeEvent("host_userEntered");
 			event.data = { user: userToObject(user) };
 			sharedEvents.dispatchEvent(event);
 		}
 		
 		public function userLeft(user:InteractivityUser):void {
+			if (sharedEvents === null) { return; }
 			var event:APIBridgeEvent = new APIBridgeEvent("host_userLeft");
 			event.data = { userGuid: user.id };
 			sharedEvents.dispatchEvent(event);
 		}
 		
 		public function allUsersLeft():void {
+			if (sharedEvents === null) { return; }
 			var event:APIBridgeEvent = new APIBridgeEvent("host_allUsersLeft");
 			sharedEvents.dispatchEvent(event);
 		}
 		
 		public function objectAdded(roomObject:InWorldObjectInstance):void {
+			if (sharedEvents === null) { return; }
 			if (roomObject.inWorldObject.kind !== InWorldObject.KIND_APP) { return; }
 			var event:APIBridgeEvent = new APIBridgeEvent("host_roomObjectAdded");
 			event.data = { roomObject: inWorldObjectInstanceToObject(roomObject) };
@@ -347,6 +366,7 @@ package com.worlize.interactivity.api.adapter
 		}
 		
 		public function objectRemoved(roomObject:InWorldObjectInstance):void {
+			if (sharedEvents === null) { return; }
 			if (roomObject.inWorldObject.kind !== InWorldObject.KIND_APP) { return; }			
 			var event:APIBridgeEvent = new APIBridgeEvent("host_roomObjectRemoved");
 			event.data = {
@@ -356,6 +376,7 @@ package com.worlize.interactivity.api.adapter
 		}
 		
 		public function objectMoved(roomObject:InWorldObjectInstance):void {
+			if (sharedEvents === null) { return; }
 			if (roomObject.inWorldObject.kind !== InWorldObject.KIND_APP) { return; }
 			var event:APIBridgeEvent = new APIBridgeEvent("host_roomObjectMoved");
 			event.data = {
@@ -367,6 +388,7 @@ package com.worlize.interactivity.api.adapter
 		}
 		
 		public function objectResized(roomObject:InWorldObjectInstance):void {
+			if (sharedEvents === null) { return; }
 			if (roomObject.inWorldObject.kind !== InWorldObject.KIND_APP) { return; }
 			var event:APIBridgeEvent = new APIBridgeEvent("host_roomObjectResized");
 			event.data = {
@@ -377,7 +399,20 @@ package com.worlize.interactivity.api.adapter
 			sharedEvents.dispatchEvent(event);
 		}
 		
+		public function objectStateChanged(roomObject:InWorldObjectInstance):void {
+			if (sharedEvents === null) { return; }
+			if (roomObject.inWorldObject.kind !== InWorldObject.KIND_APP) { return; }
+			var event:APIBridgeEvent = new APIBridgeEvent("host_roomObjectStateChanged");
+			event.data = {
+				guid: roomObject.guid,
+				state: roomObject.state
+			};
+			logger.info("Object " + roomObject.guid + " state changed to : " + roomObject.state);
+			sharedEvents.dispatchEvent(event);
+		}
+		
 		public function userMoved(user:InteractivityUser):void {
+			if (sharedEvents === null) { return; }
 			var event:APIBridgeEvent = new APIBridgeEvent("host_userMoved");
 			event.data = {
 				userGuid: user.id,
@@ -388,6 +423,7 @@ package com.worlize.interactivity.api.adapter
 		}
 		
 		public function userFaceChanged(user:InteractivityUser):void {
+			if (sharedEvents === null) { return; }
 			var event:APIBridgeEvent = new APIBridgeEvent("host_userFaceChanged");
 			event.data = {
 				userGuid: user.id,
@@ -397,6 +433,7 @@ package com.worlize.interactivity.api.adapter
 		}
 		
 		public function userColorChanged(user:InteractivityUser):void {
+			if (sharedEvents === null) { return; }
 			var event:APIBridgeEvent = new APIBridgeEvent("host_userColorChanged");
 			event.data = {
 				userGuid: user.id,
@@ -406,6 +443,7 @@ package com.worlize.interactivity.api.adapter
 		}
 		
 		public function userAvatarChanged(user:InteractivityUser):void {
+			if (sharedEvents === null) { return; }
 			var event:APIBridgeEvent = new APIBridgeEvent("host_userAvatarChanged");
 			
 			var obj:Object = userToObject(user);
@@ -418,21 +456,25 @@ package com.worlize.interactivity.api.adapter
 		}
 		
 		public function roomDimLevelChanged(dimLevel:int):void {
+			if (sharedEvents === null) { return; }
 			var event:APIBridgeEvent = new APIBridgeEvent("host_roomDimLevelChanged");
 			event.data = { dimLevel: dimLevel };
 			sharedEvents.dispatchEvent(event);
 		}
 		
-		public function receiveMessage(message:String, fromGuid:String):void {
+		public function receiveMessage(message:ByteArray, fromAppInstanceGuid:String, fromUserGuid:String):void {
+			if (sharedEvents === null) { return; }
 			var event:APIBridgeEvent = new APIBridgeEvent("host_roomObjectMessageReceived");
 			event.data = {
 				message: message,
-				from: fromGuid
+				fromApp: fromAppInstanceGuid,
+				fromUser: fromUserGuid
 			};
 			sharedEvents.dispatchEvent(event);
 		}
 		
 		public function applicationMouseUp(mouseEvent:MouseEvent):void {
+			if (sharedEvents === null) { return; }
 			var event:APIBridgeEvent = new APIBridgeEvent("host_applicationMouseUp");
 			event.data = {
 				altKey: mouseEvent.altKey,
@@ -443,6 +485,7 @@ package com.worlize.interactivity.api.adapter
 		}
 		
 		public function roomMouseMove(mouseEvent:MouseEvent):void {
+			if (sharedEvents === null) { return; }
 			var currentTarget:DisplayObject = mouseEvent.currentTarget as DisplayObject;
 			var event:APIBridgeEvent = new APIBridgeEvent("host_roomMouseMove");
 			event.data = {
@@ -499,40 +542,20 @@ package com.worlize.interactivity.api.adapter
 			var obj:Object = {
 				guid: room.id,
 				name: room.name,
+				ownerGuid: room.ownerGuid,
 				users: [],
 				objects: [],
-				hotspots: [],
 				width: 950,
 				height: 570
 			};
 			
 			for each (var objInst:InWorldObjectInstance in room.inWorldObjects) {
-				obj.objects.push(inWorldObjectInstanceToObject(objInst));
+				if (objInst.inWorldObject.kind === InWorldObject.KIND_APP) {
+					obj.objects.push(inWorldObjectInstanceToObject(objInst));
+				}
 			}
 			for each (var user:InteractivityUser in room.users) {
 				obj.users.push(userToObject(user));
-			}
-			for each (var hotspot:Hotspot in room.hotSpots) {
-				obj.hotspots.push(hotspotToObj(hotspot));
-			}
-			
-			return obj;
-		}
-		
-		protected function hotspotToObj(hotspot:Hotspot):Object {
-			var obj:Object = {
-				guid: hotspot.guid,
-				destination: hotspot.dest,
-				x: hotspot.location.x,
-				y: hotspot.location.y,
-				points: []
-			};
-			
-			for each (var point:Point in hotspot.polygon) {
-				obj.points.push({
-					x: point.x,
-					y: point.y
-				});
 			}
 			
 			return obj;
@@ -547,6 +570,7 @@ package com.worlize.interactivity.api.adapter
 		
 		protected function inWorldObjectInstanceToObject(instance:InWorldObjectInstance):Object {
 			var obj:Object = {
+				state: instance.state,
 				instanceGuid: instance.guid,
 				guid: instance.inWorldObject.guid,
 				name: instance.inWorldObject.name,

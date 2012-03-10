@@ -9,10 +9,11 @@ package com.worlize.interactivity.api.adapter
 	import flash.events.MouseEvent;
 	import flash.events.UncaughtErrorEvent;
 	import flash.ui.Mouse;
+	import flash.utils.ByteArray;
 
 	public interface IAPIClientAdapter
 	{
-		function get state():uint;
+		function get state():String;
 		function get appGuid():String;		
 		
 		// Called from AppLoader to attach the adapter
@@ -43,12 +44,13 @@ package com.worlize.interactivity.api.adapter
 		function objectRemoved(roomObject:InWorldObjectInstance):void;
 		function objectMoved(roomObject:InWorldObjectInstance):void;
 		function objectResized(roomObject:InWorldObjectInstance):void;
+		function objectStateChanged(roomObject:InWorldObjectInstance):void;
 		function userMoved(user:InteractivityUser):void;
 		function userFaceChanged(user:InteractivityUser):void;
 		function userColorChanged(user:InteractivityUser):void;
 		function userAvatarChanged(user:InteractivityUser):void;
 		function roomDimLevelChanged(dimLevel:int):void;
-		function receiveMessage(message:String, fromGuid:String):void;
+		function receiveMessage(message:ByteArray, fromAppInstanceGuid:String, fromUserGuid:String):void;
 		function roomMouseMove(event:MouseEvent):void;
 		function applicationMouseUp(event:MouseEvent):void;
 	}

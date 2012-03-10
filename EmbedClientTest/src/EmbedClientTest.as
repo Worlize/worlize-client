@@ -66,33 +66,25 @@ package
 			color = color | (red & 0xFF) << 16;
 			color = color | (green & 0xFF) << 8;
 			color = color | (blue & 0xFF);
-			api.thisObject.sendMessage(JSON.stringify({ color: color }));
+			api.thisRoom.broadcastMessage({ msg: "setColor", color: color });
 		}
 		
 		private function handleMessageReceived(event:MessageEvent):void {
-			try {
-				var data:Object = JSON.parse(event.message);
-				circle.setColor(data.color);
-			}
-			catch(e:Error) {
-				// do nothing
+			if (event.message.msg === 'setColor') {
+				circle.setColor(event.message.color);
 			}
 		}
 		
 		private function handleObjectResized(event:RoomObjectEvent):void {
 			circle.x = api.thisObject.width / 2;
 			circle.y = api.thisObject.height / 2;
-			centerOnCursor();
-		}
-		
-		private function centerOnCursor():void {
-			api.thisObject.moveTo(api.thisRoom.mouseX - api.thisObject.width/2, api.thisRoom.mouseY - api.thisObject.height/2);
+			api.log("Object resized.");
 		}
 		
 		private function handleRoomMouseMove(event:MouseEvent):void {
 //			circle.x = event.localX - api.thisObject.x;
 //			circle.y = event.localY - api.thisObject.y;
-			centerOnCursor();
+			api.log("Room Mouse Move: " + api.thisRoom.mouseX +","+ api.thisRoom.mouseY);
 //			api.thisObject.moveTo(event.localX - loaderInfo.width/2, event.localY - loaderInfo.height/2);
 		}
 		

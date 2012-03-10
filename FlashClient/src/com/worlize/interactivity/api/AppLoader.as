@@ -1,6 +1,5 @@
 package com.worlize.interactivity.api
 {
-	import com.worlize.interactivity.api.adapter.ClientAdapterState;
 	import com.worlize.interactivity.api.adapter.IAPIClientAdapter;
 	import com.worlize.interactivity.api.event.AppLoaderEvent;
 	import com.worlize.interactivity.api.event.ClientValidationErrorEvent;
@@ -22,6 +21,7 @@ package com.worlize.interactivity.api
 	import mx.logging.Log;
 	
 	[Event(name="appBombed",type="com.worlize.interactivity.api.event.AppLoaderEvent")]
+	[Event(name="validationError",type="com.worlize.interactivity.api.event.ClientValidationErrorEvent")]
 	public class AppLoader extends SWFLoader
 	{
 		use namespace mx_internal;
@@ -84,6 +84,8 @@ package com.worlize.interactivity.api
 			}
 			_objInstance = url as InWorldObjectInstance;
 			
+			_objInstance.state = InWorldObjectInstance.STATE_LOADING;
+			
 			logger.info("Loading object \"" + _objInstance.inWorldObject.name + "\"");
 			super.load(_objInstance.inWorldObject.appURL + "?cb=" + Math.round((Math.random()*99999)));
 			addClientInitListeners();
@@ -96,9 +98,10 @@ package com.worlize.interactivity.api
 				loader.contentLoaderInfo.addEventListener(Event.UNLOAD, handleContentLoaderInfoUnload);
 				logger.info("Adding UNCAUGHT_ERROR handler");
 				loader.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, handleUncaughtErrorEvent);
-				loader.contentLoaderInfo.sharedEvents.addEventListener('clientHandshake', handleClientHandshake);
+				loader.contentLoaderInfo.sharedEvents.addEventListener('client_handshake', handleClientHandshake);
 			}
 			else {
+				_objInstance.state = InWorldObjectInstance.STATE_LOAD_ERROR;
 				throw new Error("AppLoader must load a SWF file as an API client.");
 			}
 		}
@@ -118,7 +121,6 @@ package com.worlize.interactivity.api
 						_adapter.attachClient(this);
 						_adapter.attachHost(interactivityClient.apiController);
 						_adapter.handshakeClient(e.data);
-						logger.info("API Client handshake complete");
 					}
 					catch(e:Error) {
 						bombApp();
@@ -126,7 +128,7 @@ package com.worlize.interactivity.api
 					return;
 				}
 			}
-			logger.error("Invalid clientHandshake event received from API client!");
+			logger.error("Invalid client_handshake event received from API client!");
 			bombApp();
 		}
 
@@ -150,7 +152,7 @@ package com.worlize.interactivity.api
 				validationError = true;
 				validationMessage = "Worlize API client applications must be written in ActionScript 3";
 			}
-			else if (_adapter === null || _adapter.state !== ClientAdapterState.READY) {
+			else if (_adapter === null || _adapter.state !== InWorldObjectInstance.STATE_READY) {
 				validationError = true;
 				validationMessage = "Client SWF must initialize the Worlize API in the main constructor function";
 			}
@@ -178,6 +180,7 @@ package com.worlize.interactivity.api
 			}
 			if (_objInstance) {
 				logger.info("_objInstance set to null.  App \"" + _objInstance.inWorldObject.name + "\" unloaded.");
+				_objInstance.state = InWorldObjectInstance.STATE_UNLOADED;
 				_objInstance = null;
 			}
 			else {
@@ -219,6 +222,7 @@ package com.worlize.interactivity.api
 		public function bombApp():void {
 			logger.error("Bombing app: Unloading child SWF file.");
 			_hasError = true;
+			_objInstance.state = InWorldObjectInstance.STATE_BOMBED;
 			if (inWorldObjectInstance.width < 64) {
 				inWorldObjectInstance.width = 64;
 			}

@@ -45,6 +45,7 @@ package com.worlize.interactivity.model
 	{
 		public var id:String;
 		public var name:String = "Connecting";
+		public var ownerGuid:String = null;
 		public var backgroundFile:String;
 		public var snowEnabled:Boolean = false;
 		public var users:ArrayCollection = new ArrayCollection();
@@ -165,11 +166,13 @@ package com.worlize.interactivity.model
 		private function addInWorldObjectInstanceListeners(inWorldObjectInstance:InWorldObjectInstance):void {
 			inWorldObjectInstance.addEventListener(RoomEvent.OBJECT_MOVED, redispatchObjectEvent);
 			inWorldObjectInstance.addEventListener(RoomEvent.OBJECT_RESIZED, redispatchObjectEvent);
+			inWorldObjectInstance.addEventListener(RoomEvent.OBJECT_STATE_CHANGED, redispatchObjectEvent);
 		}
 		
 		private function removeInWorldObjectInstanceListeners(inWorldObjectInstance:InWorldObjectInstance):void {
-			inWorldObjectInstance.addEventListener(RoomEvent.OBJECT_MOVED, redispatchObjectEvent);
-			inWorldObjectInstance.addEventListener(RoomEvent.OBJECT_RESIZED, redispatchObjectEvent);
+			inWorldObjectInstance.removeEventListener(RoomEvent.OBJECT_MOVED, redispatchObjectEvent);
+			inWorldObjectInstance.removeEventListener(RoomEvent.OBJECT_RESIZED, redispatchObjectEvent);
+			inWorldObjectInstance.removeEventListener(RoomEvent.OBJECT_STATE_CHANGED, redispatchObjectEvent);
 		}
 				
 		public function addObject(objectData:Object):void {

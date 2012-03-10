@@ -7,14 +7,18 @@ package com.worlize.api.model
 	
 	import flash.events.EventDispatcher;
 	import flash.events.IEventDispatcher;
+	import flash.utils.ByteArray;
+	import flash.utils.Endian;
 	
 	[Event(name="objectResized",type="com.worlize.api.event.RoomObjectEvent")]
 	[Event(name="objectMoved",type="com.worlize.api.event.RoomObjectEvent")]
+	[Event(name="objectStateChanged",type="com.worlize.api.event.RoomObjectEvent")]
 	public class RoomObject extends EventDispatcher
 	{
 		use namespace worlize_internal;
 		
 		protected var _instanceGuid:String;
+		protected var _state:String;
 		protected var _guid:String;
 		protected var _name:String;
 		protected var _identifier:String;
@@ -28,6 +32,7 @@ package com.worlize.api.model
 		public function toJSON():Object {
 			return {
 				instanceGuid: _instanceGuid,
+				state: _state,
 				guid: _guid,
 				name: _name,
 				identifier: _identifier,
@@ -46,6 +51,10 @@ package com.worlize.api.model
 		
 		public function get instanceGuid():String {
 			return _instanceGuid;
+		}
+		
+		public function get state():String {
+			return _state;
 		}
 		
 		public function get guid():String {
@@ -84,11 +93,15 @@ package com.worlize.api.model
 			return _y;
 		}
 		
-		public function sendMessage(message:String, toUserGuid:String = null):void {
-			var event:APIEvent = new APIEvent(APIEvent.SEND_OBJECT_MESSAGE);
+		public function sendMessage(message:Object, toUserGuid:String = null):void {
+			var event:APIEvent = new APIEvent(APIEvent.SEND_APP_MESSAGE);
+			var byteArray:ByteArray = new ByteArray();
+			byteArray.endian = Endian.BIG_ENDIAN;
+			byteArray.writeObject(message);
+			byteArray.position = 0;
 			event.data = {
-				message: message,
-				toObjectGuid: _instanceGuid
+				message: byteArray,
+				toAppInstanceGuid: _instanceGuid
 			};
 			if (toUserGuid) {
 				event.data.toUserGuid = toUserGuid;
@@ -96,11 +109,15 @@ package com.worlize.api.model
 			WorlizeAPI.sharedEvents.dispatchEvent(event);
 		}
 		
-		public function sendMessageLocal(message:String):void {
-			var event:APIEvent = new APIEvent(APIEvent.SEND_OBJECT_MESSAGE_LOCAL);
+		public function sendMessageLocal(message:Object):void {
+			var event:APIEvent = new APIEvent(APIEvent.SEND_APP_MESSAGE_LOCAL);
+			var byteArray:ByteArray = new ByteArray();
+			byteArray.endian = Endian.BIG_ENDIAN;
+			byteArray.writeObject(message);
+			byteArray.position = 0;
 			event.data = {
-				message: message,
-				toObjectGuid: _instanceGuid
+				message: byteArray,
+				toAppInstanceGuid: _instanceGuid
 			};
 			WorlizeAPI.sharedEvents.dispatchEvent(event);
 		}
@@ -110,24 +127,38 @@ package com.worlize.api.model
 		}
 		
 		worlize_internal function updatePosition(x:Number, y:Number):void {
-			_x = x;
-			_y = y;
-			var event:RoomObjectEvent = new RoomObjectEvent(RoomObjectEvent.MOVED);
-			event.roomObject = this;
-			dispatchEvent(event);
+			if (_x !== x || _y !== y) {
+				_x = x;
+				_y = y;
+				var event:RoomObjectEvent = new RoomObjectEvent(RoomObjectEvent.MOVED);
+				event.roomObject = this;
+				dispatchEvent(event);
+			}
 		}
 		
 		worlize_internal function updateSize(width:Number, height:Number):void {
-			_width = width;
-			_height = height;
-			var event:RoomObjectEvent = new RoomObjectEvent(RoomObjectEvent.RESIZED);
-			event.roomObject = this;
-			dispatchEvent(event);
+			if (_width !== width || _height !== height) {
+				_width = width;
+				_height = height;
+				var event:RoomObjectEvent = new RoomObjectEvent(RoomObjectEvent.RESIZED);
+				event.roomObject = this;
+				dispatchEvent(event);
+			}
+		}
+		
+		worlize_internal function updateState(state:String):void {
+			if (_state !== state) {
+				_state = state;
+				var event:RoomObjectEvent = new RoomObjectEvent(RoomObjectEvent.STATE_CHANGED);
+				event.roomObject = this;
+				dispatchEvent(event);
+			}
 		}
 		
 		worlize_internal static function fromData(data:Object):RoomObject {
 			var obj:RoomObject = new RoomObject();
 			obj._instanceGuid = data.instanceGuid;
+			obj._state = data.state;
 			obj._guid = data.guid;
 			obj._name = data.name;
 			obj._identifier = data.identifier;

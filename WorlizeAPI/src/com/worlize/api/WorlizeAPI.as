@@ -4,10 +4,12 @@ package com.worlize.api
 	import com.worlize.api.event.AuthorEvent;
 	import com.worlize.api.event.ChatEvent;
 	import com.worlize.api.event.MessageEvent;
+	import com.worlize.api.model.AppConfig;
 	import com.worlize.api.model.RoomObject;
 	import com.worlize.api.model.ThisRoom;
 	import com.worlize.api.model.ThisRoomObject;
 	import com.worlize.api.model.ThisUser;
+	import com.worlize.api.model.User;
 	import com.worlize.api.model.World;
 	import com.worlize.worlize_internal;
 	
@@ -20,6 +22,7 @@ package com.worlize.api
 	import flash.events.TimerEvent;
 	import flash.events.UncaughtErrorEvent;
 	import flash.system.Security;
+	import flash.utils.ByteArray;
 	import flash.utils.Timer;
 	
 	[Event(name="mouseUp",type="flash.events.MouseEvent")]
@@ -35,6 +38,8 @@ package com.worlize.api
 		private static var _initialized:Boolean = false;
 		private static var _instance:WorlizeAPI;
 		
+		public static var config:AppConfig = new AppConfig();
+		
 		worlize_internal static var rootObject:DisplayObject;
 		worlize_internal static var loaderInfo:LoaderInfo;
 		worlize_internal static var sharedEvents:EventDispatcher;
@@ -44,8 +49,6 @@ package com.worlize.api
 		private var _thisUser:ThisUser;
 		private var _thisObject:ThisRoomObject;
 		private var _authorMode:Boolean;
-		
-		public var config:Object;
 		
 		public function get thisWorld():World {
 			return _thisWorld;
@@ -75,7 +78,7 @@ package com.worlize.api
 		public static function init(rootObject:DisplayObject):WorlizeAPI {
 			if (_initialized) { return _instance; }
 			trace("Client initializing WorlizeAPI");
-			_instance = new WorlizeAPI(rootObject);
+			new WorlizeAPI(rootObject);
 			return _instance;
 		}
 		
@@ -92,6 +95,8 @@ package com.worlize.api
 			addLoaderInfoListeners();
 			
 			handshake();
+			
+			_instance = this;
 		}
 		
 		public function log(text:String):void {
@@ -108,19 +113,13 @@ package com.worlize.api
 			loaderInfo.addEventListener(Event.INIT, handleLoaderInfoInit);
 			loaderInfo.addEventListener(Event.UNLOAD, handleLoaderUnload);
 			loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, handleUncaughtError);
-			
-			loaderInfo.sharedEvents.addEventListener("test", function(event:Event):void {
-				trace("Client: Got test event");
-				var eo:Object = event;
-				// eo.data.string = "String reset by client!";
-				eo.data = { string: "Another string from client!" };
-			});
 		}
 
 		private function handshake():void {
 			var event:APIEvent = new APIEvent(APIEvent.CLIENT_HANDSHAKE);
 			var data:Object = {
-				APIVersion: 1
+				APIVersion: 1,
+				appConfig: config.toJSON()
 			};
 			event.data = data;
 			sharedEvents.dispatchEvent(event);
@@ -131,6 +130,8 @@ package com.worlize.api
 				_thisRoom = new ThisRoom();
 				_thisWorld = new World();
 				_thisObject = new ThisRoomObject();
+				
+				_initialized = true;
 				return;
 			}
 			
@@ -139,16 +140,13 @@ package com.worlize.api
 			_thisWorld = World.fromData(event.data.thisWorld);
 			_thisRoom = ThisRoom.fromData(event.data.thisRoom, _thisUser, _thisObject);
 			_authorMode = event.data.authorMode;
-			config = event.data.config;
 			
 			addSharedEventHandlers();
 			
-			_initialized = true;
+			var finishHandshakeEvent:APIEvent = new APIEvent(APIEvent.CLIENT_FINISH_HANDSHAKE);
+			sharedEvents.dispatchEvent(finishHandshakeEvent);
 			
-			trace("Loading initialization data complete.");
-			trace("Current Room: " + thisRoom.guid + " " + thisRoom.name);
-			trace("Current User: " + thisUser.guid + " " + thisUser.name);
-			trace("Users in room: " + thisRoom.users.length);
+			_initialized = true;
 		}
 		
 		private function addSharedEventHandlers():void {
@@ -160,23 +158,34 @@ package com.worlize.api
 		
 		private function handleRoomObjectMessageReceived(event:Event):void {
 			var eo:Object = event;
-			var fromObject:RoomObject = _thisRoom.getObjectByGuid(eo.data.from);
-			if (fromObject) {
+			var fromObject:RoomObject = _thisRoom.getObjectByGuid(eo.data.fromApp);
+			var fromUser:User = _thisRoom.getUserByGuid(eo.data.fromUser);
+			if (fromObject && fromUser) {
 				var msgEvent:MessageEvent = new MessageEvent(MessageEvent.MESSAGE_RECEIVED);
-				msgEvent.from = fromObject;
-				msgEvent.message = eo.data.message;
+				msgEvent.fromObject = fromObject;
+				msgEvent.fromUser = fromUser;
+				if (eo.data.message is ByteArray) {
+					try {
+						var ba:ByteArray = eo.data.message as ByteArray;
+						ba.position = 0;
+						msgEvent.message = ba.readObject();
+					}
+					catch(e:Error) {
+						return;
+					}
+				}
 				_thisObject.dispatchEvent(msgEvent);
 			}
 		}
 		
-		private function handleApplicationMouseUp(event:Event):void {
-			var eo:Object = event;
+		private function handleApplicationMouseUp(eo:Object):void {
 			dispatchEvent(new MouseEvent(MouseEvent.MOUSE_UP, false, false, 0, 0, null, eo.data.ctrlKey, eo.data.altKey, eo.data.shiftKey, false, 0));
 		}
 		
 		private function handleAuthorModeChanged(event:Event):void {
 			var newValue:Boolean = Boolean((event as Object).data);
 			if (_authorMode !== newValue) {
+				_authorMode = newValue;
 				var type:String = _authorMode ? AuthorEvent.AUTHOR_MODE_ENABLED : AuthorEvent.AUTHOR_MODE_DISABLED;
 				dispatchEvent(new AuthorEvent(type));
 			}
@@ -200,9 +209,6 @@ package com.worlize.api
 			trace("Uncaught Error Inside Object " + thisObject.guid);
 			var timer:Timer = new Timer(1,1);
 			timer.addEventListener(TimerEvent.TIMER, function(event:TimerEvent):void {
-				var moveEvent:APIEvent = new APIEvent(APIEvent.MOVE_USER);
-				moveEvent.data = { x: 60, y: 60 };
-				sharedEvents.dispatchEvent(moveEvent);
 				var bombEvent:APIEvent = new APIEvent(APIEvent.REQUEST_BOMB);
 				sharedEvents.dispatchEvent(bombEvent);
 			});

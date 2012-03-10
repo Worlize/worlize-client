@@ -5,12 +5,13 @@ package com.worlize.api.event
 	
 	public class APIEvent extends Event
 	{
-		public static const CLIENT_HANDSHAKE:String = "clientHandshake";
+		public static const CLIENT_HANDSHAKE:String = "client_handshake";
+		public static const CLIENT_FINISH_HANDSHAKE:String = "client_finishHandshake";
 		
 		public static const MOVE_OBJECT:String = "client_moveRoomObject";
 		public static const RESIZE_OBJECT:String = "client_resizeRoomObject";
-		public static const SEND_OBJECT_MESSAGE:String = "client_sendObjectMessage";
-		public static const SEND_OBJECT_MESSAGE_LOCAL:String = "client_sendObjectMessageLocal";
+		public static const SEND_APP_MESSAGE:String = "client_sendAppMessage";
+		public static const SEND_APP_MESSAGE_LOCAL:String = "client_sendAppMessageLocal";
 		
 		public static const MOVE_USER:String = "client_moveUser";
 		public static const SET_USER_FACE:String = "client_setUserFace";

@@ -33,12 +33,14 @@
 			import com.worlize.event.NotificationCenter;
 			import com.worlize.interactivity.api.AppLoader;
 			import com.worlize.interactivity.api.event.AppLoaderEvent;
+			import com.worlize.interactivity.api.event.ClientValidationErrorEvent;
 			import com.worlize.interactivity.rpc.InteractivityClient;
 			import com.worlize.model.InWorldObject;
 			import com.worlize.model.InWorldObjectInstance;
 			import com.worlize.model.RoomDefinition;
 			import com.worlize.state.AuthorModeState;
 			
+			import mx.controls.Alert;
 			import mx.controls.Image;
 			import mx.events.FlexEvent;
 	
@@ -228,12 +230,17 @@
 				updateState();
 			}
 			
+			protected function handleValidationError(event:ClientValidationErrorEvent):void {
+				InteractivityClient.getInstance().currentRoom.logMessage(event.text);
+			}
+			
 		]]>
 	</fx:Script>
 	
 	<api:AppLoader top="0" left="0" id="appLoader"
 				   width="{inWorldObjectInstance.width}"
 				   height="{inWorldObjectInstance.height}"
+				   validationError="handleValidationError(event)"
 				   appBombed="handleAppBombed(event)"
 				   complete="handleAppLoaderComplete(event)" />
 	

@@ -1,16 +1,19 @@
 package com.worlize.rpc
 {
 	import com.worlize.interactivity.event.WorlizeCommEvent;
+	import com.worlize.interactivity.rpc.messages.IBinaryServerMessage;
 	import com.worlize.model.WorlizeConfig;
 	import com.worlize.websocket.WebSocket;
 	import com.worlize.websocket.WebSocketErrorEvent;
 	import com.worlize.websocket.WebSocketEvent;
+	import com.worlize.websocket.WebSocketMessage;
 	import com.worlize.websocket.WebSocketState;
 	
 	import flash.events.EventDispatcher;
 	import flash.events.IEventDispatcher;
 	import flash.events.SecurityErrorEvent;
 	import flash.events.TimerEvent;
+	import flash.utils.ByteArray;
 	import flash.utils.Timer;
 	
 	import mx.core.FlexGlobals;
@@ -87,7 +90,12 @@ package com.worlize.rpc
 			if (_state !== WorlizeConnectionState.CONNECTED) {
 				throw new Error("Cannot send message.  Not connected.");
 			}
-			webSocket.sendUTF(JSON.stringify(message));
+			if (message is IBinaryServerMessage) {
+				webSocket.sendBytes((message as IBinaryServerMessage).serialize());
+			}
+			else {
+				webSocket.sendUTF(JSON.stringify(message));
+			}
 		}
 		
 		public function connect():void {
@@ -156,12 +164,17 @@ package com.worlize.rpc
 		
 		protected function handleWebSocketMessage(event:WebSocketEvent):void {
 			var commEvent:WorlizeCommEvent = new WorlizeCommEvent(WorlizeCommEvent.MESSAGE);
-			try {
-				commEvent.message = JSON.parse(event.message.utf8Data);
+			if (event.message.type === WebSocketMessage.TYPE_BINARY) {
+				commEvent.binaryData = event.message.binaryData;
 			}
-			catch (e:Error) {
-				logger.error("Unparsable message received.");
-				return;
+			else {
+				try {
+					commEvent.message = JSON.parse(event.message.utf8Data);
+				}
+				catch (e:Error) {
+					logger.error("Unparsable message received.");
+					return;
+				}
 			}
 			dispatchEvent(commEvent);
 		}

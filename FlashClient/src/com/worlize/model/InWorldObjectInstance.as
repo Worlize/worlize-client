@@ -9,6 +9,7 @@ package com.worlize.model
 	
 	import flash.events.EventDispatcher;
 	
+	import mx.events.FlexEvent;
 	import mx.logging.ILogger;
 	import mx.logging.Log;
 	import mx.rpc.events.FaultEvent;
@@ -17,6 +18,16 @@ package com.worlize.model
 	[Bindable]
 	public class InWorldObjectInstance extends EventDispatcher
 	{
+		public static const STATE_INIT:String = "init";
+		public static const STATE_LOADING:String = "loading";
+		public static const STATE_LOAD_ERROR:String = "loadError";
+		public static const STATE_READY:String = "ready";
+		public static const STATE_HANDSHAKING:String = "handshaking";
+		public static const STATE_UNLOADING:String = "unloading";
+		public static const STATE_UNLOADED:String = "unloaded";
+		public static const STATE_BOMBED:String = "bombed";
+		
+		private var _state:String = STATE_INIT;
 		public var inWorldObject:InWorldObject;
 		public var guid:String;
 		public var x:int;
@@ -28,6 +39,20 @@ package com.worlize.model
 		public var emptySlot:Boolean = false;
 		
 		public var sizedByScript:Boolean = false;
+		
+		[Bindable(event="stateChanged")]
+		public function get state():String {
+			return _state;
+		}
+		public function set state(newValue:String):void {
+			if (_state !== newValue) {
+				_state = newValue;
+				dispatchEvent(new FlexEvent('stateChanged'));
+				var event:RoomEvent = new RoomEvent(RoomEvent.OBJECT_STATE_CHANGED);
+				event.roomObject = this;
+				dispatchEvent(event);
+			}
+		}
 		
 		public static function fromData(data:Object):InWorldObjectInstance {
 			var object:InWorldObjectInstance = new InWorldObjectInstance();
@@ -51,11 +76,13 @@ package com.worlize.model
 		}
 		
 		public function resizeLocal(width:int, height:int):void {
-			this.width = width;
-			this.height = height;
-			var event:RoomEvent = new RoomEvent(RoomEvent.OBJECT_RESIZED);
-			event.roomObject = this;
-			dispatchEvent(event);
+			if (this.width !== width || this.height !== height) {
+				this.width = width;
+				this.height = height;
+				var event:RoomEvent = new RoomEvent(RoomEvent.OBJECT_RESIZED);
+				event.roomObject = this;
+				dispatchEvent(event);
+			}
 		}
 		
 		public function requestDelete():void {

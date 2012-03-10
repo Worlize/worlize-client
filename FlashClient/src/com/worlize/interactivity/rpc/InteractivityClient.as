@@ -22,6 +22,7 @@ package com.worlize.interactivity.rpc
 	import com.worlize.interactivity.model.RoomHistoryManager;
 	import com.worlize.interactivity.model.WebcamBroadcastManager;
 	import com.worlize.interactivity.record.ChatRecord;
+	import com.worlize.interactivity.rpc.messages.AppBroadcastMessage;
 	import com.worlize.interactivity.view.SoundPlayer;
 	import com.worlize.model.AvatarInstance;
 	import com.worlize.model.BackgroundImageInstance;
@@ -120,8 +121,6 @@ package com.worlize.interactivity.rpc
 			return worlizeConfig.interactivitySession.userGuid;
 		}
 		
-		public var serverId:String;
-		
 		[Bindable]
 		public var preferencesManager:PreferencesManager = PreferencesManager.getInstance();
 		
@@ -202,7 +201,6 @@ package com.worlize.interactivity.rpc
 			"new_friend_request": handleNewFriendRequest,
 			"new_hotspot": handleNewHotspot,
 			"new_object": handleNewObject,
-			"obj_msg": handleObjectMessageReceived,
 			"object_moved": handleObjectMoved,
 			"object_removed": handleObjectRemoved,
 			"object_updated": handleObjectUpdated, // dest changed
@@ -237,6 +235,11 @@ package com.worlize.interactivity.rpc
 			"youtube_seek": handleYouTubeSeek,
 			"youtube_stop": handleYouTubeStop
 		};
+		
+		private var incomingBinaryMessageHandlers:Object = {
+			0x42435354: handleAppBroadcastMessage
+		};
+		
 		
 		public static function getInstance():InteractivityClient {
 			if (InteractivityClient.instance == null) {
@@ -354,7 +357,12 @@ package com.worlize.interactivity.rpc
 		}
 		
 		private function handleIncomingMessage(event:WorlizeCommEvent):void {
-			routeIncomingMessage(event.message);
+			if (event.binaryData) {
+				routeIncomingBinaryMessage(event.binaryData);
+			}
+			else {
+				routeIncomingMessage(event.message);
+			}
 		}
 		
 		private function routeIncomingMessage(message:Object):void {
@@ -371,6 +379,23 @@ package com.worlize.interactivity.rpc
 				else {
 					logger.warn("Unhandled message: " + JSON.stringify(message));
 				}
+			}
+		}
+		
+		private function routeIncomingBinaryMessage(data:ByteArray):void {
+			if (data.length < 4) {
+				logger.error("Incoming binary message missing 4-byte message identifier.");
+				return;
+			}
+			data.position = 0;
+			var messageId:uint = data.readUnsignedInt();
+			var handlerFunction:Function = incomingBinaryMessageHandlers[messageId];
+			if (handlerFunction is Function) {
+				data.position = 0;
+				handlerFunction(data);
+			}
+			else {
+				logger.warn("Unhandled binary message ID: 0x" + messageId.toString(16));
 			}
 		}
 		
@@ -688,10 +713,11 @@ package com.worlize.interactivity.rpc
 			}
 		}
 		
-		private function handleObjectMessageReceived(data:Object):void {
-			if (data.room === currentRoom.id) {
-				apiController.sendObjectMessageLocal(data.from, data.fromUser, data.msg, data.to);
-			}
+		private function handleAppBroadcastMessage(data:ByteArray):void {
+			var msg:AppBroadcastMessage = new AppBroadcastMessage();
+			msg.deserialize(data);
+			
+			apiController.sendObjectMessageLocal(msg.fromAppInstanceGuid, msg.message, msg.toAppInstanceGuid, msg.fromUserGuid);
 		}
 		
 		private function handleObjectMoved(data:Object):void {
@@ -812,6 +838,7 @@ package com.worlize.interactivity.rpc
 			var room:RoomDefinition = RoomDefinition.fromData(data);
 			currentRoom.id = room.guid;
 			currentRoom.name = room.name;
+			currentRoom.ownerGuid = room.ownerGuid;
 			currentRoom.backgroundFile = room.backgroundImageURL;
 			currentRoom.selfUserId = id;
 			
@@ -835,7 +862,6 @@ package com.worlize.interactivity.rpc
 			// In-World Objects
 			currentRoom.resetInWorldObjects();
 			for each (var objectData:Object in room.objects) {
-				
 				currentRoom.addObject(objectData);
 			}
 			
@@ -1048,19 +1074,14 @@ package com.worlize.interactivity.rpc
 			}, true);
 		}
 		
-		public function broadcastObjectMessage(fromGuid:String, message:String, toGuid:String, toUserGuid:String=null):void {
-			var data:Object = {
-				from: fromGuid,
-				msg: message,
-				to: toGuid
-			};
-			if (toUserGuid) {
-				data.toUser = toUserGuid;
-			}
-			connection.send({
-				msg: "obj_msg",
-				data: data
-			});
+		public function broadcastObjectMessage(fromAppInstanceGuid:String, message:ByteArray, toAppInstanceGuid:String=null, toUserGuid:String=null):void {
+			var msg:AppBroadcastMessage = new AppBroadcastMessage();
+			msg.fromAppInstanceGuid = fromAppInstanceGuid;
+			msg.toAppInstanceGuid = toAppInstanceGuid;
+			msg.message = message;
+			msg.toUserGuid = toUserGuid;
+			
+			connection.send(msg);
 		}
 		
 		public function roomChat(message:String):void {

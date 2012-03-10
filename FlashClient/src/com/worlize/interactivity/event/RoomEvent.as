@@ -17,6 +17,7 @@ package com.worlize.interactivity.event
 		public static const OBJECT_REMOVED:String = "objectRemoved";
 		public static const OBJECT_MOVED:String = "objectMoved";
 		public static const OBJECT_RESIZED:String = "objectResized";
+		public static const OBJECT_STATE_CHANGED:String = "objectStateChanged";
 		
 		public var user:InteractivityUser;
 		public var roomObject:InWorldObjectInstance;

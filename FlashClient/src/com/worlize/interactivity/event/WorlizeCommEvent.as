@@ -1,6 +1,7 @@
 package com.worlize.interactivity.event
 {
 	import flash.events.Event;
+	import flash.utils.ByteArray;
 	
 	public class WorlizeCommEvent extends Event
 	{
@@ -13,6 +14,7 @@ package com.worlize.interactivity.event
 		public static const STATE_CHANGE:String = "stateChange";
 		
 		public var message:Object;
+		public var binaryData:ByteArray;
 				
 		public var previousState:String;
 		public var newState:String;
@@ -25,6 +27,7 @@ package com.worlize.interactivity.event
 		override public function clone():Event {
 			var event:WorlizeCommEvent = new WorlizeCommEvent(type, bubbles, cancelable);
 			event.message = message;
+			event.binaryData = binaryData;
 			event.previousState = previousState;
 			event.newState = newState;
 			return event;
