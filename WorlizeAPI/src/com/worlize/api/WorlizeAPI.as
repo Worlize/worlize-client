@@ -66,6 +66,10 @@ package com.worlize.api
 			return _thisObject;
 		}
 		
+		public function get authorMode():Boolean {
+			return _authorMode;
+		}
+		
 		public static function getInstance():WorlizeAPI {
 			if (!_initialized) {
 				throw new Error("Cannot get WorlizeAPI instance before calling WorlizeAPI.init()");

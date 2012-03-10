@@ -4,6 +4,7 @@
 	clipAndEnableScrolling="true"
 	currentState="normal"
 	creationComplete="handleCreationComplete()"
+	enterFrame="handleEnterFrame()"
 	width="950" height="570"
 	scaleX="{scaleFactor}"
 	scaleY="{scaleFactor}"
@@ -312,7 +313,7 @@
 			private function startAvatarDrag(event:MouseEvent = null):void {
 				draggingAvatar = true;
 				systemManager.getSandboxRoot().addEventListener(MouseEvent.MOUSE_UP, handleStageMouseUp);
-				addEventListener(MouseEvent.MOUSE_MOVE, handleAvatarDragMouseMove);
+				addEventListener("customMouseMove", handleAvatarDragMouseMove);
 			}
 
 			private function stopAvatarDrag():void {
@@ -323,7 +324,7 @@
 					liveDraggingTimer.removeEventListener(TimerEvent.TIMER, handleLiveDraggingTimer);
 				}
 				systemManager.getSandboxRoot().removeEventListener(MouseEvent.MOUSE_UP, handleStageMouseUp);
-				removeEventListener(MouseEvent.MOUSE_MOVE, handleAvatarDragMouseMove);
+				removeEventListener("customMouseMove", handleAvatarDragMouseMove);
 			}
 			
 			private function handleMouseDown(event:MouseEvent):void {
@@ -840,6 +841,17 @@
 			private function handleSecurityError(event:SecurityErrorEvent = null):void {
 				var security_event:InteractivitySecurityErrorEvent = new InteractivitySecurityErrorEvent(InteractivitySecurityErrorEvent.SECURITY_ERROR);
 				dispatchEvent(event);
+			}
+			
+			private var lastX:Number = 0;
+			private var lastY:Number = 0;
+			private function handleEnterFrame():void {
+				if (mouseX < 0 || mouseX > 950 || mouseY < 0 || mouseY > 570) { return; }
+				if (lastX !== mouseX || lastY !== mouseY) {
+					lastX = mouseX;
+					lastY = mouseY;
+					dispatchEvent(new MouseEvent("customMouseMove", false, false, mouseX, mouseY, null, false, false, false, false, 0));
+				}
 			}
 			
 		]]>

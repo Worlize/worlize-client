@@ -17,6 +17,7 @@ package
 		public function drawCircle(radius:Number):void {
 			_radius = radius;
 			WorlizeAPI.getInstance().thisObject.setSize(radius*2 + 6, radius*2 + 6);
+			x = y = radius + 3;
 			graphics.clear();
 			graphics.beginFill(_color, 1.0);
 			graphics.lineStyle(3, 0x000000);

@@ -52,14 +52,14 @@ package com.worlize.interactivity.api
 		protected function addMouseEvents():void {
 			if (mouseEventsAdded) { return; }
 			FlexGlobals.topLevelApplication.addEventListener(MouseEvent.MOUSE_UP, handleApplicationMouseUp);
-			thisRoom.roomView.addEventListener(MouseEvent.MOUSE_MOVE, handleRoomMouseMove);
+			thisRoom.roomView.addEventListener("customMouseMove", handleRoomMouseMove);
 			mouseEventsAdded = true;
 		}
 		
 		protected function removeMouseEvents():void {
 			mouseEventsAdded = false;
 			FlexGlobals.topLevelApplication.removeEventListener(MouseEvent.MOUSE_UP, handleApplicationMouseUp);
-			thisRoom.roomView.removeEventListener(MouseEvent.MOUSE_MOVE, handleRoomMouseMove);
+			thisRoom.roomView.removeEventListener("customMouseMove", handleRoomMouseMove);
 		}
 		
 		protected function addInteractivityClientEvents():void {
