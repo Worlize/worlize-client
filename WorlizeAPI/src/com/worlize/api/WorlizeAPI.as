@@ -1,5 +1,6 @@
 package com.worlize.api
 {
+	import com.worlize.api.data.StateHistory;
 	import com.worlize.api.event.APIEvent;
 	import com.worlize.api.event.AuthorEvent;
 	import com.worlize.api.event.ChatEvent;
@@ -50,6 +51,8 @@ package com.worlize.api
 		private var _thisObject:ThisRoomObject;
 		private var _authorMode:Boolean;
 		
+		private var _stateHistory:StateHistory;
+		
 		public function get thisWorld():World {
 			return _thisWorld;
 		}
@@ -68,6 +71,10 @@ package com.worlize.api
 		
 		public function get authorMode():Boolean {
 			return _authorMode;
+		}
+		
+		public function get stateHistory():StateHistory {
+			return _stateHistory;
 		}
 		
 		public static function getInstance():WorlizeAPI {
@@ -149,6 +156,8 @@ package com.worlize.api
 			
 			var finishHandshakeEvent:APIEvent = new APIEvent(APIEvent.CLIENT_FINISH_HANDSHAKE);
 			sharedEvents.dispatchEvent(finishHandshakeEvent);
+			
+			_stateHistory = new StateHistory();
 			
 			_initialized = true;
 		}

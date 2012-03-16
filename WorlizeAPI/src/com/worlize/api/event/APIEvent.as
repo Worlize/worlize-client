@@ -28,6 +28,10 @@ package com.worlize.api.event
 		
 		public static const GET_ROOM_MOUSE_COORDS:String = "client_getRoomMouseCoords";
 		
+		public static const SHARED_HISTORY_PUSH:String = "client_sharedHistoryPush";
+		public static const SHARED_HISTORY_CLEAR:String = "client_sharedHistoryClear";
+		public static const SHARED_HISTORY_SHIFT:String = "client_sharedHistoryShift";
+		
 		// For when something goes wrong inside the client and we want to be shutdown and unloaded
 		public static const REQUEST_BOMB:String = "client_requestBomb";
 		

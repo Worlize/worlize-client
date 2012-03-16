@@ -78,6 +78,10 @@ package com.worlize.api.model
 			WorlizeAPI.sharedEvents.dispatchEvent(event);
 		}
 		
+		public function gotoRoom(roomGuid:String):void {
+			throw new Error("Not yet implemented.");
+		}
+		
 		override public function toString():String {
 			return "[ThisUser guid=" + _guid + " name=" + _name + "]";
 		}
