@@ -13,16 +13,15 @@
     <classEntry path="com.worlize.api.model.ThisRoom"/>
     <classEntry path="com.worlize.api.model.ThisUser"/>
     <classEntry path="com.worlize.api.model.ThisRoomObject"/>
-    <classEntry path="com.worlize.api.data.StateHistoryEvent"/>
+    <classEntry path="com.worlize.api.event.DataEvent"/>
     <classEntry path="com.worlize.api.event.ChangeEvent"/>
     <classEntry path="com.worlize.api.event.UserEvent"/>
     <classEntry path="com.worlize.api.model.Avatar"/>
     <classEntry path="com.worlize.api.event.RoomObjectEvent"/>
     <classEntry path="com.worlize.api.event.MessageEvent"/>
     <classEntry path="com.worlize.api.event.AuthorEvent"/>
-    <classEntry path="com.worlize.api.data.StateHistory"/>
+    <classEntry path="com.worlize.api.data.SyncedList"/>
     <classEntry path="com.worlize.api.model.AppConfig"/>
-    <classEntry path="com.worlize.api.data.StateHistoryEntry"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

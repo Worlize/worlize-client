@@ -11,6 +11,7 @@ package com.worlize.api.data
 		
 		public var item:StateHistoryEntry;
 		public var index:int;
+		public var userGuid:String;
 		
 		public function StateHistoryEvent(type:String, bubbles:Boolean=false, cancelable:Boolean=false)
 		{

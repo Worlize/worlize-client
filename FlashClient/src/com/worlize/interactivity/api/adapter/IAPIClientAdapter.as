@@ -51,6 +51,9 @@ package com.worlize.interactivity.api.adapter
 		function userAvatarChanged(user:InteractivityUser):void;
 		function roomDimLevelChanged(dimLevel:int):void;
 		function receiveMessage(message:ByteArray, fromAppInstanceGuid:String, fromUserGuid:String):void;
+		function receiveStateHistoryPush(userGuid:String, data:ByteArray):void;
+		function receiveStateHistoryShift(userGuid:String):void;
+		function receiveStateHistoryClear(userGuid:String):void;
 		function roomMouseMove(event:MouseEvent):void;
 		function applicationMouseUp(event:MouseEvent):void;
 	}

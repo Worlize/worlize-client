@@ -27,7 +27,7 @@ package
 			
 			api = WorlizeAPI.getInstance();
 			api.thisRoom.addEventListener(ChatEvent.INCOMING_CHAT, handleIncomingChat);
-			api.thisObject.addEventListener(MessageEvent.MESSAGE_RECEIVED, handleMessageReceived);
+//			api.thisObject.addEventListener(MessageEvent.MESSAGE_RECEIVED, handleMessageReceived);
 			
 			api.stateHistory.addEventListener(StateHistoryEvent.ITEM_ADDED, handleStateAdded);
 			
@@ -37,6 +37,7 @@ package
 			
 			if (api.stateHistory.length > 0) {
 				var lastState:StateHistoryEntry = api.stateHistory.getItemAt(api.stateHistory.length-1) as StateHistoryEntry;
+				circle.setColor(lastState.data.color);
 			}
 			
 			circle.addEventListener(MouseEvent.CLICK, handleCircleClick);

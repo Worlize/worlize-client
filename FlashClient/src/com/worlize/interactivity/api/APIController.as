@@ -352,6 +352,19 @@ package com.worlize.interactivity.api
 			}
 		}
 		
+		public function stateHistoryPush(appInstanceGuid:String, data:ByteArray):void {
+			interactivityClient.stateHistoryPush(appInstanceGuid, data);
+		}
+		
+		public function stateHistoryShift(appInstanceGuid:String):void {
+			interactivityClient.stateHistoryShift(appInstanceGuid);
+		}
+		
+		public function stateHistoryClear(appInstanceGuid:String):void {
+			interactivityClient.stateHistoryClear(appInstanceGuid);
+		}
+		
+		
 		
 		// Methods meant to be called by InteractivityClient
 		
@@ -376,6 +389,27 @@ package com.worlize.interactivity.api
 		public function userColorChanged(user:InteractivityUser):void {
 			for each (var client:IAPIClientAdapter in apiClientAdapters) {
 				client.userColorChanged(user);
+			}
+		}
+		
+		public function receiveStateHistoryPush(appInstanceGuid:String, userGuid:String, data:ByteArray):void {
+			var client:IAPIClientAdapter = getClientByGuid(appInstanceGuid);
+			if (client) {
+				client.receiveStateHistoryPush(userGuid, data);
+			}
+		}
+		
+		public function receiveStateHistoryShift(appInstanceGuid:String, userGuid:String):void {
+			var client:IAPIClientAdapter = getClientByGuid(appInstanceGuid);
+			if (client) {
+				client.receiveStateHistoryShift(userGuid);
+			}
+		}
+		
+		public function receiveStateHistoryClear(appInstanceGuid:String, userGuid:String):void {
+			var client:IAPIClientAdapter = getClientByGuid(appInstanceGuid);
+			if (client) {
+				client.receiveStateHistoryClear(userGuid);
 			}
 		}
 	}

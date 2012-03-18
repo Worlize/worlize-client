@@ -28,9 +28,10 @@ package com.worlize.api.data
 				throw new Error("You may only create one instance of StateHistory");
 			}
 			
+			eventDispatcher = new EventDispatcher(this);
+			
 			resetFromSource(sourceItems);
 			
-			eventDispatcher = new EventDispatcher(this);
 			addSharedEventListeners();
 			instance = this;
 		}
@@ -46,9 +47,9 @@ package com.worlize.api.data
 					else {
 						var historyEntryItem:StateHistoryEntry = new StateHistoryEntry();
 						if (item.data is ByteArray) {
-							historyEntryItem.data = item.data;
+							historyEntryItem.data = (item.data as ByteArray).readObject();
 						}
-						historyEntryItem.userGuid = item.user;
+						historyEntryItem.userGuid = item.userGuid;
 						items.push(historyEntryItem);
 					}
 				}
@@ -56,12 +57,12 @@ package com.worlize.api.data
 		}
 		
 		protected function addSharedEventListeners():void {
-			WorlizeAPI.sharedEvents.addEventListener('syncedListPush', handleSyncedListPush);
-			WorlizeAPI.sharedEvents.addEventListener('syncedListShift', handleSyncedListShift);
-			WorlizeAPI.sharedEvents.addEventListener('syncedListClear', handleSyncedListClear);
+			WorlizeAPI.sharedEvents.addEventListener('host_stateHistoryPush', handleStateHistoryPush);
+			WorlizeAPI.sharedEvents.addEventListener('host_stateHistoryShift', handleStateHistoryShift);
+			WorlizeAPI.sharedEvents.addEventListener('host_stateHistoryClear', handleStateHistoryClear);
 		}
 		
-		protected function handleSyncedListPush(event:Event):void { 
+		protected function handleStateHistoryPush(event:Event):void { 
 			var eo:Object = event;
 			var item:StateHistoryEntry = new StateHistoryEntry();
 			item.userGuid = eo.data.user;
@@ -77,23 +78,27 @@ package com.worlize.api.data
 			dispatchEvent(historyEvent);
 		}
 		
-		protected function handleSyncedListShift(event:Event):void {
+		protected function handleStateHistoryShift(event:Event):void {
 			if (items.length > 0) {
+				var eo:Object = event;
 				var removedItem:StateHistoryEntry = items.shift() as StateHistoryEntry;
 				var historyEvent:StateHistoryEvent = new StateHistoryEvent(StateHistoryEvent.ITEM_REMOVED);
 				historyEvent.index = 0;
 				historyEvent.item = removedItem;
+				historyEvent.userGuid = eo.data.user;
 				dispatchEvent(historyEvent);
 			}
 		}
 		
-		protected function handleSyncedListClear(event:Event):void {
+		protected function handleStateHistoryClear(event:Event):void {
 			items = [];
-			dispatchEvent(new StateHistoryEvent(StateHistoryEvent.CLEARED));
+			var historyEvent:StateHistoryEvent = new StateHistoryEvent(StateHistoryEvent.CLEARED);
+			historyEvent.userGuid = (event as Object).data.user;
+			dispatchEvent(historyEvent);
 		}
 
 		public function push(item:Object):void {
-			var event:APIEvent = new APIEvent(APIEvent.SHARED_HISTORY_PUSH);
+			var event:APIEvent = new APIEvent(APIEvent.STATE_HISTORY_PUSH);
 			var ba:ByteArray = new ByteArray();
 			ba.writeObject(item);
 			ba.position = 0;
@@ -102,11 +107,11 @@ package com.worlize.api.data
 		}
 		
 		public function clear():void {
-			WorlizeAPI.sharedEvents.dispatchEvent(new APIEvent(APIEvent.SHARED_HISTORY_CLEAR));
+			WorlizeAPI.sharedEvents.dispatchEvent(new APIEvent(APIEvent.STATE_HISTORY_CLEAR));
 		}
 		
 		public function shift():void {
-			WorlizeAPI.sharedEvents.dispatchEvent(new APIEvent(APIEvent.SHARED_HISTORY_SHIFT));
+			WorlizeAPI.sharedEvents.dispatchEvent(new APIEvent(APIEvent.STATE_HISTORY_SHIFT));
 		}
 		
 		public function get length():uint {
@@ -126,8 +131,9 @@ package com.worlize.api.data
 		}
 		
 		override flash_proxy function nextNameIndex(index:int):int {
-			if (index > items.length)
+			if (index > items.length) {
 				return 0;
+			}
 			return index + 1;
 		}
 		

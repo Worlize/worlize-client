@@ -152,12 +152,12 @@ package com.worlize.api
 			_thisRoom = ThisRoom.fromData(event.data.thisRoom, _thisUser, _thisObject);
 			_authorMode = event.data.authorMode;
 			
+			_stateHistory = new StateHistory(event.data.stateHistory);
+			
 			addSharedEventHandlers();
 			
 			var finishHandshakeEvent:APIEvent = new APIEvent(APIEvent.CLIENT_FINISH_HANDSHAKE);
 			sharedEvents.dispatchEvent(finishHandshakeEvent);
-			
-			_stateHistory = new StateHistory();
 			
 			_initialized = true;
 		}

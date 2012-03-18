@@ -2,6 +2,7 @@ package com.worlize.model
 {
 	import com.worlize.event.NotificationCenter;
 	import com.worlize.interactivity.event.RoomEvent;
+	import com.worlize.interactivity.model.StateHistoryEntry;
 	import com.worlize.notification.InWorldObjectNotification;
 	import com.worlize.rpc.HTTPMethod;
 	import com.worlize.rpc.WorlizeResultEvent;
@@ -37,6 +38,8 @@ package com.worlize.model
 		public var room:RoomListEntry;
 		public var dest:String;
 		public var emptySlot:Boolean = false;
+		
+		public var stateHistory:Array;
 		
 		public var sizedByScript:Boolean = false;
 		

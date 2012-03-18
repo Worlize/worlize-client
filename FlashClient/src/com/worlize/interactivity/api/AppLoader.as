@@ -135,6 +135,10 @@ package com.worlize.interactivity.api
 		protected function handleContentLoaderInfoInit(event:Event):void {
 			logger.info("API Client Content INIT");
 			var loader:Loader = contentHolder as Loader;
+			if (!loader) {
+				logger.fatal("Cannot access loader during contentLoaderInfo INIT event.  This should be impossible?!");
+				return;
+			}
 			
 			var errorEvent:ClientValidationErrorEvent;
 			var validationError:Boolean = false;
