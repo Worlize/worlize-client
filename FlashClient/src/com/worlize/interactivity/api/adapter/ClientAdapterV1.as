@@ -52,7 +52,7 @@ package com.worlize.interactivity.api.adapter
 			return InWorldObjectInstance.STATE_INIT;
 		}
 		
-		public function get appGuid():String {
+		public function get appInstanceGuid():String {
 			return _appGuid;
 		}
 		
@@ -87,6 +87,11 @@ package com.worlize.interactivity.api.adapter
 			var thisWorld:WorldDefinition = host.thisWorld;
 			var thisObject:InWorldObjectInstance = client.inWorldObjectInstance;
 			
+			var options:Object = data.appOptions;
+			
+			thisObject.width = options.defaultWidth;
+			thisObject.height = options.defaultHeight;
+						
 			if (thisUser === null) {
 				thisObject.state = InWorldObjectInstance.STATE_LOAD_ERROR;
 				removeSharedEventListeners();
@@ -157,7 +162,7 @@ package com.worlize.interactivity.api.adapter
 			sharedEvents.addEventListener("client_getRoomMouseCoords", handleClientGetRoomMouseCoords);
 			sharedEvents.addEventListener("client_stateHistoryPush", handleClientStateHistoryPush);
 			sharedEvents.addEventListener("client_stateHistoryShift", handleClientStateHistoryShift);
-			sharedEvents.addEventListener("client_stateHistoryCler", handleClientStateHistoryClear);
+			sharedEvents.addEventListener("client_stateHistoryClear", handleClientStateHistoryClear);
 		}
 		
 		protected function removeSharedEventListeners():void {
@@ -179,7 +184,7 @@ package com.worlize.interactivity.api.adapter
 			sharedEvents.removeEventListener("client_getRoomMouseCoords", handleClientGetRoomMouseCoords);
 			sharedEvents.removeEventListener("client_stateHistoryPush", handleClientStateHistoryPush);
 			sharedEvents.removeEventListener("client_stateHistoryShift", handleClientStateHistoryShift);
-			sharedEvents.removeEventListener("client_stateHistoryCler", handleClientStateHistoryClear);
+			sharedEvents.removeEventListener("client_stateHistoryClear", handleClientStateHistoryClear);
 		}
 		
 		private function handleClientRequestBomb(event:Event):void {
@@ -314,16 +319,16 @@ package com.worlize.interactivity.api.adapter
 		private function handleClientStateHistoryPush(event:Event):void {
 			var eo:Object = event;
 			if (eo.data is ByteArray) {
-				host.stateHistoryPush(appGuid, eo.data as ByteArray);
+				host.stateHistoryPush(appInstanceGuid, eo.data as ByteArray);
 			}
 		}
 				
 		private function handleClientStateHistoryShift(event:Event):void {
-			host.stateHistoryShift(appGuid);
+			host.stateHistoryShift(appInstanceGuid);
 		}
 		
 		private function handleClientStateHistoryClear(event:Event):void {
-			host.stateHistoryClear(appGuid);
+			host.stateHistoryClear(appInstanceGuid);
 		}
 		
 		
@@ -495,31 +500,24 @@ package com.worlize.interactivity.api.adapter
 			sharedEvents.dispatchEvent(event);
 		}
 		
-		public function receiveStateHistoryPush(userGuid:String, data:ByteArray):void {
+		public function receiveStateHistoryPush(data:ByteArray):void {
 			if (sharedEvents === null) { return; }
 			var event:APIBridgeEvent = new APIBridgeEvent("host_stateHistoryPush");
 			event.data = {
-				user: userGuid,
 				data: data
 			};
 			sharedEvents.dispatchEvent(event);
 		}
 		
-		public function receiveStateHistoryShift(userGuid:String):void {
+		public function receiveStateHistoryShift():void {
 			if (sharedEvents === null) { return; }
 			var event:APIBridgeEvent = new APIBridgeEvent("host_stateHistoryShift");
-			event.data = {
-				user: userGuid
-			};
 			sharedEvents.dispatchEvent(event);
 		}
 		
-		public function receiveStateHistoryClear(userGuid:String):void {
+		public function receiveStateHistoryClear():void {
 			if (sharedEvents === null) { return; }
 			var event:APIBridgeEvent = new APIBridgeEvent("host_stateHistoryClear");
-			event.data = {
-				user: userGuid
-			};
 			sharedEvents.dispatchEvent(event);	
 		}
 		

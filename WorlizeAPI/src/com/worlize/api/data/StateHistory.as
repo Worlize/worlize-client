@@ -40,18 +40,9 @@ package com.worlize.api.data
 			items = [];
 			dispatchEvent(new StateHistoryEvent(StateHistoryEvent.CLEARED));
 			if (sourceItems) {
-				for each (var item:Object in sourceItems) {
-					if (item is StateHistoryEntry) {
-						items.push(item);
-					}
-					else {
-						var historyEntryItem:StateHistoryEntry = new StateHistoryEntry();
-						if (item.data is ByteArray) {
-							historyEntryItem.data = (item.data as ByteArray).readObject();
-						}
-						historyEntryItem.userGuid = item.userGuid;
-						items.push(historyEntryItem);
-					}
+				for each (var item:ByteArray in sourceItems) {
+					item.position = 0;
+					items.push(item.readObject());
 				}
 			}
 		}
@@ -64,28 +55,25 @@ package com.worlize.api.data
 		
 		protected function handleStateHistoryPush(event:Event):void { 
 			var eo:Object = event;
-			var item:StateHistoryEntry = new StateHistoryEntry();
-			item.userGuid = eo.data.user;
+			var item:Object;
 			if (eo.data.data is ByteArray) {
 				var ba:ByteArray = eo.data.data as ByteArray;
 				ba.position = 0;
-				item.data = ba.readObject();
+				item = ba.readObject();
 			}
 			items.push(item);
-			var historyEvent:StateHistoryEvent = new StateHistoryEvent(StateHistoryEvent.ITEM_ADDED);
+			var historyEvent:StateHistoryEvent = new StateHistoryEvent(StateHistoryEvent.ENTRY_ADDED);
 			historyEvent.index = items.length-1;
-			historyEvent.item = item;
+			historyEvent.entry = item;
 			dispatchEvent(historyEvent);
 		}
 		
 		protected function handleStateHistoryShift(event:Event):void {
 			if (items.length > 0) {
 				var eo:Object = event;
-				var removedItem:StateHistoryEntry = items.shift() as StateHistoryEntry;
-				var historyEvent:StateHistoryEvent = new StateHistoryEvent(StateHistoryEvent.ITEM_REMOVED);
+				var historyEvent:StateHistoryEvent = new StateHistoryEvent(StateHistoryEvent.ENTRY_REMOVED);
 				historyEvent.index = 0;
-				historyEvent.item = removedItem;
-				historyEvent.userGuid = eo.data.user;
+				historyEvent.entry = items.unshift();
 				dispatchEvent(historyEvent);
 			}
 		}
@@ -93,7 +81,6 @@ package com.worlize.api.data
 		protected function handleStateHistoryClear(event:Event):void {
 			items = [];
 			var historyEvent:StateHistoryEvent = new StateHistoryEvent(StateHistoryEvent.CLEARED);
-			historyEvent.userGuid = (event as Object).data.user;
 			dispatchEvent(historyEvent);
 		}
 
@@ -102,6 +89,9 @@ package com.worlize.api.data
 			var ba:ByteArray = new ByteArray();
 			ba.writeObject(item);
 			ba.position = 0;
+			if (ba.length > 0xFFFF) {
+				throw new Error("Serialized size of state to push cannot exceed 65535 bytes");
+			}
 			event.data = ba;
 			WorlizeAPI.sharedEvents.dispatchEvent(event);
 		}
@@ -131,7 +121,7 @@ package com.worlize.api.data
 		}
 		
 		override flash_proxy function nextNameIndex(index:int):int {
-			if (index > items.length) {
+			if (index >= items.length) {
 				return 0;
 			}
 			return index + 1;

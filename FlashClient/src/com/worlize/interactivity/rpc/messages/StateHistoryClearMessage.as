@@ -10,7 +10,6 @@ package com.worlize.interactivity.rpc.messages
 		public static const ID:uint = 0x4C434C52; // LCLR
 		
 		public var appInstanceGuid:String;
-		public var userGuid:String;
 
 		public function serialize():ByteArray {
 			var ba:ByteArray = new ByteArray();
@@ -25,14 +24,7 @@ package com.worlize.interactivity.rpc.messages
 		public function deserialize(ba:ByteArray):void {
 			var id:uint = ba.readUnsignedInt();
 			
-			var flags:uint = ba.readUnsignedByte();
-			
 			appInstanceGuid = GUIDUtil.readBytes(ba);
-			
-			// If we have a user guid, read it.
-			if (Boolean(flags & 0x01)) {
-				userGuid = GUIDUtil.readBytes(ba);
-			}
 		}
 	}
 }

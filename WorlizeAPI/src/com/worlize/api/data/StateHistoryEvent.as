@@ -5,13 +5,12 @@ package com.worlize.api.data
 	
 	public class StateHistoryEvent extends Event
 	{
-		public static const ITEM_ADDED:String = "itemAdded";
-		public static const ITEM_REMOVED:String = "itemRemoved";
+		public static const ENTRY_ADDED:String = "entryAdded";
+		public static const ENTRY_REMOVED:String = "entryRemoved";
 		public static const CLEARED:String = "cleared";
 		
-		public var item:StateHistoryEntry;
+		public var entry:Object;
 		public var index:int;
-		public var userGuid:String;
 		
 		public function StateHistoryEvent(type:String, bubbles:Boolean=false, cancelable:Boolean=false)
 		{

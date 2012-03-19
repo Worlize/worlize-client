@@ -20,7 +20,6 @@ package com.worlize.interactivity.rpc
 	import com.worlize.interactivity.model.InteractivityConfig;
 	import com.worlize.interactivity.model.InteractivityUser;
 	import com.worlize.interactivity.model.RoomHistoryManager;
-	import com.worlize.interactivity.model.StateHistoryEntry;
 	import com.worlize.interactivity.model.WebcamBroadcastManager;
 	import com.worlize.interactivity.record.ChatRecord;
 	import com.worlize.interactivity.rpc.messages.AppBroadcastMessage;
@@ -741,13 +740,10 @@ package com.worlize.interactivity.rpc
 				if (!inWorldObjectInstance.stateHistory) {
 					inWorldObjectInstance.stateHistory = [];
 				}
-				var entry:StateHistoryEntry = new StateHistoryEntry();
-				entry.userGuid = msg.userGuid;
-				entry.data = msg.data;
-				inWorldObjectInstance.stateHistory.push(entry);
+				inWorldObjectInstance.stateHistory.push(msg.data);
 			}
 			
-			apiController.receiveStateHistoryPush(msg.appInstanceGuid, msg.userGuid, msg.data);
+			apiController.receiveStateHistoryPush(msg.appInstanceGuid, msg.data);
 		}
 		
 		private function handleStateHistoryShiftMessage(data:ByteArray):void {
@@ -764,7 +760,7 @@ package com.worlize.interactivity.rpc
 				}
 			}
 			
-			apiController.receiveStateHistoryShift(msg.appInstanceGuid, msg.userGuid);
+			apiController.receiveStateHistoryShift(msg.appInstanceGuid);
 		}
 		
 		private function handleStateHistoryClearMessage(data:ByteArray):void {
@@ -776,7 +772,7 @@ package com.worlize.interactivity.rpc
 				inWorldObjectInstance.stateHistory = [];
 			}
 			
-			apiController.receiveStateHistoryClear(msg.appInstanceGuid, msg.userGuid);
+			apiController.receiveStateHistoryClear(msg.appInstanceGuid);
 		}
 		
 		private function handleStateHistoryDumpMessage(data:ByteArray):void {

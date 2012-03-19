@@ -122,7 +122,11 @@ package com.worlize.interactivity.api
 						_adapter.attachHost(interactivityClient.apiController);
 						_adapter.handshakeClient(e.data);
 					}
-					catch(e:Error) {
+					catch(error:Error) {
+						interactivityClient.apiController.logMessage(
+							"Error while handshaking with app " + appGuid + ": " +
+							error.toString() + "\n" + error.getStackTrace()
+						);
 						bombApp();
 					}
 					return;

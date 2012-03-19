@@ -9,7 +9,6 @@ package com.worlize.interactivity.rpc.messages
 	{
 		public static const ID:uint = 0x4C534654; // LSFT
 		
-		public var userGuid:String;
 		public var appInstanceGuid:String;
 
 		public function serialize():ByteArray {
@@ -25,14 +24,7 @@ package com.worlize.interactivity.rpc.messages
 		public function deserialize(ba:ByteArray):void {
 			var id:uint = ba.readUnsignedInt();
 			
-			var flags:uint = ba.readUnsignedByte();
-
 			appInstanceGuid = GUIDUtil.readBytes(ba);
-			
-			// If we have a user guid, read it
-			if (Boolean(flags & 0x01)) {
-				userGuid = GUIDUtil.readBytes(ba);
-			}
 		}
 	}
 }

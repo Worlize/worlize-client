@@ -5,7 +5,7 @@ package com.worlize.api
 	import com.worlize.api.event.AuthorEvent;
 	import com.worlize.api.event.ChatEvent;
 	import com.worlize.api.event.MessageEvent;
-	import com.worlize.api.model.AppConfig;
+	import com.worlize.api.model.AppOptions;
 	import com.worlize.api.model.RoomObject;
 	import com.worlize.api.model.ThisRoom;
 	import com.worlize.api.model.ThisRoomObject;
@@ -39,7 +39,7 @@ package com.worlize.api
 		private static var _initialized:Boolean = false;
 		private static var _instance:WorlizeAPI;
 		
-		public static var config:AppConfig = new AppConfig();
+		public static var options:AppOptions = new AppOptions();
 		
 		worlize_internal static var rootObject:DisplayObject;
 		worlize_internal static var loaderInfo:LoaderInfo;
@@ -130,7 +130,7 @@ package com.worlize.api
 			var event:APIEvent = new APIEvent(APIEvent.CLIENT_HANDSHAKE);
 			var data:Object = {
 				APIVersion: 1,
-				appConfig: config.toJSON()
+				appOptions: options.toJSON()
 			};
 			event.data = data;
 			sharedEvents.dispatchEvent(event);

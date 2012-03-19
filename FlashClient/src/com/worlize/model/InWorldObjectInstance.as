@@ -2,7 +2,6 @@ package com.worlize.model
 {
 	import com.worlize.event.NotificationCenter;
 	import com.worlize.interactivity.event.RoomEvent;
-	import com.worlize.interactivity.model.StateHistoryEntry;
 	import com.worlize.notification.InWorldObjectNotification;
 	import com.worlize.rpc.HTTPMethod;
 	import com.worlize.rpc.WorlizeResultEvent;

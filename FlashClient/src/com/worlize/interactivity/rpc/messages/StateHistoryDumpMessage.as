@@ -1,6 +1,5 @@
 package com.worlize.interactivity.rpc.messages
 {
-	import com.worlize.interactivity.model.StateHistoryEntry;
 	import com.worlize.util.GUIDUtil;
 	
 	import flash.utils.ByteArray;
@@ -26,13 +25,11 @@ package com.worlize.interactivity.rpc.messages
 
 			stateEntries = [];
 			for (var i:int = 0; i < numEntries; i ++) {
-				var entry:StateHistoryEntry = new StateHistoryEntry();
-				entry.userGuid = GUIDUtil.readBytes(ba);
-				var length:uint = ba.readUnsignedInt();
-				entry.data = new ByteArray();
-				entry.data.endian = Endian.BIG_ENDIAN;
-				ba.readBytes(entry.data, 0, length);
-				stateEntries.push(entry);
+				var length:uint = ba.readUnsignedShort();
+				var data:ByteArray = new ByteArray();
+				data.endian = Endian.BIG_ENDIAN;
+				ba.readBytes(data, 0, length);
+				stateEntries.push(data);
 			}
 		}
 	}

@@ -119,12 +119,12 @@ package com.worlize.interactivity.api
 			}
 			if (apiClientAdapters.indexOf(client) === -1) {
 				apiClientAdapters.push(client);
-				apiClientAdaptersByGuid[client.appGuid] = client;
+				apiClientAdaptersByGuid[client.appInstanceGuid] = client;
 			}
 		}
 		
 		public function removeClientAdapter(client:IAPIClientAdapter):void {
-			delete apiClientAdaptersByGuid[client.appGuid];
+			delete apiClientAdaptersByGuid[client.appInstanceGuid];
 			var index:int = apiClientAdapters.indexOf(client);
 			if (index !== -1) {
 				apiClientAdapters.splice(index, 1);
@@ -340,13 +340,13 @@ package com.worlize.interactivity.api
 				if (toAppInstanceGuid !== null) {
 					var toAdapter:IAPIClientAdapter = apiClientAdaptersByGuid[toAppInstanceGuid];
 					if (toAdapter) {
-						toAdapter.receiveMessage(message, fromAdapter.appGuid, fromUser? fromUserGuid : null);
+						toAdapter.receiveMessage(message, fromAdapter.appInstanceGuid, fromUser? fromUserGuid : null);
 					}
 				}
 				else {
 					// broadcast to all objects
 					for each (var client:IAPIClientAdapter in apiClientAdapters) {
-						client.receiveMessage(message, fromAdapter.appGuid, fromUser ? fromUserGuid : null);
+						client.receiveMessage(message, fromAdapter.appInstanceGuid, fromUser ? fromUserGuid : null);
 					}
 				}
 			}
@@ -392,24 +392,24 @@ package com.worlize.interactivity.api
 			}
 		}
 		
-		public function receiveStateHistoryPush(appInstanceGuid:String, userGuid:String, data:ByteArray):void {
+		public function receiveStateHistoryPush(appInstanceGuid:String, data:ByteArray):void {
 			var client:IAPIClientAdapter = getClientByGuid(appInstanceGuid);
 			if (client) {
-				client.receiveStateHistoryPush(userGuid, data);
+				client.receiveStateHistoryPush(data);
 			}
 		}
 		
-		public function receiveStateHistoryShift(appInstanceGuid:String, userGuid:String):void {
+		public function receiveStateHistoryShift(appInstanceGuid:String):void {
 			var client:IAPIClientAdapter = getClientByGuid(appInstanceGuid);
 			if (client) {
-				client.receiveStateHistoryShift(userGuid);
+				client.receiveStateHistoryShift();
 			}
 		}
 		
-		public function receiveStateHistoryClear(appInstanceGuid:String, userGuid:String):void {
+		public function receiveStateHistoryClear(appInstanceGuid:String):void {
 			var client:IAPIClientAdapter = getClientByGuid(appInstanceGuid);
 			if (client) {
-				client.receiveStateHistoryClear(userGuid);
+				client.receiveStateHistoryClear();
 			}
 		}
 	}

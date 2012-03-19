@@ -1,7 +1,6 @@
 package
 {
 	import com.worlize.api.WorlizeAPI;
-	import com.worlize.api.data.StateHistoryEntry;
 	import com.worlize.api.data.StateHistoryEvent;
 	import com.worlize.api.event.ChatEvent;
 	import com.worlize.api.event.MessageEvent;
@@ -29,15 +28,16 @@ package
 			api.thisRoom.addEventListener(ChatEvent.INCOMING_CHAT, handleIncomingChat);
 //			api.thisObject.addEventListener(MessageEvent.MESSAGE_RECEIVED, handleMessageReceived);
 			
-			api.stateHistory.addEventListener(StateHistoryEvent.ITEM_ADDED, handleStateAdded);
+			api.stateHistory.addEventListener(StateHistoryEvent.ENTRY_ADDED, handleStateAdded);
 			
 			circle = new CircleSprite();
 			addChild(circle);
 			circle.drawCircle(100);
 			
 			if (api.stateHistory.length > 0) {
-				var lastState:StateHistoryEntry = api.stateHistory.getItemAt(api.stateHistory.length-1) as StateHistoryEntry;
-				circle.setColor(lastState.data.color);
+				api.log("There are currently " + api.stateHistory.length + " state entries.");
+				var lastState:Object = api.stateHistory.getItemAt(api.stateHistory.length-1);
+				circle.setColor(lastState.color);
 			}
 			
 			circle.addEventListener(MouseEvent.CLICK, handleCircleClick);
@@ -53,12 +53,13 @@ package
 			color = color | (blue & 0xFF);
 			
 			api.stateHistory.push({ color: color });
+			api.thisRoom.broadcastMessageLocal({ type: "setColor", color: color });
 			
 			// api.thisObject.sendMessage({ msg: "setColor", color: color });
 		}
 		
 		private function handleStateAdded(event:StateHistoryEvent):void {
-			circle.setColor(event.item.data.color);
+			circle.setColor(event.entry.color);
 		}
 		
 		private function handleMessageReceived(event:MessageEvent):void {
