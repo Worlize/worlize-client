@@ -163,6 +163,7 @@ package com.worlize.interactivity.api.adapter
 			sharedEvents.addEventListener("client_stateHistoryPush", handleClientStateHistoryPush);
 			sharedEvents.addEventListener("client_stateHistoryShift", handleClientStateHistoryShift);
 			sharedEvents.addEventListener("client_stateHistoryClear", handleClientStateHistoryClear);
+			sharedEvents.addEventListener(MouseEvent.MOUSE_UP, handleClientMouseUp);
 		}
 		
 		protected function removeSharedEventListeners():void {
@@ -185,6 +186,7 @@ package com.worlize.interactivity.api.adapter
 			sharedEvents.removeEventListener("client_stateHistoryPush", handleClientStateHistoryPush);
 			sharedEvents.removeEventListener("client_stateHistoryShift", handleClientStateHistoryShift);
 			sharedEvents.removeEventListener("client_stateHistoryClear", handleClientStateHistoryClear);
+			sharedEvents.removeEventListener(MouseEvent.MOUSE_UP, handleClientMouseUp);
 		}
 		
 		private function handleClientRequestBomb(event:Event):void {
@@ -329,6 +331,12 @@ package com.worlize.interactivity.api.adapter
 		
 		private function handleClientStateHistoryClear(event:Event):void {
 			host.stateHistoryClear(appInstanceGuid);
+		}
+		
+		private function handleClientMouseUp(event:Event):void {
+			if (client) {
+				client.dispatchEvent(event);
+			}
 		}
 		
 		

@@ -107,6 +107,8 @@ package com.worlize.api
 			
 			handshake();
 			
+			initMouseUpNotifier();
+			
 			_instance = this;
 		}
 		
@@ -160,6 +162,14 @@ package com.worlize.api
 			sharedEvents.dispatchEvent(finishHandshakeEvent);
 			
 			_initialized = true;
+		}
+		
+		private function initMouseUpNotifier():void {
+			rootObject.addEventListener(MouseEvent.MOUSE_UP, handleRootObjectMouseUp);
+		}
+		
+		private function handleRootObjectMouseUp(event:MouseEvent):void {
+			sharedEvents.dispatchEvent(event);
 		}
 		
 		private function addSharedEventHandlers():void {
