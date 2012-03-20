@@ -369,8 +369,34 @@ package com.worlize.interactivity.api
 		// Methods meant to be called by InteractivityClient
 		
 		public function processChat(record:ChatRecord):void {
+			// Each client gets a copy of the same original ChatRecord instance
+			// to prevent one object from mutating the chat string before it's
+			// received by the next object.  Afterwards, the results are
+			// collected, and the last object to have changed the chat string
+			// wins.  If any object called preventDefault() on the chat event,
+			// the chat string is cleared, which will prevent the chat from 
+			// appearing as a chat bubble or in the log.
+			
+			// It's important to do it this way so that if objects are relying
+			// on text commands entered in the chat box, and two objects are
+			// expecting the same text command, both will receive it.
+			
+			var results:Vector.<ChatRecord> = new Vector.<ChatRecord>(apiClientAdapters.length);
+			var i:int = 0;
 			for each (var client:IAPIClientAdapter in apiClientAdapters) {
-				client.processChat(record);
+				client.processChat(results[i++] = record.clone());
+			}
+			for (i=0; i < results.length; i++) {
+				var result:ChatRecord = results[i];
+				if (result.canceled) {
+					record.canceled = true;
+				}
+				if (result.modified) {
+					record.chatstr = result.chatstr;
+				}
+			}
+			if (record.canceled) {
+				record.chatstr = "";
 			}
 		}
 		

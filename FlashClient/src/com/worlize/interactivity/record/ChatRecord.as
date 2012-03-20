@@ -13,6 +13,7 @@ package com.worlize.interactivity.record
 		public var chatstr:String;
 		public var whisper:Boolean;
 		public var canceled:Boolean;
+		public var modified:Boolean;
 		public var eventHandlers:Vector.<IptTokenList>;
 		private var _originalChatstr:String;
 		
@@ -24,11 +25,16 @@ package com.worlize.interactivity.record
 			this.chatstr = chatstr;
 			this.whisper = isWhisper;
 			this.canceled = false;
+			this.modified = false;
 			this._originalChatstr = chatstr;
 		}
 		
 		public function get originalChatstr():String {
 			return _originalChatstr;
+		}
+		
+		public function clone():ChatRecord {
+			return new ChatRecord(direction, whochat, whotarget, chatstr, whisper);
 		}
 	}
 }

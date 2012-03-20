@@ -364,11 +364,11 @@ package com.worlize.interactivity.api.adapter
 			};
 			record.canceled = !sharedEvents.dispatchEvent(event) || record.canceled;
 			
-			if (record.canceled) {
-				record.chatstr = "";
-			}
-			else if (event.data.text is String) {
-				record.chatstr = event.data.text;
+			if (event.data.text is String) {
+				if (record.chatstr !== event.data.text) {
+					record.chatstr = event.data.text;
+					record.modified = true;
+				}
 			}
 		}
 
