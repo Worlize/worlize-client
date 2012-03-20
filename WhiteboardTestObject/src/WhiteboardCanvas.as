@@ -89,19 +89,19 @@ package
 			lastY = mouseY;
 			api.addEventListener(MouseEvent.MOUSE_UP, handleMouseUp);
 			addEventListener(MouseEvent.MOUSE_UP, handleMouseUp);
-			addEventListener(Event.ENTER_FRAME, handleEnterFrame);
+			addEventListener(MouseEvent.MOUSE_MOVE, handleMouseMove);
 		}
 		
 		private function handleMouseUp(event:MouseEvent):void {
-			removeEventListener(Event.ENTER_FRAME, handleEnterFrame);
+			removeEventListener(MouseEvent.MOUSE_MOVE, handleMouseMove);
 			removeEventListener(MouseEvent.MOUSE_UP, handleMouseUp);
 			api.removeEventListener(MouseEvent.MOUSE_UP, handleMouseUp);
 		}
 		
-		private function handleEnterFrame(event:Event):void {
-			if (lastX !== mouseX || lastY !== mouseY) {
+		private function handleMouseMove(event:MouseEvent):void {
+			if (lastX !== event.localX || lastY !== event.localY) {
 				api.stateHistory.push([
-					lastX, lastY, mouseX, mouseY, color, weight 
+					lastX, lastY, event.localX, event.localY, color, weight 
 				]);
 				lastX = mouseX;
 				lastY = mouseY;

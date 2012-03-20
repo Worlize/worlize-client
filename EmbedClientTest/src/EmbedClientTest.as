@@ -52,7 +52,7 @@ package
 			color = color | (green & 0xFF) << 8;
 			color = color | (blue & 0xFF);
 			
-			api.stateHistory.push({ color: color });
+			api.stateHistory.clear({ color: color });
 			api.thisRoom.broadcastMessageLocal({ type: "setColor", color: color });
 			
 			// api.thisObject.sendMessage({ msg: "setColor", color: color });

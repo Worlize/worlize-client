@@ -360,8 +360,8 @@ package com.worlize.interactivity.api
 			interactivityClient.stateHistoryShift(appInstanceGuid);
 		}
 		
-		public function stateHistoryClear(appInstanceGuid:String):void {
-			interactivityClient.stateHistoryClear(appInstanceGuid);
+		public function stateHistoryClear(appInstanceGuid:String, initialData:ByteArray = null):void {
+			interactivityClient.stateHistoryClear(appInstanceGuid, initialData);
 		}
 		
 		

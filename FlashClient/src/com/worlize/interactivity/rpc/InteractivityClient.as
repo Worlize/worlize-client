@@ -769,10 +769,18 @@ package com.worlize.interactivity.rpc
 			
 			var inWorldObjectInstance:InWorldObjectInstance = currentRoom.getInWorldObjectInstanceById(msg.appInstanceGuid);
 			if (inWorldObjectInstance) {
-				inWorldObjectInstance.stateHistory = [];
+				if (msg.data) {
+					inWorldObjectInstance.stateHistory = [msg.data];
+				}
+				else {
+					inWorldObjectInstance.stateHistory = [];
+				}
 			}
 			
 			apiController.receiveStateHistoryClear(msg.appInstanceGuid);
+			if (msg.data) {
+				apiController.receiveStateHistoryPush(msg.appInstanceGuid, msg.data);
+			}
 		}
 		
 		private function handleStateHistoryDumpMessage(data:ByteArray):void {
@@ -1166,9 +1174,10 @@ package com.worlize.interactivity.rpc
 			connection.send(msg);
 		}
 		
-		public function stateHistoryClear(appInstanceGuid:String):void {
+		public function stateHistoryClear(appInstanceGuid:String, initialData:ByteArray = null):void {
 			var msg:StateHistoryClearMessage = new StateHistoryClearMessage();
 			msg.appInstanceGuid = appInstanceGuid;
+			msg.data = initialData;
 			
 			connection.send(msg);
 		}

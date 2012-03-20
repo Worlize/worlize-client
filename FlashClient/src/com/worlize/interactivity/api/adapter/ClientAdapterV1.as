@@ -330,7 +330,8 @@ package com.worlize.interactivity.api.adapter
 		}
 		
 		private function handleClientStateHistoryClear(event:Event):void {
-			host.stateHistoryClear(appInstanceGuid);
+			var eo:Object = event;
+			host.stateHistoryClear(appInstanceGuid, eo.data);
 		}
 		
 		private function handleClientMouseUp(event:Event):void {

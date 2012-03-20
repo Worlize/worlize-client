@@ -8,6 +8,7 @@ package com.worlize.api.data
 	import flash.events.EventDispatcher;
 	import flash.events.IEventDispatcher;
 	import flash.utils.ByteArray;
+	import flash.utils.Endian;
 	import flash.utils.Proxy;
 	import flash.utils.flash_proxy;
 	
@@ -85,19 +86,33 @@ package com.worlize.api.data
 		}
 
 		public function push(item:Object):void {
+			if (item === null) {
+				return;
+			}
 			var event:APIEvent = new APIEvent(APIEvent.STATE_HISTORY_PUSH);
 			var ba:ByteArray = new ByteArray();
 			ba.writeObject(item);
 			ba.position = 0;
 			if (ba.length > 0xFFFF) {
-				throw new Error("Serialized size of state to push cannot exceed 65535 bytes");
+				throw new Error("Serialized size of state data cannot exceed 65535 bytes");
 			}
 			event.data = ba;
 			WorlizeAPI.sharedEvents.dispatchEvent(event);
 		}
 		
-		public function clear():void {
-			WorlizeAPI.sharedEvents.dispatchEvent(new APIEvent(APIEvent.STATE_HISTORY_CLEAR));
+		public function clear(initialItem:Object = null):void {
+			var event:APIEvent = new APIEvent(APIEvent.STATE_HISTORY_CLEAR);
+			if (initialItem !== null) {
+				var ba:ByteArray = new ByteArray();
+				ba.endian = Endian.BIG_ENDIAN;
+				ba.writeObject(initialItem);
+				ba.position = 0;
+				if (ba.length > 0xFFFF) {
+					throw new Error("Serialized size of state data cannot exceed 65535 bytes");
+				}
+				event.data = ba;
+			}
+			WorlizeAPI.sharedEvents.dispatchEvent(event);
 		}
 		
 		public function shift():void {
