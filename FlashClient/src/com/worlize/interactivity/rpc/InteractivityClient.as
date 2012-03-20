@@ -1149,12 +1149,12 @@ package com.worlize.interactivity.rpc
 			}, true);
 		}
 		
-		public function broadcastObjectMessage(fromAppInstanceGuid:String, message:ByteArray, toAppInstanceGuid:String=null, toUserGuid:String=null):void {
+		public function broadcastObjectMessage(fromAppInstanceGuid:String, message:ByteArray, toAppInstanceGuid:String=null, toUserGuids:Array=null):void {
 			var msg:AppBroadcastMessage = new AppBroadcastMessage();
 			msg.fromAppInstanceGuid = fromAppInstanceGuid;
 			msg.toAppInstanceGuid = toAppInstanceGuid;
 			msg.message = message;
-			msg.toUserGuid = toUserGuid;
+			msg.toUserGuids = toUserGuids;
 			
 			connection.send(msg);
 		}

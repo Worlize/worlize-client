@@ -16,7 +16,7 @@ package com.worlize.interactivity.rpc.messages
 			var ba:ByteArray = new ByteArray();
 			ba.endian = Endian.BIG_ENDIAN;
 			
-			ba.writeInt(ID);
+			ba.writeUnsignedInt(ID);
 			
 			ba.writeByte(data ? 0x01 : 0x00);
 			

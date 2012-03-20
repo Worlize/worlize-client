@@ -90,7 +90,7 @@ package com.worlize.api.model
 			WorlizeAPI.sharedEvents.dispatchEvent(event);
 		}
 		
-		public function broadcastMessage(message:Object, toUserGuid:String = null):void {
+		public function broadcastMessage(message:Object, toUserGuids:Array = null):void {
 			var event:APIEvent = new APIEvent(APIEvent.SEND_APP_MESSAGE);
 			var byteArray:ByteArray = new ByteArray();
 			byteArray.endian = Endian.BIG_ENDIAN;
@@ -99,8 +99,8 @@ package com.worlize.api.model
 			event.data = {
 				message: byteArray
 			};
-			if (toUserGuid) {
-				event.data.toUserGuid = toUserGuid;
+			if (toUserGuids) {
+				event.data.toUserGuids = toUserGuids;
 			}
 			WorlizeAPI.sharedEvents.dispatchEvent(event);
 		}

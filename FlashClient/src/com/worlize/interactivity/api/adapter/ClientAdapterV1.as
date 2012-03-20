@@ -285,12 +285,12 @@ package com.worlize.interactivity.api.adapter
 			if (client === null) { return; }
 			var eo:Object = event;
 			if (eo.data && eo.data.message is ByteArray) {
-				if (eo.data.toUserGuid is String) {
+				if (eo.data.toUserGuids is Array) {
 					host.sendObjectMessage(
 						client.inWorldObjectInstance.guid,
 						eo.data.message,
 						eo.data.toAppInstanceGuid,
-						eo.data.toUserGuid
+						eo.data.toUserGuids
 					);
 					return;
 				}

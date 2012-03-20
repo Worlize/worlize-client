@@ -321,13 +321,23 @@ package com.worlize.interactivity.api
 		
 		// Broadcast a data message to the specified object via the server for
 		// event synchronization across clients.
-		public function sendObjectMessage(fromAppInstanceGuid:String, message:ByteArray, toAppInstanceGuid:String, toUserGuid:String=null):void {
+		public function sendObjectMessage(fromAppInstanceGuid:String, message:ByteArray, toAppInstanceGuid:String, toUserGuids:Array=null):void {
+			var specificUsersRequested:Boolean = false;
 			var fromAdapter:IAPIClientAdapter = apiClientAdaptersByGuid[fromAppInstanceGuid];
 			if (fromAdapter && message) {
-				if (toUserGuid !== null && thisRoom.getUserById(toUserGuid) === null) {
+				if (toUserGuids && toUserGuids.length > 0) {
+					specificUsersRequested = true;
+					for (var i:int = toUserGuids.length - 1; i >= 0; i--) {
+						var guidObj:* = toUserGuids[i];
+						if (!(guidObj is String) || thisRoom.getUserById(guidObj) == null) {
+							toUserGuids.splice(i, 1);
+						}
+					}
+				}
+				if (specificUsersRequested && toUserGuids.length === 0) {
 					return;
 				}
-				interactivityClient.broadcastObjectMessage(fromAppInstanceGuid, message, toAppInstanceGuid, toUserGuid);
+				interactivityClient.broadcastObjectMessage(fromAppInstanceGuid, message, toAppInstanceGuid, toUserGuids);
 			}
 		}
 		

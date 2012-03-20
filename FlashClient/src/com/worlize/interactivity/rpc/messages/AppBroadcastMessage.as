@@ -13,7 +13,7 @@ package com.worlize.interactivity.rpc.messages
 		public var fromAppInstanceGuid:String;
 		public var toAppInstanceGuid:String;
 		public var fromUserGuid:String;
-		public var toUserGuid:String;
+		public var toUserGuids:Array;
 		public var message:ByteArray;
 		public var flags:uint = 0x00;
 		
@@ -41,10 +41,10 @@ package com.worlize.interactivity.rpc.messages
 			var ba:ByteArray = new ByteArray();
 			ba.endian = Endian.BIG_ENDIAN;
 			
-			ba.writeInt(ID);
+			ba.writeUnsignedInt(ID);
 			
 			flags = 0x00;
-			if (toUserGuid) {
+			if (toUserGuids && toUserGuids.length > 0) {
 				flags |= 0x01;
 			}
 			if (toAppInstanceGuid === null) {
@@ -58,8 +58,14 @@ package com.worlize.interactivity.rpc.messages
 			if (toAppInstanceGuid) {
 				GUIDUtil.writeBytes(toAppInstanceGuid, ba);
 			}
-			if (toUserGuid) {
-				GUIDUtil.writeBytes(toUserGuid, ba);
+
+			// If we have a list of "to" user guids, write out the count,
+			// followed by the actual guids.
+			if (flags & 0x01) {
+				ba.writeShort(toUserGuids.length);
+				for each (var userGuid:String in toUserGuids) {
+					GUIDUtil.writeBytes(userGuid, ba);
+				}
 			}
 			
 			ba.writeBytes(message);
