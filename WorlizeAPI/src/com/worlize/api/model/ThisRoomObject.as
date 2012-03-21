@@ -5,8 +5,6 @@ package com.worlize.api.model
 	import com.worlize.worlize_internal;
 	
 	[Event(name="messageReceived",type="com.worlize.api.event.MessageEvent")]
-	[Event(name="objectResized",type="com.worlize.api.event.RoomObjectEvent")]
-	[Event(name="objectMoved",type="com.worlize.api.event.RoomObjectEvent")]
 	public class ThisRoomObject extends RoomObject
 	{
 		use namespace worlize_internal;
