@@ -361,15 +361,13 @@ package com.worlize.interactivity.api.adapter
 				isWhisper: record.whisper,
 				recipient: record.whotarget,
 				user: record.whochat,
-				text: record.chatstr
+				text: record.chatstr,
+				originalText: record.originalChatstr
 			};
 			record.canceled = !sharedEvents.dispatchEvent(event) || record.canceled;
 			
 			if (event.data.text is String) {
-				if (record.chatstr !== event.data.text) {
-					record.chatstr = event.data.text;
-					record.modified = true;
-				}
+				record.chatstr = event.data.text;
 			}
 		}
 

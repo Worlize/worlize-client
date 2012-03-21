@@ -10,7 +10,7 @@ package com.worlize.interactivity.record
 		public var direction:int;
 		public var whochat:String;
 		public var whotarget:String;
-		public var chatstr:String;
+		private var _chatstr:String;
 		public var whisper:Boolean;
 		public var canceled:Boolean;
 		public var modified:Boolean;
@@ -22,11 +22,22 @@ package com.worlize.interactivity.record
 			this.direction = direction;
 			this.whochat = whochat;
 			this.whotarget = whotarget;
-			this.chatstr = chatstr;
+			this._chatstr = chatstr;
 			this.whisper = isWhisper;
 			this.canceled = false;
 			this.modified = false;
 			this._originalChatstr = chatstr;
+		}
+		
+		public function get chatstr():String {
+			return _chatstr;
+		}
+		
+		public function set chatstr(newValue:String):void {
+			if (_chatstr !== newValue) {
+				_chatstr = newValue;
+				modified = true;
+			}
 		}
 		
 		public function get originalChatstr():String {
@@ -34,7 +45,9 @@ package com.worlize.interactivity.record
 		}
 		
 		public function clone():ChatRecord {
-			return new ChatRecord(direction, whochat, whotarget, chatstr, whisper);
+			var r:ChatRecord = new ChatRecord(direction, whochat, whotarget, _originalChatstr, whisper);
+			r.chatstr = chatstr;
+			return r;
 		}
 	}
 }

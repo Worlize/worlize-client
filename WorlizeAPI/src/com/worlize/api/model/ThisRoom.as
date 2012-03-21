@@ -310,9 +310,10 @@ package com.worlize.api.model
 			var e:Object = event;
 			
 			var type:String = (e.data.type === "incomingChat") ? ChatEvent.INCOMING_CHAT : ChatEvent.OUTGOING_CHAT;
-			var chatEvent:ChatEvent = new ChatEvent(type, false, true);
-			chatEvent.isWhisper = e.data.isWhisper;
+			var chatEvent:ChatEvent = new ChatEvent(type);
 			chatEvent.text = e.data.text;
+			chatEvent.originalText = e.data.originalText;
+			chatEvent.isWhisper = e.data.isWhisper;
 			if (e.data.recipient) {
 				chatEvent.recipient = getUserByGuid(e.data.recipient);
 			}
@@ -320,12 +321,11 @@ package com.worlize.api.model
 				chatEvent.user = getUserByGuid(e.data.user);
 			}
 			
-			var canceled:Boolean = !dispatchEvent(chatEvent);
-			
-			e.data.text = chatEvent.text;
-			if (canceled) {
+			if (!dispatchEvent(chatEvent)) {
 				event.preventDefault();
 			}
+			
+			e.data.text = chatEvent.text;
 		}
 		
 		private function handleUserEnter(event:Event):void {

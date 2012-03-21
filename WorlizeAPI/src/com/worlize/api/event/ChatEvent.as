@@ -1,11 +1,14 @@
 package com.worlize.api.event
 {
 	import com.worlize.api.model.User;
+	import com.worlize.worlize_internal;
 	
 	import flash.events.Event;
 	
 	public class ChatEvent extends Event
 	{
+		use namespace worlize_internal;
+		
 		public static const INCOMING_CHAT:String = "incomingChat";
 		public static const OUTGOING_CHAT:String = "outgoingChat";
 		
@@ -21,17 +24,21 @@ package com.worlize.api.event
 		// Chat text
 		public var text:String;
 		
-		public function ChatEvent(type:String, bubbles:Boolean=false, cancelable:Boolean=false)
-		{
-			super(type, bubbles, cancelable);
+		
+		// Original, unmodified chat text
+		public var originalText:String;
+		
+		public function ChatEvent(type:String) {
+			super(type, false, true);
 		}
 		
 		override public function clone():Event {
-			var event:ChatEvent = new ChatEvent(type, bubbles, cancelable);
+			var event:ChatEvent = new ChatEvent(type);
 			event.isWhisper = isWhisper;
+			event.text = text;
+			event.originalText = originalText;
 			event.recipient = recipient;
 			event.user = user;
-			event.text = text;
 			return event;
 		}
 	}
