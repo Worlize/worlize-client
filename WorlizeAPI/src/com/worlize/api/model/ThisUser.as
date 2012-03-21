@@ -8,12 +8,6 @@ package com.worlize.api.model
 	{
 		use namespace worlize_internal;
 		
-		protected var _canAuthor:Boolean = false;
-		
-		public function get canAuthor():Boolean {
-			return _canAuthor;
-		}
-		
 		public function setAvatar(avatarOrGuid:Object):void {
 			var avatarGuid:String;
 			if (avatarOrGuid is Avatar) {

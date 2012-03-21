@@ -194,6 +194,7 @@ package com.worlize.api
 						msgEvent.message = ba.readObject();
 					}
 					catch(e:Error) {
+						log(thisObject.guid + " - Invalid AMF3 object data when decoding app broadcast message: " + e.toString());
 						return;
 					}
 				}

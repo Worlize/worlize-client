@@ -22,6 +22,7 @@ package com.worlize.api.model
 		protected var _face:int;
 		protected var _color:int;
 		protected var _avatar:Avatar;
+		protected var _canAuthor:Boolean = false;
 		
 		public function User() {
 			super(null);
@@ -53,6 +54,10 @@ package com.worlize.api.model
 		
 		public function get avatar():Avatar {
 			return _avatar;
+		}
+		
+		public function get canAuthor():Boolean {
+			return _canAuthor;
 		}
 		
 		public function toJSON():Object {
@@ -108,8 +113,18 @@ package com.worlize.api.model
 			}
 		}
 		
+		worlize_internal function updateCanAuthor(newValue:Boolean):void {
+			if (_canAuthor !== newValue) {
+				_canAuthor = newValue;
+				var event:UserEvent = new UserEvent(UserEvent.CAN_AUTHOR_CHANGED);
+				event.user = this;
+				dispatchEvent(event);
+			}
+		}
+		
 		worlize_internal static function fromData(data:Object):User {
 			var user:User = new User();
+			user._canAuthor = data.canAuthor;
 			user._guid = data.guid;
 			user._name = data.name;
 			user._x = data.x;

@@ -642,6 +642,7 @@ package com.worlize.interactivity.api.adapter
 		
 		protected function userToObject(user:InteractivityUser):Object {
 			var data:Object = {
+				canAuthor: false,
 				guid: user.id,
 				name: user.name,
 				x: user.x,

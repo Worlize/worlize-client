@@ -10,6 +10,7 @@ package com.worlize.api.event
 		public static const AVATAR_CHANGED:String = "userAvatarChanged";
 		public static const FACE_CHANGED:String = "userFaceChanged";
 		public static const COLOR_CHANGED:String = "userColorChanged";
+		public static const CAN_AUTHOR_CHANGED:String = "userCanAuthorChanged";
 		
 		public var user:User;
 		

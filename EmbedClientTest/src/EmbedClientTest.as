@@ -53,10 +53,10 @@ package
 			color = color | (blue & 0xFF);
 			
 			api.stateHistory.clear({ color: color });
-			var toUserGuids:Array = [];
-			var user:User = api.thisRoom.users[Math.floor(api.thisRoom.users.length*Math.random())];
-			toUserGuids.push(user.guid);
-			api.thisRoom.broadcastMessage({ type: "setColor", color: color }, toUserGuids);
+//			var toUserGuids:Array = [];
+//			var user:User = api.thisRoom.users[Math.floor(api.thisRoom.users.length*Math.random())];
+//			toUserGuids.push(user.guid);
+			api.thisRoom.broadcastMessage({ type: "setColor", color: color });
 			
 			// api.thisObject.sendMessage({ msg: "setColor", color: color });
 		}
