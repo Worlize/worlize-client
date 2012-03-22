@@ -22,6 +22,7 @@ package com.worlize.api.model
 	[Event(name="userAvatarChanged",type="com.worlize.api.event.UserEvent")]
 	[Event(name="userFaceChanged",type="com.worlize.api.event.UserEvent")]
 	[Event(name="userColorChanged",type="com.worlize.api.event.UserEvent")]
+	[Event(name="userPrivilegesChanged",type="com.worlize.api.event.UserEvent")]
 	[Event(name="objectResized",type="com.worlize.api.event.RoomObjectEvent")]
 	[Event(name="objectMoved",type="com.worlize.api.event.RoomObjectEvent")]
 	[Event(name="objectStateChanged",type="com.worlize.api.event.RoomObjectEvent")]
@@ -200,31 +201,31 @@ package com.worlize.api.model
 		}
 		
 		private function addUserEventListeners(user:User):void {
-			user.addEventListener(UserEvent.AVATAR_CHANGED, redispatchUserEvent);
-			user.addEventListener(UserEvent.COLOR_CHANGED, redispatchUserEvent);
-			user.addEventListener(UserEvent.FACE_CHANGED, redispatchUserEvent);
-			user.addEventListener(UserEvent.MOVED, redispatchUserEvent);
-			user.addEventListener(UserEvent.CAN_AUTHOR_CHANGED, redispatchUserEvent);
+			user.addEventListener(UserEvent.USER_AVATAR_CHANGED, redispatchUserEvent);
+			user.addEventListener(UserEvent.USER_COLOR_CHANGED, redispatchUserEvent);
+			user.addEventListener(UserEvent.USER_FACE_CHANGED, redispatchUserEvent);
+			user.addEventListener(UserEvent.USER_MOVED, redispatchUserEvent);
+			user.addEventListener(UserEvent.USER_PRIVILEGES_CHANGED, redispatchUserEvent);
 		}
 		
 		private function removeUserEventListeners(user:User):void {
-			user.removeEventListener(UserEvent.AVATAR_CHANGED, redispatchUserEvent);
-			user.removeEventListener(UserEvent.COLOR_CHANGED, redispatchUserEvent);
-			user.removeEventListener(UserEvent.FACE_CHANGED, redispatchUserEvent);
-			user.removeEventListener(UserEvent.MOVED, redispatchUserEvent);
-			user.removeEventListener(UserEvent.CAN_AUTHOR_CHANGED, redispatchUserEvent);
+			user.removeEventListener(UserEvent.USER_AVATAR_CHANGED, redispatchUserEvent);
+			user.removeEventListener(UserEvent.USER_COLOR_CHANGED, redispatchUserEvent);
+			user.removeEventListener(UserEvent.USER_FACE_CHANGED, redispatchUserEvent);
+			user.removeEventListener(UserEvent.USER_MOVED, redispatchUserEvent);
+			user.removeEventListener(UserEvent.USER_PRIVILEGES_CHANGED, redispatchUserEvent);
 		}
 		
 		private function addRoomObjectEventListeners(obj:RoomObject):void {
-			obj.addEventListener(RoomObjectEvent.MOVED, redispatchRoomObjectEvent);
-			obj.addEventListener(RoomObjectEvent.RESIZED, redispatchRoomObjectEvent);
-			obj.addEventListener(RoomObjectEvent.STATE_CHANGED, redispatchRoomObjectEvent);
+			obj.addEventListener(RoomObjectEvent.OBJECT_MOVED, redispatchRoomObjectEvent);
+			obj.addEventListener(RoomObjectEvent.OBJECT_RESIZED, redispatchRoomObjectEvent);
+			obj.addEventListener(RoomObjectEvent.OBJECT_STATE_CHANGED, redispatchRoomObjectEvent);
 		}
 		
 		private function removeRoomObjectEventListeners(obj:RoomObject):void {
-			obj.removeEventListener(RoomObjectEvent.MOVED, redispatchRoomObjectEvent);
-			obj.removeEventListener(RoomObjectEvent.RESIZED, redispatchRoomObjectEvent);
-			obj.removeEventListener(RoomObjectEvent.STATE_CHANGED, redispatchRoomObjectEvent);
+			obj.removeEventListener(RoomObjectEvent.OBJECT_MOVED, redispatchRoomObjectEvent);
+			obj.removeEventListener(RoomObjectEvent.OBJECT_RESIZED, redispatchRoomObjectEvent);
+			obj.removeEventListener(RoomObjectEvent.OBJECT_STATE_CHANGED, redispatchRoomObjectEvent);
 		}
 		
 		worlize_internal static function fromData(data:Object, thisUser:ThisUser, thisObject:ThisRoomObject):ThisRoom {
@@ -290,7 +291,7 @@ package com.worlize.api.model
 			sharedEvents.addEventListener('host_userAvatarChanged', handleUserAvatarChanged);
 			sharedEvents.addEventListener('host_userFaceChanged', handleUserFaceChanged);
 			sharedEvents.addEventListener('host_userColorChanged', handleUserColorChanged);
-			sharedEvents.addEventListener('host_userCanAuthorChanged', handleUserCanAuthorChanged);
+			sharedEvents.addEventListener('host_userPrivilegesChanged', handleUserPrivilegesChanged);
 			sharedEvents.addEventListener('host_roomDimLevelChanged', handleRoomDimLevelChanged);
 			sharedEvents.addEventListener('host_roomObjectAdded', handleObjectAdded);
 			sharedEvents.addEventListener('host_roomObjectRemoved', handleObjectRemoved);
@@ -381,11 +382,11 @@ package com.worlize.api.model
 			}
 		}
 		
-		private function handleUserCanAuthorChanged(event:Event):void {
+		private function handleUserPrivilegesChanged(event:Event):void {
 			var eo:Object = event;
 			var user:User = getUserByGuid(eo.data.userGuid);
 			if (user) {
-				user.updateCanAuthor(eo.data.canAuthor);
+				user.updatePrivileges(eo.data.privileges);
 			}
 		}
 		

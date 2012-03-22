@@ -11,6 +11,7 @@ package com.worlize.api.model
 	[Event(name="userAvatarChanged",type="com.worlize.api.event.UserEvent")]
 	[Event(name="userFaceChanged",type="com.worlize.api.event.UserEvent")]
 	[Event(name="userColorChanged",type="com.worlize.api.event.UserEvent")]
+	[Event(name="userPrivilegesChanged",type="com.worlize.api.event.UserEvent")]
 	public class User extends EventDispatcher
 	{
 		use namespace worlize_internal;
@@ -22,7 +23,7 @@ package com.worlize.api.model
 		protected var _face:int;
 		protected var _color:int;
 		protected var _avatar:Avatar;
-		protected var _canAuthor:Boolean = false;
+		protected var _privileges:Array;
 		
 		public function User() {
 			super(null);
@@ -57,7 +58,11 @@ package com.worlize.api.model
 		}
 		
 		public function get canAuthor():Boolean {
-			return _canAuthor;
+			return _privileges && _privileges.indexOf('canAuthor') !== -1;
+		}
+		
+		public function get privileges():Array {
+			return _privileges.slice(0);
 		}
 		
 		public function toJSON():Object {
@@ -80,7 +85,7 @@ package com.worlize.api.model
 			if (_x !== x || _y !== y) {
 				_x = x;
 				_y = y;
-				var event:UserEvent = new UserEvent(UserEvent.MOVED);
+				var event:UserEvent = new UserEvent(UserEvent.USER_MOVED);
 				event.user = this;
 				dispatchEvent(event);
 			}
@@ -89,7 +94,7 @@ package com.worlize.api.model
 		worlize_internal function updateAvatar(avatar:Avatar):void {
 			if (_avatar !== avatar) {
 				_avatar = avatar;
-				var event:UserEvent = new UserEvent(UserEvent.AVATAR_CHANGED);
+				var event:UserEvent = new UserEvent(UserEvent.USER_AVATAR_CHANGED);
 				event.user = this;
 				dispatchEvent(event);
 			}
@@ -98,7 +103,7 @@ package com.worlize.api.model
 		worlize_internal function updateFace(newValue:uint):void {
 			if (_face !== newValue) {
 				_face = newValue;
-				var event:UserEvent = new UserEvent(UserEvent.FACE_CHANGED);
+				var event:UserEvent = new UserEvent(UserEvent.USER_FACE_CHANGED);
 				event.user = this;
 				dispatchEvent(event);
 			}
@@ -107,16 +112,31 @@ package com.worlize.api.model
 		worlize_internal function updateColor(newValue:uint):void {
 			if (_color !== newValue) {
 				_color = newValue;
-				var event:UserEvent = new UserEvent(UserEvent.COLOR_CHANGED);
+				var event:UserEvent = new UserEvent(UserEvent.USER_COLOR_CHANGED);
 				event.user = this;
 				dispatchEvent(event);
 			}
 		}
 		
-		worlize_internal function updateCanAuthor(newValue:Boolean):void {
-			if (_canAuthor !== newValue) {
-				_canAuthor = newValue;
-				var event:UserEvent = new UserEvent(UserEvent.CAN_AUTHOR_CHANGED);
+		worlize_internal function updatePrivileges(newValue:Array):void {
+			if (newValue === null) { return; }
+			
+			var valuesDiffer:Boolean = false;
+			if (newValue.length === _privileges.length) {
+				var sortedPrivileges:Array = newValue.sort();
+				for (var i:int = 0; i < sortedPrivileges.length; i++) {
+					if (sortedPrivileges[i] !==	_privileges[i]) {
+						valuesDiffer = true;
+						break;
+					}
+				}
+			}
+			else {
+				valuesDiffer = true;
+			}
+			if (valuesDiffer) {
+				_privileges = sortedPrivileges;
+				var event:UserEvent = new UserEvent(UserEvent.USER_PRIVILEGES_CHANGED);
 				event.user = this;
 				dispatchEvent(event);
 			}
@@ -124,7 +144,7 @@ package com.worlize.api.model
 		
 		worlize_internal static function fromData(data:Object):User {
 			var user:User = new User();
-			user._canAuthor = data.canAuthor;
+			user._privileges = data.privileges.sort();
 			user._guid = data.guid;
 			user._name = data.name;
 			user._x = data.x;

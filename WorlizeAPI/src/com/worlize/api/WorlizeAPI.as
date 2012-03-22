@@ -6,6 +6,7 @@ package com.worlize.api
 	import com.worlize.api.event.ChatEvent;
 	import com.worlize.api.event.MessageEvent;
 	import com.worlize.api.model.AppOptions;
+	import com.worlize.api.model.ConfigData;
 	import com.worlize.api.model.RoomObject;
 	import com.worlize.api.model.ThisRoom;
 	import com.worlize.api.model.ThisRoomObject;
@@ -50,7 +51,7 @@ package com.worlize.api
 		private var _thisUser:ThisUser;
 		private var _thisObject:ThisRoomObject;
 		private var _authorMode:Boolean;
-		
+		private var _config:ConfigData;
 		private var _stateHistory:StateHistory;
 		
 		public function get thisWorld():World {
@@ -71,6 +72,10 @@ package com.worlize.api
 		
 		public function get authorMode():Boolean {
 			return _authorMode;
+		}
+		
+		public function get config():ConfigData {
+			return _config;
 		}
 		
 		public function get stateHistory():StateHistory {
@@ -155,6 +160,7 @@ package com.worlize.api
 			_authorMode = event.data.authorMode;
 			
 			_stateHistory = new StateHistory(event.data.stateHistory);
+			_config = new ConfigData(event.data.config);
 			
 			addSharedEventHandlers();
 			

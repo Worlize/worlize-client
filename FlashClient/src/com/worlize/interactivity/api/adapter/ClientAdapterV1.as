@@ -102,11 +102,14 @@ package com.worlize.interactivity.api.adapter
 			thisObject.state = InWorldObjectInstance.STATE_HANDSHAKING;
 			
 			data.thisUser = userToObject(thisUser);
-			data.thisUser.canAuthor = thisUser.id === thisRoom.ownerGuid;
+			if (thisUser.id === thisRoom.ownerGuid) {
+				data.thisUser.privileges.push('canAuthor');
+			}
 			data.thisRoom = currentRoomToObject(thisRoom);
 			data.thisWorld = worldDefinitionToObject(thisWorld);
 			data.thisObject = inWorldObjectInstanceToObject(thisObject);
 			data.stateHistory = thisObject.stateHistory;
+			data.config = thisObject.configData;
 			
 			data.authorMode = host.authorMode;
 		}
@@ -163,6 +166,7 @@ package com.worlize.interactivity.api.adapter
 			sharedEvents.addEventListener("client_stateHistoryPush", handleClientStateHistoryPush);
 			sharedEvents.addEventListener("client_stateHistoryShift", handleClientStateHistoryShift);
 			sharedEvents.addEventListener("client_stateHistoryClear", handleClientStateHistoryClear);
+			sharedEvents.addEventListener("client_saveConfig", handleClientSaveConfig);
 			sharedEvents.addEventListener(MouseEvent.MOUSE_UP, handleClientMouseUp);
 		}
 		
@@ -186,6 +190,7 @@ package com.worlize.interactivity.api.adapter
 			sharedEvents.removeEventListener("client_stateHistoryPush", handleClientStateHistoryPush);
 			sharedEvents.removeEventListener("client_stateHistoryShift", handleClientStateHistoryShift);
 			sharedEvents.removeEventListener("client_stateHistoryClear", handleClientStateHistoryClear);
+			sharedEvents.addEventListener("client_saveConfig", handleClientSaveConfig);
 			sharedEvents.removeEventListener(MouseEvent.MOUSE_UP, handleClientMouseUp);
 		}
 		
@@ -332,6 +337,11 @@ package com.worlize.interactivity.api.adapter
 		private function handleClientStateHistoryClear(event:Event):void {
 			var eo:Object = event;
 			host.stateHistoryClear(appInstanceGuid, eo.data);
+		}
+		
+		private function handleClientSaveConfig(event:Event):void {
+			var eo:Object = event;
+			host.saveAppConfig(appInstanceGuid, eo.data);
 		}
 		
 		private function handleClientMouseUp(event:Event):void {
@@ -528,6 +538,16 @@ package com.worlize.interactivity.api.adapter
 			sharedEvents.dispatchEvent(event);	
 		}
 		
+		public function receiveSaveAppConfig(changedByUserGuid:String, config:Object):void {
+			if (sharedEvents === null) { return; }
+			var event:APIBridgeEvent = new APIBridgeEvent("host_configChanged");
+			event.data = {
+				user: changedByUserGuid,
+				config: config
+			};
+			sharedEvents.dispatchEvent(event);
+		}
+		
 		public function applicationMouseUp(mouseEvent:MouseEvent):void {
 			if (sharedEvents === null) { return; }
 			var event:APIBridgeEvent = new APIBridgeEvent("host_applicationMouseUp");
@@ -642,7 +662,7 @@ package com.worlize.interactivity.api.adapter
 		
 		protected function userToObject(user:InteractivityUser):Object {
 			var data:Object = {
-				canAuthor: false,
+				privileges: [],
 				guid: user.id,
 				name: user.name,
 				x: user.x,

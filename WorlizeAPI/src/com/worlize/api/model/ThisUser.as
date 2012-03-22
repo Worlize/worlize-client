@@ -82,7 +82,7 @@ package com.worlize.api.model
 		
 		worlize_internal static function fromData(data:Object):ThisUser {
 			var user:ThisUser = new ThisUser();
-			user._canAuthor = data.canAuthor;
+			user._privileges = data.privileges.sort();
 			user._guid = data.guid;
 			user._name = data.name;
 			user._x = data.x;

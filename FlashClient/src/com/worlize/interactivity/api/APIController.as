@@ -374,6 +374,12 @@ package com.worlize.interactivity.api
 			interactivityClient.stateHistoryClear(appInstanceGuid, initialData);
 		}
 		
+		public function saveAppConfig(appInstanceGuid:String, configData:Object):void {
+			if (thisUser.id === thisRoom.ownerGuid) {
+				interactivityClient.saveAppConfig(appInstanceGuid, configData);
+			}
+		}
+		
 		
 		
 		// Methods meant to be called by InteractivityClient
@@ -423,6 +429,13 @@ package com.worlize.interactivity.api
 			var client:IAPIClientAdapter = getClientByGuid(appInstanceGuid);
 			if (client) {
 				client.receiveStateHistoryClear();
+			}
+		}
+		
+		public function receiveSaveAppConfig(appInstanceGuid:String, changedByUserGuid:String, config:Object):void {
+			var client:IAPIClientAdapter = getClientByGuid(appInstanceGuid);
+			if (client) {
+				client.receiveSaveAppConfig(changedByUserGuid, config);
 			}
 		}
 	}

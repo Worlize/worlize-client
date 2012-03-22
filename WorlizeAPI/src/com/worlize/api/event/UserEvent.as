@@ -6,11 +6,11 @@ package com.worlize.api.event
 	
 	public class UserEvent extends Event
 	{
-		public static const MOVED:String = "userMoved";
-		public static const AVATAR_CHANGED:String = "userAvatarChanged";
-		public static const FACE_CHANGED:String = "userFaceChanged";
-		public static const COLOR_CHANGED:String = "userColorChanged";
-		public static const CAN_AUTHOR_CHANGED:String = "userCanAuthorChanged";
+		public static const USER_MOVED:String = "userMoved";
+		public static const USER_AVATAR_CHANGED:String = "userAvatarChanged";
+		public static const USER_FACE_CHANGED:String = "userFaceChanged";
+		public static const USER_COLOR_CHANGED:String = "userColorChanged";
+		public static const USER_PRIVILEGES_CHANGED:String = "userPrivilegesChanged";
 		
 		public var user:User;
 		

@@ -6,9 +6,9 @@ package com.worlize.api.event
 	
 	public class RoomObjectEvent extends Event
 	{
-		public static const MOVED:String = "objectMoved";
-		public static const RESIZED:String = "objectResized";
-		public static const STATE_CHANGED:String = "objectStateChanged";
+		public static const OBJECT_MOVED:String = "objectMoved";
+		public static const OBJECT_RESIZED:String = "objectResized";
+		public static const OBJECT_STATE_CHANGED:String = "objectStateChanged";
 		
 		public var roomObject:RoomObject;
 		

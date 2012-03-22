@@ -193,6 +193,7 @@ package com.worlize.interactivity.model
 				inWorldObjectInstance.inWorldObject.smallIconURL = objectData.small_icon;
 				inWorldObjectInstance.inWorldObject.width = objectData.width;
 				inWorldObjectInstance.inWorldObject.height = objectData.height;
+				inWorldObjectInstance.configData = objectData.config;
 				inWorldObjectInstance.stateHistory = [];
 			}
 			else {

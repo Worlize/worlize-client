@@ -218,6 +218,7 @@ package com.worlize.interactivity.rpc
 			"room_msg": handleRoomMsg,
 			"room_population_update": handleRoomPopulationUpdate,
 			"room_redirect": handleRoomRedirect,
+			"save_app_config": handleSaveAppConfig,
 			"say": handleReceiveTalk,
 			"set_color": handleUserColor,
 			"set_face": handleUserFace,
@@ -721,6 +722,12 @@ package com.worlize.interactivity.rpc
 			}
 		}
 		
+		private function handleSaveAppConfig(data:Object):void {
+			if (data.user && data.app_instance_guid && data.config) {
+				apiController.receiveSaveAppConfig(data.app_instance_guid, data.user, data.config);
+			}
+		}
+		
 		
 		// BEGIN Binary Message Handler Functions
 		
@@ -1180,6 +1187,16 @@ package com.worlize.interactivity.rpc
 			msg.data = initialData;
 			
 			connection.send(msg);
+		}
+		
+		public function saveAppConfig(appInstanceGuid:String, configData:Object):void {
+			connection.send({
+				msg: "save_app_config",
+				data: {
+					app_instance_guid: appInstanceGuid,
+					config: configData
+				}
+			});
 		}
 		
 		public function roomChat(message:String):void {

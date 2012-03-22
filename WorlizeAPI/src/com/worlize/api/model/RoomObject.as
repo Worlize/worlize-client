@@ -130,7 +130,7 @@ package com.worlize.api.model
 			if (_x !== x || _y !== y) {
 				_x = x;
 				_y = y;
-				var event:RoomObjectEvent = new RoomObjectEvent(RoomObjectEvent.MOVED);
+				var event:RoomObjectEvent = new RoomObjectEvent(RoomObjectEvent.OBJECT_MOVED);
 				event.roomObject = this;
 				dispatchEvent(event);
 			}
@@ -140,7 +140,7 @@ package com.worlize.api.model
 			if (_width !== width || _height !== height) {
 				_width = width;
 				_height = height;
-				var event:RoomObjectEvent = new RoomObjectEvent(RoomObjectEvent.RESIZED);
+				var event:RoomObjectEvent = new RoomObjectEvent(RoomObjectEvent.OBJECT_RESIZED);
 				event.roomObject = this;
 				dispatchEvent(event);
 			}
@@ -149,7 +149,7 @@ package com.worlize.api.model
 		worlize_internal function updateState(state:String):void {
 			if (_state !== state) {
 				_state = state;
-				var event:RoomObjectEvent = new RoomObjectEvent(RoomObjectEvent.STATE_CHANGED);
+				var event:RoomObjectEvent = new RoomObjectEvent(RoomObjectEvent.OBJECT_STATE_CHANGED);
 				event.roomObject = this;
 				dispatchEvent(event);
 			}

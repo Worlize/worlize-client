@@ -14,7 +14,8 @@ package
 			super();
 		}
 		
-		public function drawCircle(radius:Number):void {
+		public function drawCircle(radius:Number, color:uint = 0x000000):void {
+			_color = color;
 			_radius = radius;
 			WorlizeAPI.getInstance().thisObject.setSize(radius*2 + 6, radius*2 + 6);
 			x = y = radius + 3;
@@ -26,8 +27,7 @@ package
 		}
 		
 		public function setColor(color:uint):void {
-			_color = color;
-			drawCircle(_radius);
+			drawCircle(_radius, color);
 		}
 	}
 }

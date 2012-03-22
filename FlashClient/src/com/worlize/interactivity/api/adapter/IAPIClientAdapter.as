@@ -54,6 +54,7 @@ package com.worlize.interactivity.api.adapter
 		function receiveStateHistoryPush(data:ByteArray):void;
 		function receiveStateHistoryShift():void;
 		function receiveStateHistoryClear():void;
+		function receiveSaveAppConfig(changedByUserGuid:String, config:Object):void;
 		function roomMouseMove(event:MouseEvent):void;
 		function applicationMouseUp(event:MouseEvent):void;
 	}

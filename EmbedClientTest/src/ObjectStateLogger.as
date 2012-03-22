@@ -30,15 +30,15 @@ package
 						
 			api.thisRoom.addEventListener(RoomEvent.USER_LEFT, handleUserLeft);
 			api.thisRoom.addEventListener(RoomEvent.USER_ENTERED, handleUserEntered);
-			api.thisRoom.addEventListener(RoomObjectEvent.STATE_CHANGED, handleObjectStateChanged);
+			api.thisRoom.addEventListener(RoomObjectEvent.OBJECT_STATE_CHANGED, handleObjectStateChanged);
 			api.thisRoom.addEventListener(RoomEvent.OBJECT_ADDED, handleObjectAdded);
 			api.thisRoom.addEventListener(RoomEvent.OBJECT_REMOVED, handleObjectRemoved);
 //			api.thisRoom.addEventListener(RoomObjectEvent.MOVED, handleObjectMoved);
-			api.thisRoom.addEventListener(RoomObjectEvent.RESIZED, handleObjectResized);
-			api.thisRoom.addEventListener(UserEvent.AVATAR_CHANGED, handleUserAvatarChanged);
-			api.thisRoom.addEventListener(UserEvent.COLOR_CHANGED, handleUserColorChanged);
-			api.thisRoom.addEventListener(UserEvent.FACE_CHANGED, handleUserFaceChanged);
-			api.thisRoom.addEventListener(UserEvent.MOVED, handleUserMoved);
+			api.thisRoom.addEventListener(RoomObjectEvent.OBJECT_RESIZED, handleObjectResized);
+			api.thisRoom.addEventListener(UserEvent.USER_AVATAR_CHANGED, handleUserAvatarChanged);
+			api.thisRoom.addEventListener(UserEvent.USER_COLOR_CHANGED, handleUserColorChanged);
+			api.thisRoom.addEventListener(UserEvent.USER_FACE_CHANGED, handleUserFaceChanged);
+			api.thisRoom.addEventListener(UserEvent.USER_MOVED, handleUserMoved);
 			
 			api.thisRoom.addEventListener(MouseEvent.MOUSE_MOVE, handleRoomMouseMove);
 			api.thisRoom.addEventListener(ChatEvent.OUTGOING_CHAT, handleOutgoingChat);
