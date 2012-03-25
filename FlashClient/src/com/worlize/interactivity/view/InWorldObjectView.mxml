@@ -9,6 +9,7 @@
 		  mouseDown="handleMouseDown(event)"
 		  mouseOver="handleMouseOver(event)"
 		  mouseOut="handleMouseOut(event)"
+		  mouseEnabled="false"
 		  currentState="normal"
 		  x="{inWorldObjectInstance.x}"
 		  y="{inWorldObjectInstance.y}" xmlns:api="com.worlize.interactivity.api.*">
@@ -25,6 +26,10 @@
 		<s:State name="authorError" stateGroups="authorMode,error" />
 		<s:State name="authorSelected" stateGroups="authorModeAndSelected" />
 		<s:State name="authorSelectedError" stateGroups="authorModeAndSelected,error" />
+		<s:State name="edit" stateGroups="editMode" />
+		<s:State name="editError" stateGroups="editMode,error" />
+		<s:State name="editSelected" stateGroups="editModeAndSelected" />
+		<s:State name="editSelectedError" stateGroups="editModeAndSelected,error" />
 	</s:states>
 	
 	<fx:Script>
@@ -62,6 +67,9 @@
 			private var _authorMode:Boolean = false;
 			
 			[Bindable]
+			private var _editMode:Boolean = false;
+			
+			[Bindable]
 			private var _selected:Boolean = false;
 			
 			private var dragging:Boolean = false;
@@ -80,6 +88,18 @@
 			}
 			public function get authorMode():Boolean {
 				return _authorMode;
+			}
+			
+			[Bindable(event="editModeChanged")]
+			protected function set editMode(newValue:Boolean):void {
+				if (_editMode !== newValue) {
+					_editMode = newValue;
+					updateState();
+					dispatchEvent(new FlexEvent('editModeChanged'));
+				}
+			}
+			protected function get editMode():Boolean {
+				return _editMode;
 			}
 			
 			[Bindable(event="selectedChanged")]
@@ -106,7 +126,10 @@
 			
 			private function updateState():void {
 				var parts:Array = [];
-				if (_authorMode) {
+				if (_editMode) {
+					parts.push("edit");
+				}
+				else if (_authorMode) {
 					parts.push("author");
 				}
 				else {
@@ -119,6 +142,22 @@
 					parts.push("Error");
 				}
 				currentState = parts.join('');
+				updateMouseEnabled();
+			}
+			
+			private function updateMouseEnabled():void {
+				if (_editMode) {
+					mouseEnabled = false;
+				}
+				else if (_authorMode) {
+					mouseEnabled = true;
+				}
+				else if (inWorldObjectInstance.inWorldObject.kind !== InWorldObject.KIND_APP) {
+					mouseEnabled = true;
+				}
+				else {
+					mouseEnabled = false;
+				}
 			}
 			
 			private function handleCreationComplete():void {
@@ -128,12 +167,16 @@
 			private function handleAddedToStage():void {
 				NotificationCenter.addListener(AuthorModeNotification.AUTHOR_ENABLED, handleAuthorModeEnabled);
 				NotificationCenter.addListener(AuthorModeNotification.AUTHOR_DISABLED, handleAuthorModeDisabled);
+				NotificationCenter.addListener(AuthorModeNotification.EDIT_MODE_ENABLED, handleEditModeEnabled);
+				NotificationCenter.addListener(AuthorModeNotification.EDIT_MODE_DISABLED, handleEditModeDisabled);
 				NotificationCenter.addListener(AuthorModeNotification.SELECTED_ITEM_CHANGED, handleSelectedItemChanged);
 				authorMode = AuthorModeState.getInstance().enabled;
 			}
 			
 			private function handleRemovedFromStage():void {
 				NotificationCenter.removeListener(AuthorModeNotification.SELECTED_ITEM_CHANGED, handleSelectedItemChanged);
+				NotificationCenter.removeListener(AuthorModeNotification.EDIT_MODE_ENABLED, handleEditModeEnabled);
+				NotificationCenter.removeListener(AuthorModeNotification.EDIT_MODE_DISABLED, handleEditModeDisabled);
 				NotificationCenter.removeListener(AuthorModeNotification.AUTHOR_ENABLED, handleAuthorModeEnabled);
 				NotificationCenter.removeListener(AuthorModeNotification.AUTHOR_DISABLED, handleAuthorModeDisabled);
 				
@@ -148,12 +191,25 @@
 				authorMode = false;
 			}
 			
+			private function handleEditModeEnabled(notification:AuthorModeNotification):void {
+				if (notification.inWorldObjectInstance === inWorldObjectInstance) {
+					editMode = true;
+				}
+			}
+			
+			private function handleEditModeDisabled(notification:AuthorModeNotification):void {
+				editMode = false;
+			}
+			
 			private function handleSelectedItemChanged(notification:AuthorModeNotification):void {
 				selected = (notification.newValue === inWorldObjectInstance);
 			}
 			
 			private function handleMouseOver(event:MouseEvent):void {
-				if (_authorMode) {
+				if (_editMode) {
+				
+				}
+				else if (_authorMode) {
 					Mouse.cursor = MouseCursor.HAND;
 				}
 				else if (inWorldObjectInstance.dest) {
@@ -162,13 +218,16 @@
 			}
 			
 			private function handleMouseOut(event:MouseEvent):void {
-				if (_authorMode || inWorldObjectInstance.dest) {
+				if ((_authorMode || inWorldObjectInstance.dest) && !_editMode) {
 					Mouse.cursor = MouseCursor.ARROW;
 				}
 			}
 			
 			private function handleMouseDown(event:MouseEvent):void {
-				if (_authorMode) {
+				if (_editMode) {
+					event.stopImmediatePropagation();
+				}
+				else if (_authorMode) {
 					dragging = true;
 					systemManager.getSandboxRoot().addEventListener(MouseEvent.MOUSE_UP, handleStageMouseUp);
 					systemManager.getSandboxRoot().addEventListener(MouseEvent.MOUSE_MOVE, handleStageMouseMove);
@@ -223,7 +282,7 @@
 			}
 			
 			protected function handleAppLoaderComplete(event:Event):void {
-				trace("App Loader Dimensions: " + appLoader.width + "x" + appLoader.height);
+				
 			}
 			
 			protected function handleAppBombed(event:AppLoaderEvent):void {
@@ -236,6 +295,22 @@
 			
 		]]>
 	</fx:Script>
+	
+	<s:Group id="editModeBackground" top="-1" left="-1" right="-1" bottom="-1" includeIn="editModeAndSelected">
+		<s:Rect top="-1" left="-1" right="-1" bottom="-1">
+			<s:stroke>
+				<s:SolidColorStroke weight="1" color="#FFFFFF" />
+			</s:stroke>
+		</s:Rect>
+		<s:Rect top="0" left="0" right="0" bottom="0">
+			<s:stroke>
+				<s:SolidColorStroke weight="1" color="#000000" />
+			</s:stroke>
+			<s:fill>
+				<s:SolidColor color="#EEEEEE" alpha="0.25" />
+			</s:fill>
+		</s:Rect>
+	</s:Group>
 	
 	<api:AppLoader top="0" left="0" id="appLoader"
 				   width="{inWorldObjectInstance.width}"

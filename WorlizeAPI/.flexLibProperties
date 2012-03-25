@@ -21,7 +21,7 @@
     <classEntry path="com.worlize.api.event.MessageEvent"/>
     <classEntry path="com.worlize.api.event.AuthorEvent"/>
     <classEntry path="com.worlize.api.data.SyncedList"/>
-    <classEntry path="com.worlize.api.model.AppOptions"/>
+    <classEntry path="com.worlize.api.model.APIOptions"/>
     <classEntry path="com.worlize.api.model.ConfigData"/>
     <classEntry path="com.worlize.api.data.SyncedDataStore"/>
   </includeClasses>

@@ -3,6 +3,7 @@ package com.worlize.state
 	import com.worlize.event.AuthorModeNotification;
 	import com.worlize.event.NotificationCenter;
 	import com.worlize.interactivity.model.Hotspot;
+	import com.worlize.model.InWorldObjectInstance;
 	
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
@@ -16,12 +17,17 @@ package com.worlize.state
 		[Bindable]
 		public var enabled:Boolean = false;
 		
+		[Bindable]
+		public var editMode:Boolean = false;
+		
 		public function AuthorModeState() {
 			if (_instance != null) {
 				throw new Error("You can only have one instance of AuthorModeState");
 			}
-			NotificationCenter.addListener(AuthorModeNotification.AUTHOR_ENABLED, handleAuthorEnabled);
-			NotificationCenter.addListener(AuthorModeNotification.AUTHOR_DISABLED, handleAuthorDisabled);
+			NotificationCenter.addListener(AuthorModeNotification.AUTHOR_ENABLED, handleAuthorEnabled, false, 0x7FFFFFFF);
+			NotificationCenter.addListener(AuthorModeNotification.AUTHOR_DISABLED, handleAuthorDisabled, false, 0x7FFFFFFF);
+			NotificationCenter.addListener(AuthorModeNotification.EDIT_MODE_ENABLED, handleEditModeEnabled, false, 0x7FFFFFFF);
+			NotificationCenter.addListener(AuthorModeNotification.EDIT_MODE_DISABLED, handleEditModeDisabled, false, 0x7FFFFFFF);
 		}
 		
 		public static function getInstance():AuthorModeState {
@@ -45,9 +51,31 @@ package com.worlize.state
 			}
 		}
 		
+		public function disableEditMode():void {
+			if (editMode) {
+				var notification:AuthorModeNotification = new AuthorModeNotification(AuthorModeNotification.EDIT_MODE_DISABLED);
+				notification.inWorldObjectInstance = _selectedItem as InWorldObjectInstance;
+				NotificationCenter.postNotification(notification);
+			}
+		}
+		
+		public function enableEditMode():void {
+			if (enabled) {
+				// You can only enable edit mode if author mode is enabled
+				if (_selectedItem && _selectedItem is InWorldObjectInstance) {
+					var obj:InWorldObjectInstance = _selectedItem as InWorldObjectInstance;
+					var notification:AuthorModeNotification = new AuthorModeNotification(AuthorModeNotification.EDIT_MODE_ENABLED);
+					notification.inWorldObjectInstance = obj;
+					NotificationCenter.postNotification(notification);
+				}
+			}
+		}
+		
 		[Bindable(event="selectedItemChanged")]
 		public function set selectedItem(newValue:Object):void {
 			if (_selectedItem !== newValue) {
+				disableEditMode();
+				
 				var notification:AuthorModeNotification = new AuthorModeNotification(AuthorModeNotification.SELECTED_ITEM_CHANGED);
 				notification.oldValue = _selectedItem;
 				notification.newValue = newValue;
@@ -62,12 +90,38 @@ package com.worlize.state
 			return _selectedItem;
 		}
 		
+		private function handleEditModeEnabled(notification:AuthorModeNotification):void {
+			if (enabled) {
+				if (_selectedItem && _selectedItem is InWorldObjectInstance) {
+					var obj:InWorldObjectInstance = _selectedItem as InWorldObjectInstance;
+					if (obj.editModeSupported) {
+						obj.editModeEnabled = true;
+						editMode = true;
+						return;
+					}
+				}
+			}
+			notification.stopImmediatePropagation();
+		}
+		
+		private function handleEditModeDisabled(notification:AuthorModeNotification):void {
+			if (editMode) {
+				var obj:InWorldObjectInstance = _selectedItem as InWorldObjectInstance;
+				obj.editModeEnabled = false;
+				editMode = false;
+				return;
+			}
+			notification.stopImmediatePropagation();
+		}
 		
 		private function handleAuthorEnabled(notification:AuthorModeNotification):void {
 			enabled = true;
 		}
 
 		private function handleAuthorDisabled(notification:AuthorModeNotification):void {
+			if (editMode) {
+				disableEditMode();
+			}
 			enabled = false;
 			selectedItem = null;
 		}

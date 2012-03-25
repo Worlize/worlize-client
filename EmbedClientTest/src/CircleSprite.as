@@ -14,6 +14,10 @@ package
 			super();
 		}
 		
+		public function get color():uint {
+			return _color;
+		}
+		
 		public function drawCircle(radius:Number, color:uint = 0x000000):void {
 			_color = color;
 			_radius = radius;

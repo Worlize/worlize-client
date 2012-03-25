@@ -93,11 +93,15 @@ package com.worlize.interactivity.api
 		protected function addNotificationListeners():void {
 			NotificationCenter.addListener(AuthorModeNotification.AUTHOR_ENABLED, handleAuthorEnabled);
 			NotificationCenter.addListener(AuthorModeNotification.AUTHOR_DISABLED, handleAuthorDisabled);
+			NotificationCenter.addListener(AuthorModeNotification.EDIT_MODE_ENABLED, handleEditModeEnabled);
+			NotificationCenter.addListener(AuthorModeNotification.EDIT_MODE_DISABLED, handleEditModeDisabled);
 		}
 		
 		protected function removeNotificationListeners():void {
 			NotificationCenter.removeListener(AuthorModeNotification.AUTHOR_ENABLED, handleAuthorEnabled);
 			NotificationCenter.removeListener(AuthorModeNotification.AUTHOR_DISABLED, handleAuthorDisabled);
+			NotificationCenter.removeListener(AuthorModeNotification.EDIT_MODE_ENABLED, handleEditModeEnabled);
+			NotificationCenter.removeListener(AuthorModeNotification.EDIT_MODE_DISABLED, handleEditModeDisabled);
 		}
 
 		public function getClientAdapterForVersion(version:int):IAPIClientAdapter {
@@ -165,6 +169,24 @@ package com.worlize.interactivity.api
 		protected function handleAuthorDisabled(notification:AuthorModeNotification):void {
 			for each (var client:IAPIClientAdapter in apiClientAdapters) {
 				client.authorModeChanged(false);
+			}
+		}
+		
+		protected function handleEditModeEnabled(notification:AuthorModeNotification):void {
+			if (notification.inWorldObjectInstance) {
+				var client:IAPIClientAdapter = getClientByGuid(notification.inWorldObjectInstance.guid);
+				if (client) {
+					client.editModeChanged(true);
+				}
+			}
+		}
+		
+		protected function handleEditModeDisabled(notification:AuthorModeNotification):void {
+			if (notification.inWorldObjectInstance) {
+				var client:IAPIClientAdapter = getClientByGuid(notification.inWorldObjectInstance.guid);
+				if (client) {
+					client.editModeChanged(false);
+				}
 			}
 		}
 		

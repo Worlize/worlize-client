@@ -1,6 +1,6 @@
 package com.worlize.api.model
 {
-	public class AppOptions {
+	public class APIOptions {
 		public var fullSize:Boolean = false;
 		public var nonVisual:Boolean = false;
 		public var resizableByUser:Boolean = false;

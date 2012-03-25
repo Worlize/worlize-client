@@ -388,6 +388,13 @@ package com.worlize.interactivity.api.adapter
 			sharedEvents.dispatchEvent(event);
 		}
 		
+		public function editModeChanged(editMode:Boolean):void {
+			if (sharedEvents === null) { return; }
+			var event:APIBridgeEvent = new APIBridgeEvent("host_editModeChanged");
+			event.data = editMode;
+			sharedEvents.dispatchEvent(event);
+		}
+		
 		public function processChat(record:ChatRecord):void {
 			if (sharedEvents === null) { return; }
 			if (state !== InWorldObjectInstance.STATE_READY) { return; }

@@ -6,7 +6,7 @@ package com.worlize.api
 	import com.worlize.api.event.AuthorEvent;
 	import com.worlize.api.event.ChatEvent;
 	import com.worlize.api.event.MessageEvent;
-	import com.worlize.api.model.AppOptions;
+	import com.worlize.api.model.APIOptions;
 	import com.worlize.api.model.ConfigData;
 	import com.worlize.api.model.RoomObject;
 	import com.worlize.api.model.ThisRoom;
@@ -45,7 +45,7 @@ package com.worlize.api
 		private static var _initialized:Boolean = false;
 		private static var _instance:WorlizeAPI;
 		
-		public static var options:AppOptions = new AppOptions();
+		public static var options:APIOptions = new APIOptions();
 		
 		worlize_internal static var rootObject:DisplayObject;
 		worlize_internal static var loaderInfo:LoaderInfo;
@@ -173,7 +173,7 @@ package com.worlize.api
 			_thisWorld = World.fromData(event.data.thisWorld);
 			_thisRoom = ThisRoom.fromData(event.data.thisRoom, _thisUser, _thisObject);
 			_authorMode = event.data.authorMode;
-			_editMode = event.data.editMode;
+			_editMode = false;
 			
 			_stateHistory = new StateHistory(event.data.stateHistory);
 			_syncedDataStore = new SyncedDataStore(event.data.syncedData);

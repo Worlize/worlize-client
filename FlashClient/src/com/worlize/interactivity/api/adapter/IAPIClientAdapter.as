@@ -36,6 +36,7 @@ package com.worlize.interactivity.api.adapter
 		
 		// Methods to be called from the host.
 		function authorModeChanged(enabled:Boolean):void;
+		function editModeChanged(enabled:Boolean):void;
 		function processChat(record:ChatRecord):void;
 		function userEntered(user:InteractivityUser):void;
 		function userLeft(user:InteractivityUser):void;

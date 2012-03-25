@@ -2,6 +2,7 @@ package
 {
 	import com.worlize.api.WorlizeAPI;
 	import com.worlize.api.data.StateHistoryEvent;
+	import com.worlize.api.event.AuthorEvent;
 	import com.worlize.api.event.ChangeEvent;
 	import com.worlize.api.event.ChatEvent;
 	import com.worlize.api.event.MessageEvent;
@@ -23,10 +24,18 @@ package
 		public var circle:CircleSprite;
 		
 		public function EmbedClientTest() {
+			WorlizeAPI.options.defaultWidth = 106;
+			WorlizeAPI.options.defaultHeight = 106;
+			WorlizeAPI.options.editModeSupported = true;
+			
 			WorlizeAPI.init(this);
 			
 			api = WorlizeAPI.getInstance();
 			api.thisRoom.addEventListener(ChatEvent.INCOMING_CHAT, handleIncomingChat);
+			
+			api.addEventListener(AuthorEvent.EDIT_MODE_ENABLED, handleEditModeEnabled);
+			api.addEventListener(AuthorEvent.EDIT_MODE_DISABLED, handleEditModeDisabled);
+			
 			
 //			api.stateHistory.addEventListener(StateHistoryEvent.ENTRY_ADDED, handleStateAdded);
 			api.syncedDataStore.addEventListener(ChangeEvent.PROPERTY_CHANGED, handleSyncedPropertyChanged);
@@ -51,6 +60,17 @@ package
 			}
 			
 			circle.addEventListener(MouseEvent.CLICK, handleCircleClick);
+		}
+		
+		
+		private var lastColor:uint;
+		private function handleEditModeEnabled(event:AuthorEvent):void {
+			lastColor = circle.color;
+			circle.setColor(0xFF8800);
+		}
+		
+		private function handleEditModeDisabled(event:AuthorEvent):void {
+			circle.setColor(lastColor);
 		}
 		
 		private function handleCircleClick(event:MouseEvent):void {

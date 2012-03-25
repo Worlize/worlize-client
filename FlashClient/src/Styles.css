@@ -14,7 +14,7 @@ components|DynamicHeightList {
 	skinClass: ClassReference("com.worlize.view.skins.DynamicHeightListSkin"); 
 }
 
-s|Button s|Label, s|DropDownList s|Label {
+s|Button s|Label, s|ToggleButton s|Label, s|DropDownList s|Label {
 	fontFamily: PTSansNarrowBold;
 	fontSize: 14pt;
 }

@@ -2,6 +2,7 @@ package com.worlize.model
 {
 	import com.worlize.event.NotificationCenter;
 	import com.worlize.interactivity.event.RoomEvent;
+	import com.worlize.interactivity.rpc.InteractivityClient;
 	import com.worlize.notification.InWorldObjectNotification;
 	import com.worlize.rpc.HTTPMethod;
 	import com.worlize.rpc.WorlizeResultEvent;
@@ -43,7 +44,7 @@ package com.worlize.model
 		public var stateHistory:Array;
 		
 		public var editModeSupported:Boolean = false;
-		public var editModeEnabled:Boolean = false;
+		private var _editModeEnabled:Boolean = false;
 		
 		public var sizedByScript:Boolean = false;
 		
@@ -58,6 +59,17 @@ package com.worlize.model
 				var event:RoomEvent = new RoomEvent(RoomEvent.OBJECT_STATE_CHANGED);
 				event.roomObject = this;
 				dispatchEvent(event);
+			}
+		}
+		
+		[Bindable(event="editModeEnabledChanged")]
+		public function get editModeEnabled():Boolean {
+			return _editModeEnabled;
+		}
+		public function set editModeEnabled(newValue:Boolean):void {
+			if (_editModeEnabled !== newValue) {
+				_editModeEnabled = newValue;
+				dispatchEvent(new FlexEvent("editModeEnabledChanged"));
 			}
 		}
 		
