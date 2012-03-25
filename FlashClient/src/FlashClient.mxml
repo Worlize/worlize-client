@@ -255,8 +255,8 @@
 				client.connect();
 				
 				authorPropertiesWindow = new AuthorModePropertiesWindow();
-				authorPropertiesWindow.x = this.width - authorPropertiesWindow.width - 15;
-				authorPropertiesWindow.y = 75;
+				authorPropertiesWindow.x = chatWindow.x + chatWindow.width - authorPropertiesWindow.width - 15;
+				authorPropertiesWindow.y = chatWindow.y + 30;
 
 				NotificationCenter.addListener(AuthorModeNotification.AUTHOR_DISABLED, handleAuthorDisabled);
 				NotificationCenter.addListener(AuthorModeNotification.SELECTED_ITEM_CHANGED, handleAuthorSelectedItemChanged);
