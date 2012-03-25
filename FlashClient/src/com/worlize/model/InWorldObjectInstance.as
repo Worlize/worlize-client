@@ -38,8 +38,12 @@ package com.worlize.model
 		public var dest:String;
 		public var emptySlot:Boolean = false;
 		
-		public var configData:Object;		
+		public var configData:Object;
+		public var syncedData:Object;
 		public var stateHistory:Array;
+		
+		public var editModeSupported:Boolean = false;
+		public var editModeEnabled:Boolean = false;
 		
 		public var sizedByScript:Boolean = false;
 		

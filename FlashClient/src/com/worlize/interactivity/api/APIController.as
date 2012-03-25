@@ -374,6 +374,14 @@ package com.worlize.interactivity.api
 			interactivityClient.stateHistoryClear(appInstanceGuid, initialData);
 		}
 		
+		public function syncedDataSet(appInstanceGuid:String, key:String, value:ByteArray):void {
+			interactivityClient.syncedDataSet(appInstanceGuid, key, value);
+		}
+		
+		public function syncedDataDelete(appInstanceGuid:String, key:String):void {
+			interactivityClient.syncedDataDelete(appInstanceGuid, key);
+		}
+		
 		public function saveAppConfig(appInstanceGuid:String, configData:Object):void {
 			if (thisUser.id === thisRoom.ownerGuid) {
 				interactivityClient.saveAppConfig(appInstanceGuid, configData);
@@ -429,6 +437,20 @@ package com.worlize.interactivity.api
 			var client:IAPIClientAdapter = getClientByGuid(appInstanceGuid);
 			if (client) {
 				client.receiveStateHistoryClear();
+			}
+		}
+		
+		public function receiveSyncedDataSet(appInstanceGuid:String, key:String, value:ByteArray):void {
+			var client:IAPIClientAdapter = getClientByGuid(appInstanceGuid);
+			if (client) {
+				client.receiveSyncedDataSet(key, value);
+			}
+		}
+		
+		public function receiveSyncedDataDelete(appInstanceGuid:String, key:String):void {
+			var client:IAPIClientAdapter = getClientByGuid(appInstanceGuid);
+			if (client) {
+				client.receiveSyncedDataDelete(key);
 			}
 		}
 		

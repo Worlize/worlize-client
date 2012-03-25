@@ -32,6 +32,9 @@ package com.worlize.api.event
 		public static const STATE_HISTORY_CLEAR:String = "client_stateHistoryClear";
 		public static const STATE_HISTORY_SHIFT:String = "client_stateHistoryShift";
 		
+		public static const SYNCED_DATA_SET:String = "client_syncedDataSet";
+		public static const SYNCED_DATA_DELETE:String = "client_syncedDataDelete";
+		
 		public static const SAVE_CONFIG:String = "client_saveConfig";
 		
 		// For when something goes wrong inside the client and we want to be shutdown and unloaded

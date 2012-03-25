@@ -15,7 +15,7 @@ package com.worlize.api.data
 	[Event(name="itemAdded",type="com.worlize.api.data.StateHistoryEvent")]
 	[Event(name="itemRemoved",type="com.worlize.api.data.StateHistoryEvent")]
 	[Event(name="cleared",type="com.worlize.api.data.StateHistoryEvent")]
-	public class StateHistory extends Proxy implements IEventDispatcher
+	public dynamic class StateHistory extends Proxy implements IEventDispatcher
 	{
 		use namespace worlize_internal;
 		

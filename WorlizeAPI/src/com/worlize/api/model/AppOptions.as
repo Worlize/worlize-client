@@ -4,6 +4,7 @@ package com.worlize.api.model
 		public var fullSize:Boolean = false;
 		public var nonVisual:Boolean = false;
 		public var resizableByUser:Boolean = false;
+		public var editModeSupported:Boolean = false;
 		public var name:String = "My Great App";
 		public var defaultWidth:int = 500;
 		public var defaultHeight:int = 375;
@@ -13,6 +14,7 @@ package com.worlize.api.model
 				fullSize: fullSize,
 				nonVisual: nonVisual,
 				resizableByUser: resizableByUser,
+				editModeSupported: editModeSupported,
 				name: name,
 				defaultHeight: defaultHeight,
 				defaultWidth: defaultWidth

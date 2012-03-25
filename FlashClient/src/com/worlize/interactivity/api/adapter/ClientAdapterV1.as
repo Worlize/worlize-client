@@ -70,6 +70,7 @@ package com.worlize.interactivity.api.adapter
 		}
 		
 		public function handshakeClient(data:Object):void {
+			data.success = false;
 			if (data.APIVersion !== 1) {
 				var errorMessage:String = "ClientAdapterV1 unable to handshake with version " + data.APIVersion + " API client.";
 				logger.error(errorMessage);
@@ -91,6 +92,8 @@ package com.worlize.interactivity.api.adapter
 			
 			thisObject.width = options.defaultWidth;
 			thisObject.height = options.defaultHeight;
+			thisObject.editModeSupported = options.editModeSupported;
+			thisObject.editModeEnabled = false;
 						
 			if (thisUser === null) {
 				thisObject.state = InWorldObjectInstance.STATE_LOAD_ERROR;
@@ -109,14 +112,22 @@ package com.worlize.interactivity.api.adapter
 			data.thisWorld = worldDefinitionToObject(thisWorld);
 			data.thisObject = inWorldObjectInstanceToObject(thisObject);
 			data.stateHistory = thisObject.stateHistory;
+			data.syncedData = thisObject.syncedData;
 			data.config = thisObject.configData;
 			
 			data.authorMode = host.authorMode;
+			
+			data.success = true;
 		}
 		
 		protected function handleClientFinishHandshake(event:Event):void {
 			if (state === InWorldObjectInstance.STATE_HANDSHAKING) {
 				client.inWorldObjectInstance.state = InWorldObjectInstance.STATE_READY;
+			}
+			else {
+				logger.error("Received client_finishHandshake event from app " +
+							 client.inWorldObjectInstance.guid + " outside the handshake process.");
+				client.bombApp();
 			}
 		}
 		
@@ -166,6 +177,8 @@ package com.worlize.interactivity.api.adapter
 			sharedEvents.addEventListener("client_stateHistoryPush", handleClientStateHistoryPush);
 			sharedEvents.addEventListener("client_stateHistoryShift", handleClientStateHistoryShift);
 			sharedEvents.addEventListener("client_stateHistoryClear", handleClientStateHistoryClear);
+			sharedEvents.addEventListener("client_syncedDataSet", handleClientSyncedDataSet);
+			sharedEvents.addEventListener("client_syncedDataDelete", handleClientSyncedDataDelete);
 			sharedEvents.addEventListener("client_saveConfig", handleClientSaveConfig);
 			sharedEvents.addEventListener(MouseEvent.MOUSE_UP, handleClientMouseUp);
 		}
@@ -190,6 +203,8 @@ package com.worlize.interactivity.api.adapter
 			sharedEvents.removeEventListener("client_stateHistoryPush", handleClientStateHistoryPush);
 			sharedEvents.removeEventListener("client_stateHistoryShift", handleClientStateHistoryShift);
 			sharedEvents.removeEventListener("client_stateHistoryClear", handleClientStateHistoryClear);
+			sharedEvents.removeEventListener("client_syncedDataSet", handleClientSyncedDataSet);
+			sharedEvents.removeEventListener("client_syncedDataDelete", handleClientSyncedDataDelete);
 			sharedEvents.addEventListener("client_saveConfig", handleClientSaveConfig);
 			sharedEvents.removeEventListener(MouseEvent.MOUSE_UP, handleClientMouseUp);
 		}
@@ -337,6 +352,20 @@ package com.worlize.interactivity.api.adapter
 		private function handleClientStateHistoryClear(event:Event):void {
 			var eo:Object = event;
 			host.stateHistoryClear(appInstanceGuid, eo.data);
+		}
+		
+		private function handleClientSyncedDataSet(event:Event):void {
+			var eo:Object = event;
+			if (eo.data && eo.data.key is String && eo.data.value is ByteArray) {
+				host.syncedDataSet(appInstanceGuid, eo.data.key, eo.data.value);
+			}
+		}
+		
+		private function handleClientSyncedDataDelete(event:Event):void {
+			var eo:Object = event;
+			if (eo.data && eo.data.key is String) {
+				host.syncedDataDelete(appInstanceGuid, eo.data.key);
+			}
 		}
 		
 		private function handleClientSaveConfig(event:Event):void {
@@ -536,6 +565,25 @@ package com.worlize.interactivity.api.adapter
 			if (sharedEvents === null) { return; }
 			var event:APIBridgeEvent = new APIBridgeEvent("host_stateHistoryClear");
 			sharedEvents.dispatchEvent(event);	
+		}
+		
+		public function receiveSyncedDataSet(key:String, value:ByteArray):void {
+			if (sharedEvents === null) { return; }
+			var event:APIBridgeEvent = new APIBridgeEvent("host_syncedDataSet");
+			event.data = {
+				key: key,
+				value: value
+			};
+			sharedEvents.dispatchEvent(event);
+		}
+		
+		public function receiveSyncedDataDelete(key:String):void {
+			if (sharedEvents === null) { return; }
+			var event:APIBridgeEvent = new APIBridgeEvent("host_syncedDataDelete");
+			event.data = {
+				key: key
+			};
+			sharedEvents.dispatchEvent(event);
 		}
 		
 		public function receiveSaveAppConfig(changedByUserGuid:String, config:Object):void {

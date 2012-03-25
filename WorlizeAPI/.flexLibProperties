@@ -23,6 +23,7 @@
     <classEntry path="com.worlize.api.data.SyncedList"/>
     <classEntry path="com.worlize.api.model.AppOptions"/>
     <classEntry path="com.worlize.api.model.ConfigData"/>
+    <classEntry path="com.worlize.api.data.SyncedDataStore"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

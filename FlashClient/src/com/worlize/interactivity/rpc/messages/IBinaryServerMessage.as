@@ -5,6 +5,6 @@ package com.worlize.interactivity.rpc.messages
 	public interface IBinaryServerMessage
 	{
 		function serialize():ByteArray;
-		function deserialize(byteArray:ByteArray):void;
+		function deserialize(ba:ByteArray):void;
 	}
 }

@@ -194,6 +194,7 @@ package com.worlize.interactivity.model
 				inWorldObjectInstance.inWorldObject.width = objectData.width;
 				inWorldObjectInstance.inWorldObject.height = objectData.height;
 				inWorldObjectInstance.configData = objectData.config;
+				inWorldObjectInstance.syncedData = {};
 				inWorldObjectInstance.stateHistory = [];
 			}
 			else {

@@ -1,6 +1,7 @@
 package com.worlize.api
 {
 	import com.worlize.api.data.StateHistory;
+	import com.worlize.api.data.SyncedDataStore;
 	import com.worlize.api.event.APIEvent;
 	import com.worlize.api.event.AuthorEvent;
 	import com.worlize.api.event.ChatEvent;
@@ -27,6 +28,10 @@ package com.worlize.api
 	import flash.utils.ByteArray;
 	import flash.utils.Timer;
 	
+	[Event(name="authorModeEnabled",type="com.worlize.api.event.AuthorEvent")]
+	[Event(name="authorModeDisabled",type="com.worlize.api.event.AuthorEvent")]
+	[Event(name="editModeEnabled",type="com.worlize.api.event.AuthorEvent")]
+	[Event(name="editModeDisabled",type="com.worlize.api.event.AuthorEvent")]
 	[Event(name="mouseUp",type="flash.events.MouseEvent")]
 	public class WorlizeAPI extends EventDispatcher
 	{
@@ -51,8 +56,10 @@ package com.worlize.api
 		private var _thisUser:ThisUser;
 		private var _thisObject:ThisRoomObject;
 		private var _authorMode:Boolean;
+		private var _editMode:Boolean;
 		private var _config:ConfigData;
 		private var _stateHistory:StateHistory;
+		private var _syncedDataStore:SyncedDataStore;
 		
 		public function get thisWorld():World {
 			return _thisWorld;
@@ -74,12 +81,20 @@ package com.worlize.api
 			return _authorMode;
 		}
 		
+		public function get editMode():Boolean {
+			return _editMode;
+		}
+		
 		public function get config():ConfigData {
 			return _config;
 		}
 		
 		public function get stateHistory():StateHistory {
 			return _stateHistory;
+		}
+		
+		public function get syncedDataStore():SyncedDataStore {
+			return _syncedDataStore;
 		}
 		
 		public static function getInstance():WorlizeAPI {
@@ -158,8 +173,10 @@ package com.worlize.api
 			_thisWorld = World.fromData(event.data.thisWorld);
 			_thisRoom = ThisRoom.fromData(event.data.thisRoom, _thisUser, _thisObject);
 			_authorMode = event.data.authorMode;
+			_editMode = event.data.editMode;
 			
 			_stateHistory = new StateHistory(event.data.stateHistory);
+			_syncedDataStore = new SyncedDataStore(event.data.syncedData);
 			_config = new ConfigData(event.data.config);
 			
 			addSharedEventHandlers();
@@ -183,6 +200,7 @@ package com.worlize.api
 			sharedEvents.addEventListener("host_roomObjectMessageReceived", handleRoomObjectMessageReceived);
 			sharedEvents.addEventListener("host_applicationMouseUp", handleApplicationMouseUp);
 			sharedEvents.addEventListener("host_authorModeChanged", handleAuthorModeChanged);
+			sharedEvents.addEventListener("host_editModeChanged", handleEditModeChanged);
 		}
 		
 		private function handleRoomObjectMessageReceived(event:Event):void {
@@ -219,6 +237,15 @@ package com.worlize.api
 				var type:String = _authorMode ? AuthorEvent.AUTHOR_MODE_ENABLED : AuthorEvent.AUTHOR_MODE_DISABLED;
 				dispatchEvent(new AuthorEvent(type));
 			}
+		}
+		
+		private function handleEditModeChanged(event:Event):void {
+			var newValue:Boolean = Boolean((event as Object).data);
+			if (_editMode !== newValue) {
+				_editMode = newValue;
+				var type:String = _editMode ? AuthorEvent.EDIT_MODE_ENABLED : AuthorEvent.EDIT_MODE_DISABLED;
+				dispatchEvent(new AuthorEvent(type));
+			}	
 		}
 		
 		private function handleLoaderInfoInit(event:Event):void {

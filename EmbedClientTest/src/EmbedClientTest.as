@@ -28,21 +28,26 @@ package
 			api = WorlizeAPI.getInstance();
 			api.thisRoom.addEventListener(ChatEvent.INCOMING_CHAT, handleIncomingChat);
 			
-			api.stateHistory.addEventListener(StateHistoryEvent.ENTRY_ADDED, handleStateAdded);
+//			api.stateHistory.addEventListener(StateHistoryEvent.ENTRY_ADDED, handleStateAdded);
+			api.syncedDataStore.addEventListener(ChangeEvent.PROPERTY_CHANGED, handleSyncedPropertyChanged);
 			
 			circle = new CircleSprite();
 			addChild(circle);
 			var color:uint = 0xFF0000;
 			
-			if (api.config.data.lastColor !== undefined) {
-				color = api.config.data.lastColor;
-			}
+//			if (api.config.data.lastColor !== undefined) {
+//				color = api.config.data.lastColor;
+//			}
 			circle.drawCircle(100, color);
 			
-			if (api.stateHistory.length > 0) {
-				api.log("There are currently " + api.stateHistory.length + " state entries.");
-				var lastState:Object = api.stateHistory.getItemAt(api.stateHistory.length-1);
-				circle.setColor(lastState.color);
+//			if (api.stateHistory.length > 0) {
+//				api.log("There are currently " + api.stateHistory.length + " state entries.");
+//				var lastState:Object = api.stateHistory.getItemAt(api.stateHistory.length-1);
+//				circle.setColor(lastState.color);
+//			}
+
+			if ('color' in api.syncedDataStore) {
+				circle.setColor(api.syncedDataStore.color);
 			}
 			
 			circle.addEventListener(MouseEvent.CLICK, handleCircleClick);
@@ -57,19 +62,27 @@ package
 			color = color | (green & 0xFF) << 8;
 			color = color | (blue & 0xFF);
 			
-			api.stateHistory.clear({ color: color });
+//			api.stateHistory.clear({ color: color });
 //			var toUserGuids:Array = [];
 //			var user:User = api.thisRoom.users[Math.floor(api.thisRoom.users.length*Math.random())];
 //			toUserGuids.push(user.guid);
 
-			api.thisRoom.broadcastMessage({ type: "setColor", color: color });
+			api.syncedDataStore.set('color', color);
 			
-			if (api.thisUser.canAuthor) {
-				api.config.data.lastColor = color;
-				api.config.save();
-			}
+//			api.thisRoom.broadcastMessage({ type: "setColor", color: color });
+			
+//			if (api.thisUser.canAuthor) {
+//				api.config.data.lastColor = color;
+//				api.config.save();
+//			}
 			
 			// api.thisObject.sendMessage({ msg: "setColor", color: color });
+		}
+		
+		private function handleSyncedPropertyChanged(event:ChangeEvent):void {
+			if (event.name === 'color') {
+				circle.setColor(event.newValue);
+			}
 		}
 		
 		private function handleStateAdded(event:StateHistoryEvent):void {

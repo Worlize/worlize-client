@@ -27,6 +27,9 @@ package com.worlize.interactivity.rpc
 	import com.worlize.interactivity.rpc.messages.StateHistoryDumpMessage;
 	import com.worlize.interactivity.rpc.messages.StateHistoryPushMessage;
 	import com.worlize.interactivity.rpc.messages.StateHistoryShiftMessage;
+	import com.worlize.interactivity.rpc.messages.SyncedDataDeleteMessage;
+	import com.worlize.interactivity.rpc.messages.SyncedDataDumpMessage;
+	import com.worlize.interactivity.rpc.messages.SyncedDataSetMessage;
 	import com.worlize.interactivity.view.SoundPlayer;
 	import com.worlize.model.AvatarInstance;
 	import com.worlize.model.BackgroundImageInstance;
@@ -246,7 +249,10 @@ package com.worlize.interactivity.rpc
 			0x4C505348: handleStateHistoryPushMessage,
 			0x4C534654: handleStateHistoryShiftMessage,
 			0x4C434C52: handleStateHistoryClearMessage,
-			0x4C444D50: handleStateHistoryDumpMessage
+			0x4C444D50: handleStateHistoryDumpMessage,
+			0x44534554: handleSyncedDataSetMessage,
+			0x4444454c: handleSyncedDataDeleteMessage,
+			0x44444d50: handleSyncedDataDumpMessage
 		};
 		
 		
@@ -800,6 +806,46 @@ package com.worlize.interactivity.rpc
 			}
 		}
 		
+		private function handleSyncedDataSetMessage(data:ByteArray):void {
+			var msg:SyncedDataSetMessage = new SyncedDataSetMessage();
+			msg.deserialize(data);
+			
+			var inWorldObjectInstance:InWorldObjectInstance = currentRoom.getInWorldObjectInstanceById(msg.appInstanceGuid);
+			if (inWorldObjectInstance) {
+				if (!inWorldObjectInstance.syncedData) {
+					inWorldObjectInstance.syncedData = {};
+				}
+				inWorldObjectInstance.syncedData[msg.key] = msg.value;
+			}
+			
+			apiController.receiveSyncedDataSet(msg.appInstanceGuid, msg.key, msg.value);
+		}
+		
+		private function handleSyncedDataDeleteMessage(data:ByteArray):void {
+			var msg:SyncedDataDeleteMessage = new SyncedDataDeleteMessage();
+			msg.deserialize(data);
+			
+			var inWorldObjectInstance:InWorldObjectInstance = currentRoom.getInWorldObjectInstanceById(msg.appInstanceGuid);
+			if (inWorldObjectInstance) {
+				if (!inWorldObjectInstance.syncedData) {
+					inWorldObjectInstance.syncedData = {};
+				}
+				delete inWorldObjectInstance.syncedData[msg.key];
+			}
+			
+			apiController.receiveSyncedDataDelete(msg.appInstanceGuid, msg.key);
+		}
+		
+		private function handleSyncedDataDumpMessage(data:ByteArray):void {
+			var msg:SyncedDataDumpMessage = new SyncedDataDumpMessage();
+			msg.deserialize(data);
+			
+			var inWorldObjectInstance:InWorldObjectInstance = currentRoom.getInWorldObjectInstanceById(msg.appInstanceGuid);
+			if (inWorldObjectInstance) {
+				inWorldObjectInstance.syncedData = msg.data;
+			}
+		}
+		
 		// END Binary Message Handler Functions
 		
 		private function handleObjectMoved(data:Object):void {
@@ -1185,6 +1231,23 @@ package com.worlize.interactivity.rpc
 			var msg:StateHistoryClearMessage = new StateHistoryClearMessage();
 			msg.appInstanceGuid = appInstanceGuid;
 			msg.data = initialData;
+			
+			connection.send(msg);
+		}
+		
+		public function syncedDataSet(appInstanceGuid:String, key:String, value:ByteArray):void {
+			var msg:SyncedDataSetMessage = new SyncedDataSetMessage();
+			msg.appInstanceGuid = appInstanceGuid;
+			msg.key = key;
+			msg.value = value;
+			
+			connection.send(msg);
+		}
+		
+		public function syncedDataDelete(appInstanceGuid:String, key:String):void {
+			var msg:SyncedDataDeleteMessage = new SyncedDataDeleteMessage();
+			msg.appInstanceGuid = appInstanceGuid;
+			msg.key = key;
 			
 			connection.send(msg);
 		}
