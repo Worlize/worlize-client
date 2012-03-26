@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Label xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark" xmlns:mx="library://ns.adobe.com/flex/halo"
-	x="{user.x + 1 - (width*scaleX)/2}" textAlign="center" y="{user.y + 17}"
+	x="{user.x + 1 - (width*scaleX)/2}" textAlign="center" y="{Math.min(user.y + 21, 530)}"
 	text="{user.name}" 
+	cacheAsBitmap="true"
 	fontFamily="Arial" fontSize="12" fontWeight="bold" color="0xFFFFFF">
 	<fx:Script>
 		<![CDATA[

@@ -12,10 +12,12 @@
 		<![CDATA[
 			import com.worlize.event.AuthorModeNotification;
 			import com.worlize.event.NotificationCenter;
+			import com.worlize.model.InWorldObject;
 			import com.worlize.model.InWorldObjectInstance;
 			import com.worlize.state.AuthorModeState;
 			
 			import mx.collections.ArrayCollection;
+			import mx.core.IVisualElement;
 			import mx.events.CollectionEvent;
 			import mx.events.CollectionEventKind;
 			import mx.events.FlexEvent;
@@ -40,14 +42,25 @@
 			
 			private function handleInWorldObjectsChange(event:CollectionEvent):void {
 				var inWorldObjectInstance:InWorldObjectInstance;
-				var view:EmbeddedAppView;
+				var view:IVisualElement;
+				var appView:EmbeddedAppView;
+				var imageView:EmbeddedImageView;
 				if (event.kind == CollectionEventKind.ADD) {
 					for each (inWorldObjectInstance in event.items) {
-						view = new EmbeddedAppView();
-						view.inWorldObjectInstance = inWorldObjectInstance;
-						viewsByInWorldObjectInstance[inWorldObjectInstance] = view;
-						view.selected = (AuthorModeState.getInstance().selectedItem === inWorldObjectInstance);
-						addElement(view);
+						if (inWorldObjectInstance.inWorldObject.kind === InWorldObject.KIND_APP) {
+							appView = new EmbeddedAppView();
+							appView.inWorldObjectInstance = inWorldObjectInstance;
+							viewsByInWorldObjectInstance[inWorldObjectInstance] = appView;
+							appView.selected = (AuthorModeState.getInstance().selectedItem === inWorldObjectInstance);
+							addElement(appView);
+						}
+						else if (inWorldObjectInstance.inWorldObject.kind === InWorldObject.KIND_IMAGE) {
+							imageView = new EmbeddedImageView();
+							imageView.inWorldObjectInstance = inWorldObjectInstance;
+							viewsByInWorldObjectInstance[inWorldObjectInstance] = imageView;
+							imageView.selected = (AuthorModeState.getInstance().selectedItem === inWorldObjectInstance);
+							addElement(imageView);
+						}
 					}
 				}
 				else if (event.kind == CollectionEventKind.REMOVE) {

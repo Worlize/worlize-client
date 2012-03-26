@@ -7,7 +7,7 @@ package com.worlize.api.model
 		public var nonVisual:Boolean = false;
 		public var resizableByUser:Boolean = false;
 		public var editModeSupported:Boolean = false;
-		public var name:String = "My Great App";
+		public var name:String = "Untitled App";
 		private var _defaultWidth:int = 500;
 		private var _defaultHeight:int = 375;
 		

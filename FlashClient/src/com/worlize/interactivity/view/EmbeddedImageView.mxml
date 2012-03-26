@@ -1,42 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
-		  xmlns:s="library://ns.adobe.com/flex/spark" 
-		  xmlns:mx="library://ns.adobe.com/flex/mx"
-		  xmlns:view="com.worlize.interactivity.view.*"
-		  xmlns:api="com.worlize.interactivity.api.*"
-		  creationComplete="handleCreationComplete()"
-		  addedToStage="handleAddedToStage()"
-		  removedFromStage="handleRemovedFromStage()"
-		  mouseDown="handleMouseDown(event)"
-		  mouseOver="handleMouseOver(event)"
-		  mouseOut="handleMouseOut(event)"
-		  mouseEnabled="false"
-		  currentState="normal"
-		  x="{inWorldObjectInstance.x}"
-		  y="{inWorldObjectInstance.y}" >
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 xmlns:view="com.worlize.interactivity.view.*"
+		 xmlns:api="com.worlize.interactivity.api.*"
+		 creationComplete="handleCreationComplete()"
+		 addedToStage="handleAddedToStage()"
+		 removedFromStage="handleRemovedFromStage()"
+		 mouseDown="handleMouseDown(event)"
+		 mouseOver="handleMouseOver(event)"
+		 mouseOut="handleMouseOut(event)"
+		 mouseEnabled="false"
+		 currentState="normal"
+		 x="{inWorldObjectInstance.x - (loadedWidth >> 1)}"
+		 y="{inWorldObjectInstance.y - (loadedHeight >> 1)}"
+	>
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
 	
 	<s:states>
 		<s:State name="normal" stateGroups="selected" />
-		<s:State name="normalError" stateGroups="error" />
 		<s:State name="normalSelected" />
-		<s:State name="normalSelectedError" stateGroups="error" />
 		<s:State name="author" stateGroups="authorMode" />
-		<s:State name="authorError" stateGroups="authorMode,error" />
 		<s:State name="authorSelected" stateGroups="authorModeAndSelected" />
-		<s:State name="authorSelectedError" stateGroups="authorModeAndSelected,error" />
-		<s:State name="edit" stateGroups="editMode" />
-		<s:State name="editError" stateGroups="editMode,error" />
-		<s:State name="editSelected" stateGroups="editModeAndSelected" />
-		<s:State name="editSelectedError" stateGroups="editModeAndSelected,error" />
 	</s:states>
 	
 	<fx:Script>
 		<![CDATA[
 			import com.worlize.event.AuthorModeNotification;
 			import com.worlize.event.NotificationCenter;
+			import com.worlize.gif.GIFPlayer;
+			import com.worlize.gif.events.AsyncDecodeErrorEvent;
+			import com.worlize.gif.events.GIFPlayerEvent;
 			import com.worlize.interactivity.api.AppLoader;
 			import com.worlize.interactivity.api.event.AppLoaderEvent;
 			import com.worlize.interactivity.api.event.ClientValidationErrorEvent;
@@ -50,7 +46,9 @@
 			import mx.controls.Image;
 			import mx.core.ByteArrayAsset;
 			import mx.events.FlexEvent;
-	
+			import mx.logging.ILogger;
+			import mx.logging.Log;
+			
 			private var _objInst:InWorldObjectInstance;
 			
 			[Bindable(event="inWorldObjectInstanceChange")]
@@ -66,10 +64,13 @@
 			}
 			
 			[Bindable]
-			private var _authorMode:Boolean = false;
+			private var loadedWidth:int = 0;
 			
 			[Bindable]
-			private var _editMode:Boolean = false;
+			private var loadedHeight:int = 0;
+			
+			[Bindable]
+			private var _authorMode:Boolean = false;
 			
 			[Bindable]
 			private var _selected:Boolean = false;
@@ -79,6 +80,13 @@
 			private var startPoint:Point;
 			private var startMousePos:Point;
 			private var mousePos:Point;
+			
+			private var loader:Loader;
+			private var urlLoader:URLLoader;
+			
+			private var gifPlayer:GIFPlayer;
+			
+			private var logger:ILogger = Log.getLogger("com.worlize.interactivity.view.EmbeddedImageView");
 			
 			[Bindable(event="authorModeChanged")]
 			public function set authorMode(newValue:Boolean):void {
@@ -90,18 +98,6 @@
 			}
 			public function get authorMode():Boolean {
 				return _authorMode;
-			}
-			
-			[Bindable(event="editModeChanged")]
-			protected function set editMode(newValue:Boolean):void {
-				if (_editMode !== newValue) {
-					_editMode = newValue;
-					updateState();
-					dispatchEvent(new FlexEvent('editModeChanged'));
-				}
-			}
-			protected function get editMode():Boolean {
-				return _editMode;
 			}
 			
 			[Bindable(event="selectedChanged")]
@@ -117,23 +113,80 @@
 			}
 			
 			protected function loadObject():void {
-				if (appLoader.source !== null) {
-					appLoader.unloadAndStop(true);
-				}
-				
 				showLoadingSpinner();
 				
-				if (_objInst.inWorldObject.kind === InWorldObject.KIND_APP) {
-					appLoader.load(_objInst);
+				var url:String = inWorldObjectInstance.inWorldObject.fullsizeURL;
+				var gifRegex:RegExp = /^.*\.gif$/i;
+				var urlRequest:URLRequest = new URLRequest(url);
+				
+				var context:LoaderContext = new LoaderContext(true);
+				context.allowCodeImport = false;
+
+				if (url.match(gifRegex)) {
+					// Load animated gif
+					urlLoader = new URLLoader();
+					urlLoader.dataFormat = URLLoaderDataFormat.BINARY;
+					urlLoader.addEventListener(Event.COMPLETE, handleAnimatedGifComplete);
+					urlLoader.addEventListener(IOErrorEvent.IO_ERROR, handleIOError);
+					urlLoader.addEventListener(SecurityErrorEvent.SECURITY_ERROR, handleSecurityError);
+					urlLoader.load(urlRequest);
 				}
+				else {
+					// Load normal image
+					loader = new Loader();
+					loader.contentLoaderInfo.addEventListener(Event.COMPLETE, handleNormalImageComplete);
+					loader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, handleIOError);
+					loader.load(urlRequest, context);
+				}
+			}
+			
+			private function handleIOError(event:IOErrorEvent):void {
+				logger.error("IO Error while loading object " + inWorldObjectInstance.inWorldObject.guid + ": " +
+					"Error ID: " + event.errorID + " Text: " + event.text);
+			}
+			
+			private function handleSecurityError(event:SecurityErrorEvent):void {
+				logger.error("Security Error while loading object " + inWorldObjectInstance.inWorldObject.guid + ": " +
+					"Error ID: " + event.errorID + " Text: " + event.text);
+			}
+
+			private function handleNormalImageComplete(event:Event):void {
+				// Hide the progress bar
+				hideLoadingSpinner();
+				
+				var image:Bitmap = loader.content as Bitmap;
+				loadedWidth = imageContainer.width = image.width;
+				loadedHeight = imageContainer.height = image.height;
+				imageContainer.addChild(image);
+			}
+			
+			private function handleAnimatedGifComplete(event:Event):void {
+				var bytes:ByteArray = urlLoader.data as ByteArray;
+				gifPlayer = new GIFPlayer();
+				gifPlayer.addEventListener(GIFPlayerEvent.COMPLETE, handleGifDecoded);
+				gifPlayer.addEventListener(AsyncDecodeErrorEvent.ASYNC_DECODE_ERROR, handleGifDecodeError);
+				gifPlayer.loadBytes(bytes);
+				return;
+			}
+			
+			private function handleGifDecoded(event:GIFPlayerEvent):void {
+				// Hide the progress bar
+				hideLoadingSpinner();
+				
+				loadedWidth = imageContainer.width = gifPlayer.width;
+				loadedHeight = imageContainer.height = gifPlayer.height;
+				imageContainer.addChild(gifPlayer);
+			}
+			
+			private function handleGifDecodeError(event:AsyncDecodeErrorEvent):void {
+				// Hide the progress bar
+				hideLoadingSpinner();
+				logger.warn("Object " + inWorldObjectInstance.inWorldObject.guid + " - invalid or corrupted GIF data");
 			}
 			
 			private function updateState():void {
 				var parts:Array = [];
-				if (_editMode) {
-					parts.push("edit");
-				}
-				else if (_authorMode) {
+				if (_authorMode) {
 					parts.push("author");
 				}
 				else {
@@ -142,18 +195,12 @@
 				if (_selected) {
 					parts.push("Selected");
 				}
-				if (appLoader.hasError) {
-					parts.push("Error");
-				}
 				currentState = parts.join('');
 				updateMouseEnabled();
 			}
 			
 			private function updateMouseEnabled():void {
-				if (_editMode) {
-					mouseEnabled = false;
-				}
-				else if (_authorMode) {
+				if (_authorMode) {
 					mouseEnabled = true;
 				}
 				else if (inWorldObjectInstance.inWorldObject.kind !== InWorldObject.KIND_APP) {
@@ -171,20 +218,20 @@
 			private function handleAddedToStage():void {
 				NotificationCenter.addListener(AuthorModeNotification.AUTHOR_ENABLED, handleAuthorModeEnabled);
 				NotificationCenter.addListener(AuthorModeNotification.AUTHOR_DISABLED, handleAuthorModeDisabled);
-				NotificationCenter.addListener(AuthorModeNotification.EDIT_MODE_ENABLED, handleEditModeEnabled);
-				NotificationCenter.addListener(AuthorModeNotification.EDIT_MODE_DISABLED, handleEditModeDisabled);
 				NotificationCenter.addListener(AuthorModeNotification.SELECTED_ITEM_CHANGED, handleSelectedItemChanged);
 				authorMode = AuthorModeState.getInstance().enabled;
 			}
 			
 			private function handleRemovedFromStage():void {
 				NotificationCenter.removeListener(AuthorModeNotification.SELECTED_ITEM_CHANGED, handleSelectedItemChanged);
-				NotificationCenter.removeListener(AuthorModeNotification.EDIT_MODE_ENABLED, handleEditModeEnabled);
-				NotificationCenter.removeListener(AuthorModeNotification.EDIT_MODE_DISABLED, handleEditModeDisabled);
 				NotificationCenter.removeListener(AuthorModeNotification.AUTHOR_ENABLED, handleAuthorModeEnabled);
 				NotificationCenter.removeListener(AuthorModeNotification.AUTHOR_DISABLED, handleAuthorModeDisabled);
 				
-				appLoader.unloadAndStop();
+				if (gifPlayer) {
+					gifPlayer.stop();
+					gifPlayer.dispose();
+					gifPlayer = null;
+				}
 			}
 			
 			private function handleAuthorModeEnabled(notification:AuthorModeNotification):void {
@@ -194,26 +241,13 @@
 			private function handleAuthorModeDisabled(notification:AuthorModeNotification):void {
 				authorMode = false;
 			}
-			
-			private function handleEditModeEnabled(notification:AuthorModeNotification):void {
-				if (notification.inWorldObjectInstance === inWorldObjectInstance) {
-					editMode = true;
-				}
-			}
-			
-			private function handleEditModeDisabled(notification:AuthorModeNotification):void {
-				editMode = false;
-			}
-			
+
 			private function handleSelectedItemChanged(notification:AuthorModeNotification):void {
 				selected = (notification.newValue === inWorldObjectInstance);
 			}
 			
 			private function handleMouseOver(event:MouseEvent):void {
-				if (_editMode) {
-				
-				}
-				else if (_authorMode) {
+				if (_authorMode) {
 					Mouse.cursor = MouseCursor.HAND;
 				}
 				else if (inWorldObjectInstance.dest) {
@@ -222,16 +256,13 @@
 			}
 			
 			private function handleMouseOut(event:MouseEvent):void {
-				if ((_authorMode || inWorldObjectInstance.dest) && !_editMode) {
+				if (_authorMode || inWorldObjectInstance.dest) {
 					Mouse.cursor = MouseCursor.ARROW;
 				}
 			}
 			
 			private function handleMouseDown(event:MouseEvent):void {
-				if (_editMode) {
-					event.stopImmediatePropagation();
-				}
-				else if (_authorMode) {
+				if (_authorMode) {
 					dragging = true;
 					systemManager.getSandboxRoot().addEventListener(MouseEvent.MOUSE_UP, handleStageMouseUp);
 					systemManager.getSandboxRoot().addEventListener(MouseEvent.MOUSE_MOVE, handleStageMouseMove);
@@ -265,27 +296,23 @@
 					if (parent.mouseX < 0 || parent.mouseY < 0 || parent.mouseX > parent.width || parent.mouseY > parent.height) {
 						return;
 					}
-					
 					mousePos.x = parent.mouseX;
 					mousePos.y = parent.mouseY;
 					
 					var destx:int = startPoint.x + (mousePos.x - startMousePos.x);
 					var desty:int = startPoint.y + (mousePos.y - startMousePos.y);
 					
-					var halfWidth:int = inWorldObjectInstance.width >> 1;
-					var halfHeight:int = inWorldObjectInstance.height >> 1;
-					
-					if (destx < 0 - halfWidth) {
-						destx = 0 - halfWidth;
+					if (destx < 0) {
+						destx = 0;
 					}
-					if (desty < 0 - halfHeight) {
-						desty = 0 - halfHeight;
+					if (desty < 0) {
+						desty = 0;
 					}
-					if (destx > 950 - halfWidth) {
-						destx = 950 - halfWidth;
+					if (destx > 950) {
+						destx = 950;
 					}
-					if (desty > 570 - 26 - halfHeight) {
-						desty = 570 - 26 - halfHeight;
+					if (desty > (570-26)) {
+						desty = 570-26;
 					}
 					
 					inWorldObjectInstance.moveLocal(destx,desty);
@@ -332,43 +359,7 @@
 		]]>
 	</fx:Script>
 	
-	<s:Group id="editModeBackground" top="-1" left="-1" right="-1" bottom="-1" includeIn="editModeAndSelected">
-		<s:Rect top="-1" left="-1" right="-1" bottom="-1">
-			<s:stroke>
-				<s:SolidColorStroke weight="1" color="#FFFFFF" />
-			</s:stroke>
-		</s:Rect>
-		<s:Rect top="0" left="0" right="0" bottom="0">
-			<s:stroke>
-				<s:SolidColorStroke weight="1" color="#000000" />
-			</s:stroke>
-			<s:fill>
-				<s:SolidColor color="#EEEEEE" alpha="0.25" />
-			</s:fill>
-		</s:Rect>
-	</s:Group>
-	
-	<api:AppLoader top="0" left="0" id="appLoader"
-				   width="{inWorldObjectInstance.width}"
-				   height="{inWorldObjectInstance.height}"
-				   validationError="handleValidationError(event)"
-				   appBombed="handleAppBombed(event)"
-				   handshakeComplete="handleHandshakeComplete(event)"
-				   complete="handleAppLoaderComplete(event)" />
-	
-	<s:Rect top="0" left="0" right="0" bottom="0" includeIn="error">
-		<s:stroke>
-			<s:SolidColorStroke weight="4" color="#700000" alpha="1" />
-		</s:stroke>
-		<s:fill>
-			<s:SolidColor color="#d0291d" alpha="0.4" />
-		</s:fill>
-	</s:Rect>
-	
-	<s:Image includeIn="error" width="64" height="64"
-			 horizontalCenter="0" verticalCenter="0"
-			 mouseEnabled="false" mouseChildren="false"
-			 source="@Embed(source='src/assets/icons/app-bomb-64.png')" />
+	<s:SpriteVisualElement id="imageContainer" />
 	
 	<s:Group top="0" left="0" right="0" bottom="0" includeIn="authorMode,authorModeAndSelected">
 		<s:Rect top="-1" left="-1" right="-1" bottom="-1">
@@ -393,6 +384,5 @@
 	
 	<s:SpriteVisualElement id="spinnerContainer"
 						   mouseChildren="false" mouseEnabled="false"
-						   width="32" height="32"
-						   verticalCenter="0" horizontalCenter="0" />
+						   x="-16" y="-16" />
 </s:Group>

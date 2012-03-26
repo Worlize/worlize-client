@@ -184,7 +184,7 @@ package com.worlize.interactivity.model
 			inWorldObjectInstance.y = objectData.y;
 			
 			inWorldObjectInstance.inWorldObject = new InWorldObject();
-			inWorldObjectInstance.inWorldObject.kind = objectData.kind;
+			inWorldObjectInstance.inWorldObject.kind = (objectData.kind) ? objectData.kind : InWorldObject.KIND_IMAGE;
 			
 			if (objectData.kind === 'app') {
 				inWorldObjectInstance.inWorldObject.guid = objectData.object_guid;

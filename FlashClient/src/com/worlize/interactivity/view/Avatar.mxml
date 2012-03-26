@@ -134,6 +134,11 @@
 					// Actual video playback is driven by data bindings
 				}
 				if (user && user.simpleAvatar && !user.simpleAvatar.error) {
+					if (currentSimpleAvatar) {
+						currentSimpleAvatar.removeEventListener(AvatarEvent.AVATAR_LOADED, handleSimpleAvatarLoaded);
+						currentSimpleAvatar.removeEventListener(AvatarEvent.AVATAR_ERROR, handleSimpleAvatarError);
+					}
+					
 					// Simple avatar
 					currentSimpleAvatar = user.simpleAvatar;
 					
