@@ -500,7 +500,6 @@ package com.worlize.interactivity.api.adapter
 				guid: roomObject.guid,
 				state: roomObject.state
 			};
-			logger.info("Object " + roomObject.guid + " state changed to : " + roomObject.state);
 			sharedEvents.dispatchEvent(event);
 		}
 		

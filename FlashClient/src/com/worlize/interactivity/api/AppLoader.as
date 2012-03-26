@@ -20,6 +20,7 @@ package com.worlize.interactivity.api
 	import mx.logging.ILogger;
 	import mx.logging.Log;
 	
+	[Event(name="handshakeComplete",type="com.worlize.interactivity.api.event.AppLoaderEvent")]
 	[Event(name="appBombed",type="com.worlize.interactivity.api.event.AppLoaderEvent")]
 	[Event(name="validationError",type="com.worlize.interactivity.api.event.ClientValidationErrorEvent")]
 	public class AppLoader extends SWFLoader
@@ -121,6 +122,7 @@ package com.worlize.interactivity.api
 						_adapter.attachClient(this);
 						_adapter.attachHost(interactivityClient.apiController);
 						_adapter.handshakeClient(e.data);
+						dispatchEvent(new AppLoaderEvent(AppLoaderEvent.HANDSHAKE_COMPLETE));
 					}
 					catch(error:Error) {
 						interactivityClient.apiController.logMessage(

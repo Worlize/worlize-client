@@ -3,6 +3,7 @@
 		  xmlns:s="library://ns.adobe.com/flex/spark" 
 		  xmlns:mx="library://ns.adobe.com/flex/mx"
 		  xmlns:view="com.worlize.interactivity.view.*"
+		  xmlns:api="com.worlize.interactivity.api.*"
 		  creationComplete="handleCreationComplete()"
 		  addedToStage="handleAddedToStage()"
 		  removedFromStage="handleRemovedFromStage()"
@@ -12,7 +13,7 @@
 		  mouseEnabled="false"
 		  currentState="normal"
 		  x="{inWorldObjectInstance.x}"
-		  y="{inWorldObjectInstance.y}" xmlns:api="com.worlize.interactivity.api.*">
+		  y="{inWorldObjectInstance.y}" >
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
@@ -47,6 +48,7 @@
 			
 			import mx.controls.Alert;
 			import mx.controls.Image;
+			import mx.core.ByteArrayAsset;
 			import mx.events.FlexEvent;
 	
 			private var _objInst:InWorldObjectInstance;
@@ -118,6 +120,8 @@
 				if (appLoader.source !== null) {
 					appLoader.unloadAndStop(true);
 				}
+				
+				showLoadingSpinner();
 				
 				if (_objInst.inWorldObject.kind === InWorldObject.KIND_APP) {
 					appLoader.load(_objInst);
@@ -293,6 +297,31 @@
 				InteractivityClient.getInstance().currentRoom.logMessage(event.text);
 			}
 			
+			protected function handleHandshakeComplete(event:AppLoaderEvent):void {
+				hideLoadingSpinner();
+			}
+			
+			[Embed(source="src/assets/spinner.swf",mimeType="application/octet-stream")]
+			protected var spinnerSWF:Class;
+			
+			protected var loadingSpinner:Loader;
+			
+			protected function showLoadingSpinner():void {
+				if (loadingSpinner) {
+					loadingSpinner.unloadAndStop();
+				}
+				loadingSpinner = new Loader();
+				loadingSpinner.loadBytes(ByteArrayAsset(new spinnerSWF()));
+				spinnerContainer.removeChildren();
+				spinnerContainer.addChild(loadingSpinner);
+			}
+			
+			protected function hideLoadingSpinner():void {
+				loadingSpinner.unloadAndStop();
+				loadingSpinner = null;
+				spinnerContainer.removeChildren();
+			}
+			
 		]]>
 	</fx:Script>
 	
@@ -317,6 +346,7 @@
 				   height="{inWorldObjectInstance.height}"
 				   validationError="handleValidationError(event)"
 				   appBombed="handleAppBombed(event)"
+				   handshakeComplete="handleHandshakeComplete(event)"
 				   complete="handleAppLoaderComplete(event)" />
 	
 	<s:Rect top="0" left="0" right="0" bottom="0" includeIn="error">
@@ -354,4 +384,5 @@
 		</s:Rect>
 	</s:Group>
 	
+	<s:SpriteVisualElement id="spinnerContainer" verticalCenter="0" horizontalCenter="0" />
 </s:Group>
