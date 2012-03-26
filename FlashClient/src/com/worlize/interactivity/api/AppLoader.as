@@ -148,7 +148,7 @@ package com.worlize.interactivity.api
 			var validationError:Boolean = false;
 			var validationMessage:String;
 			
-			if (!inWorldObjectInstance.sizedByScript) {
+			if (inWorldObjectInstance.sizeUnknown) {
 				inWorldObjectInstance.resizeLocal(loader.contentLoaderInfo.width, loader.contentLoaderInfo.height);
 			}
 			
@@ -160,10 +160,10 @@ package com.worlize.interactivity.api
 				validationError = true;
 				validationMessage = "Worlize API client applications must be written in ActionScript 3";
 			}
-			else if (_adapter === null || _adapter.state !== InWorldObjectInstance.STATE_READY) {
-				validationError = true;
-				validationMessage = "Client SWF must initialize the Worlize API in the main constructor function";
-			}
+//			else if (_adapter === null || _adapter.state !== InWorldObjectInstance.STATE_READY) {
+//				validationError = true;
+//				validationMessage = "Client SWF must initialize the Worlize API in the main constructor function";
+//			}
 			
 			if (validationError) {
 				bombApp();

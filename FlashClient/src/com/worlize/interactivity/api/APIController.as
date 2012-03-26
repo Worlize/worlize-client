@@ -333,6 +333,14 @@ package com.worlize.interactivity.api
 			thisRoom.dimRoom(dimLevel);
 		}
 		
+		public function lockRoom():void {
+			interactivityClient.lockRoom();
+		}
+		
+		public function unlockRoom():void {
+			interactivityClient.unlockRoom();
+		}
+		
 		public function moveObject(objectGuid:String, x:int, y:int):void {
 			thisRoom.moveObject(objectGuid, x, y);
 		}
@@ -438,6 +446,18 @@ package com.worlize.interactivity.api
 		public function userColorChanged(user:InteractivityUser):void {
 			for each (var client:IAPIClientAdapter in apiClientAdapters) {
 				client.userColorChanged(user);
+			}
+		}
+		
+		public function roomLocked(userGuid:String):void {
+			for each (var client:IAPIClientAdapter in apiClientAdapters) {
+				client.roomLocked(userGuid);
+			}
+		}
+		
+		public function roomUnlocked(userGuid:String):void {
+			for each (var client:IAPIClientAdapter in apiClientAdapters) {
+				client.roomUnlocked(userGuid);
 			}
 		}
 		

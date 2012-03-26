@@ -13,6 +13,7 @@ package com.worlize.api.model
 		protected var _name:String;
 		protected var _guid:String;
 		protected var _ownerGuid:String;
+		protected var _locked:Boolean;
 		
 		public function Room() {
 			super(null);
@@ -28,6 +29,10 @@ package com.worlize.api.model
 		
 		public function get ownerGuid():String {
 			return _ownerGuid;
+		}
+		
+		public function get locked():Boolean {
+			return _locked;
 		}
 		
 		public function toJSON():Object {
@@ -46,6 +51,8 @@ package com.worlize.api.model
 			var room:Room = new Room();
 			room._guid = data.guid;
 			room._name = data.name;
+			room._locked = data.locked;
+			room._ownerGuid = data.ownerGuid;
 			return room;
 		}
 	}

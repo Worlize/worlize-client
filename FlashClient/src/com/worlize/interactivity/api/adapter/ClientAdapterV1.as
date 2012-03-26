@@ -90,8 +90,11 @@ package com.worlize.interactivity.api.adapter
 			
 			var options:Object = data.appOptions;
 			
-			thisObject.width = options.defaultWidth;
-			thisObject.height = options.defaultHeight;
+			thisObject.sizeUnknown = options.sizeUnknown;
+			if (!thisObject.sizeUnknown) {
+				thisObject.width = options.defaultWidth;
+				thisObject.height = options.defaultHeight;
+			}
 			thisObject.editModeSupported = options.editModeSupported;
 			thisObject.editModeEnabled = false;
 						
@@ -166,6 +169,8 @@ package com.worlize.interactivity.api.adapter
 			sharedEvents.addEventListener("client_setAvatar", handleClientSetAvatar);
 			sharedEvents.addEventListener("client_sendChat", handleClientSendChat);
 			sharedEvents.addEventListener("client_setRoomDimLevel", handleClientSetRoomDimLevel);
+			sharedEvents.addEventListener("client_lockRoom", handleClientLockRoom);
+			sharedEvents.addEventListener("client_unlockRoom", handleClientUnlockRoom);
 			sharedEvents.addEventListener("client_moveRoomObject", handleClientMoveRoomObject);
 			sharedEvents.addEventListener("client_resizeRoomObject", handleClientResizeRoomObject);
 			sharedEvents.addEventListener("client_logMessage", handleClientLogMessage);
@@ -265,6 +270,14 @@ package com.worlize.interactivity.api.adapter
 			}
 		}
 		
+		private function handleClientLockRoom(event:Event):void {
+			host.lockRoom();
+		}
+		
+		private function handleClientUnlockRoom(event:Event):void {
+			host.unlockRoom();
+		}
+		
 		private function handleClientMoveRoomObject(event:Event):void {
 			var eo:Object = event;
 			if (eo.data && eo.data.x is Number && eo.data.y is Number) {
@@ -275,7 +288,7 @@ package com.worlize.interactivity.api.adapter
 		private function handleClientResizeRoomObject(event:Event):void {
 			var eo:Object = event;
 			if (eo.data && eo.data.width is Number && eo.data.height is Number) {
-				client.inWorldObjectInstance.sizedByScript = true;
+				client.inWorldObjectInstance.sizeUnknown = false;
 				client.inWorldObjectInstance.resizeLocal(eo.data.width, eo.data.height);
 			}
 		}
@@ -542,6 +555,26 @@ package com.worlize.interactivity.api.adapter
 			sharedEvents.dispatchEvent(event);
 		}
 		
+		public function roomLocked(lockedByUserGuid:String):void {
+			if (sharedEvents === null) { return; }
+			var event:APIBridgeEvent = new APIBridgeEvent("host_roomLockedChanged");
+			event.data = {
+				locked: true,
+				user: lockedByUserGuid
+			};
+			sharedEvents.dispatchEvent(event);
+		}
+		
+		public function roomUnlocked(unlockedByUserGuid:String):void {
+			if (sharedEvents === null) { return; }
+			var event:APIBridgeEvent = new APIBridgeEvent("host_roomLockedChanged");
+			event.data = {
+				locked: false,
+				user: unlockedByUserGuid
+			};
+			sharedEvents.dispatchEvent(event);
+		}
+		
 		public function receiveMessage(message:ByteArray, fromAppInstanceGuid:String, fromUserGuid:String):void {
 			if (sharedEvents === null) { return; }
 			var event:APIBridgeEvent = new APIBridgeEvent("host_roomObjectMessageReceived");
@@ -672,6 +705,7 @@ package com.worlize.interactivity.api.adapter
 			var obj:Object = {
 				guid: room.id,
 				name: room.name,
+				locked: room.locked,
 				ownerGuid: room.ownerGuid,
 				users: [],
 				objects: [],

@@ -12,6 +12,7 @@ package com.worlize.model
 	{
 		public var name:String;
 		public var guid:String;
+		public var locked:Boolean;
 		public var ownerGuid:String;
 		public var world:WorldDefinition;
 		public var backgroundImageURL:String;
@@ -31,6 +32,7 @@ package com.worlize.model
 			if (data.guid) {
 				room.guid = String(data.guid);
 			}
+			room.locked = Boolean(data.locked);
 			room.world = new WorldDefinition();
 			if (data.world_guid) {
 				// load world data...

@@ -72,6 +72,7 @@ package com.worlize.interactivity.model
 		public var roomView:RoomView;
 		public var dimLevel:Number = 1;
 		public var showAvatars:Boolean = true;
+		public var locked:Boolean = false;
 		
 		public var chatLog:String = "Welcome to Worlize<br>Chat log ready.<br>\n";
 		

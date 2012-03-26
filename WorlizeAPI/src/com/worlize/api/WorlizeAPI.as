@@ -106,22 +106,27 @@ package com.worlize.api
 
 		// Call this once to set up the communications plumbing between the
 		// main worlize application and the embedded app.
-		public static function init(rootObject:DisplayObject):WorlizeAPI {
+		public static function init(rootObject:DisplayObject, loaderInfo:LoaderInfo=null):WorlizeAPI {
 			if (_initialized) { return _instance; }
 			trace("Client initializing WorlizeAPI");
-			new WorlizeAPI(rootObject);
+			new WorlizeAPI(rootObject, loaderInfo);
 			return _instance;
 		}
 		
-		public function WorlizeAPI(rootObject:DisplayObject) {
+		public function WorlizeAPI(rootObject:DisplayObject, loaderInfo:LoaderInfo=null) {
 			super(null);
 			if (_instance !== null) {
 				throw new Error("You may only create one EmbeddedAPI instance.");
 			}
 			
 			WorlizeAPI.rootObject = rootObject;
-			WorlizeAPI.loaderInfo = rootObject.loaderInfo;
-			WorlizeAPI.sharedEvents = rootObject.loaderInfo.sharedEvents;
+			if (loaderInfo === null) {
+				WorlizeAPI.loaderInfo = rootObject.loaderInfo;
+			}
+			else {
+				WorlizeAPI.loaderInfo = loaderInfo;
+			}
+			WorlizeAPI.sharedEvents = WorlizeAPI.loaderInfo.sharedEvents;
 			
 			addLoaderInfoListeners();
 			

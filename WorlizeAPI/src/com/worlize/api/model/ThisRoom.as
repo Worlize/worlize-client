@@ -28,6 +28,8 @@ package com.worlize.api.model
 	[Event(name="objectStateChanged",type="com.worlize.api.event.RoomObjectEvent")]
 	[Event(name="objectAdded",type="com.worlize.api.event.RoomEvent")]
 	[Event(name="objectRemoved",type="com.worlize.api.event.RoomEvent")]
+	[Event(name="locked",type="com.worlize.api.event.RoomEvent")]
+	[Event(name="unlocked", type="com.worlize.api.event.RoomEvent")]
 	[Event(name="mouseMove",type="flash.events.MouseEvent")]
 	public class ThisRoom extends Room
 	{
@@ -89,6 +91,16 @@ package com.worlize.api.model
 			var event:APIEvent = new APIEvent(APIEvent.ROOM_LOCAL_ANNOUNCE_MESSAGE);
 			event.data = { text: text };
 			WorlizeAPI.sharedEvents.dispatchEvent(event);
+		}
+		
+		public function lock():void {
+			var event:APIEvent = new APIEvent(APIEvent.LOCK_ROOM);
+			WorlizeAPI.sharedEvents.dispatchEvent(event);
+		}
+		
+		public function unlock():void {
+			var event:APIEvent = new APIEvent(APIEvent.UNLOCK_ROOM);
+			WorlizeAPI.sharedEvents.dispatchEvent(event);	
 		}
 		
 		public function broadcastMessage(message:Object, toUserGuids:Array = null):void {
@@ -235,6 +247,7 @@ package com.worlize.api.model
 			room._width = data.width;
 			room._height = data.height;
 			room._ownerGuid = data.ownerGuid;
+			room._locked = data.locked;
 			
 			for each (var userData:Object in data.users) {
 				if (userData.guid === thisUser.guid) {
@@ -293,6 +306,7 @@ package com.worlize.api.model
 			sharedEvents.addEventListener('host_userColorChanged', handleUserColorChanged);
 			sharedEvents.addEventListener('host_userPrivilegesChanged', handleUserPrivilegesChanged);
 			sharedEvents.addEventListener('host_roomDimLevelChanged', handleRoomDimLevelChanged);
+			sharedEvents.addEventListener('host_roomLockedChanged', handleRoomLockedChanged);
 			sharedEvents.addEventListener('host_roomObjectAdded', handleObjectAdded);
 			sharedEvents.addEventListener('host_roomObjectRemoved', handleObjectRemoved);
 			sharedEvents.addEventListener('host_roomObjectMoved', handleObjectMoved);
@@ -308,6 +322,34 @@ package com.worlize.api.model
 							   data.ctrlKey, data.altKey,
 							   data.shiftKey, data.buttonDown, 0)
 			);
+		}
+		
+		private function handleRoomLockedChanged(event:Event):void {
+			var data:Object = event['data'];
+			var newValue:Boolean = data.locked;
+			var roomEvent:RoomEvent;
+			if (_locked !== newValue) {
+				_locked = newValue;
+				if (_locked) {
+					roomEvent = new RoomEvent(RoomEvent.LOCKED);
+				}
+				else {
+					roomEvent = new RoomEvent(RoomEvent.UNLOCKED);
+				}
+				roomEvent.user = getUserByGuid(data.user);
+				if (!roomEvent.user) {
+					roomEvent.user = User.fromData({
+						name: "Unknown User",
+						guid: data.user,
+						privileges: [],
+						x: 0,
+						y:0,
+						face:0,
+						color:0
+					});
+				}
+				dispatchEvent(roomEvent);
+			}
 		}
 		
 		private function handleChat(event:Event):void {

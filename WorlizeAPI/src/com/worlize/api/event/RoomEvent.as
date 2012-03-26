@@ -10,6 +10,8 @@ package com.worlize.api.event
 		public static const USER_LEFT:String = "userLeft";
 		public static const OBJECT_ADDED:String = "objectAdded";
 		public static const OBJECT_REMOVED:String = "objectRemoved";
+		public static const LOCKED:String = "locked";
+		public static const UNLOCKED:String = "unlocked";
 		
 		public var user:User;
 		

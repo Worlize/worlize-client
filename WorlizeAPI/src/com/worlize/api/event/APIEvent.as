@@ -35,6 +35,9 @@ package com.worlize.api.event
 		public static const SYNCED_DATA_SET:String = "client_syncedDataSet";
 		public static const SYNCED_DATA_DELETE:String = "client_syncedDataDelete";
 		
+		public static const LOCK_ROOM:String = "client_lockRoom";
+		public static const UNLOCK_ROOM:String = "client_unlockRoom";
+		
 		public static const SAVE_CONFIG:String = "client_saveConfig";
 		
 		// For when something goes wrong inside the client and we want to be shutdown and unloaded

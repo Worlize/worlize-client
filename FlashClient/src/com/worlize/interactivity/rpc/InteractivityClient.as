@@ -218,6 +218,7 @@ package com.worlize.interactivity.rpc
 			"room_definition": handleRoomDefinition,
 			"room_entry_denied": handleRoomEntryDenied,
 			"room_entry_granted": handleRoomEntryGranted,
+			"lock_room": handleLockRoom,
 			"room_msg": handleRoomMsg,
 			"room_population_update": handleRoomPopulationUpdate,
 			"room_redirect": handleRoomRedirect,
@@ -229,6 +230,7 @@ package com.worlize.interactivity.rpc
 			"set_video_avatar": handleSetVideoAvatar,
 			"set_video_server": handleSetVideoServer,
 			"slots_updated": handleSlotsUpdated,
+			"unlock_room": handleUnlockRoom,
 			"update_room_property": handleUpdateRoomProperty,
 			"user_enter": handleUserNew,
 			"user_leave": handleUserLeaving,
@@ -969,6 +971,7 @@ package com.worlize.interactivity.rpc
 			currentRoom.ownerGuid = room.ownerGuid;
 			currentRoom.backgroundFile = room.backgroundImageURL;
 			currentRoom.selfUserId = id;
+			currentRoom.locked = room.locked;
 			
 			if (shouldInsertHistory) {
 				roomHistoryManager.addItem(currentRoom.id, currentRoom.name, currentWorld.name);
@@ -1034,6 +1037,16 @@ package com.worlize.interactivity.rpc
 					break;
 				}
 			}
+		}
+		
+		private function handleLockRoom(data:Object):void {
+			currentRoom.locked = true;
+			apiController.roomLocked(data.user);
+		}
+		
+		private function handleUnlockRoom(data:Object):void {
+			currentRoom.locked = false;
+			apiController.roomUnlocked(data.user);
 		}
 		
 		private function handleRoomMsg(data:Object):void {
@@ -1561,6 +1574,22 @@ package com.worlize.interactivity.rpc
 					spotId: spotId
 				}
 			});
+		}
+		
+		public function lockRoom():void {
+			if (!currentRoom.locked) {
+				connection.send({
+					msg: 'lock_room'
+				});
+			}
+		}
+		
+		public function unlockRoom():void {
+			if (currentRoom.locked) {
+				connection.send({
+					msg: 'unlock_room'
+				});
+			}
 		}
 		
 		[Bindable(event="currentUserChanged")]

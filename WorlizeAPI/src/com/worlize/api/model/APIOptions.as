@@ -1,13 +1,31 @@
 package com.worlize.api.model
 {
 	public class APIOptions {
+		
+		private var sizeUnknown:Boolean = true;
 		public var fullSize:Boolean = false;
 		public var nonVisual:Boolean = false;
 		public var resizableByUser:Boolean = false;
 		public var editModeSupported:Boolean = false;
 		public var name:String = "My Great App";
-		public var defaultWidth:int = 500;
-		public var defaultHeight:int = 375;
+		private var _defaultWidth:int = 500;
+		private var _defaultHeight:int = 375;
+		
+		public function set defaultWidth(newValue:int):void {
+			_defaultWidth = newValue;
+			sizeUnknown = false;
+		}
+		public function get defaultWidth():int {
+			return _defaultWidth;
+		}
+		
+		public function set defaultHeight(newValue:int):void {
+			_defaultHeight = newValue;
+			sizeUnknown = false;
+		}
+		public function get defaultHeight():int {
+			return _defaultHeight;
+		}
 		
 		public function toJSON():Object {
 			return {
@@ -16,8 +34,9 @@ package com.worlize.api.model
 				resizableByUser: resizableByUser,
 				editModeSupported: editModeSupported,
 				name: name,
-				defaultHeight: defaultHeight,
-				defaultWidth: defaultWidth
+				defaultHeight: _defaultHeight,
+				defaultWidth: _defaultWidth,
+				sizeUnknown: sizeUnknown
 			};
 		}
 	}

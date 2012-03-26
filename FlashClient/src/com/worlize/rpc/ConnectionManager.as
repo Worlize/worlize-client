@@ -181,10 +181,27 @@ package com.worlize.rpc
 			}
 			gotoRoomCommand = new GotoRoomCommand();
 			gotoRoomCommand.addEventListener(GotoRoomResultEvent.GOTO_ROOM_RESULT, function(event:GotoRoomResultEvent):void {
+				var commEvent:WorlizeCommEvent;
+				
+				if (event.roomLocked) {
+					connectingToNewRoom = false;
+					
+					// Notify client that the room is locked
+					commEvent = new WorlizeCommEvent(WorlizeCommEvent.MESSAGE);
+					commEvent.message = {
+						msg: 'room_entry_denied',
+						data: {
+							message: "Sorry, the room is locked."
+						}
+					};
+					dispatchEvent(commEvent);
+					return;
+				}
+				
 				config.interactivitySession = event.interactivitySession;
 				
 				// Notify client that room entry was granted
-				var commEvent:WorlizeCommEvent = new WorlizeCommEvent(WorlizeCommEvent.MESSAGE);
+				commEvent = new WorlizeCommEvent(WorlizeCommEvent.MESSAGE);
 				commEvent.message = {
 					msg: 'room_entry_granted',
 					data: {

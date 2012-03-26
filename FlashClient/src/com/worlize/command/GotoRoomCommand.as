@@ -35,10 +35,21 @@ package com.worlize.command
 		
 		private function handleResult(event:WorlizeResultEvent):void {
 			complete = true;
+			var resultEvent:GotoRoomResultEvent;
 			if (canceled) { return; }
 			if (event.resultJSON.success) {
-				var resultEvent:GotoRoomResultEvent = new GotoRoomResultEvent(GotoRoomResultEvent.GOTO_ROOM_RESULT);
+				resultEvent = new GotoRoomResultEvent(GotoRoomResultEvent.GOTO_ROOM_RESULT);
+				resultEvent.success = true;
+				resultEvent.roomLocked = false;
 				resultEvent.interactivitySession = InteractivitySession.fromData(event.resultJSON.interactivity_session);
+				dispatchEvent(resultEvent);
+			}
+			else {
+				resultEvent = new GotoRoomResultEvent(GotoRoomResultEvent.GOTO_ROOM_RESULT);
+				resultEvent.success = false;
+				if (event.resultJSON.room_locked) {
+					resultEvent.roomLocked = true;
+				}
 				dispatchEvent(resultEvent);
 			}
 		}

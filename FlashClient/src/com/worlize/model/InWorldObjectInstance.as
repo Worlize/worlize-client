@@ -46,7 +46,7 @@ package com.worlize.model
 		public var editModeSupported:Boolean = false;
 		private var _editModeEnabled:Boolean = false;
 		
-		public var sizedByScript:Boolean = false;
+		public var sizeUnknown:Boolean = true;
 		
 		[Bindable(event="stateChanged")]
 		public function get state():String {

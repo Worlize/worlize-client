@@ -51,6 +51,8 @@ package com.worlize.interactivity.api.adapter
 		function userColorChanged(user:InteractivityUser):void;
 		function userAvatarChanged(user:InteractivityUser):void;
 		function roomDimLevelChanged(dimLevel:int):void;
+		function roomLocked(lockedByUserGuid:String):void;
+		function roomUnlocked(unlockedByUserGuid:String):void;
 		function receiveMessage(message:ByteArray, fromAppInstanceGuid:String, fromUserGuid:String):void;
 		function receiveStateHistoryPush(data:ByteArray):void;
 		function receiveStateHistoryShift():void;

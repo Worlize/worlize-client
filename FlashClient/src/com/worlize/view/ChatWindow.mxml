@@ -36,6 +36,7 @@
 			import com.worlize.command.CreateHotspotCommand;
 			import com.worlize.event.AuthorModeNotification;
 			import com.worlize.event.NotificationCenter;
+			import com.worlize.interactivity.api.AppLoader;
 			import com.worlize.interactivity.event.InteractivitySecurityErrorEvent;
 			import com.worlize.interactivity.event.RoomSelectedEvent;
 			import com.worlize.interactivity.iptscrae.command.CLIENTTYPECommand;
@@ -182,6 +183,7 @@
 			}
 
 			private function handleRoomMouseUp(event:MouseEvent):void {
+				if (event.target is AppLoader) { return; }
 				focusChatBox();
 			}
 
