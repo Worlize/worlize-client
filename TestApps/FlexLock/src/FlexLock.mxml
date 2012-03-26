@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="100" height="30"
+			   initialize="handleInitialize()">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.api.WorlizeAPI;
+			protected function handleInitialize():void {
+				WorlizeAPI.options.defaultWidth = 100;
+				WorlizeAPI.options.defaultHeight = 30;
+				WorlizeAPI.init(this, systemManager.loaderInfo);
+			}
+		]]>
+	</fx:Script>
+	
+	<s:Button label="test" width="100%" height="100%" />
+	
+</s:Application>
