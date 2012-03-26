@@ -40,10 +40,10 @@
 			
 			private function handleInWorldObjectsChange(event:CollectionEvent):void {
 				var inWorldObjectInstance:InWorldObjectInstance;
-				var view:InWorldObjectView;
+				var view:EmbeddedAppView;
 				if (event.kind == CollectionEventKind.ADD) {
 					for each (inWorldObjectInstance in event.items) {
-						view = new InWorldObjectView();
+						view = new EmbeddedAppView();
 						view.inWorldObjectInstance = inWorldObjectInstance;
 						viewsByInWorldObjectInstance[inWorldObjectInstance] = view;
 						view.selected = (AuthorModeState.getInstance().selectedItem === inWorldObjectInstance);

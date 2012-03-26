@@ -384,5 +384,7 @@
 		</s:Rect>
 	</s:Group>
 	
-	<s:SpriteVisualElement id="spinnerContainer" verticalCenter="0" horizontalCenter="0" />
+	<s:SpriteVisualElement id="spinnerContainer"
+						   mouseChildren="false" mouseEnabled="false"
+						   verticalCenter="0" horizontalCenter="0" />
 </s:Group>

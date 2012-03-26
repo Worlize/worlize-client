@@ -137,7 +137,7 @@ package com.worlize.interactivity.api
 			logger.error("Invalid client_handshake event received from API client!");
 			bombApp();
 		}
-
+		
 		protected function handleContentLoaderInfoInit(event:Event):void {
 			logger.info("API Client Content INIT");
 			var loader:Loader = contentHolder as Loader;
