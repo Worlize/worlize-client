@@ -32,25 +32,28 @@ package
 			addChild(canvas);
 			
 			
-			redSwatch = new ColorSwatch(0xAA0000);
-			greenSwatch = new ColorSwatch(0x00AA00);
-			blueSwatch = new ColorSwatch(0x0000FF);
-			blackSwatch = new ColorSwatch(0x000000);
-			
-			currentSwatch = new ColorSwatch(0x000000);
-			
-			var swatches:Array = [redSwatch, greenSwatch, blueSwatch, blackSwatch];
+			var colors:Array = [
+				0xAA0000,
+				0x00AA00,
+				0x0000FF,
+				0xFF8800,
+				0xDDDD00,
+				0xAA00AA,
+				0x000000
+			];
 			
 			var currentX:int = 1;
-			for each (var swatch:ColorSwatch in swatches) {
+			for each (var color:uint in colors) {
+				var swatch:ColorSwatch = new ColorSwatch(color);
 				addChild(swatch);
 				swatch.x = currentX;
 				swatch.y = 1;
-				currentX += 50;
+				currentX += 25;
 			}
 			
+			currentSwatch = new ColorSwatch(0x000000);
 			addChild(currentSwatch);
-			currentSwatch.x = api.thisObject.width-51;
+			currentSwatch.x = api.thisObject.width-26;
 			currentSwatch.y = 1;
 			
 			addEventListener(MouseEvent.CLICK, handleClick);

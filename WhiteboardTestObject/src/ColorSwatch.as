@@ -15,7 +15,7 @@ package
 		public function updateColor(color:uint):void {
 			this.color = color;
 			graphics.beginFill(color);
-			graphics.drawRect(0,0,50,25);
+			graphics.drawRect(0,0,25,25);
 			graphics.endFill();
 		}
 	}
