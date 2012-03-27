@@ -191,6 +191,8 @@
 			
 			private function initSnowFall():void {
 				snow = new SnowDisplay(this.width, this.height-26);
+				snow.mouseEnabled = false;
+				snow.mouseChildren = false;
 				snow.x = 0;
 				snow.y = 0;
 				
