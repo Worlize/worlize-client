@@ -91,10 +91,8 @@ package com.worlize.interactivity.api.adapter
 			var options:Object = data.appOptions;
 			
 			thisObject.sizeUnknown = options.sizeUnknown;
-			if (!thisObject.sizeUnknown) {
-				thisObject.width = options.defaultWidth;
-				thisObject.height = options.defaultHeight;
-			}
+			thisObject.width = options.defaultWidth;
+			thisObject.height = options.defaultHeight;
 			thisObject.editModeSupported = options.editModeSupported;
 			thisObject.editModeEnabled = false;
 						
