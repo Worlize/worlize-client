@@ -1,8 +1,11 @@
 package com.worlize.api.model
 {
+	import com.worlize.worlize_internal;
+
 	public class APIOptions {
+		use namespace worlize_internal;
 		
-		private var sizeUnknown:Boolean = true;
+		worlize_internal var sizeUnknown:Boolean = true;
 		public var fullSize:Boolean = false;
 		public var nonVisual:Boolean = false;
 		public var resizableByUser:Boolean = false;
