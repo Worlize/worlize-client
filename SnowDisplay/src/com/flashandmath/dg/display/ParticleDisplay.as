@@ -202,6 +202,7 @@ package com.flashandmath.dg.display {
 			//if the recycle bin is empty, create a new particle:
 			else {
 				particle = new SimpleParticle(x0,y0);
+				particle.cacheAsBitmap = true;
 				//add to display
 				this.addChild(particle);
 			}
