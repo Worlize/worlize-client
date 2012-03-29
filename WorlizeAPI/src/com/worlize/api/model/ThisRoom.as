@@ -14,59 +14,280 @@ package com.worlize.api.model
 	import flash.utils.ByteArray;
 	import flash.utils.Endian;
 	
+	/**
+	 * Dispatched when incoming chat is received from any user in the
+	 * room.
+	 * 
+	 * <p>This event will be triggered by all incoming chat, including
+	 * chat from the current user, after it has been received from the
+	 * server.  That means that when the current user chats, both
+	 * <code>outgoingChat</code> and <code>incomingChat</code> events
+	 * will be dispatched, in that order.</p>
+	 * 
+	 * @eventType com.worlize.api.event.ChatEvent.INCOMING_CHAT
+	 * @productversion Worlize API.v1
+	 */	
 	[Event(name="incomingChat",type="com.worlize.api.event.ChatEvent")]
+	
+	/**
+	 * Dispatched when the user sends an outgoing chat message, before
+	 * it is sent to the server.
+	 *
+	 * <p>Be aware that when the current user chats, both
+	 * <code>outgoingChat</code> and <code>incomingChat</code> events
+	 * will be dispatched, in that order.</p>
+	 *  
+	 * @eventType com.worlize.api.event.ChatEvent.OUTGOING_CHAT
+	 * @productversion Worlize API.v1
+	 */	
 	[Event(name="outgoingChat",type="com.worlize.api.event.ChatEvent")]
+	
+	/**
+	 * Dispatched after a user has entered the room.
+	 * 
+	 * @eventType com.worlize.api.event.RoomEvent.USER_ENTERED
+	 * @productversion Worlize API.v1
+	 */	
 	[Event(name="userEntered",type="com.worlize.api.event.RoomEvent")]
+	
+	/**
+	 * Dispatched after a user has left the room.
+	 * 
+	 * @eventType com.worlize.api.event.RoomEvent.USER_ENTERED
+	 * @productversion Worlize API.v1
+	 */	
 	[Event(name="userLeft",type="com.worlize.api.event.RoomEvent")]
+
+	/**
+	 * Dispatched after a user's avatar has moved.
+	 * 
+	 * @eventType com.worlize.api.event.UserEvent.USER_MOVED
+	 * @productversion Worlize API.v1
+	 */	
 	[Event(name="userMoved",type="com.worlize.api.event.UserEvent")]
+	
+	/**
+	 * Dispatched after a user's avatar has changed.
+	 * 
+	 * @eventType com.worlize.api.event.UserEvent.USER_AVATAR_CHANGED
+	 * @productversion Worlize API.v1
+	 */	
 	[Event(name="userAvatarChanged",type="com.worlize.api.event.UserEvent")]
-	[Event(name="userFaceChanged",type="com.worlize.api.event.UserEvent")]
+	
+	/**
+	 * Dispatched after the color of a user's default "gummy" avatar has changed.
+	 * 
+	 * @eventType com.worlize.api.event.UserEvent.USER_COLOR_CHANGED
+	 * @productversion Worlize API.v1 
+	 */	
 	[Event(name="userColorChanged",type="com.worlize.api.event.UserEvent")]
+	
+	/**
+	 * Dispatched after a user's text baloon background color has changed.
+	 * 
+	 * @eventType com.worlize.api.event.UserEvent.USER_BALLOON_COLOR_CHANGED 
+	 * @productversion Worlize API.v1
+	 */	
+	[Event(name="userBalloonColorChanged",type="com.worlize.api.event.UserEvent")]
+	
+	/**
+	 * Dispatched after a user's privileges have changed
+	 * 
+	 * @eventType com.worlize.api.event.UserEvent.USER_PRIVILEGES_CHANGED
+	 * @productversion Worlize API.v1 
+	 */	
 	[Event(name="userPrivilegesChanged",type="com.worlize.api.event.UserEvent")]
+	
+	/**
+	 * Dispatched after an object in the room has been resized.
+	 * 
+	 * @eventType com.worlize.api.event.RoomObjectEvent.OBJECT_RESIZED
+	 * @productversion Worlize API.v1 
+	 */	
 	[Event(name="objectResized",type="com.worlize.api.event.RoomObjectEvent")]
+	
+	/**
+	 * Dispatched after an object in the room has been moved.
+	 * 
+	 * @eventType com.worlize.api.event.RoomObjectEvent.OBJECT_MOVED
+	 * @productversion Worlize API.v1 
+	 */	
 	[Event(name="objectMoved",type="com.worlize.api.event.RoomObjectEvent")]
+	
+	/**
+	 * Dispatched after an object in the room has changed state.
+	 * 
+	 * @eventType com.worlize.api.event.RoomObjectEvent.OBJECT_STATE_CHANGED
+	 * @productversion Worlize API.v1 
+	 */	
 	[Event(name="objectStateChanged",type="com.worlize.api.event.RoomObjectEvent")]
+	
+	/**
+	 * Dispatched after an object has been added to the room.
+	 * 
+	 * @eventType com.worlize.api.event.RoomEvent.OBJECT_ADDED
+	 * @productversion Worlize API.v1 
+	 */	
 	[Event(name="objectAdded",type="com.worlize.api.event.RoomEvent")]
+	
+	/**
+	 * Dispatched after an object has been removed from the room.
+	 * 
+	 * @eventType com.worlize.api.event.RoomEvent.OBJECT_REMOVED
+	 * @productversion Worlize API.v1 
+	 */	
 	[Event(name="objectRemoved",type="com.worlize.api.event.RoomEvent")]
+	
+	/**
+	 * Dispatched after the room has been locked.
+	 * 
+	 * @eventType com.worlize.api.event.RoomEvent.LOCKED
+	 * @productversion Worlize API.v1 
+	 */	
 	[Event(name="locked",type="com.worlize.api.event.RoomEvent")]
+	
+	/**
+	 * Dispatched after the room has been unlocked.
+	 * 
+	 * @eventType com.worlize.api.event.RoomEvent.UNLOCKED
+	 * @productversion Worlize API.v1 
+	 */	
 	[Event(name="unlocked", type="com.worlize.api.event.RoomEvent")]
+	
+	/**
+	 * Dispatched continuously as the user moves their mouse over the room
+	 * background.
+	 * 
+	 * <p>Since embedded apps don't have access to the screen area outside
+	 * the boundaries of their own rectangle, listen to this event to track
+	 * mouse movement outside the app's boundaries.</p>
+	 * 
+	 * @eventType flash.events.MouseEvent
+	 * @productversion Worlize API.v1 
+	 */	
 	[Event(name="mouseMove",type="flash.events.MouseEvent")]
+	
+	/**
+	 * Represents the current room ("this" room).
+	 * 
+	 * <p>Extends the <code>Room</code> class with properties and methods
+	 * relevant to observing actions occurring in the current room and
+	 * manipulating its state.</p>
+	 * 
+	 * @author Brian McKelvey
+	 * @productversion Worlize APIv.1
+	 * @see com.worlize.api.model.Room
+	 * @see com.worlize.api.model.RoomObject
+	 * @see com.worlize.api.model.User
+	 */	
 	public class ThisRoom extends Room
 	{
 		use namespace worlize_internal;
 		
+		/**
+		 * Storage for the User instances representing the room's denizens
+		 * 
+		 * @private 
+		 */		
 		protected var _users:Vector.<User> = new Vector.<User>();
+		
+		/**
+		 * Storage for the RoomObject instances representing the objects (apps)
+		 * in the room.
+		 * 
+		 * @private 
+		 */		
 		protected var _objects:Vector.<RoomObject> = new Vector.<RoomObject>();
+		
+		/**
+		 * Storage for the room's current dim level.
+		 * 
+		 * @private 
+		 */		
 		protected var _dimLevel:Number = 1.0;
+		
+		/**
+		 * Storage for the room's width.  For now will always be 950.
+		 * 
+		 * @private 
+		 */		
 		protected var _width:int;
+		
+		/**
+		 * Storage for the room's height.  For now will always be 570.
+		 * 
+		 * @private 
+		 */		
 		protected var _height:int;
 
+		/**
+		 * A list of users in the room.
+		 *  
+		 * @return the user list. 
+		 * @productversion Worlize APIv.1
+		 */		
 		public function get users():Vector.<User> {
 			return _users.slice();
 		}
 		
+		/**
+		 * A list of objects (apps) in the room.
+		 *  
+		 * @return the list of objects. 
+		 * @productversion Worlize APIv.1 
+		 */		
 		public function get objects():Vector.<RoomObject> {
 			return _objects.slice();
 		}
 		
+		/**
+		 * A number representing how dim the room is.
+		 * 
+		 * <p>This is a value from 0 to 100, where 0 is full black, and 100
+		 * is full brightness</p>
+		 *   
+		 * @return a number representing the room's dim level. 
+		 * @productversion Worlize APIv.1
+		 */		
 		public function get dimLevel():uint {
 			return _dimLevel;
 		}
 		
-		public function get width():int {
-			return _width;
-		}
-		
-		public function get height():int {
-			return _height;
-		}
-		
+		/**
+		 * @private
+		 */		
 		public function set dimLevel(newValue:uint):void {
 			var event:APIEvent = new APIEvent(APIEvent.SET_ROOM_DIMLEVEL);
 			event.data = { dimLevel: newValue };
 			WorlizeAPI.sharedEvents.dispatchEvent(event);
 		}
 		
+		/**
+		 * The room's width.
+		 *  
+		 * @return an integer representing the room's width.
+		 * @productversion Worlize APIv.1
+		 */		
+		public function get width():int {
+			return _width;
+		}
+		
+		/**
+		 * The room's height.
+		 *  
+		 * @return an integer representing the room's height. 
+		 * @productversion Worlize APIv.1
+		 */		
+		public function get height():int {
+			return _height;
+		}
+		
+		/**
+		 * The horizontal position of the mouse cursor relative to the room's coordinate space 
+		 * 
+		 * @return the horizontal mouse position
+		 * @productversion Worlize APIv.1
+		 */		
 		public function get mouseX():Number {
 			var event:APIEvent = new APIEvent(APIEvent.GET_ROOM_MOUSE_COORDS);
 			var eo:Object = event;
@@ -74,6 +295,12 @@ package com.worlize.api.model
 			return eo.data.mouseX;
 		}
 		
+		/**
+		 * The vertical position of the mouse cursor relative to the room's coordinate space
+		 * 
+		 * @return the vertical mouse position
+		 * @productversion Worlize APIv.1
+		 */		
 		public function get mouseY():Number {
 			var event:APIEvent = new APIEvent(APIEvent.GET_ROOM_MOUSE_COORDS);
 			var eo:Object = event;
@@ -81,28 +308,123 @@ package com.worlize.api.model
 			return eo.data.mouseY;
 		}
 		
+		/**
+		 * Displays a disembodied white chat balloon for all users in the room.
+		 * 
+		 * <p>The text will appear in the chat log without a username.</p> 
+		 * 
+		 * <p>The text appears in the top left corner by default.  You may
+		 * position the text by prepending an &#64; symbol followed by x and
+		 * y coordinates to the text</p>
+		 * 
+		 * @param text the text to display in the chat balloon.
+		 * @see #announceLocal()
+		 * @productversion Worlize APIv.1
+		 * @example Display a specifically positioned chat bubble for all users in the room
+		 * <listing version="3.0">
+		 * 
+		 * var api:WorlizeAPI = WorlizeAPI.getInstance();
+		 * api.thisRoom.announce("&#64;100,200 OMG, a disembodied chat bubble!");
+		 * 
+		 * </listing>
+		 */		
 		public function announce(text:String):void {
 			var event:APIEvent = new APIEvent(APIEvent.ROOM_ANNOUNCE_MESSAGE);
 			event.data = { text: text };
 			WorlizeAPI.sharedEvents.dispatchEvent(event);
 		}
 		
-		public function localAnnounce(text:String):void {
+		/**
+		 * Displays a disembodied white chat balloon only for the current user.
+		 * 
+		 * <p>Only the current user will see balloons produced with
+		 * <code>announceLocal()</code>.  Other users
+		 * <strong><em>will not</em></strong> see them and the text will not
+		 * be routed through the server.</p> 
+		 * 
+		 * <p>The text will appear in the chat log without a username.</p> 
+		 * 
+		 * <p>The text appears in the top left corner by default.  You may
+		 * position the text by prepending an &#64; symbol followed by x and
+		 * y coordinates to the text</p>
+		 * 
+		 * @param text the text to display in the chat balloon.
+		 * @see #announce()
+		 * @productversion Worlize APIv.1
+		 * @example Display a specifically positioned chat bubble for only the current user in the room
+		 * <listing version="3.0">
+		 * 
+		 * var api:WorlizeAPI = WorlizeAPI.getInstance();
+		 * api.thisRoom.announceLocal("&#64;100,200 OMG, a disembodied chat bubble!");
+		 * 
+		 * </listing>
+		 */		
+		public function announceLocal(text:String):void {
 			var event:APIEvent = new APIEvent(APIEvent.ROOM_LOCAL_ANNOUNCE_MESSAGE);
 			event.data = { text: text };
 			WorlizeAPI.sharedEvents.dispatchEvent(event);
 		}
 		
+		/**
+		 * Lock the room.
+		 * 
+		 * <p>Subsequent visitors will be denied entrance to the room as long
+		 * as it remains locked.  Rooms will automatically unlock when they
+		 * become empty.</p>
+		 * 
+		 * <p>The owner of a room may always enter, even if it is locked.</p> 
+		 * 
+		 * @productversion Worlize APIv.1
+		 * @see #unlock()
+		 */		
 		public function lock():void {
 			var event:APIEvent = new APIEvent(APIEvent.LOCK_ROOM);
 			WorlizeAPI.sharedEvents.dispatchEvent(event);
 		}
 		
+		/**
+		 * Unlock the room.
+		 * 
+		 * <p>Subsequent visitors will be allowed entrance to the room.</p>
+		 * 
+		 * <p>Rooms will automatically unlock when they become empty.  The
+		 * owner of a room may always enter, even if it is locked.</p>
+		 * 
+		 * @productversion Worlize APIv.1
+		 * @see #lock()
+		 */		
 		public function unlock():void {
 			var event:APIEvent = new APIEvent(APIEvent.UNLOCK_ROOM);
 			WorlizeAPI.sharedEvents.dispatchEvent(event);	
 		}
 		
+		/**
+		 * Send a message to all objects in the room.
+		 * 
+		 * <p>Broadcasts any AMF3-serializable object to all objects (apps)
+		 * in the room, facilitating inter-app communications and events.</p>
+		 * 
+		 * <p>To restrict the message to only be sent to a subset of users,
+		 * specify an array of user guids as the second parameter</p>
+		 *  
+		 * @param message an AMF3-serializable object
+		 * @param toUserGuids (optional) an array of user guids to which the message should be sent
+		 * @productversion Worlize APIv.1
+		 * @see RoomObject#sendMessage()
+		 * @example A color-picker app broadcasts the chosen color to any other app that might be interested, for all users in the room.
+		 * <listing version="3.0">
+		 * 
+		 * var api:WorlizeAPI = WorlizeAPI.getInstance();
+		 * 
+		 * var myNewColor:uint = 0xFF0000; // Replace with color from picker
+		 * var message:Object = {
+		 *     name: "colorSelected",
+		 *     color: myNewColor
+		 * };
+		 * api.thisRoom.broadcastMessage(message);
+		 * 
+		 * </listing>
+		 */		
 		public function broadcastMessage(message:Object, toUserGuids:Array = null):void {
 			var event:APIEvent = new APIEvent(APIEvent.SEND_APP_MESSAGE);
 			var byteArray:ByteArray = new ByteArray();
@@ -118,6 +440,30 @@ package com.worlize.api.model
 			WorlizeAPI.sharedEvents.dispatchEvent(event);
 		}
 		
+		/**
+		 * Send a message to all objects in the room for only the current user.
+		 * 
+		 * <p>Like <code>broadcastMessage()</code> but the message is not
+		 * routed through the server and is delivered only to objects running
+		 * on the current user's machine.</p>
+		 * 
+		 * @param message an AMF3-serializable object
+		 * @productversion Worlize APIv.1
+		 * @see RoomObject#sendMessageLocal()
+		 * @example A color-picker app broadcasts the chosen color to any other app that might be interested, for only the current user.
+		 * <listing version="3.0">
+		 * 
+		 * var api:WorlizeAPI = WorlizeAPI.getInstance();
+		 * 
+		 * var myNewColor:uint = 0xFF0000; // Replace with color from picker
+		 * var message:Object = {
+		 *     name: "colorSelected",
+		 *     color: myNewColor
+		 * };
+		 * api.thisRoom.broadcastMessageLocal(message);
+		 * 
+		 * </listing>
+		 */		
 		public function broadcastMessageLocal(message:Object):void {
 			var event:APIEvent = new APIEvent(APIEvent.SEND_APP_MESSAGE_LOCAL);
 			var byteArray:ByteArray = new ByteArray();
@@ -130,6 +476,13 @@ package com.worlize.api.model
 			WorlizeAPI.sharedEvents.dispatchEvent(event);
 		}
 		
+		/**
+		 * Look up a <code>User</code> object by GUID.
+		 *  
+		 * @param guid the user's guid
+		 * @return a <code>User</code> object
+		 * @productversion Worlize APIv.1
+		 */		
 		public function getUserByGuid(guid:String):User {
 			for each (var user:User in _users) {
 				if (user.guid === guid) {
@@ -139,6 +492,13 @@ package com.worlize.api.model
 			return null;
 		}
 		
+		/**
+		 * Look up a <code>RoomObject</code> object by GUID.
+		 *  
+		 * @param guid the object's guid
+		 * @return a <code>RoomObject</code> object
+		 * @productversion Worlize APIv.1
+		 */		
 		public function getObjectByGuid(guid:String):RoomObject {
 			for each (var obj:RoomObject in _objects) {
 				if (obj.instanceGuid === guid) {
@@ -148,6 +508,9 @@ package com.worlize.api.model
 			return null;
 		}
 		
+		/**
+		 * @private
+		 */		
 		override public function toJSON():Object {
 			var obj:Object = super.toJSON();
 			var usersArray:Array = obj['users'] = [];
@@ -163,6 +526,9 @@ package com.worlize.api.model
 			return obj;
 		}
 		
+		/**
+		 * @private
+		 */		
 		override public function toString():String {
 			return "[ThisRoom guid=" + _guid + " name=" + _name + "]";
 		}
@@ -175,11 +541,17 @@ package com.worlize.api.model
 			dispatchEvent(event);
 		}
 		
+		/**
+		 * @private
+		 */		
 		worlize_internal function addObject(obj:RoomObject):void {
 			_objects.push(obj);
 			addRoomObjectEventListeners(obj);
 		}
 		
+		/**
+		 * @private
+		 */		
 		worlize_internal function removeObject(objGuid:String):RoomObject {
 			for (var i:int=0; i < _objects.length; i++) {
 				if (_objects[i].instanceGuid === objGuid) {
@@ -192,11 +564,17 @@ package com.worlize.api.model
 			return null;
 		}
 		
+		/**
+		 * @private
+		 */		
 		worlize_internal function addUser(user:User):void {
 			_users.push(user);
 			addUserEventListeners(user);
 		}
 		
+		/**
+		 * @private
+		 */		
 		worlize_internal function removeUser(userGuid:String):User {
 			for (var i:int=0; i < _users.length; i++) {
 				if (_users[i].guid === userGuid) {
@@ -214,16 +592,16 @@ package com.worlize.api.model
 		
 		private function addUserEventListeners(user:User):void {
 			user.addEventListener(UserEvent.USER_AVATAR_CHANGED, redispatchUserEvent);
+			user.addEventListener(UserEvent.USER_BALLOON_COLOR_CHANGED, redispatchUserEvent);
 			user.addEventListener(UserEvent.USER_COLOR_CHANGED, redispatchUserEvent);
-			user.addEventListener(UserEvent.USER_FACE_CHANGED, redispatchUserEvent);
 			user.addEventListener(UserEvent.USER_MOVED, redispatchUserEvent);
 			user.addEventListener(UserEvent.USER_PRIVILEGES_CHANGED, redispatchUserEvent);
 		}
 		
 		private function removeUserEventListeners(user:User):void {
 			user.removeEventListener(UserEvent.USER_AVATAR_CHANGED, redispatchUserEvent);
+			user.removeEventListener(UserEvent.USER_BALLOON_COLOR_CHANGED, redispatchUserEvent);
 			user.removeEventListener(UserEvent.USER_COLOR_CHANGED, redispatchUserEvent);
-			user.removeEventListener(UserEvent.USER_FACE_CHANGED, redispatchUserEvent);
 			user.removeEventListener(UserEvent.USER_MOVED, redispatchUserEvent);
 			user.removeEventListener(UserEvent.USER_PRIVILEGES_CHANGED, redispatchUserEvent);
 		}
@@ -240,6 +618,9 @@ package com.worlize.api.model
 			obj.removeEventListener(RoomObjectEvent.OBJECT_STATE_CHANGED, redispatchRoomObjectEvent);
 		}
 		
+		/**
+		 * @private
+		 */		
 		worlize_internal static function fromData(data:Object, thisUser:ThisUser, thisObject:ThisRoomObject):ThisRoom {
 			var room:ThisRoom = new ThisRoom();
 			room._guid = data.guid;
@@ -270,6 +651,9 @@ package com.worlize.api.model
 			return room;
 		}
 		
+		/**
+		 * @private
+		 */		
 		worlize_internal function setThisUser(user:ThisUser):void {
 			for (var i:int=0; i < _users.length; i++) {
 				var existingUser:User = _users[i];
@@ -282,6 +666,9 @@ package com.worlize.api.model
 			}
 		}
 		
+		/**
+		 * @private
+		 */		
 		worlize_internal function setThisObject(obj:ThisRoomObject):void {
 			for (var i:int=0; i < _objects.length; i++) {
 				var existingObject:RoomObject = _objects[i];
@@ -294,6 +681,9 @@ package com.worlize.api.model
 			}
 		}
 		
+		/**
+		 * @private
+		 */		
 		worlize_internal function addSharedEventHandlers(sharedEvents:EventDispatcher):void {
 			sharedEvents.addEventListener('host_roomMouseMove', handleRoomMouseMove);
 			sharedEvents.addEventListener('host_chatEvent', handleChat);
@@ -302,8 +692,8 @@ package com.worlize.api.model
 			sharedEvents.addEventListener('host_allUsersLeft', handleAllUsersLeft);
 			sharedEvents.addEventListener('host_userMoved', handleUserMoved);
 			sharedEvents.addEventListener('host_userAvatarChanged', handleUserAvatarChanged);
-			sharedEvents.addEventListener('host_userFaceChanged', handleUserFaceChanged);
 			sharedEvents.addEventListener('host_userColorChanged', handleUserColorChanged);
+			sharedEvents.addEventListener('host_userBalloonColorChanged', handleUserBalloonColorChanged);
 			sharedEvents.addEventListener('host_userPrivilegesChanged', handleUserPrivilegesChanged);
 			sharedEvents.addEventListener('host_roomDimLevelChanged', handleRoomDimLevelChanged);
 			sharedEvents.addEventListener('host_roomLockedChanged', handleRoomLockedChanged);
@@ -408,19 +798,19 @@ package com.worlize.api.model
 			}
 		}
 		
-		private function handleUserFaceChanged(event:Event):void {
-			var eo:Object = event;
-			var user:User = getUserByGuid(eo.data.userGuid);
-			if (user) {
-				user.updateFace(eo.data.face);
-			}
-		}
-		
 		private function handleUserColorChanged(event:Event):void {
 			var eo:Object = event;
 			var user:User = getUserByGuid(eo.data.userGuid);
 			if (user) {
 				user.updateColor(eo.data.color);
+			}
+		}
+		
+		private function handleUserBalloonColorChanged(event:Event):void {
+			var eo:Object = event;
+			var user:User = getUserByGuid(eo.data.userGuid);
+			if (user) {
+				user.updateBalloonColor(eo.data.color);
 			}
 		}
 		
@@ -438,11 +828,20 @@ package com.worlize.api.model
 		}
 		
 		private function handleObjectAdded(event:Event):void {
-			addObject(RoomObject.fromData(event['data'].roomObject));
+			var obj:RoomObject = RoomObject.fromData(event['data'].roomObject);
+			addObject(obj);
+			var addedEvent:RoomEvent = new RoomEvent(RoomEvent.OBJECT_ADDED);
+			addedEvent.roomObject = obj;
+			dispatchEvent(addedEvent);
 		}
 		
 		private function handleObjectRemoved(event:Event):void {
-			removeObject(event['data'].guid);
+			var obj:RoomObject = removeObject(event['data'].guid);
+			if (obj !== null) {
+				var removedEvent:RoomEvent = new RoomEvent(RoomEvent.OBJECT_REMOVED);
+				removedEvent.roomObject = obj;
+				dispatchEvent(removedEvent);
+			}
 		}
 		
 		private function handleObjectResized(event:Event):void {

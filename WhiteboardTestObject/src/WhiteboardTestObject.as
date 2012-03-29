@@ -20,6 +20,8 @@ package
 		
 		public function WhiteboardTestObject()
 		{
+			WorlizeAPI.options.defaultWidth = 500;
+			WorlizeAPI.options.defaultHeight = 375;
 			WorlizeAPI.options.resizableByUser = false;
 			WorlizeAPI.options.name = "Whiteboard Test App";
 			
@@ -30,7 +32,6 @@ package
 			canvas = new WhiteboardCanvas();
 			canvas.x = canvas.y = 0;
 			addChild(canvas);
-			
 			
 			var colors:Array = [
 				0xAA0000,
@@ -61,7 +62,7 @@ package
 		
 		private function handleMessageReceived(event:MessageEvent):void {
 			if (event.message && event.message.type === 'setColor') {
-				if (event.message.color) {
+				if ('color' in event.message) {
 					canvas.color = event.message.color;
 					currentSwatch.updateColor(event.message.color);
 				}
@@ -71,8 +72,7 @@ package
 		private function handleClick(event:MouseEvent):void {
 			if (event.target is ColorSwatch) {
 				var color:uint = (event.target as ColorSwatch).color;
-				canvas.color = color;
-				currentSwatch.updateColor(color);
+				api.thisRoom.broadcastMessageLocal({ type: 'setColor', color: color });
 			}
 		}
 	}

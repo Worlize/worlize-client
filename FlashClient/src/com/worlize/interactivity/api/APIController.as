@@ -295,11 +295,11 @@ package com.worlize.interactivity.api
 			interactivityClient.move(x, y);
 		}
 		
-		public function setThisUserFace(face:int):void {
+		public function setThisUserColor(face:int):void {
 			interactivityClient.setFace(face);
 		}
 		
-		public function setThisUserColor(color:int):void {
+		public function setThisUserBalloonColor(color:int):void {
 			interactivityClient.setColor(color);
 		}
 		
@@ -310,6 +310,12 @@ package com.worlize.interactivity.api
 		public function setThisUserAvatar(avatar:String):void {
 			if (avatar !== null && avatar.match(GUID_REGEXP)) {
 				interactivityClient.setSimpleAvatar(avatar);
+			}
+		}
+		
+		public function gotoRoom(roomGuid:String, insertHistory:Boolean = true):void {
+			if (roomGuid !== null && roomGuid.search(GUID_REGEXP) !== -1) {
+				interactivityClient.gotoRoom(roomGuid, insertHistory);
 			}
 		}
 		
@@ -439,13 +445,13 @@ package com.worlize.interactivity.api
 		
 		public function userFaceChanged(user:InteractivityUser):void {
 			for each (var client:IAPIClientAdapter in apiClientAdapters) {
-				client.userFaceChanged(user);
+				client.userColorChanged(user);
 			}
 		}
 		
 		public function userColorChanged(user:InteractivityUser):void {
 			for each (var client:IAPIClientAdapter in apiClientAdapters) {
-				client.userColorChanged(user);
+				client.userBalloonColorChanged(user);
 			}
 		}
 		

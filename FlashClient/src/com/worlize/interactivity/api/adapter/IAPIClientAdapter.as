@@ -47,8 +47,8 @@ package com.worlize.interactivity.api.adapter
 		function objectResized(roomObject:InWorldObjectInstance):void;
 		function objectStateChanged(roomObject:InWorldObjectInstance):void;
 		function userMoved(user:InteractivityUser):void;
-		function userFaceChanged(user:InteractivityUser):void;
 		function userColorChanged(user:InteractivityUser):void;
+		function userBalloonColorChanged(user:InteractivityUser):void;
 		function userAvatarChanged(user:InteractivityUser):void;
 		function roomDimLevelChanged(dimLevel:int):void;
 		function roomLocked(lockedByUserGuid:String):void;

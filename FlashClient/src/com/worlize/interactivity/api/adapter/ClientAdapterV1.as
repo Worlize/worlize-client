@@ -162,9 +162,10 @@ package com.worlize.interactivity.api.adapter
 			sharedEvents.addEventListener("client_finishHandshake", handleClientFinishHandshake);
 			sharedEvents.addEventListener("client_requestBomb", handleClientRequestBomb);
 			sharedEvents.addEventListener("client_moveUser", handleClientMoveUser);
-			sharedEvents.addEventListener("client_setUserFace", handleClientSetUserFace);
 			sharedEvents.addEventListener("client_setUserColor", handleClientSetUserColor);
+			sharedEvents.addEventListener("client_setUserBalloonColor", handleClientSetUserBalloonColor);
 			sharedEvents.addEventListener("client_setAvatar", handleClientSetAvatar);
+			sharedEvents.addEventListener("client_gotoRoom", handleClientGotoRoom);
 			sharedEvents.addEventListener("client_sendChat", handleClientSendChat);
 			sharedEvents.addEventListener("client_setRoomDimLevel", handleClientSetRoomDimLevel);
 			sharedEvents.addEventListener("client_lockRoom", handleClientLockRoom);
@@ -190,9 +191,10 @@ package com.worlize.interactivity.api.adapter
 			sharedEvents.removeEventListener("client_finishHandshake", handleClientFinishHandshake);
 			sharedEvents.removeEventListener("client_requestBomb", handleClientRequestBomb);
 			sharedEvents.removeEventListener("client_moveUser", handleClientMoveUser);
-			sharedEvents.removeEventListener("client_setUserFace", handleClientSetUserFace);
 			sharedEvents.removeEventListener("client_setUserColor", handleClientSetUserColor);
+			sharedEvents.removeEventListener("client_setUserBalloonColor", handleClientSetUserBalloonColor);
 			sharedEvents.removeEventListener("client_setAvatar", handleClientSetAvatar);
+			sharedEvents.removeEventListener("client_gotoRoom", handleClientGotoRoom);
 			sharedEvents.removeEventListener("client_sendChat", handleClientSendChat);
 			sharedEvents.removeEventListener("client_setRoomDimLevel", handleClientSetRoomDimLevel);
 			sharedEvents.removeEventListener("client_moveObject", handleClientMoveRoomObject);
@@ -228,17 +230,17 @@ package com.worlize.interactivity.api.adapter
 			}
 		}
 		
-		private function handleClientSetUserFace(event:Event):void {
-			var eo:Object = event;
-			if (eo.data && eo.data.face is int) {
-				host.setThisUserFace(eo.data.face);
-			}
-		}
-		
 		private function handleClientSetUserColor(event:Event):void {
 			var eo:Object = event;
 			if (eo.data && eo.data.color is int) {
 				host.setThisUserColor(eo.data.color);
+			}
+		}
+		
+		private function handleClientSetUserBalloonColor(event:Event):void {
+			var eo:Object = event;
+			if (eo.data && eo.data.color is int) {
+				host.setThisUserBalloonColor(eo.data.color);
 			}
 		}
 		
@@ -251,6 +253,14 @@ package com.worlize.interactivity.api.adapter
 				if (eo.data.guid is String) {
 					host.setThisUserAvatar(eo.data.guid);
 				}
+			}
+		}
+		
+		private function handleClientGotoRoom(event:Event):void {
+			var data:Object = event['data'];
+			if (data && data.room is String) {
+				var insertHistory:Boolean = data.insertHistory !== false;
+				host.gotoRoom(data.room, insertHistory);
 			}
 		}
 		
@@ -512,19 +522,19 @@ package com.worlize.interactivity.api.adapter
 			sharedEvents.dispatchEvent(event);
 		}
 		
-		public function userFaceChanged(user:InteractivityUser):void {
+		public function userColorChanged(user:InteractivityUser):void {
 			if (sharedEvents === null) { return; }
-			var event:APIBridgeEvent = new APIBridgeEvent("host_userFaceChanged");
+			var event:APIBridgeEvent = new APIBridgeEvent("host_userColorChanged");
 			event.data = {
 				userGuid: user.id,
-				face: user.face
+				color: user.face
 			};
 			sharedEvents.dispatchEvent(event);
 		}
 		
-		public function userColorChanged(user:InteractivityUser):void {
+		public function userBalloonColorChanged(user:InteractivityUser):void {
 			if (sharedEvents === null) { return; }
-			var event:APIBridgeEvent = new APIBridgeEvent("host_userColorChanged");
+			var event:APIBridgeEvent = new APIBridgeEvent("host_userBalloonColorChanged");
 			event.data = {
 				userGuid: user.id,
 				color: user.color

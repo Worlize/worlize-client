@@ -1,7 +1,7 @@
 package
 {
 	import com.worlize.api.WorlizeAPI;
-	import com.worlize.api.data.StateHistoryEvent;
+	import com.worlize.api.event.StateHistoryEvent;
 	import com.worlize.api.event.ChatEvent;
 	
 	import flash.display.Sprite;
@@ -44,7 +44,6 @@ package
 		}
 		
 		private function rebuildFromHistory():void {
-			api.log("State History Entries: " + api.stateHistory.length);
 			if (api.stateHistory.length > 0) {
 				for each (var entry:Object in api.stateHistory) {
 					if (entry is Array) {

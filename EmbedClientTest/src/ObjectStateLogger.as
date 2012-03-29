@@ -1,6 +1,7 @@
 package
 {
 	import com.worlize.api.WorlizeAPI;
+	import com.worlize.api.constants.AvatarType;
 	import com.worlize.api.event.ChatEvent;
 	import com.worlize.api.event.MessageEvent;
 	import com.worlize.api.event.RoomEvent;
@@ -36,8 +37,8 @@ package
 //			api.thisRoom.addEventListener(RoomObjectEvent.MOVED, handleObjectMoved);
 			api.thisRoom.addEventListener(RoomObjectEvent.OBJECT_RESIZED, handleObjectResized);
 			api.thisRoom.addEventListener(UserEvent.USER_AVATAR_CHANGED, handleUserAvatarChanged);
-			api.thisRoom.addEventListener(UserEvent.USER_COLOR_CHANGED, handleUserColorChanged);
-			api.thisRoom.addEventListener(UserEvent.USER_FACE_CHANGED, handleUserFaceChanged);
+			api.thisRoom.addEventListener(UserEvent.USER_BALLOON_COLOR_CHANGED, handleUserColorChanged);
+			api.thisRoom.addEventListener(UserEvent.USER_COLOR_CHANGED, handleUserFaceChanged);
 			api.thisRoom.addEventListener(UserEvent.USER_MOVED, handleUserMoved);
 			
 			api.thisRoom.addEventListener(MouseEvent.MOUSE_MOVE, handleRoomMouseMove);
@@ -87,11 +88,11 @@ package
 		}
 		
 		private function handleUserColorChanged(event:UserEvent):void {
-			api.log("User " + event.user.name + " changed their color to " + event.user.color);
+			api.log("User " + event.user.name + " changed their color to " + event.user.balloonColor);
 		}
 		
 		private function handleUserFaceChanged(event:UserEvent):void {
-			api.log("User " + event.user.name + " changed their face to " + event.user.face);
+			api.log("User " + event.user.name + " changed their face to " + event.user.color);
 		}
 		
 		private function handleMessageReceived(event:MessageEvent):void {
@@ -113,13 +114,13 @@ package
 		private function handleUserAvatarChanged(event:UserEvent):void {
 			var av:Avatar = event.user.avatar;
 			
-			if (av.type === Avatar.TYPE_WEBCAM) {
+			if (av.type === AvatarType.WEBCAM) {
 				api.log("User " + event.user.name + " is wearing their webcam.");
 			}
-			else if (av.type === Avatar.TYPE_DEFAULT) {
+			else if (av.type === AvatarType.DEFAULT) {
 				api.log("User " + event.user.name + " is not wearing an avatar.");
 			}
-			else if (av.type === Avatar.TYPE_IMAGE) {
+			else if (av.type === AvatarType.IMAGE) {
 				api.log("User " + event.user.name + " is wearing avatar " + av.guid);
 			}
 		}

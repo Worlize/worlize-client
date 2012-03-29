@@ -1,7 +1,7 @@
 package
 {
 	import com.worlize.api.WorlizeAPI;
-	import com.worlize.api.data.StateHistoryEvent;
+	import com.worlize.api.event.StateHistoryEvent;
 	import com.worlize.api.event.AuthorEvent;
 	import com.worlize.api.event.ChangeEvent;
 	import com.worlize.api.event.ChatEvent;
@@ -32,6 +32,8 @@ package
 			
 			api = WorlizeAPI.getInstance();
 			api.thisRoom.addEventListener(ChatEvent.INCOMING_CHAT, handleIncomingChat);
+			api.thisObject.addEventListener(MessageEvent.MESSAGE_RECEIVED, handleMessageReceived);
+				
 			
 			api.addEventListener(AuthorEvent.EDIT_MODE_ENABLED, handleEditModeEnabled);
 			api.addEventListener(AuthorEvent.EDIT_MODE_DISABLED, handleEditModeDisabled);
@@ -47,7 +49,7 @@ package
 //			if (api.config.data.lastColor !== undefined) {
 //				color = api.config.data.lastColor;
 //			}
-			circle.drawCircle(100, color);
+			circle.drawCircle(50, color);
 			
 //			if (api.stateHistory.length > 0) {
 //				api.log("There are currently " + api.stateHistory.length + " state entries.");
@@ -62,6 +64,12 @@ package
 			circle.addEventListener(MouseEvent.CLICK, handleCircleClick);
 		}
 		
+		private function handleMessageReceived(event:MessageEvent):void {
+			api.log("Received message: " + JSON.stringify(event.message));
+			if (event.message && event.message.type === 'setColor') {
+				circle.setColor(event.message.color);
+			}
+		}		
 		
 		private var lastColor:uint;
 		private function handleEditModeEnabled(event:AuthorEvent):void {
@@ -87,16 +95,12 @@ package
 //			var user:User = api.thisRoom.users[Math.floor(api.thisRoom.users.length*Math.random())];
 //			toUserGuids.push(user.guid);
 
-			api.syncedDataStore.set('color', color);
-			
-//			api.thisRoom.broadcastMessage({ type: "setColor", color: color });
+			api.thisRoom.broadcastMessage({ type: "setColor", color: color });
 			
 //			if (api.thisUser.canAuthor) {
 //				api.config.data.lastColor = color;
 //				api.config.save();
 //			}
-			
-			// api.thisObject.sendMessage({ msg: "setColor", color: color });
 		}
 		
 		private function handleSyncedPropertyChanged(event:ChangeEvent):void {
@@ -111,7 +115,7 @@ package
 		
 		private function handleIncomingChat(event:ChatEvent):void {
 			if (event.text.search(/^\d*$/) !== -1) {
-				circle.drawCircle(parseInt(event.text,10));
+				circle.drawCircle(parseInt(event.text,10), circle.color);
 			}
 		}
 	}

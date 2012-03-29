@@ -3,6 +3,9 @@ package com.worlize.api.event
 	import flash.events.Event;
 	import flash.events.IEventDispatcher;
 	
+	/**
+	 * @private
+	 */		
 	public class APIEvent extends Event
 	{
 		public static const CLIENT_HANDSHAKE:String = "client_handshake";
@@ -14,8 +17,9 @@ package com.worlize.api.event
 		public static const SEND_APP_MESSAGE_LOCAL:String = "client_sendAppMessageLocal";
 		
 		public static const MOVE_USER:String = "client_moveUser";
-		public static const SET_USER_FACE:String = "client_setUserFace";
 		public static const SET_USER_COLOR:String = "client_setUserColor";
+		public static const SET_USER_BALLOON_COLOR:String = "client_setUserBalloonColor";
+		public static const GOTO_ROOM:String = "client_gotoRoom";
 		
 		public static const SEND_CHAT:String = "client_sendChat";
 		public static const SET_AVATAR:String = "client_setAvatar";

@@ -21,9 +21,11 @@
     <classEntry path="com.worlize.api.event.MessageEvent"/>
     <classEntry path="com.worlize.api.event.AuthorEvent"/>
     <classEntry path="com.worlize.api.data.SyncedList"/>
-    <classEntry path="com.worlize.api.model.APIOptions"/>
-    <classEntry path="com.worlize.api.model.ConfigData"/>
+    <classEntry path="com.worlize.api.APIOptions"/>
+    <classEntry path="com.worlize.api.data.ConfigData"/>
     <classEntry path="com.worlize.api.data.SyncedDataStore"/>
+    <classEntry path="com.worlize.api.constants.RoomObjectState"/>
+    <classEntry path="com.worlize.api.constants.AvatarType"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>
