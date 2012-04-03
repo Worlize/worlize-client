@@ -14,6 +14,7 @@ package
 		
 		public function updateColor(color:uint):void {
 			this.color = color;
+			graphics.lineStyle(1, 0);
 			graphics.beginFill(color);
 			graphics.drawRect(0,0,25,25);
 			graphics.endFill();

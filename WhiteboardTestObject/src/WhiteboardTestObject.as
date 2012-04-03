@@ -40,7 +40,8 @@ package
 				0xFF8800,
 				0xDDDD00,
 				0xAA00AA,
-				0x000000
+				0x000000,
+				0xFFFFFF
 			];
 			
 			var currentX:int = 1;
