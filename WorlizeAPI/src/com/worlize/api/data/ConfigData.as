@@ -69,13 +69,13 @@ package com.worlize.api.data
 		 * 
 		 * </listing> 
 		 */		
-		public function ConfigData(initialConfig:Object) {
+		public function ConfigData(initialConfig:Object = null) {
 			super(null);
 			if (instance !== null) {
 				throw new Error("The ConfigData class is created and managed by WorlizeAPI. " +
 				                "You may not create your own instances of this class.");
 			}
-			_data = initialConfig;
+			_data = initialConfig || {};
 			addSharedEventListeners();
 			instance = this;
 		}

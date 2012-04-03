@@ -38,83 +38,43 @@ package com.worlize.api.model
 		use namespace worlize_internal;
 		
 		/**
-		 * The horizontal position of the top-left corner of the object (app)
-		 * in pixels.
-		 * 
-		 * <p><strong>Note:</strong> It is better to call the
-		 * <code>moveTo()</code> method than to set the <code>x</code> and
-		 * <code>y</code> properties directly because if you set both x and
-		 * y, it will result in two sequential move calls routed through the
-		 * server and received by other users in the room.</p>
-		 * 
-		 * <p>The number is relative to the room's coordinate space.</p>
-		 *  
-		 * @return the app's horizontal position
-		 * @productversion Worlize API.v1
-		 */		
+		 * @inheritDoc
+		 */			
 		public function set x(newValue:Number):void {
 			moveTo(newValue, _y);
 		}
 		
 		/**
-		 * The vertical position of the top-left corner of the object (app)
-		 * in pixels.
-		 * 
-		 * <p><strong>Note:</strong> It is better to call the
-		 * <code>moveTo()</code> method than to set the <code>x</code> and
-		 * <code>y</code> properties directly because if you set both x and
-		 * y, it will result in two sequential move calls routed through the
-		 * server and received by other users in the room.</p>
-		 * 
-		 * <p>The number is relative to the room's coordinate space.</p>
-		 *  
-		 * @return the app's vertical position
-		 * @productversion Worlize API.v1
-		 */
+		 * @inheritDoc
+		 */			
 		public function set y(newValue:Number):void {
 			moveTo(_x, newValue);
 		}
 		
 		/**
-		 * The current width of the object (app) in pixels.
-		 *  
-		 * <p><strong>Note:</strong> It is better to call the
-		 * <code>setSize()</code> method than to set the <code>width</code> and
-		 * <code>height</code> properties directly because if you set both
-		 * width and height, it will result in two sequential setSize calls
-		 * routed through the server and received by other users in the room.
-		 * </p>
-		 * 
-		 * @return width in pixels
-		 * @productversion Worlize API.v1
+		 * @inheritDoc
 		 */			
 		public function set width(newValue:Number):void {
 			setSize(newValue, _height);
 		}
 		
 		/**
-		 * The current height of the object (app) in pixels.
-		 *  
-		 * <p><strong>Note:</strong> It is better to call the
-		 * <code>setSize()</code> method than to set the <code>width</code> and
-		 * <code>height</code> properties directly because if you set both
-		 * width and height, it will result in two sequential setSize calls
-		 * routed through the server and received by other users in the room.
-		 * </p>
-		 * 
-		 * @return height in pixels
-		 * @productversion Worlize API.v1
-		 */			
+		 * @inheritDoc
+		 */					
 		public function set height(newValue:Number):void {
 			setSize(_width, newValue);
 		}
 		
 		/**
-		 * Moves the object (app) to the specified coordinates.
+		 * Moves the object (app) to the specified coordinates locally.
 		 * 
 		 * <p>The coordinates are of the top-left corner of the object (app)
 		 * and are relative to the room's coordinate space.</p>
 		 *  
+		 * <p><strong>NOTE:</strong> This will only move the app for the current
+		 * user on the local machine.  This does not broadcast an event through
+		 * the server and other users will not see the app move.</p>
+		 * 
 		 * @param x the horizontal position of the object in pixels
 		 * @param y the vertical position of the object in pixels
 		 * @productversion Worlize API.v1
@@ -129,11 +89,16 @@ package com.worlize.api.model
 		}
 		
 		/**
-		 * Changes the visible drawing area of the current object (app).
+		 * Changes the visible drawing area of the current object (app) locally.
 		 * 
 		 * <p>The visible area of an app is clipped to the specified dimensions.
 		 * Apps cannot draw outside their specified boundaries, so if you need
 		 * to you can use a combination of the setSize() and moveTo() methods.
+		 * </p>
+		 * 
+		 * <p><strong>NOTE:</strong> This will only resize the app for the
+		 * current user on the local machine.  This does not broadcast an event
+		 * through the server and other users will not see the app change size.
 		 * </p>
 		 * 
 		 * @param width the desired width in pixels

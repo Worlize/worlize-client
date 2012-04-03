@@ -1130,6 +1130,12 @@ package com.worlize.interactivity.rpc
 		private function resetState():void {
 			iptInteractivityController.clearAlarms();
 			needToRunSignonHandlers = true;
+
+			// make sure to unload all the objects before removing
+			// the users so that we don't fire a userLeft event for everyone
+			// in the room in each object.
+			currentRoom.inWorldObjects.removeAll();
+			currentRoom.inWorldObjectsByGuid = {};
 			currentRoom.name = "";
 			currentRoom.backgroundFile = null;
 			currentRoom.selectedUser = null;
@@ -1145,8 +1151,6 @@ package com.worlize.interactivity.rpc
 			currentRoom.drawBackCommands.removeAll();
 			currentRoom.drawFrontCommands.removeAll();
 			currentRoom.drawLayerHistory = new Vector.<uint>();
-			currentRoom.inWorldObjects.removeAll();
-			currentRoom.inWorldObjectsByGuid = {};
 			currentRoom.showAvatars = true;
 		}
 		

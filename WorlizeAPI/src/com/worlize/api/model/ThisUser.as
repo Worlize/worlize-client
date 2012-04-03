@@ -121,7 +121,7 @@ package com.worlize.api.model
 		 * @param y vertical position in pixels, in the room's coordinate space
 		 * @productversion Worlize APIv.1
 		 */		
-		public function move(x:int, y:int):void {
+		public function moveTo(x:int, y:int):void {
 			var event:APIEvent = new APIEvent(APIEvent.MOVE_USER);
 			event.data = {
 				x: x,

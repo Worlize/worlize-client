@@ -210,7 +210,7 @@ package com.worlize.interactivity.api.adapter
 			sharedEvents.removeEventListener("client_stateHistoryClear", handleClientStateHistoryClear);
 			sharedEvents.removeEventListener("client_syncedDataSet", handleClientSyncedDataSet);
 			sharedEvents.removeEventListener("client_syncedDataDelete", handleClientSyncedDataDelete);
-			sharedEvents.addEventListener("client_saveConfig", handleClientSaveConfig);
+			sharedEvents.removeEventListener("client_saveConfig", handleClientSaveConfig);
 			sharedEvents.removeEventListener(MouseEvent.MOUSE_UP, handleClientMouseUp);
 		}
 		
@@ -233,7 +233,8 @@ package com.worlize.interactivity.api.adapter
 		private function handleClientSetUserColor(event:Event):void {
 			var eo:Object = event;
 			if (eo.data && eo.data.color is int) {
-				host.setThisUserColor(eo.data.color);
+				var color:int = eo.data.color;
+				host.setThisUserColor(color);
 			}
 		}
 		

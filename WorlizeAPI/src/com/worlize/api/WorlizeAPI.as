@@ -407,6 +407,9 @@ package com.worlize.api
 				_thisRoom = new ThisRoom();
 				_thisWorld = new World();
 				_thisObject = new ThisRoomObject();
+				_stateHistory = new StateHistory();
+				_syncedDataStore = new SyncedDataStore();
+				_config = new ConfigData();
 				
 				_initialized = true;
 				return;

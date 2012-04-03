@@ -493,9 +493,10 @@ package com.worlize.api.model
 		}
 		
 		/**
-		 * Look up a <code>RoomObject</code> object by GUID.
+		 * Look up a <code>RoomObject</code> object by its
+		 * <code>instanceGuid</code>.
 		 *  
-		 * @param guid the object's guid
+		 * @param guid the object's instanceGuid
 		 * @return a <code>RoomObject</code> object
 		 * @productversion Worlize APIv.1
 		 */		
