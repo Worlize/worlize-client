@@ -3,6 +3,7 @@ package com.worlize.api.model
 	import com.worlize.api.WorlizeAPI;
 	import com.worlize.api.event.APIEvent;
 	import com.worlize.api.event.ChatEvent;
+	import com.worlize.api.event.LoosePropEvent;
 	import com.worlize.api.event.RoomEvent;
 	import com.worlize.api.event.RoomObjectEvent;
 	import com.worlize.api.event.UserEvent;
@@ -155,6 +156,47 @@ package com.worlize.api.model
 	[Event(name="unlocked", type="com.worlize.api.event.RoomEvent")]
 	
 	/**
+	 * Dispatched after a loose prop has been added to the room.
+	 * 
+	 * @eventType com.worlize.api.event.LoosePropEvent.PROP_ADDED
+	 * @productversion Worlize APIv.2
+	 */	
+	[Event(name="propAdded", type="com.worlize.api.event.LoosePropEvent")]
+	
+	/**
+	 * Dispatched after a loose prop has been removed from the room.
+	 * 
+	 * @eventType com.worlize.api.event.LoosePropEvent.PROP_REMOVED
+	 * @productversion Worlize APIv.2 
+	 */	
+	[Event(name="propRemoved", type="com.worlize.api.event.LoosePropEvent")]
+	
+	/**
+	 * Dispatched after a loose prop has been moved.
+	 * 
+	 * @eventType com.worlize.api.event.LoosePropEvent.PROP_MOVED
+	 * @productversion Worlize APIv.2 
+	 */	
+	[Event(name="propMoved", type="com.worlize.api.event.LoosePropEvent")]
+	
+	/**
+	 * Dispatched after a loose prop has changed its stacking order.
+	 * 
+	 * @eventType com.worlize.api.event.LoosePropEvent.PROP_LAYER_CHANGED
+	 * @productversion Worlize APIv.2 
+	 */	
+	[Event(name="propLayerChanged", type="com.worlize.api.event.LoosePropEvent")]
+	
+	/**
+	 * Dispatched after all loose props have been removed from the room.
+	 * 
+	 * @eventType com.worlize.api.event.LoosePropEvent.PROPS_CLEARED
+	 * @productversion Worlize APIv.2 
+	 */	
+	[Event(name="propsCleared", type="com.worlize.api.event.LoosePropEvent")]
+	
+	
+	/**
 	 * Dispatched continuously as the user moves their mouse over the room
 	 * background.
 	 * 
@@ -179,6 +221,7 @@ package com.worlize.api.model
 	 * @see com.worlize.api.model.Room
 	 * @see com.worlize.api.model.RoomObject
 	 * @see com.worlize.api.model.User
+	 * @see com.worlize.api.model.LooseProp
 	 */	
 	public class ThisRoom extends Room
 	{
@@ -198,6 +241,20 @@ package com.worlize.api.model
 		 * @private 
 		 */		
 		protected var _objects:Vector.<RoomObject> = new Vector.<RoomObject>();
+		
+		/**
+		 * Storage for the LooseProp instances representing the room's props.
+		 * 
+		 * @private 
+		 */		
+		protected var _looseProps:Vector.<LooseProp> = new Vector.<LooseProp>();
+		
+		/**
+		 * Lookup table for LooseProp instances by their id
+		 * 
+		 * @private 
+		 */		
+		protected var _loosePropsById:Object = {};
 		
 		/**
 		 * Storage for the room's current dim level.
@@ -239,6 +296,16 @@ package com.worlize.api.model
 		public function get objects():Vector.<RoomObject> {
 			return _objects.slice();
 		}
+		
+		/**
+		 * A list of loose props in the room.
+		 *  
+		 * @return the list of loose props.
+		 * @productversion Worlize APIv.2 
+		 */		
+		public function get looseProps():Vector.<LooseProp> {
+			return _looseProps.slice();
+		}		
 		
 		/**
 		 * A number representing how dim the room is.
@@ -510,6 +577,70 @@ package com.worlize.api.model
 		}
 		
 		/**
+		 * Look up a <code>LooseProp</code> object by its <code>id</code>.
+		 *  
+		 * @param id the loose prop's id
+		 * @return a <code>LooseProp</code> object
+		 * 
+		 * @see com.worlize.model.LooseProp#id
+		 * 
+		 * @productversion Worlize APIv.2
+		 */
+		public function getLoosePropById(id:uint):LooseProp {
+			return LooseProp(_loosePropsById[id]);
+		}
+		
+		/**
+		 * Add a new loose prop to the room.
+		 * 
+		 * <p>This does not immediately add the new loose prop, but rather
+		 * sends the request to the server to have the new loose prop added.
+		 * The new prop will trigger a <code>LoosePropEvent.PROP_ADDED</code>
+		 * event once the server update is received.</p>
+		 * 
+		 * @param propGuid the GUID of the prop you would like to add
+		 * @param x the horizonal position of the center of the prop in the room
+		 * @param y the vertical position of the center of the prop in the room
+		 * 
+		 * @see #event:propAdded propAdded event
+		 * @see com.worlize.api.model.LooseProp#remove()
+		 * 
+		 * @productversion Worlize APIv.2
+		 */			
+		public function addLooseProp(propGuid:String, x:int, y:int):void {
+			var event:APIEvent = new APIEvent(APIEvent.ADD_LOOSE_PROP);
+			event.data = {
+				guid: propGuid,
+				x: x,
+				y: y
+			};
+			WorlizeAPI.sharedEvents.dispatchEvent(event);
+		}
+		
+		/**
+		 * Remove all loose props from the room.
+		 * 
+		 * <p>This does not immediately remove the loose props, but rather
+		 * sends the request to the server to have the loose props removed.
+		 * The props will be cleared once confirmation has been received from
+		 * the server, and a <code>LoosePropEvent.PROPS_CLEARED</code> event
+		 * will be dispatched, after dispatching a
+		 * <code>LoosePropEvent.PROP_REMOVED</code> event for each loose prop
+		 * that was in the room.</p> 
+		 * 
+		 * @see #event:propsCleared propsCleared event
+		 * @see #event:propRemoved propRemoved event
+		 * @see com.worlize.api.model.LooseProp#remove()
+		 * 
+		 * @productversion Worlize APIv.2
+		 */		
+		public function clearLooseProps():void {
+			var event:APIEvent = new APIEvent(APIEvent.CLEAR_LOOSE_PROPS);
+			WorlizeAPI.sharedEvents.dispatchEvent(event);
+		}
+
+		
+		/**
 		 * @private
 		 */		
 		override public function toJSON():Object {
@@ -523,6 +654,7 @@ package com.worlize.api.model
 			for each (var roomObject:RoomObject in _objects) {
 				objectsArray.push(roomObject.toJSON());
 			}
+			
 			
 			return obj;
 		}
@@ -539,6 +671,10 @@ package com.worlize.api.model
 		}
 		
 		private function redispatchRoomObjectEvent(event:RoomObjectEvent):void {
+			dispatchEvent(event);
+		}
+		
+		private function redispatchLoosePropEvent(event:LoosePropEvent):void {
 			dispatchEvent(event);
 		}
 		
@@ -619,6 +755,16 @@ package com.worlize.api.model
 			obj.removeEventListener(RoomObjectEvent.OBJECT_STATE_CHANGED, redispatchRoomObjectEvent);
 		}
 		
+		private function addLoosePropEventListeners(looseProp:LooseProp):void {
+			looseProp.addEventListener(LoosePropEvent.PROP_LAYER_CHANGED, redispatchLoosePropEvent);
+			looseProp.addEventListener(LoosePropEvent.PROP_MOVED, redispatchLoosePropEvent);
+		}
+		
+		private function removeLoosePropEventListeners(looseProp:LooseProp):void {
+			looseProp.removeEventListener(LoosePropEvent.PROP_LAYER_CHANGED, redispatchLoosePropEvent);
+			looseProp.removeEventListener(LoosePropEvent.PROP_MOVED, redispatchLoosePropEvent);
+		}
+		
 		/**
 		 * @private
 		 */		
@@ -647,6 +793,11 @@ package com.worlize.api.model
 				else {
 					room.addObject(RoomObject.fromData(objectData));
 				}
+			}
+			
+			for each (var loosePropData:Object in data.looseProps) {
+				var looseProp:LooseProp = LooseProp.fromData(loosePropData);
+				room.doAddLooseProp(looseProp);
 			}
 			
 			return room;
@@ -703,6 +854,12 @@ package com.worlize.api.model
 			sharedEvents.addEventListener('host_roomObjectMoved', handleObjectMoved);
 			sharedEvents.addEventListener('host_roomObjectResized', handleObjectResized);
 			sharedEvents.addEventListener('host_roomObjectStateChanged', handleObjectStateChanged);
+			sharedEvents.addEventListener('host_loosePropAdded', handleLoosePropAdded);
+			sharedEvents.addEventListener('host_loosePropRemoved', handleLoosePropRemoved);
+			sharedEvents.addEventListener('host_loosePropMoved', handleLoosePropMoved);
+			sharedEvents.addEventListener('host_loosePropBroughtForward', handleLoosePropBroughtForward);
+			sharedEvents.addEventListener('host_loosePropSentBackward', handleLoosePropSentBackward);
+			sharedEvents.addEventListener('host_loosePropsReset', handleLoosePropsReset);
 		}
 		
 		private function handleRoomMouseMove(event:Event):void {
@@ -867,6 +1024,101 @@ package com.worlize.api.model
 			if (roomObj) {
 				roomObj.updateState(eo.data.state);
 			}
+		}
+		
+		private function handleLoosePropAdded(event:Event):void {
+			var eo:Object = event;
+			var looseProp:LooseProp = LooseProp.fromData(eo.data);
+			
+			doAddLooseProp(looseProp);
+			
+			var propEvent:LoosePropEvent = new LoosePropEvent(LoosePropEvent.PROP_ADDED);
+			propEvent.looseProp = looseProp;
+			dispatchEvent(propEvent);
+		}
+		
+		private function handleLoosePropRemoved(event:Event):void {
+			var eo:Object = event;
+			var id:uint = eo.data;
+			var looseProp:LooseProp = _loosePropsById[id];
+			if (looseProp) {
+				doRemoveLooseProp(looseProp);
+			}
+		}
+		
+		private function doAddLooseProp(looseProp:LooseProp):void {
+			_loosePropsById[looseProp.id] = looseProp;
+			_looseProps.push(looseProp);
+			addLoosePropEventListeners(looseProp);
+		}
+		
+		private function doRemoveLooseProp(looseProp:LooseProp):void {
+			delete _loosePropsById[looseProp.id];
+			var index:int = _looseProps.indexOf(looseProp);
+			if (index !== -1) {
+				_looseProps.splice(index, 1);
+			}
+			removeLoosePropEventListeners(looseProp);
+			var propEvent:LoosePropEvent = new LoosePropEvent(LoosePropEvent.PROP_REMOVED);
+			propEvent.looseProp = looseProp;
+			dispatchEvent(propEvent);
+		}
+		
+		private function handleLoosePropMoved(event:Event):void {
+			var eo:Object = event;
+			var id:uint = eo.data.id;
+			var looseProp:LooseProp = _loosePropsById[id];
+			if (looseProp) {
+				looseProp.updatePosition(eo.data.x, eo.data.y);
+			}
+		}
+		
+		private function handleLoosePropBroughtForward(event:Event):void {
+			var eo:Object = event;
+			var id:uint = eo.data.id;
+			var looseProp:LooseProp = _loosePropsById[id];
+			if (looseProp) {
+				var index:int = _looseProps.indexOf(looseProp);
+				if (index !== -1) {
+					var newidx:int = index + eo.data.layerCount;
+					_looseProps.splice(index, 1);
+					_looseProps.splice(newidx, 0, looseProp);
+					var propEvent:LoosePropEvent = new LoosePropEvent(LoosePropEvent.PROP_LAYER_CHANGED);
+					propEvent.looseProp = looseProp;
+					propEvent.oldIndex = index;
+					propEvent.newIndex = newidx;
+					propEvent.delta = newidx - index;
+					looseProp.dispatchEvent(propEvent);
+				}
+			}
+		}
+		
+		private function handleLoosePropSentBackward(event:Event):void {
+			var eo:Object = event;
+			var id:uint = eo.data.id;
+			var looseProp:LooseProp = _loosePropsById[id];
+			if (looseProp) {
+				var index:int = _looseProps.indexOf(looseProp);
+				if (index !== -1) {
+					var newidx:int = index - eo.data.layerCount;
+					_looseProps.splice(index, 1);
+					_looseProps.splice(newidx, 0, looseProp);
+					var propEvent:LoosePropEvent = new LoosePropEvent(LoosePropEvent.PROP_LAYER_CHANGED);
+					propEvent.looseProp = looseProp;
+					propEvent.oldIndex = index;
+					propEvent.newIndex = newidx;
+					propEvent.delta = newidx - index;
+					looseProp.dispatchEvent(propEvent);
+				}
+			}
+		}
+		
+		private function handleLoosePropsReset(event:Event):void {
+			for each (var looseProp:LooseProp in _looseProps) {
+				doRemoveLooseProp(looseProp);
+			}
+			var propEvent:LoosePropEvent = new LoosePropEvent(LoosePropEvent.PROPS_CLEARED);
+			dispatchEvent(propEvent);
 		}
 	}
 }

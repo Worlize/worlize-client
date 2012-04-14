@@ -26,6 +26,9 @@
     <classEntry path="com.worlize.api.data.SyncedDataStore"/>
     <classEntry path="com.worlize.api.constants.RoomObjectState"/>
     <classEntry path="com.worlize.api.constants.AvatarType"/>
+    <classEntry path="com.worlize.api.model.Prop"/>
+    <classEntry path="com.worlize.api.model.LooseProp"/>
+    <classEntry path="com.worlize.api.event.LoosePropEvent"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

@@ -106,7 +106,7 @@ package com.worlize.api
 		 * 
 		 * @productversion Worlize APIv.1 
 		 */
-		public static const VERSION:int = 1;
+		public static const VERSION:int = 2;
 		
 		/**
 		 * @private

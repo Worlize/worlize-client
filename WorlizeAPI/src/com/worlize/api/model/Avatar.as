@@ -3,15 +3,13 @@ package com.worlize.api.model
 	import com.worlize.api.constants.AvatarType;
 	import com.worlize.worlize_internal;
 	
-	import flash.events.EventDispatcher;
-	
 	/**
 	 * Represents a Worlize Avatar
 	 *  
 	 * @author Brian McKelvey
 	 * @productversion Worlize APIv.1
 	 */	
-	public class Avatar extends EventDispatcher
+	public class Avatar
 	{
 		use namespace worlize_internal;
 		
@@ -79,7 +77,7 @@ package com.worlize.api.model
 		/**
 		 * @private
 		 */		
-		override public function toString():String {
+		public function toString():String {
 			return "[Avatar type=" + _type + " guid=" + _guid + "]";
 		}
 		

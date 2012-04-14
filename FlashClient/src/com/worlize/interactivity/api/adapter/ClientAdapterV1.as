@@ -418,8 +418,8 @@ package com.worlize.interactivity.api.adapter
 		
 		private function handleClientRemoveLooseProp(event:Event):void {
 			var eo:Object = event;
-			if (eo.data && eo.data.id is Number) {
-				host.removeLooseProp(eo.data.id);
+			if (eo.data is Number) {
+				host.removeLooseProp(eo.data);
 			}
 		}
 		
@@ -723,16 +723,16 @@ package com.worlize.interactivity.api.adapter
 			sharedEvents.dispatchEvent(event);
 		}
 		
-		public function addLooseProp(looseProp:LooseProp):void {
+		public function loosePropAdded(looseProp:LooseProp):void {
 			if (sharedEvents === null) { return; }
-			var event:APIBridgeEvent = new APIBridgeEvent("host_addLooseProp");
+			var event:APIBridgeEvent = new APIBridgeEvent("host_loosePropAdded");
 			event.data = loosePropToObject(looseProp);
 			sharedEvents.dispatchEvent(event);
 		}
 		
-		public function moveLooseProp(id:uint, x:int, y:int):void {
+		public function loosePropMoved(id:uint, x:int, y:int):void {
 			if (sharedEvents === null) { return; }
-			var event:APIBridgeEvent = new APIBridgeEvent("host_moveLooseProp");
+			var event:APIBridgeEvent = new APIBridgeEvent("host_loosePropMoved");
 			event.data = {
 				id: id,
 				x: x,
@@ -741,22 +741,22 @@ package com.worlize.interactivity.api.adapter
 			sharedEvents.dispatchEvent(event);
 		}
 		
-		public function removeLooseProp(id:uint):void {
+		public function loosePropRemoved(id:uint):void {
 			if (sharedEvents === null) { return; }
-			var event:APIBridgeEvent = new APIBridgeEvent("host_removeLooseProp");
+			var event:APIBridgeEvent = new APIBridgeEvent("host_loosePropRemoved");
 			event.data = id;
 			sharedEvents.dispatchEvent(event);
 		}
 		
-		public function resetLooseProps():void {
+		public function loosePropsReset():void {
 			if (sharedEvents === null) { return; }
-			var event:APIBridgeEvent = new APIBridgeEvent("host_resetLooseProps");
+			var event:APIBridgeEvent = new APIBridgeEvent("host_loosePropsReset");
 			sharedEvents.dispatchEvent(event);
 		}
 		
-		public function bringLoosePropForward(id:uint, layerCount:int):void {
+		public function loosePropBroughtForward(id:uint, layerCount:int):void {
 			if (sharedEvents === null) { return; }
-			var event:APIBridgeEvent = new APIBridgeEvent("host_bringLoosePropForward");
+			var event:APIBridgeEvent = new APIBridgeEvent("host_loosePropBroughtForward");
 			event.data = {
 				id: id,
 				layerCount: layerCount
@@ -764,9 +764,9 @@ package com.worlize.interactivity.api.adapter
 			sharedEvents.dispatchEvent(event);
 		}
 		
-		public function sendLoosePropBackward(id:uint, layerCount:int):void {
+		public function loosePropSentBackward(id:uint, layerCount:int):void {
 			if (sharedEvents === null) { return; }
-			var event:APIBridgeEvent = new APIBridgeEvent("host_sendLoosePropBackward");
+			var event:APIBridgeEvent = new APIBridgeEvent("host_loosePropSentBackward");
 			event.data = {
 				id: id,
 				layerCount: layerCount
@@ -820,7 +820,7 @@ package com.worlize.interactivity.api.adapter
 				ownerGuid: room.ownerGuid,
 				users: [],
 				objects: [],
-				props: [],
+				looseProps: [],
 				width: 950,
 				height: 570
 			};
@@ -834,7 +834,7 @@ package com.worlize.interactivity.api.adapter
 				obj.users.push(userToObject(user));
 			}
 			for each (var looseProp:LooseProp in room.loosePropList.props) {
-				obj.props.push(loosePropToObject(looseProp));
+				obj.looseProps.push(loosePropToObject(looseProp));
 			}
 			
 			return obj;

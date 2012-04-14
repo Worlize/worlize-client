@@ -44,6 +44,13 @@ package com.worlize.api.event
 		
 		public static const SAVE_CONFIG:String = "client_saveConfig";
 		
+		public static const ADD_LOOSE_PROP:String = "client_addLooseProp";
+		public static const REMOVE_LOOSE_PROP:String = "client_removeLooseProp";
+		public static const MOVE_LOOSE_PROP:String = "client_moveLooseProp";
+		public static const CLEAR_LOOSE_PROPS:String = "client_clearLooseProps";
+		public static const BRING_LOOSE_PROP_FORWARD:String = "client_bringLoosePropForward";
+		public static const SEND_LOOSE_PROP_BACKWARD:String = "client_sendLoosePropBackward";
+		
 		// For when something goes wrong inside the client and we want to be shutdown and unloaded
 		public static const REQUEST_BOMB:String = "client_requestBomb";
 		

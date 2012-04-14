@@ -46,6 +46,7 @@ package com.worlize.model.gifts
 				case GiftType.AVATAR:
 				case GiftType.BACKGROUND:
 				case GiftType.OBJECT:
+				case GiftType.PROP:
 					instance.thumbnailURL = data.item.thumbnail;
 					instance.itemGuid = data.item.guid;
 					break;

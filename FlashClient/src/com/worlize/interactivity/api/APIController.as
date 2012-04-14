@@ -268,38 +268,38 @@ package com.worlize.interactivity.api
 		
 		protected function handleLoosePropAdded(event:LoosePropEvent):void {
 			for each (var client:IAPIClientAdapter in apiClientAdapters) {
-				client.addLooseProp(event.looseProp);
+				client.loosePropAdded(event.looseProp);
 			}
 		}
 		
 		protected function handleLoosePropRemoved(event:LoosePropEvent):void {
 			for each (var client:IAPIClientAdapter in apiClientAdapters) {
-				client.removeLooseProp(event.looseProp.id);
+				client.loosePropRemoved(event.looseProp.id);
 			}
 		}
 		
 		protected function handleLoosePropMoved(event:LoosePropEvent):void {
 			var looseProp:LooseProp = event.looseProp;
 			for each (var client:IAPIClientAdapter in apiClientAdapters) {
-				client.moveLooseProp(looseProp.id, looseProp.x, looseProp.y);
+				client.loosePropMoved(looseProp.id, looseProp.x, looseProp.y);
 			}
 		}
 		
 		protected function handleLoosePropsReset(event:LoosePropEvent):void {
 			for each (var client:IAPIClientAdapter in apiClientAdapters) {
-				client.resetLooseProps();
+				client.loosePropsReset();
 			}
 		}
 		
 		protected function handleLoosePropBroughtForward(event:LoosePropEvent):void {
 			for each (var client:IAPIClientAdapter in apiClientAdapters) {
-				client.bringLoosePropForward(event.looseProp.id, event.layerCount);
+				client.loosePropBroughtForward(event.looseProp.id, event.layerCount);
 			}	
 		}
 		
 		protected function handleLoosePropSentBackward(event:LoosePropEvent):void {
 			for each (var client:IAPIClientAdapter in apiClientAdapters) {
-				client.sendLoosePropBackward(event.looseProp.id, event.layerCount);
+				client.loosePropSentBackward(event.looseProp.id, event.layerCount);
 			}
 		}
 		

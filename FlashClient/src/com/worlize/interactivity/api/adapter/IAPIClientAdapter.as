@@ -63,11 +63,11 @@ package com.worlize.interactivity.api.adapter
 		function receiveSaveAppConfig(changedByUserGuid:String, config:Object):void;
 		function roomMouseMove(event:MouseEvent):void;
 		function applicationMouseUp(event:MouseEvent):void;
-		function addLooseProp(looseProp:LooseProp):void;
-		function moveLooseProp(id:uint, x:int, y:int):void;
-		function removeLooseProp(id:uint):void;
-		function resetLooseProps():void;
-		function bringLoosePropForward(id:uint, layerCount:int):void;
-		function sendLoosePropBackward(id:uint, layerCount:int):void;
+		function loosePropAdded(looseProp:LooseProp):void;
+		function loosePropMoved(id:uint, x:int, y:int):void;
+		function loosePropRemoved(id:uint):void;
+		function loosePropsReset():void;
+		function loosePropBroughtForward(id:uint, layerCount:int):void;
+		function loosePropSentBackward(id:uint, layerCount:int):void;
 	}
 }
