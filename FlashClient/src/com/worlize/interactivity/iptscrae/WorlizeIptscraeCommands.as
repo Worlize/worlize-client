@@ -7,6 +7,7 @@ package com.worlize.interactivity.iptscrae
 		public static var commands:Object = {
 			"ALARMEXEC": ALARMEXECCommand,
 			"CHAT": SAYCommand,
+			"CLEARLOOSEPROPS": CLEARLOOSEPROPSCommand,
 			"CLIENTTYPE": CLIENTTYPECommand,
 			"DEST": DESTCommand,
 			"DIMROOM": DIMROOMCommand,

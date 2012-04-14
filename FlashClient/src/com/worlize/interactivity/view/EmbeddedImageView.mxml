@@ -319,22 +319,6 @@
 				}
 			}
 			
-			protected function handleAppLoaderComplete(event:Event):void {
-				
-			}
-			
-			protected function handleAppBombed(event:AppLoaderEvent):void {
-				updateState();
-			}
-			
-			protected function handleValidationError(event:ClientValidationErrorEvent):void {
-				InteractivityClient.getInstance().currentRoom.logMessage(event.text);
-			}
-			
-			protected function handleHandshakeComplete(event:AppLoaderEvent):void {
-				hideLoadingSpinner();
-			}
-			
 			[Embed(source="src/assets/spinner.swf",mimeType="application/octet-stream")]
 			protected var spinnerSWF:Class;
 			

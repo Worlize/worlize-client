@@ -42,6 +42,7 @@
 			import com.worlize.interactivity.model.Hotspot;
 			import com.worlize.interactivity.model.InteractivityConfig;
 			import com.worlize.interactivity.model.InteractivityUser;
+			import com.worlize.interactivity.model.LooseProp;
 			import com.worlize.interactivity.model.WebcamBroadcastManager;
 			import com.worlize.interactivity.rpc.InteractivityClient;
 			import com.worlize.model.RoomDefinition;
@@ -263,24 +264,55 @@
 			
 			private function handleDragEnter(event:DragEvent):void {
 				if (event.dragSource.hasFormat('objectFromLocker') ||
-					event.dragSource.hasFormat('objectInRoom'))
+					event.dragSource.hasFormat('propFromLocker') ||
+					event.dragSource.hasFormat('objectInRoom') ||
+					event.dragSource.hasFormat('propInRoom'))
 				{
 					DragManager.acceptDragDrop(event.target as IUIComponent);
 				}
 			}
 			
 			private function handleDragDrop(event:DragEvent):void {
+				var data:Object;
 				if (event.dragSource.hasFormat('objectFromLocker')) {
-					var objectData:Object = event.dragSource.dataForFormat('objectFromLocker');
+					data = event.dragSource.dataForFormat('objectFromLocker');
 					var roomDefinition:RoomDefinition = new RoomDefinition();
 					roomDefinition.guid = room.id;
-					roomDefinition.addObjectInstance(objectData, mouseX, mouseY);
+					roomDefinition.addObjectInstance(data, mouseX, mouseY);
+				}
+				else if (event.dragSource.hasFormat('propFromLocker')) {
+					data = event.dragSource.dataForFormat('propFromLocker');
+					InteractivityClient.getInstance().addLooseProp(data.guid, mouseX, mouseY);
+				}
+				else if (event.dragSource.hasFormat('propInRoom')) {
+					data = event.dragSource.dataForFormat('propInRoom');
+					var looseProp:LooseProp = data.looseProp;
+					var deltaX:int = event.stageX - data.startMouseX;
+					var deltaY:int = event.stageY - data.startMouseY;
+					var newX:int = looseProp.x + deltaX;
+					var newY:int = looseProp.y + deltaY;
+					if (event.action === DragManager.COPY) {
+						InteractivityClient.getInstance().addLooseProp(looseProp.prop.guid, newX, newY);
+					}
+					else {
+						InteractivityClient.getInstance().moveLooseProp(looseProp.id, newX, newY);						
+					}
 				}
 			}
 			
 			private function handleDragOver(event:DragEvent):void {
-				if (event.dragSource.hasFormat('objectFromLocker')) {
+				if (event.dragSource.hasFormat('objectFromLocker') ||
+					event.dragSource.hasFormat('propFromLocker'))
+				{
 					DragManager.showFeedback(DragManager.MOVE);
+				}
+				else if (event.dragSource.hasFormat('propInRoom')) {
+					if (event.altKey || event.ctrlKey) {
+						DragManager.showFeedback(DragManager.COPY);
+					}
+					else {
+						DragManager.showFeedback(DragManager.MOVE);
+					}
 				}
 			}
 				
@@ -888,6 +920,10 @@
 							securityError="handleSecurityError()"
 							hotSpots="{room.hotSpotsAboveNothing}" top="0" right="0" bottom="0" left="0"
 							/>
+
+	<view:LoosePropsLayer id="loosePropsLayer"
+						  propList="{room.loosePropList}"
+						  top="0" left="0" right="0" bottom="0" />
 	
 	<s:Rect width="100%" height="100%">
 		<s:fill>
@@ -909,7 +945,8 @@
 		</s:layout>
 	</s:Group>
 	
-	<s:SpriteVisualElement id="snowContainer" top="0" right="0" bottom="0" left="0">
+	<s:SpriteVisualElement id="snowContainer" mouseEnabled="false" mouseChildren="false"
+						   top="0" right="0" bottom="0" left="0">
 		
 	</s:SpriteVisualElement>
 

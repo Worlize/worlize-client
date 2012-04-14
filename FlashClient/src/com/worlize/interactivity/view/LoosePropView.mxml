@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 mouseOver="handleMouseOver(event)"
+		 mouseOut="handleMouseOut(event)"
+		 mouseDown="handleMouseDown(event)"
+		 x="{looseProp.x - loadedWidth/2}"
+		 y="{looseProp.y - loadedHeight/2}">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<s:states>
+		<s:State name="normal" />
+		<s:State name="normalHovered" stateGroups="hovered" />
+	</s:states>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.gif.GIFPlayer;
+			import com.worlize.gif.events.AsyncDecodeErrorEvent;
+			import com.worlize.gif.events.GIFPlayerEvent;
+			import com.worlize.interactivity.event.PropSelectEvent;
+			import com.worlize.interactivity.model.LooseProp;
+			import com.worlize.interactivity.rpc.InteractivityClient;
+			
+			import mx.core.ByteArrayAsset;
+			import mx.core.DragSource;
+			import mx.events.FlexEvent;
+			import mx.logging.ILogger;
+			import mx.logging.Log;
+			import mx.managers.DragManager;
+			[Bindable]
+			private var _looseProp:LooseProp;
+			
+			[Bindable(event="loosePropChanged")]
+			public function set looseProp(newValue:LooseProp):void {
+				if (_looseProp !== newValue) {
+					_looseProp = newValue;
+					loadImage();
+					dispatchEvent(new FlexEvent("loosePropChanged"));
+				}
+			}
+			public function get looseProp():LooseProp {
+				return _looseProp;
+			}
+				
+			
+			[Bindable]
+			private var loadedWidth:Number;
+			
+			[Bindable]
+			private var loadedHeight:Number;
+			
+			private var hovered:Boolean = false;
+			
+			private var prevCursor:String;
+			
+			private var loader:Loader;
+			private var urlLoader:URLLoader;
+			
+			private var gifPlayer:GIFPlayer;
+			private var normalImage:Bitmap;
+			
+			private var logger:ILogger = Log.getLogger("com.worlize.interactivity.view.LoosePropView");
+			
+			public function dispose():void {
+				if (gifPlayer) {
+					gifPlayer.stop();
+					gifPlayer.dispose();
+					gifPlayer = null;
+				}
+				if (normalImage) {
+					normalImage.bitmapData.dispose();
+					normalImage = null;
+				}
+				imageContainer.removeChildren();
+			}
+			
+			protected function handleMouseOver(event:MouseEvent):void {
+				hovered = true;
+				prevCursor = Mouse.cursor;
+				Mouse.cursor = MouseCursor.HAND;
+				updateState();
+			}
+			
+			protected function handleMouseOut(event:MouseEvent):void {
+				hovered = false;
+				Mouse.cursor = prevCursor;
+				updateState();
+			}
+			
+			protected function updateState():void {
+				var parts:Array = ['normal'];
+				if (hovered) {
+					parts.push('Hovered');
+				}
+				currentState = parts.join('');
+			}
+			
+			protected function handleMouseDown(event:MouseEvent):void {
+				event.stopImmediatePropagation();
+				var root:DisplayObject = systemManager.getSandboxRoot();
+				root.addEventListener(MouseEvent.MOUSE_MOVE, handleStageMouseMove);
+				root.addEventListener(MouseEvent.MOUSE_UP, handleStageMouseUp);
+			}
+			
+			protected function handleStageMouseUp(event:MouseEvent):void {
+				var root:DisplayObject = systemManager.getSandboxRoot();
+				root.removeEventListener(MouseEvent.MOUSE_MOVE, handleStageMouseMove);
+				root.removeEventListener(MouseEvent.MOUSE_UP, handleStageMouseUp);
+				
+				// Display options menu
+				dispatchEvent(new PropSelectEvent(PropSelectEvent.SHOW_PROP_CONTEXT_MENU));
+			}
+			
+			protected function handleStageMouseMove(event:MouseEvent):void {
+				var root:DisplayObject = systemManager.getSandboxRoot();
+				root.removeEventListener(MouseEvent.MOUSE_MOVE, handleStageMouseMove);
+				root.removeEventListener(MouseEvent.MOUSE_UP, handleStageMouseUp);
+				
+				var dragSource:DragSource = new DragSource();
+				dragSource.addData({
+					startMouseX: event.stageX,
+					startMouseY: event.stageY,
+					looseProp: looseProp
+				}, 'propInRoom');
+				DragManager.doDrag(this, dragSource, event);
+			}
+			
+			protected function loadImage():void {
+				showLoadingSpinner();
+				
+				var url:String = looseProp.prop.mediumURL;
+				var gifRegex:RegExp = /^.*\.gif$/i;
+				var urlRequest:URLRequest = new URLRequest(url);
+				
+				var context:LoaderContext = new LoaderContext(true);
+				context.allowCodeImport = false;
+				
+				if (url.match(gifRegex)) {
+					// Load animated gif
+					urlLoader = new URLLoader();
+					urlLoader.dataFormat = URLLoaderDataFormat.BINARY;
+					urlLoader.addEventListener(Event.COMPLETE, handleAnimatedGifComplete);
+					urlLoader.addEventListener(IOErrorEvent.IO_ERROR, handleIOError);
+					urlLoader.addEventListener(SecurityErrorEvent.SECURITY_ERROR, handleSecurityError);
+					urlLoader.load(urlRequest);
+				}
+				else {
+					// Load normal image
+					loader = new Loader();
+					loader.contentLoaderInfo.addEventListener(Event.COMPLETE, handleNormalImageComplete);
+					loader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, handleIOError);
+					loader.load(urlRequest, context);
+				}
+			}
+			
+			private function handleIOError(event:IOErrorEvent):void {
+				logger.error("IO Error while loading prop " + looseProp.prop.guid + ": " +
+					"Error ID: " + event.errorID + " Text: " + event.text);
+			}
+			
+			private function handleSecurityError(event:SecurityErrorEvent):void {
+				logger.error("Security Error while loading prop " + looseProp.prop.guid + ": " +
+					"Error ID: " + event.errorID + " Text: " + event.text);
+			}
+			
+			private function handleNormalImageComplete(event:Event):void {
+				// Hide the progress bar
+				hideLoadingSpinner();
+				
+				normalImage = loader.content as Bitmap;
+				loadedWidth = imageContainer.width = normalImage.width;
+				loadedHeight = imageContainer.height = normalImage.height;
+				imageContainer.addChild(normalImage);
+			}
+			
+			private function handleAnimatedGifComplete(event:Event):void {
+				var bytes:ByteArray = urlLoader.data as ByteArray;
+				gifPlayer = new GIFPlayer();
+				gifPlayer.addEventListener(GIFPlayerEvent.COMPLETE, handleGifDecoded);
+				gifPlayer.addEventListener(AsyncDecodeErrorEvent.ASYNC_DECODE_ERROR, handleGifDecodeError);
+				gifPlayer.loadBytes(bytes);
+				return;
+			}
+			
+			private function handleGifDecoded(event:GIFPlayerEvent):void {
+				// Hide the progress bar
+				hideLoadingSpinner();
+				
+				loadedWidth = imageContainer.width = gifPlayer.width;
+				loadedHeight = imageContainer.height = gifPlayer.height;
+				imageContainer.addChild(gifPlayer);
+			}
+			
+			private function handleGifDecodeError(event:AsyncDecodeErrorEvent):void {
+				// Hide the progress bar
+				hideLoadingSpinner();
+				logger.warn("Prop " + looseProp.prop.guid + " - invalid or corrupted GIF data");
+			}
+			
+			[Embed(source="src/assets/spinner.swf",mimeType="application/octet-stream")]
+			protected var spinnerSWF:Class;
+			
+			protected var loadingSpinner:Loader;
+			
+			protected function showLoadingSpinner():void {
+				if (loadingSpinner) {
+					loadingSpinner.unloadAndStop();
+				}
+				loadingSpinner = new Loader();
+				loadingSpinner.loadBytes(ByteArrayAsset(new spinnerSWF()));
+				spinnerContainer.removeChildren();
+				spinnerContainer.addChild(loadingSpinner);
+			}
+			
+			protected function hideLoadingSpinner():void {
+				loadingSpinner.unloadAndStop();
+				loadingSpinner = null;
+				spinnerContainer.removeChildren();
+			}
+		]]>
+	</fx:Script>
+	
+	<s:Rect top="-1" left="-1" right="-1" bottom="-1" includeIn="hovered">
+		<s:stroke>
+			<s:SolidColorStroke color="#000000" alpha="0.4" weight="1" />
+		</s:stroke>
+		<s:fill>
+			<s:SolidColor color="#EEEEEE" alpha="0.3" />
+		</s:fill>
+	</s:Rect>
+	
+	<s:SpriteVisualElement id="imageContainer" />
+	
+	<s:SpriteVisualElement id="spinnerContainer"
+						   mouseChildren="false" mouseEnabled="false"
+						   x="-16" y="-16" />
+	
+</s:Group>

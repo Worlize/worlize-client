@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.interactivity.event.LoosePropEvent;
+			import com.worlize.interactivity.event.PropSelectEvent;
+			import com.worlize.interactivity.model.LooseProp;
+			import com.worlize.interactivity.model.LoosePropList;
+			import com.worlize.interactivity.rpc.InteractivityClient;
+			
+			import mx.controls.Menu;
+			import mx.core.DragSource;
+			import mx.events.FlexEvent;
+			import mx.events.MenuEvent;
+			import mx.managers.DragManager;
+			
+			[Bindable]
+			private var _propList:LoosePropList;
+			
+			private var propViewsById:Object = {};
+			
+			private static var currentMenu:Menu;
+			
+			[Bindable(event="propListChanged")]
+			public function set propList(newValue:LoosePropList):void {
+				if (newValue !== _propList) {
+					if (_propList) {
+						removePropListListeners();
+						propViewsById = {};
+						removeAllElements();
+					}
+					_propList = newValue;
+					addPropListListeners();
+					for each (var looseProp:LooseProp in _propList.props) {
+						addProp(looseProp);
+					}
+					dispatchEvent(new FlexEvent("propListChanged"));
+				}
+			}
+			public function get propList():LoosePropList {
+				return _propList;
+			}
+			
+			private function addPropListListeners():void {
+				_propList.addEventListener(LoosePropEvent.PROPS_RESET, handlePropsReset);
+				_propList.addEventListener(LoosePropEvent.PROP_ADDED, handlePropAdded);
+				_propList.addEventListener(LoosePropEvent.PROP_REMOVED, handlePropRemoved);
+				_propList.addEventListener(LoosePropEvent.PROP_MOVED, handlePropMoved);
+				_propList.addEventListener(LoosePropEvent.PROP_BROUGHT_FORWARD, handlePropBroughtForward);
+				_propList.addEventListener(LoosePropEvent.PROP_SENT_BACKWARD, handlePropSentBackward);
+			}
+			
+			private function removePropListListeners():void {
+				_propList.removeEventListener(LoosePropEvent.PROPS_RESET, handlePropsReset);
+				_propList.removeEventListener(LoosePropEvent.PROP_ADDED, handlePropAdded);
+				_propList.removeEventListener(LoosePropEvent.PROP_REMOVED, handlePropRemoved);
+				_propList.removeEventListener(LoosePropEvent.PROP_MOVED, handlePropMoved);
+				_propList.removeEventListener(LoosePropEvent.PROP_BROUGHT_FORWARD, handlePropBroughtForward);
+				_propList.removeEventListener(LoosePropEvent.PROP_SENT_BACKWARD, handlePropSentBackward);
+			}
+			
+			private function handlePropsReset(event:LoosePropEvent):void {
+				propViewsById = {};
+				removeAllElements();
+				if (currentMenu) {
+					currentMenu.hide();
+					currentMenu = null;
+				}
+			}
+			
+			private function handlePropAdded(event:LoosePropEvent):void {
+				addProp(event.looseProp);
+			}
+			
+			private function addProp(looseProp:LooseProp):void {
+				var view:LoosePropView = new LoosePropView();
+				view.looseProp = looseProp;
+				view.addEventListener(PropSelectEvent.SHOW_PROP_CONTEXT_MENU, handleShowPropContextMenu);
+				propViewsById[looseProp.id] = view;
+				addElement(view);
+			}
+			
+			private function handlePropRemoved(event:LoosePropEvent):void {
+				var view:LoosePropView = propViewsById[event.looseProp.id];
+				if (view) {
+					removeElement(view);
+					view.dispose();
+					delete propViewsById[event.looseProp.id];
+				}
+			}
+			
+			private function handlePropMoved(event:LoosePropEvent):void {
+				
+			}
+			
+			private function handlePropBroughtForward(event:LoosePropEvent):void {
+				var view:LoosePropView = propViewsById[event.looseProp.id];
+				if (view) {
+					var index:int = getElementIndex(view);
+					if (index !== -1) {
+						setElementIndex(view, index + event.layerCount);
+					}
+				}
+			}
+			
+			private function handlePropSentBackward(event:LoosePropEvent):void {
+				var view:LoosePropView = propViewsById[event.looseProp.id];
+				if (view) {
+					var index:int = getElementIndex(view);
+					if (index !== -1) {
+						setElementIndex(view, index - event.layerCount);
+					}
+				}
+			}
+			
+			protected function handleShowPropContextMenu(event:PropSelectEvent):void {
+				showContextMenu(LoosePropView(event.target));
+			}
+			
+			protected function showContextMenu(view:LoosePropView):void {
+				if (currentMenu) {
+					currentMenu.hide();
+				}
+				
+				var index:int = getElementIndex(view);
+				
+				var menuData:Array = [];
+				menuData.push({ type: 'normal', label: 'Remove Prop', action: 'removeProp', looseProp: view.looseProp });
+				
+				menuData.push({ type: 'separator' });
+				
+				menuData.push({ type: 'normal',
+								label: 'Bring to Front',
+								action: 'bringToFront',
+								enabled: (index < numElements - 1),
+								looseProp: view.looseProp });
+				menuData.push({ type: 'normal',
+								label: 'Bring Forward',
+								action: 'bringForward',
+								enabled: (index < numElements - 1),
+								looseProp: view.looseProp });
+				menuData.push({ type: 'normal',
+								label: 'Send Backward',
+								action: 'sendBackward',
+								enabled: (index > 0),
+								looseProp: view.looseProp });
+				menuData.push({ type: 'normal',
+								label: 'Send to Back',
+								action: 'sendToBack',
+								enabled: (index > 0),
+								looseProp: view.looseProp });
+				
+				currentMenu = Menu.createMenu(null, menuData, true);
+				currentMenu.addEventListener(MenuEvent.ITEM_CLICK, handleContextMenuItemClick, false, 0, true);
+				currentMenu.addEventListener(MenuEvent.MENU_HIDE, handleMenuHide);
+				currentMenu.show(stage.mouseX, stage.mouseY);
+			}
+			
+			protected function handleContextMenuItemClick(event:MenuEvent):void {
+				var client:InteractivityClient = InteractivityClient.getInstance();
+				switch (event.item.action) {
+					case "removeProp":
+						client.removeLooseProp(event.item.looseProp.id);
+						break;
+					case "sendBackward":
+						client.sendLoosePropBackward(event.item.looseProp.id, 1);
+						break;
+					case "bringForward":
+						client.bringLoosePropForward(event.item.looseProp.id, 1);
+						break;
+					case "sendToBack":
+						client.sendLoosePropBackward(event.item.looseProp.id, 0x7FFFFFFF);
+						break;
+					case "bringToFront":
+						client.bringLoosePropForward(event.item.looseProp.id, 0x7FFFFFFF);
+						break;
+					default:
+						break;
+				}
+			}
+			
+			protected function handleMenuHide(event:MenuEvent):void {
+				currentMenu = null;
+			}
+
+			
+		]]>
+	</fx:Script>
+</s:Group>

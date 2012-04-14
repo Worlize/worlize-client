@@ -11,6 +11,7 @@ package com.worlize.rpc
 	
 	import flash.events.EventDispatcher;
 	import flash.events.IEventDispatcher;
+	import flash.events.IOErrorEvent;
 	import flash.events.SecurityErrorEvent;
 	import flash.events.TimerEvent;
 	import flash.utils.ByteArray;
@@ -121,7 +122,7 @@ package com.worlize.rpc
 			webSocket.addEventListener(WebSocketEvent.OPEN, handleWebSocketOpen);
 			webSocket.addEventListener(WebSocketErrorEvent.CONNECTION_FAIL, handleWebSocketConnectionFail);
 			webSocket.addEventListener(WebSocketErrorEvent.ABNORMAL_CLOSE, handleWebSocketAbnormalClose);
-			webSocket.addEventListener(WebSocketErrorEvent.IO_ERROR, handleWebSocketIOError);
+			webSocket.addEventListener(IOErrorEvent.IO_ERROR, handleWebSocketIOError);
 			webSocket.addEventListener(SecurityErrorEvent.SECURITY_ERROR, handleWebSocketSecurityError);
 			
 			logger.info("Opening WebSocket To: " + url);
@@ -143,7 +144,7 @@ package com.worlize.rpc
 			webSocket.removeEventListener(WebSocketEvent.OPEN, handleWebSocketOpen);
 			webSocket.removeEventListener(WebSocketErrorEvent.CONNECTION_FAIL, handleWebSocketConnectionFail);
 			webSocket.removeEventListener(WebSocketErrorEvent.ABNORMAL_CLOSE, handleWebSocketAbnormalClose);
-			webSocket.removeEventListener(WebSocketErrorEvent.IO_ERROR, handleWebSocketIOError);
+			webSocket.removeEventListener(IOErrorEvent.IO_ERROR, handleWebSocketIOError);
 			webSocket.removeEventListener(SecurityErrorEvent.SECURITY_ERROR, handleWebSocketSecurityError);
 		}
 		
@@ -184,7 +185,7 @@ package com.worlize.rpc
 			dispatchEvent(new WorlizeCommEvent(WorlizeCommEvent.CONNECTION_FAIL));
 		}
 		
-		protected function handleWebSocketIOError(event:WebSocketErrorEvent):void {
+		protected function handleWebSocketIOError(event:IOErrorEvent):void {
 			logger.info("IOErrorEvent: " + event.toString());
 		}
 		

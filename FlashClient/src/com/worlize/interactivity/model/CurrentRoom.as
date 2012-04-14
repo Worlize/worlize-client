@@ -85,6 +85,8 @@ package com.worlize.interactivity.model
 		
 		private var statusDisappearTimer:Timer = new Timer(30000, 1);
 		
+		public var loosePropList:LoosePropList = new LoosePropList(); 
+		
 		public function CurrentRoom()
 		{
 			lastMessageTimer.addEventListener(TimerEvent.TIMER, handleLastMessageTimer);

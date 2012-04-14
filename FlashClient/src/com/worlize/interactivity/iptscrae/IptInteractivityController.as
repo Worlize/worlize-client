@@ -499,5 +499,9 @@ package com.worlize.interactivity.iptscrae
 		public function showAvatars():void {
 			client.currentRoom.showAvatars = true;
 		}
+		
+		public function clearLooseProps():void {
+			client.clearLooseProps();
+		}
 	}
 }

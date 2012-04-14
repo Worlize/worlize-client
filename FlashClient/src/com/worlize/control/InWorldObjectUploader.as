@@ -23,6 +23,7 @@ package com.worlize.control
 				filters.push(new FileFilter("Flash Movie (*.swf)", "*.swf"));
 			}
 			fileTypeFilters = filters;
+			checkAnimatedGifs = true;
 		}
 		
 		override protected function handleFileUploadComplete(event:DataEvent):void {

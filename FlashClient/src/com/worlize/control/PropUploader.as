@@ -6,13 +6,12 @@ package com.worlize.control
 	
 	import mx.controls.Alert;
 	
-	[Event(type="mx.events.StateChangeEvent",name="currentStateChange")]
-	public class AvatarUploader extends Uploader
+	public class PropUploader extends Uploader
 	{
-		public function AvatarUploader(target:IEventDispatcher=null)
+		public function PropUploader(target:IEventDispatcher=null)
 		{
 			super(target);
-			url = "/locker/avatars";
+			url = "/locker/props";
 			var imageFilter:FileFilter = new FileFilter("Image Files (*.jpg, *.jpeg, *.png, *.gif)", "*.jpg;*.jpeg;*.png;*.gif");
 			fileTypeFilters = [imageFilter];
 			checkAnimatedGifs = true;

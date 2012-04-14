@@ -5,9 +5,11 @@ package com.worlize.interactivity.api.adapter
 	import com.worlize.interactivity.api.event.APIBridgeEvent;
 	import com.worlize.interactivity.model.CurrentRoom;
 	import com.worlize.interactivity.model.InteractivityUser;
+	import com.worlize.interactivity.model.LooseProp;
 	import com.worlize.interactivity.record.ChatRecord;
 	import com.worlize.model.InWorldObject;
 	import com.worlize.model.InWorldObjectInstance;
+	import com.worlize.model.Prop;
 	import com.worlize.model.WorldDefinition;
 	import com.worlize.state.AuthorModeState;
 	
@@ -71,7 +73,7 @@ package com.worlize.interactivity.api.adapter
 		
 		public function handshakeClient(data:Object):void {
 			data.success = false;
-			if (data.APIVersion !== 1) {
+			if (!(data.APIVersion <= 2)) {
 				var errorMessage:String = "ClientAdapterV1 unable to handshake with version " + data.APIVersion + " API client.";
 				logger.error(errorMessage);
 				if (host) {
@@ -184,6 +186,12 @@ package com.worlize.interactivity.api.adapter
 			sharedEvents.addEventListener("client_syncedDataSet", handleClientSyncedDataSet);
 			sharedEvents.addEventListener("client_syncedDataDelete", handleClientSyncedDataDelete);
 			sharedEvents.addEventListener("client_saveConfig", handleClientSaveConfig);
+			sharedEvents.addEventListener("client_addLooseProp", handleClientAddLooseProp);
+			sharedEvents.addEventListener("client_removeLooseProp", handleClientRemoveLooseProp);
+			sharedEvents.addEventListener("client_moveLooseProp", handleClientMoveLooseProp);
+			sharedEvents.addEventListener("client_clearLooseProps", handleClientClearLooseProps);
+			sharedEvents.addEventListener("client_bringLoosePropForward", handleClientBringLoosePropForward);
+			sharedEvents.addEventListener("client_sendLoosePropBackward", handleClientSendLoosePropBackward);
 			sharedEvents.addEventListener(MouseEvent.MOUSE_UP, handleClientMouseUp);
 		}
 		
@@ -211,6 +219,12 @@ package com.worlize.interactivity.api.adapter
 			sharedEvents.removeEventListener("client_syncedDataSet", handleClientSyncedDataSet);
 			sharedEvents.removeEventListener("client_syncedDataDelete", handleClientSyncedDataDelete);
 			sharedEvents.removeEventListener("client_saveConfig", handleClientSaveConfig);
+			sharedEvents.removeEventListener("client_addLooseProp", handleClientAddLooseProp);
+			sharedEvents.removeEventListener("client_removeLooseProp", handleClientRemoveLooseProp);
+			sharedEvents.removeEventListener("client_moveLooseProp", handleClientMoveLooseProp);
+			sharedEvents.removeEventListener("client_clearLooseProps", handleClientClearLooseProps);
+			sharedEvents.removeEventListener("client_bringLoosePropForward", handleClientBringLoosePropForward);
+			sharedEvents.removeEventListener("client_sendLoosePropBackward", handleClientSendLoosePropBackward);
 			sharedEvents.removeEventListener(MouseEvent.MOUSE_UP, handleClientMouseUp);
 		}
 		
@@ -393,6 +407,45 @@ package com.worlize.interactivity.api.adapter
 		private function handleClientSaveConfig(event:Event):void {
 			var eo:Object = event;
 			host.saveAppConfig(appInstanceGuid, eo.data);
+		}
+		
+		private function handleClientAddLooseProp(event:Event):void {
+			var eo:Object = event;
+			if (eo.data && eo.data.guid && eo.data.x is Number && eo.data.y is Number) {
+				host.addLooseProp(eo.data.guid, eo.data.x, eo.data.y);
+			}
+		}
+		
+		private function handleClientRemoveLooseProp(event:Event):void {
+			var eo:Object = event;
+			if (eo.data && eo.data.id is Number) {
+				host.removeLooseProp(eo.data.id);
+			}
+		}
+		
+		private function handleClientMoveLooseProp(event:Event):void {
+			var eo:Object = event;
+			if (eo.data && eo.data.id is Number && eo.data.x is Number && eo.data.y is Number) {
+				host.moveLooseProp(eo.data.id, eo.data.x, eo.data.y);
+			}
+		}
+		
+		private function handleClientClearLooseProps(event:Event):void {
+			host.clearLooseProps();
+		}
+		
+		private function handleClientBringLoosePropForward(event:Event):void {
+			var eo:Object = event;
+			if (eo.data && eo.data.id is Number && eo.data.layerCount is Number) {
+				host.bringLoosePropForward(eo.data.id, eo.data.layerCount);
+			}
+		}
+		
+		private function handleClientSendLoosePropBackward(event:Event):void {
+			var eo:Object = event;
+			if (eo.data && eo.data.id is Number && eo.data.layerCount is Number) {
+				host.sendLoosePropBackward(eo.data.id, eo.data.layerCount);
+			}
 		}
 		
 		private function handleClientMouseUp(event:Event):void {
@@ -670,6 +723,56 @@ package com.worlize.interactivity.api.adapter
 			sharedEvents.dispatchEvent(event);
 		}
 		
+		public function addLooseProp(looseProp:LooseProp):void {
+			if (sharedEvents === null) { return; }
+			var event:APIBridgeEvent = new APIBridgeEvent("host_addLooseProp");
+			event.data = loosePropToObject(looseProp);
+			sharedEvents.dispatchEvent(event);
+		}
+		
+		public function moveLooseProp(id:uint, x:int, y:int):void {
+			if (sharedEvents === null) { return; }
+			var event:APIBridgeEvent = new APIBridgeEvent("host_moveLooseProp");
+			event.data = {
+				id: id,
+				x: x,
+				y: y
+			};
+			sharedEvents.dispatchEvent(event);
+		}
+		
+		public function removeLooseProp(id:uint):void {
+			if (sharedEvents === null) { return; }
+			var event:APIBridgeEvent = new APIBridgeEvent("host_removeLooseProp");
+			event.data = id;
+			sharedEvents.dispatchEvent(event);
+		}
+		
+		public function resetLooseProps():void {
+			if (sharedEvents === null) { return; }
+			var event:APIBridgeEvent = new APIBridgeEvent("host_resetLooseProps");
+			sharedEvents.dispatchEvent(event);
+		}
+		
+		public function bringLoosePropForward(id:uint, layerCount:int):void {
+			if (sharedEvents === null) { return; }
+			var event:APIBridgeEvent = new APIBridgeEvent("host_bringLoosePropForward");
+			event.data = {
+				id: id,
+				layerCount: layerCount
+			};
+			sharedEvents.dispatchEvent(event);
+		}
+		
+		public function sendLoosePropBackward(id:uint, layerCount:int):void {
+			if (sharedEvents === null) { return; }
+			var event:APIBridgeEvent = new APIBridgeEvent("host_sendLoosePropBackward");
+			event.data = {
+				id: id,
+				layerCount: layerCount
+			};
+			sharedEvents.dispatchEvent(event);
+		}
 		
 		
 		
@@ -717,6 +820,7 @@ package com.worlize.interactivity.api.adapter
 				ownerGuid: room.ownerGuid,
 				users: [],
 				objects: [],
+				props: [],
 				width: 950,
 				height: 570
 			};
@@ -729,8 +833,29 @@ package com.worlize.interactivity.api.adapter
 			for each (var user:InteractivityUser in room.users) {
 				obj.users.push(userToObject(user));
 			}
+			for each (var looseProp:LooseProp in room.loosePropList.props) {
+				obj.props.push(loosePropToObject(looseProp));
+			}
 			
 			return obj;
+		}
+		
+		protected function propToObject(prop:Prop):Object {
+			return {
+				name: prop.name,
+				guid: prop.guid,
+				thumbnailURL: prop.thumbnailURL,
+				creatorGuid: prop.creatorGuid
+			};
+		}
+		
+		protected function loosePropToObject(looseProp:LooseProp):Object {
+			return {
+				prop: propToObject(looseProp.prop),
+				id: looseProp.id,
+				x: looseProp.x,
+				y: looseProp.y
+			};
 		}
 		
 		protected function worldDefinitionToObject(world:WorldDefinition):Object {

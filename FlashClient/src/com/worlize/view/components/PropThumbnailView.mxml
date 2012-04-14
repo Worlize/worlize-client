@@ -2,18 +2,18 @@
 <s:Image xmlns:fx="http://ns.adobe.com/mxml/2009" 
 		  xmlns:s="library://ns.adobe.com/flex/spark" 
 		  xmlns:mx="library://ns.adobe.com/flex/mx"
-		  width="133" height="80">
+		  width="80" height="80">
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
 	<fx:Script>
 		<![CDATA[
-			import com.worlize.model.BackgroundImageInstance;
+			import com.worlize.model.PropInstance;
 			
-			private var _dataProvider:BackgroundImageInstance;
+			private var _dataProvider:PropInstance;
 			
 			[Bindable('dataProviderChanged')]
-			public function set dataProvider(newValue:BackgroundImageInstance):void {
+			public function set dataProvider(newValue:PropInstance):void {
 				if (_dataProvider !== newValue) {
 					_dataProvider = newValue;
 					if (_dataProvider === null ||
@@ -21,13 +21,13 @@
 						visible = false;
 					}
 					else {
+						source = _dataProvider.prop.thumbnailURL;
 						visible = true;
-						source = _dataProvider.backgroundImageAsset.thumbnailURL;
 					}
 					dispatchEvent(new Event('dataProviderChanged'));
 				}
 			}
-			public function get dataProvider():BackgroundImageInstance {
+			public function get dataProvider():PropInstance {
 				return _dataProvider;
 			}
 		]]>

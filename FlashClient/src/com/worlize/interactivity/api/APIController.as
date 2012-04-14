@@ -5,9 +5,11 @@ package com.worlize.interactivity.api
 	import com.worlize.interactivity.api.adapter.ClientAdapterV1;
 	import com.worlize.interactivity.api.adapter.IAPIClientAdapter;
 	import com.worlize.interactivity.event.ChatEvent;
+	import com.worlize.interactivity.event.LoosePropEvent;
 	import com.worlize.interactivity.event.RoomEvent;
 	import com.worlize.interactivity.model.CurrentRoom;
 	import com.worlize.interactivity.model.InteractivityUser;
+	import com.worlize.interactivity.model.LooseProp;
 	import com.worlize.interactivity.record.ChatRecord;
 	import com.worlize.interactivity.rpc.InteractivityClient;
 	import com.worlize.model.WorldDefinition;
@@ -73,6 +75,12 @@ package com.worlize.interactivity.api
 			room.addEventListener(RoomEvent.OBJECT_MOVED, handleObjectMoved);
 			room.addEventListener(RoomEvent.OBJECT_RESIZED, handleObjectResized);
 			room.addEventListener(RoomEvent.OBJECT_STATE_CHANGED, handleObjectStateChanged);
+			room.loosePropList.addEventListener(LoosePropEvent.PROP_ADDED, handleLoosePropAdded);
+			room.loosePropList.addEventListener(LoosePropEvent.PROP_REMOVED, handleLoosePropRemoved);
+			room.loosePropList.addEventListener(LoosePropEvent.PROP_MOVED, handleLoosePropMoved);
+			room.loosePropList.addEventListener(LoosePropEvent.PROPS_RESET, handleLoosePropsReset);
+			room.loosePropList.addEventListener(LoosePropEvent.PROP_BROUGHT_FORWARD, handleLoosePropBroughtForward);
+			room.loosePropList.addEventListener(LoosePropEvent.PROP_SENT_BACKWARD, handleLoosePropSentBackward);
 			dimLevelChangeWatcher = ChangeWatcher.watch(room, 'dimLevel', handleRoomDimLevelChanged);
 		}
 		
@@ -87,6 +95,12 @@ package com.worlize.interactivity.api
 			room.removeEventListener(RoomEvent.OBJECT_MOVED, handleObjectMoved);
 			room.removeEventListener(RoomEvent.OBJECT_RESIZED, handleObjectResized);
 			room.removeEventListener(RoomEvent.OBJECT_STATE_CHANGED, handleObjectStateChanged);
+			room.loosePropList.removeEventListener(LoosePropEvent.PROP_ADDED, handleLoosePropAdded);
+			room.loosePropList.removeEventListener(LoosePropEvent.PROP_REMOVED, handleLoosePropRemoved);
+			room.loosePropList.removeEventListener(LoosePropEvent.PROP_MOVED, handleLoosePropMoved);
+			room.loosePropList.removeEventListener(LoosePropEvent.PROPS_RESET, handleLoosePropsReset);
+			room.loosePropList.removeEventListener(LoosePropEvent.PROP_BROUGHT_FORWARD, handleLoosePropBroughtForward);
+			room.loosePropList.removeEventListener(LoosePropEvent.PROP_SENT_BACKWARD, handleLoosePropSentBackward);
 			dimLevelChangeWatcher.unwatch();
 		}
 		
@@ -252,7 +266,42 @@ package com.worlize.interactivity.api
 			}
 		}
 		
+		protected function handleLoosePropAdded(event:LoosePropEvent):void {
+			for each (var client:IAPIClientAdapter in apiClientAdapters) {
+				client.addLooseProp(event.looseProp);
+			}
+		}
 		
+		protected function handleLoosePropRemoved(event:LoosePropEvent):void {
+			for each (var client:IAPIClientAdapter in apiClientAdapters) {
+				client.removeLooseProp(event.looseProp.id);
+			}
+		}
+		
+		protected function handleLoosePropMoved(event:LoosePropEvent):void {
+			var looseProp:LooseProp = event.looseProp;
+			for each (var client:IAPIClientAdapter in apiClientAdapters) {
+				client.moveLooseProp(looseProp.id, looseProp.x, looseProp.y);
+			}
+		}
+		
+		protected function handleLoosePropsReset(event:LoosePropEvent):void {
+			for each (var client:IAPIClientAdapter in apiClientAdapters) {
+				client.resetLooseProps();
+			}
+		}
+		
+		protected function handleLoosePropBroughtForward(event:LoosePropEvent):void {
+			for each (var client:IAPIClientAdapter in apiClientAdapters) {
+				client.bringLoosePropForward(event.looseProp.id, event.layerCount);
+			}	
+		}
+		
+		protected function handleLoosePropSentBackward(event:LoosePropEvent):void {
+			for each (var client:IAPIClientAdapter in apiClientAdapters) {
+				client.sendLoosePropBackward(event.looseProp.id, event.layerCount);
+			}
+		}
 		
 		
 		// Public Getters
@@ -422,6 +471,30 @@ package com.worlize.interactivity.api
 			if (thisUser.id === thisRoom.ownerGuid) {
 				interactivityClient.saveAppConfig(appInstanceGuid, configData);
 			}
+		}
+		
+		public function addLooseProp(guid:String, x:int, y:int):void {
+			interactivityClient.addLooseProp(guid, x, y);
+		}
+		
+		public function removeLooseProp(id:uint):void {
+			interactivityClient.removeLooseProp(id);
+		}
+		
+		public function moveLooseProp(id:uint, x:int, y:int):void {
+			interactivityClient.moveLooseProp(id, x, y);
+		}
+		
+		public function bringLoosePropForward(id:uint, layerCount:int = 1):void {
+			interactivityClient.bringLoosePropForward(id, layerCount);
+		}
+		
+		public function sendLoosePropBackward(id:uint, layerCount:int = 1):void {
+			interactivityClient.sendLoosePropBackward(id, layerCount);
+		}
+		
+		public function clearLooseProps():void {
+			interactivityClient.clearLooseProps();
 		}
 		
 		

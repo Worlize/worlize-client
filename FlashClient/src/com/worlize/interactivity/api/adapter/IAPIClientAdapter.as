@@ -3,6 +3,7 @@ package com.worlize.interactivity.api.adapter
 	import com.worlize.interactivity.api.APIController;
 	import com.worlize.interactivity.api.AppLoader;
 	import com.worlize.interactivity.model.InteractivityUser;
+	import com.worlize.interactivity.model.LooseProp;
 	import com.worlize.interactivity.record.ChatRecord;
 	import com.worlize.model.InWorldObjectInstance;
 	
@@ -62,5 +63,11 @@ package com.worlize.interactivity.api.adapter
 		function receiveSaveAppConfig(changedByUserGuid:String, config:Object):void;
 		function roomMouseMove(event:MouseEvent):void;
 		function applicationMouseUp(event:MouseEvent):void;
+		function addLooseProp(looseProp:LooseProp):void;
+		function moveLooseProp(id:uint, x:int, y:int):void;
+		function removeLooseProp(id:uint):void;
+		function resetLooseProps():void;
+		function bringLoosePropForward(id:uint, layerCount:int):void;
+		function sendLoosePropBackward(id:uint, layerCount:int):void;
 	}
 }

@@ -36,6 +36,7 @@ package com.worlize.interactivity.rpc
 	import com.worlize.model.CurrentUser;
 	import com.worlize.model.InWorldObjectInstance;
 	import com.worlize.model.PreferencesManager;
+	import com.worlize.model.PropInstance;
 	import com.worlize.model.PublicWorldsList;
 	import com.worlize.model.RoomDefinition;
 	import com.worlize.model.RoomList;
@@ -61,6 +62,7 @@ package com.worlize.interactivity.rpc
 	import com.worlize.notification.FinancialNotification;
 	import com.worlize.notification.FriendsNotification;
 	import com.worlize.notification.InWorldObjectNotification;
+	import com.worlize.notification.PropNotification;
 	import com.worlize.notification.RoomChangeNotification;
 	import com.worlize.rpc.ConnectionManager;
 	import com.worlize.rpc.HTTPMethod;
@@ -185,11 +187,14 @@ package com.worlize.interactivity.rpc
 		
 		// Incoming Message Handlers
 		private var incomingMessageHandlers:Object = {
+			"add_loose_prop": handleAddLooseProp,
 			"avatar_instance_added": handleAvatarInstanceAdded,
 			"avatar_instance_deleted": handleAvatarInstanceDeleted,
 			"background_instance_added": handleBackgroundInstanceAdded,
 			"background_instance_updated": handleBackgroundInstanceUpdated,
 			"balance_updated": handleBalanceUpdated,
+			"bring_loose_prop_forward": handleBringLoosePropForward,
+			"clear_loose_props": handleClearLooseProps,
 			"disconnect": handleDisconnectMessage,
 			"friend_added": handleFriendAdded,
 			"friend_removed": handleFriendRemoved,
@@ -204,6 +209,7 @@ package com.worlize.interactivity.rpc
 			"invitation_to_join_friend": handleInvitationToJoinFriend,
 			"logged_out": handleLoggedOut,
 			"move": handleMove,
+			"move_loose_prop": handleMoveLooseProp,
 			"naked": handleNaked,
 			"new_friend_request": handleNewFriendRequest,
 			"new_hotspot": handleNewHotspot,
@@ -214,16 +220,20 @@ package com.worlize.interactivity.rpc
 			"payment_completed": handlePaymentCompleted,
 			"ping": handlePing,
 			"presence_status_change": handlePresenceStatusChange,
+			"prop_instance_added": handlePropInstanceAdded,
+			"prop_instance_deleted": handlePropInstanceDeleted,
 			"request_permission_to_join": handleRequestPermissionToJoin,
 			"room_definition": handleRoomDefinition,
 			"room_entry_denied": handleRoomEntryDenied,
 			"room_entry_granted": handleRoomEntryGranted,
 			"lock_room": handleLockRoom,
+			"remove_loose_prop": handleRemoveLooseProp,
 			"room_msg": handleRoomMsg,
 			"room_population_update": handleRoomPopulationUpdate,
 			"room_redirect": handleRoomRedirect,
 			"save_app_config": handleSaveAppConfig,
 			"say": handleReceiveTalk,
+			"send_loose_prop_backward": handleSendLoosePropBackward,
 			"set_color": handleUserColor,
 			"set_face": handleUserFace,
 			"set_simple_avatar": handleSetSimpleAvatar,
@@ -503,6 +513,22 @@ package com.worlize.interactivity.rpc
 				var notification:AvatarNotification = new AvatarNotification(AvatarNotification.AVATAR_INSTANCE_DELETED);
 				notification.deletedInstanceGuid = data.guid;
 				NotificationCenter.postNotification(notification);		
+			}
+		}
+		
+		private function handlePropInstanceAdded(data:Object):void {
+			var propInstance:PropInstance = PropInstance.fromData(data);
+			
+			var notification:PropNotification = new PropNotification(PropNotification.PROP_INSTANCE_ADDED);
+			notification.propInstance = propInstance;
+			NotificationCenter.postNotification(notification);
+		}
+		
+		private function handlePropInstanceDeleted(data:Object):void {
+			if (data.guid) {
+				var notification:PropNotification = new PropNotification(PropNotification.PROP_INSTANCE_DELETED);
+				notification.deletedInstanceGuid = data.guid;
+				NotificationCenter.postNotification(notification);
 			}
 		}
 		
@@ -962,6 +988,32 @@ package com.worlize.interactivity.rpc
 			currentRoom.hotSpotsById[hotspot.id] = hotspot;
 		}
 		
+		private function handleAddLooseProp(data:Object):void {
+			currentRoom.loosePropList.add(data);
+		}
+		
+		private function handleMoveLooseProp(data:Object):void {
+			currentRoom.loosePropList.move(data.id, data.x, data.y);
+		}
+		
+		private function handleRemoveLooseProp(data:Object):void {
+			currentRoom.loosePropList.remove(data.id);
+		}
+		
+		private function handleClearLooseProps(data:Object):void {
+			currentRoom.loosePropList.reset();
+		}
+		
+		private function handleBringLoosePropForward(data:Object):void {
+			trace("Bringing prop " + data.id + " forward by " + data.layerCount + " layers");
+			currentRoom.loosePropList.bringForward(data.id, data.layerCount);
+		}
+		
+		private function handleSendLoosePropBackward(data:Object):void {
+			trace("Sending prop " + data.id + " backward by " + data.layerCount + " layers");
+			currentRoom.loosePropList.sendBackward(data.id, data.layerCount);
+		}
+		
 		private function handleRoomDefinition(data:Object):void {
 			logger.info("Got room definition for room " + data.guid + ".");
 			
@@ -988,6 +1040,11 @@ package com.worlize.interactivity.rpc
 				currentRoom.hotSpotsAboveNothing.addItem(hotspot);
 				currentRoom.hotSpotsById[hotspot.id] = hotspot;
 				currentRoom.hotSpotsByGuid[hotspot.guid] = hotspot;
+			}
+			
+			currentRoom.loosePropList.reset();
+			for each (var loosePropData:Object in data.props) {
+				currentRoom.loosePropList.add(loosePropData);
 			}
 			
 			// In-World Objects
@@ -1148,6 +1205,7 @@ package com.worlize.interactivity.rpc
 			currentRoom.hotSpotsByGuid = {};
 			currentRoom.hotSpotsById = {};
 			currentRoom.resetYoutubePlayers();
+			currentRoom.loosePropList.reset();
 			currentRoom.drawBackCommands.removeAll();
 			currentRoom.drawFrontCommands.removeAll();
 			currentRoom.drawLayerHistory = new Vector.<uint>();
@@ -1377,11 +1435,14 @@ package com.worlize.interactivity.rpc
 		}
 		
 		private function handleClientCommand(message:String):Boolean {
-			var clientCommandMatch:Array = message.match(/^~(\w+) (.*)$/);
+			var clientCommandMatch:Array = message.match(/^~(\w+) ?(.*)$/);
 			if (clientCommandMatch && clientCommandMatch.length > 0) {
 				var command:String = clientCommandMatch[1];
 				var argument:String = clientCommandMatch[2];
 				switch (command) {
+					case "clean":
+						clearLooseProps();
+						break;
 					default:
 						logger.info("Unrecognized command: " + command + " argument " + argument);
 				}
@@ -1488,6 +1549,63 @@ package com.worlize.interactivity.rpc
 			});
 			
 			apiController.userColorChanged(currentUser);
+		}
+		
+		public function addLooseProp(guid:String, x:int, y:int):void {
+			connection.send({
+				msg: 'add_loose_prop',
+				data: {
+					guid: guid,
+					x: x,
+					y: y
+				}
+			});
+		}
+		
+		public function moveLooseProp(id:uint, x:int, y:int):void {
+			connection.send({
+				msg: 'move_loose_prop',
+				data: {
+					id: id,
+					x: x,
+					y: y
+				}
+			});
+		}
+		
+		public function removeLooseProp(id:uint):void {
+			connection.send({
+				msg: 'remove_loose_prop',
+				data: {
+					id: id
+				}
+			});
+		}
+		
+		public function clearLooseProps():void {
+			connection.send({
+				msg: 'clear_loose_props'
+			});
+		}
+		
+		public function bringLoosePropForward(id:uint, layerCount:int = 1):void {
+			connection.send({
+				msg: 'bring_loose_prop_forward',
+				data: {
+					id: id,
+					layerCount: layerCount
+				}
+			});
+		}
+		
+		public function sendLoosePropBackward(id:uint, layerCount:int = 1):void {
+			connection.send({
+				msg: 'send_loose_prop_backward',
+				data: {
+					id: id,
+					layerCount: layerCount
+				}
+			});
 		}
 		
 		public function createNewRoom(roomName:String = null):void {
@@ -1599,10 +1717,6 @@ package com.worlize.interactivity.rpc
 		[Bindable(event="currentUserChanged")]
 		public function get currentUser():InteractivityUser {
 			return currentRoom.getUserById(id);
-		}
-		
-		public function updateUserProps():void {
-			// tell server what props the user is wearing...
 		}
 		
 		

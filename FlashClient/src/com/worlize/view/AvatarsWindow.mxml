@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="utf-8"?>
+<components:WorlizeWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+						  xmlns:s="library://ns.adobe.com/flex/spark" 
+						  xmlns:mx="library://ns.adobe.com/flex/mx"
+						  xmlns:components="com.worlize.view.components.*"
+						  title="My Avatars"
+						  titleBarColor="#f5b501" titleTextColor="#d59d00" 
+						  windowIcon="@Embed('assets/icons/large/w_icon_myavatars.png')"
+						  minWidth="600" minHeight="200"
+						  creationComplete="handleCreationComplete()"
+						  width="600" height="430" xmlns:locker="com.worlize.view.locker.*">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.components.visualnotification.VisualNotification;
+			import com.worlize.control.AvatarUploader;
+			import com.worlize.control.Uploader;
+			import com.worlize.event.NotificationCenter;
+			import com.worlize.interactivity.rpc.InteractivityClient;
+			import com.worlize.model.AvatarInstance;
+			import com.worlize.model.CurrentUser;
+			import com.worlize.model.PreferencesManager;
+			import com.worlize.model.SimpleAvatar;
+			import com.worlize.model.locker.AvatarLocker;
+			import com.worlize.model.locker.PropLocker;
+			import com.worlize.model.locker.Slots;
+			import com.worlize.notification.AvatarNotification;
+			import com.worlize.view.windows.BuyStorageSpaceWindow;
+			
+			import flex.utils.spark.resize.ResizeManager;
+			
+			import mx.binding.utils.ChangeWatcher;
+			import mx.controls.Alert;
+			import mx.controls.Menu;
+			import mx.events.CloseEvent;
+			import mx.events.IndexChangedEvent;
+			import mx.events.MenuEvent;
+			import mx.events.MoveEvent;
+			import mx.events.ResizeEvent;
+			import mx.events.StateChangeEvent;
+			import mx.graphics.SolidColor;
+			import mx.managers.PopUpManager;
+			import mx.managers.SystemManager;
+			
+			import spark.events.IndexChangeEvent;
+			import spark.events.TitleWindowBoundsEvent;
+			import spark.primitives.Rect;
+			private static var _open:Boolean = false;
+			private static var _instance:WorlizeWindow;
+			
+			[Bindable]
+			private var avatarLocker:AvatarLocker = AvatarLocker.getInstance();
+			
+			[Bindable]
+			private var propsLocker:PropLocker = PropLocker.getInstance();
+			
+			[Bindable]
+			private var avatarUploader:AvatarUploader = new AvatarUploader();
+			
+			public static function toggleOpen(parent:DisplayObject):void {
+				if (_open) {
+					close();
+				}
+				else {
+					open(parent);
+				}
+			}
+			
+			public static function open(parent:DisplayObject):void {
+				var preferences:PreferencesManager = PreferencesManager.getInstance();
+				if (_open) {
+					PopUpManager.bringToFront(_instance);
+					_instance.setFocus();
+				}
+				else {
+					var needsPosition:Boolean = false;
+					if (!_instance) {
+						needsPosition = true;
+						_instance = new AvatarsWindow();
+						_instance.addEventListener(CloseEvent.CLOSE, function(event:CloseEvent):void {
+							close();
+						});
+					}
+					PopUpManager.addPopUp(_instance, parent);
+					if (needsPosition) {
+						var coordinates:Array = preferences.getPreference('lockerPosition') as Array;
+						var size:Array = preferences.getPreference('lockerSize') as Array;
+						if (coordinates && size &&
+							_instance.boundsAreValid(coordinates[0], coordinates[1], size[0], size[1]))
+						{
+							_instance.x = coordinates[0];
+							_instance.y = coordinates[1];
+							_instance.width = size[0];
+							_instance.height = size[1];
+						}
+						else {
+							PopUpManager.centerPopUp(_instance);
+						}
+					}
+					_open = true;
+				}
+			}
+			
+			private function saveSizeAndPosition():void {
+				var preferences:PreferencesManager = PreferencesManager.getInstance();
+				preferences.setPreference('lockerPosition', [x,y]);
+				preferences.setPreference('lockerSize', [width, height]);
+			}
+			
+			public static function close():void {
+				if (_open && _instance) {
+					PopUpManager.removePopUp(_instance);
+					_open = false;
+				}
+			}
+			
+			private function handleCreationComplete():void {
+				addEventListener(ResizeManager.RESIZE_END, function(event:ResizeEvent):void {
+					saveSizeAndPosition();
+				});
+				addEventListener(TitleWindowBoundsEvent.WINDOW_MOVE_END, function(event:TitleWindowBoundsEvent):void {
+					saveSizeAndPosition();
+				});
+				
+				// Load initial data
+				avatarLocker.load();
+				
+				avatarUploader.addEventListener(StateChangeEvent.CURRENT_STATE_CHANGE, handleUploadStateChange);
+			}
+			
+			private function uploadAvatar():void {
+				if (avatarLocker.emptySlots > 0) {
+					avatarUploader.browse();
+				}
+				else {
+					Alert.show(
+						"You don't have enough space!  You'll have to delete some old crusty avatars to make room, or buy some more space.  Would you like to buy more space now?",
+						"Aww, man!",
+						Alert.YES | Alert.NO,
+						null,
+						function(event:CloseEvent):void {
+							if (event.detail === Alert.YES) {
+								showBuySlotsWindow();
+							}
+						}
+					); 
+				}
+			}
+			
+			private function handleUploadStateChange(event:StateChangeEvent):void {
+				if (event.newState == Uploader.STATE_READY) {
+					uploadButton.enabled = true;
+				}
+				else {
+					uploadButton.enabled = false;
+				}
+			}
+			
+			private function handleAvatarSelectionChanged(event:IndexChangeEvent):void {
+				var selectedAvatarInstance:AvatarInstance = avatarLocker.avatarInstances.getItemAt(event.newIndex) as AvatarInstance;
+				if (selectedAvatarInstance && selectedAvatarInstance.avatar) {
+					InteractivityClient.getInstance().setSimpleAvatar(selectedAvatarInstance.avatar.guid);
+				}
+			}
+			
+			private function showBuySlotsWindow():void {
+				BuyStorageSpaceWindow.open('avatar', systemManager.getSandboxRoot());
+			}
+
+		]]>
+	</fx:Script>
+	
+	
+	
+	<components:controlBarContent>
+		<components:CapacityButton
+			click="showBuySlotsWindow()"
+			line1="Capacity: {CurrentUser.getInstance().slots.avatarSlots}"
+			line2="Used: {avatarLocker.count}"
+			toolTip="Click to buy more locker space"/>
+		
+		<!--
+		<mx:Spacer width="20" />
+		<mx:LinkButton
+			styleName="topNavButton"
+			color="#B58B0B"
+			icon="@Embed(source='src/assets/icons/icon_marketplace.png')"
+			click="MarketplaceWindow.toggleOpen(systemManager.getSandboxRoot())"
+			label="Marketplace" />
+		-->
+	</components:controlBarContent>
+	
+	
+	<s:VGroup top="10" left="10" right="10" bottom="10" gap="10">
+		<s:HGroup width="100%" verticalAlign="middle">
+			<!--
+			<mx:LinkButton
+				styleName="lockerNavButton"
+				icon="@Embed(source='src/assets/icons/icon_avatar.png')"
+				color="#c18a13"
+				color.avatars="#000000"
+				click="currentState = 'avatars';"
+				label="Avatars" />
+			<mx:LinkButton
+				styleName="lockerNavButton"
+				icon="@Embed(source='src/assets/icons/icon_props.png')"
+				color="#c18a13"
+				color.props="#000000"
+				click="currentState = 'props';"
+				label="Props" />
+			-->
+			
+			<mx:Spacer width="100%" />
+			
+			<components:UploadProgressIndicator
+				uploader="{avatarUploader}" />
+			
+			<mx:LinkButton
+				id="uploadButton"
+				click="uploadAvatar()"
+				styleName="lockerNavButton"
+				color="#2b9610"
+				icon="@Embed(source='src/assets/icons/icon_upload.png')"
+				label="Upload" />
+		</s:HGroup>
+		<s:Group id="avatars" width="100%" height="100%">
+			<!--
+			<s:Rect top="0" right="0" left="0" bottom="0">
+				<s:stroke>
+					<s:SolidColorStroke color="#DDDDDD" weight="1" />
+				</s:stroke>
+			</s:Rect>
+			-->
+			<s:List top="1" right="1" left="1" bottom="1"
+					id="avatarsList" dataProvider="{avatarLocker.avatarInstances}"
+					borderVisible="false" change="handleAvatarSelectionChanged(event)"
+					itemRenderer="com.worlize.view.itemrenderers.LockerItemRenderer">
+				<s:layout>
+					<s:TileLayout verticalGap="10" horizontalGap="10" />
+				</s:layout>
+			</s:List>			
+		</s:Group>
+	</s:VGroup>
+
+</components:WorlizeWindow>
