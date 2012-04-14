@@ -1,6 +1,8 @@
 package com.worlize.model
 {
 	import com.adobe.utils.DateUtil;
+	import com.worlize.model.locker.AvatarLocker;
+	import com.worlize.model.locker.PropLocker;
 	import com.worlize.model.locker.Slots;
 	import com.worlize.rpc.HTTPMethod;
 	import com.worlize.rpc.WorlizeResultEvent;
@@ -13,13 +15,6 @@ package com.worlize.model
 	[Bindable]
 	public class CurrentUser
 	{
-		public function CurrentUser()
-		{
-			if (_instance !== null) {
-				throw new Error("You can only create one instance of CurrentUser");
-			}
-		}
-		
 		private static var _instance:CurrentUser;
 		
 		private var logger:ILogger = Log.getLogger("com.worlize.model.CurrentUser");
@@ -44,6 +39,12 @@ package com.worlize.model
 		public var worldName:String;
 		public var worldGuid:String;
 		
+		public function CurrentUser()
+		{
+			if (_instance !== null) {
+				throw new Error("You can only create one instance of CurrentUser");
+			}
+		}
 		public static function getInstance():CurrentUser {
 			if (_instance === null) {
 				_instance = new CurrentUser();
@@ -64,7 +65,7 @@ package com.worlize.model
 			slots.avatarSlots = data.avatar_slots;
 			slots.backgroundSlots = data.background_slots;
 			slots.inWorldObjectSlots = data.in_world_object_slots;
-			slots.propSlots = data.prop_lots;
+			slots.propSlots = data.prop_slots;
 			if (data.birthday) {
 				birthday = new Date(Date.parse(data.birthday.replace(/-/g, '/')));					
 			}

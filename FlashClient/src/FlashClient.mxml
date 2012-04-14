@@ -40,6 +40,8 @@
 			import com.worlize.model.PreferencesManager;
 			import com.worlize.model.WorlizeConfig;
 			import com.worlize.model.friends.FriendsList;
+			import com.worlize.model.locker.AvatarLocker;
+			import com.worlize.model.locker.PropLocker;
 			import com.worlize.notification.WorlizeNotification;
 			import com.worlize.rpc.HTTPMethod;
 			import com.worlize.rpc.WorlizeResultEvent;
@@ -261,6 +263,9 @@
 
 				NotificationCenter.addListener(AuthorModeNotification.AUTHOR_DISABLED, handleAuthorDisabled);
 				NotificationCenter.addListener(AuthorModeNotification.SELECTED_ITEM_CHANGED, handleAuthorSelectedItemChanged);
+				
+				PropLocker.getInstance().load();
+				AvatarLocker.getInstance().load();
 			}
 			
 			private var authorMode:Boolean = false;

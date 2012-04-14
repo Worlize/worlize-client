@@ -3,6 +3,7 @@ package com.worlize.model.locker
 	import com.worlize.event.LockerEvent;
 	import com.worlize.event.NotificationCenter;
 	import com.worlize.model.CurrentUser;
+	import com.worlize.model.Prop;
 	import com.worlize.model.PropInstance;
 	import com.worlize.model.gifts.Gift;
 	import com.worlize.model.gifts.GiftType;
@@ -16,6 +17,7 @@ package com.worlize.model.locker
 	import flash.events.IEventDispatcher;
 	
 	import mx.collections.ArrayCollection;
+	import mx.controls.Alert;
 	import mx.logging.ILogger;
 	import mx.logging.Log;
 	import mx.rpc.events.FaultEvent;
@@ -61,6 +63,16 @@ package com.worlize.model.locker
 			return _instance;
 		}
 		
+		public function hasPropGuid(guid:String):Boolean {
+			for each (var propInstance:PropInstance in propInstances) {
+				if (propInstance.emptySlot) { continue; }
+				if (propInstance.prop.guid === guid) {
+					return true;
+				}
+			}
+			return false;
+		}
+		
 		private function handlePropsLockerCapacityChanged(event:LockerEvent):void {
 			var oldCapacity:int = event.oldCapacity;
 			var newCapacity:int = event.newCapacity;
@@ -98,7 +110,7 @@ package com.worlize.model.locker
 			updateCount();
 		}
 		
-		public function getPropInstaceByGuid(guid:String):PropInstance {
+		public function getPropInstanceByGuid(guid:String):PropInstance {
 			for (var i:int = 0, len:int = propInstances.length; i < len; i++) {
 				var instance:PropInstance = PropInstance(propInstances.getItemAt(i));
 				if (instance.guid === guid) {
@@ -195,6 +207,30 @@ package com.worlize.model.locker
 		
 		private function handleFault(event:FaultEvent):void {
 			state = STATE_ERROR;
+		}
+
+		public function savePropFromRoom(propGuid:String):void {
+			if (hasPropGuid(propGuid)) {
+				Alert.show("You already have that prop in your locker.", "Save Prop");
+				return;
+			}
+			var client:WorlizeServiceClient = new WorlizeServiceClient();
+			client.addEventListener(WorlizeResultEvent.RESULT, handleSaveToLockerResult);
+			client.addEventListener(FaultEvent.FAULT, handleSaveToLockerFault);
+			client.send("/props/" + propGuid + "/save_to_locker.json", HTTPMethod.POST);
+		}
+	
+		private function handleSaveToLockerResult(event:WorlizeResultEvent):void {
+			if (event.resultJSON.success) {
+				// do nothing
+			}
+			else {
+				Alert.show(event.resultJSON.description, "Error");
+			}
+		}
+		
+		private function handleSaveToLockerFault(event:FaultEvent):void {
+			Alert.show("There was an unknown fault encountered while saving the prop to your locker.", "Error");
 		}
 	}
 }

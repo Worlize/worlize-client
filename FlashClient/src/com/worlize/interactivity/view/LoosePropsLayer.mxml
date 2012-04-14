@@ -13,6 +13,7 @@
 			import com.worlize.interactivity.model.LooseProp;
 			import com.worlize.interactivity.model.LoosePropList;
 			import com.worlize.interactivity.rpc.InteractivityClient;
+			import com.worlize.model.locker.PropLocker;
 			
 			import mx.controls.Menu;
 			import mx.core.DragSource;
@@ -130,8 +131,15 @@
 				
 				var index:int = getElementIndex(view);
 				
+				var locker:PropLocker = PropLocker.getInstance();
+				
 				var menuData:Array = [];
 				menuData.push({ type: 'normal', label: 'Remove Prop', action: 'removeProp', looseProp: view.looseProp });
+				menuData.push({ type: 'normal',
+								label: 'Save to Locker',
+								action: 'saveToLocker',
+								enabled: !locker.hasPropGuid(view.looseProp.prop.guid),
+								looseProp: view.looseProp });
 				
 				menuData.push({ type: 'separator' });
 				
@@ -167,6 +175,9 @@
 				switch (event.item.action) {
 					case "removeProp":
 						client.removeLooseProp(event.item.looseProp.id);
+						break;
+					case "saveToLocker":
+						PropLocker.getInstance().savePropFromRoom(event.item.looseProp.prop.guid);
 						break;
 					case "sendBackward":
 						client.sendLoosePropBackward(event.item.looseProp.id, 1);

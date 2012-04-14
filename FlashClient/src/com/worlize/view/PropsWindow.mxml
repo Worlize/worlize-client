@@ -8,6 +8,9 @@
 						  windowIcon="@Embed('assets/icons/large/w_icon_myprops.png')"
 						  minWidth="600" minHeight="200"
 						  creationComplete="handleCreationComplete()"
+						  dragEnter="handleDragEnter(event)"
+						  dragOver="handleDragOver(event)"
+						  dragDrop="handleDragDrop(event)"
 						  width="600" height="430" xmlns:locker="com.worlize.view.locker.*">
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
@@ -32,13 +35,16 @@
 			import mx.binding.utils.ChangeWatcher;
 			import mx.controls.Alert;
 			import mx.controls.Menu;
+			import mx.core.IUIComponent;
 			import mx.events.CloseEvent;
+			import mx.events.DragEvent;
 			import mx.events.IndexChangedEvent;
 			import mx.events.MenuEvent;
 			import mx.events.MoveEvent;
 			import mx.events.ResizeEvent;
 			import mx.events.StateChangeEvent;
 			import mx.graphics.SolidColor;
+			import mx.managers.DragManager;
 			import mx.managers.PopUpManager;
 			import mx.managers.SystemManager;
 			
@@ -120,7 +126,7 @@
 				});
 				
 				// Load initial data
-				propLocker.load();
+//				propLocker.load();
 				
 				propUploader.addEventListener(StateChangeEvent.CURRENT_STATE_CHANGE, handleUploadStateChange);
 			}
@@ -155,6 +161,30 @@
 			
 			private function showBuySlotsWindow():void {
 				BuyStorageSpaceWindow.open('prop', systemManager.getSandboxRoot());
+			}
+			
+			protected function handleDragEnter(event:DragEvent):void {
+				if (event.dragSource.hasFormat('propInRoom')) {
+					var data:Object = event.dragSource.dataForFormat('propInRoom');
+					if (!propLocker.hasPropGuid(data.looseProp.prop.guid)) {
+						DragManager.acceptDragDrop(event.target as IUIComponent);
+					}
+				}
+			}
+			
+			protected function handleDragOver(event:DragEvent):void {
+				if (event.dragSource.hasFormat('propInRoom')) {
+					DragManager.showFeedback(DragManager.COPY);
+				}
+			}
+			
+			protected function handleDragDrop(event:DragEvent):void {
+				if (event.dragSource.hasFormat('propInRoom')) {
+					var data:Object = event.dragSource.dataForFormat('propInRoom');
+					if (!propLocker.hasPropGuid(data.looseProp.prop.guid)) {
+						propLocker.savePropFromRoom(data.looseProp.prop.guid);
+					}
+				}
 			}
 			
 		]]>

@@ -126,7 +126,7 @@
 				});
 				
 				// Load initial data
-				avatarLocker.load();
+//				avatarLocker.load();
 				
 				avatarUploader.addEventListener(StateChangeEvent.CURRENT_STATE_CHANGE, handleUploadStateChange);
 			}
