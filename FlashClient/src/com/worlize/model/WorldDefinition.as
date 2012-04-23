@@ -36,13 +36,9 @@ package com.worlize.model
 		}
 		
 		public function load(worldGuid:String):void {
-			if (worldGuid === null || worldGuid === guid) { return; }
-			
-			// Reset data
-			name = null;
+			if (worldGuid === null) { return; }
+
 			guid = worldGuid;
-			canCreateNewRoom = false;
-			ownerGuid = null;
 			
 			var client:WorlizeServiceClient = new WorlizeServiceClient();
 			client.addEventListener(WorlizeResultEvent.RESULT, handleResult);
@@ -60,9 +56,18 @@ package com.worlize.model
 				this.roomList.updateFromData(event.resultJSON.data.rooms);
 				logger.info("Got worlz definition for " + this.name + " - " + this.guid);
 			}
+			else {
+				reset();
+			}
 		}
 		private function handleFault(event:FaultEvent):void {
-			/* Do nothing */
+			reset();
+		}
+		
+		public function reset():void {
+			name = null;
+			canCreateNewRoom = false;
+			ownerGuid = null;
 		}
 	}
 }
