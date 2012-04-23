@@ -32,6 +32,24 @@ package com.worlize.interactivity.model
 		public var simpleAvatar:SimpleAvatar;
 		public var videoAvatarStreamName:String;
 		public var showFace:Boolean = true;
+		public var facebookId:String;
+		
+		public function clone():InteractivityUser {
+			var u:InteractivityUser = new InteractivityUser();
+			u.isSelf = isSelf;
+			u.id = id;
+			u.name = name;
+			u.x = x;
+			u.y = y;
+			u._face = _face;
+			u.faceImage = faceImage;
+			u.color = color;
+			u.simpleAvatar = simpleAvatar;
+			u.videoAvatarStreamName = videoAvatarStreamName;
+			u.showFace = showFace;
+			u.facebookId = facebookId;
+			return u;
+		}
 		
 		[Bindable(event="faceChanged")]
 		public function set face(newValue:int):void {

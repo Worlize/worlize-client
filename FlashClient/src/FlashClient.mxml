@@ -29,6 +29,7 @@
 			import com.worlize.event.AuthorModeNotification;
 			import com.worlize.event.NotificationCenter;
 			import com.worlize.event.PreferencesEvent;
+			import com.worlize.event.SocialShareEvent;
 			import com.worlize.interactivity.event.InteractivityEvent;
 			import com.worlize.interactivity.event.InteractivitySecurityErrorEvent;
 			import com.worlize.interactivity.iptscrae.command.CLIENTTYPECommand;
@@ -52,6 +53,7 @@
 			import com.worlize.view.author.AuthorModePropertiesWindow;
 			import com.worlize.view.windows.DirectoryWindow;
 			import com.worlize.view.windows.GiftsWindow;
+			import com.worlize.view.windows.ScreenshotWindow;
 			import com.worlize.view.windows.WorldsWindow;
 			
 			import flash.desktop.Clipboard;
@@ -59,6 +61,7 @@
 			import flash.events.ErrorEvent;
 			import flash.net.navigateToURL;
 			import flash.sampler.getInvocationCount;
+			import flash.utils.setTimeout;
 			
 			import mx.binding.utils.ChangeWatcher;
 			import mx.controls.Alert;
@@ -477,6 +480,27 @@
 				addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, handleUncaughtError);
 			}
 			
+			protected function handleSnapshotRequested(event:SocialShareEvent):void {
+				var window:ScreenshotWindow = ScreenshotWindow.getInstance();
+				
+				var bitmapData:BitmapData = chatWindow.roomView.snapshot();
+				if (bitmapData === null) {
+					Alert.show("Restricted content in this room has prevented you from taking a snapshot.", "We're Sorry");
+					return;
+				}
+
+				window.bitmapData = bitmapData;
+				window.users = new Vector.<InteractivityUser>();
+				for each (var user:InteractivityUser in client.currentRoom.users) {
+					window.users.push(user.clone());
+				}
+				
+				ScreenshotWindow.open(systemManager.getSandboxRoot());
+				setTimeout(function():void {
+					window.encode();
+				}, 100);
+			}
+			
 		]]>
 	</fx:Script>
 
@@ -546,6 +570,7 @@
 				line2="Bucks: {worlizeUser.bucks}"
 				toolTip="Click to add coins or bucks"
 				click="showVirtualCurrencyProducts();"
+				height="32"
 				/>
 			
 			<components:SocialShareWidget
@@ -561,7 +586,8 @@
 				  facebookDescription="I'm online right now in Worlize, a stylish avatar chat hangout where you can be whatever you want.  Come join me!"
 				  currentRoom="{client.currentRoom}"
 				  currentWorld="{client.currentWorld}"
-				  paddingLeft="10" />
+				  snapshotRequested="handleSnapshotRequested(event)"
+				   />
 			
 			<!--
 			<mx:LinkButton

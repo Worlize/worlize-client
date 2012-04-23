@@ -176,6 +176,17 @@
 	
 	
 	<components:controlBarContent>
+		<components:UploadProgressIndicator
+			uploader="{avatarUploader}" />
+		
+		<mx:LinkButton
+			id="uploadButton"
+			click="uploadAvatar()"
+			styleName="lockerNavButton"
+			color="#2b9610"
+			icon="@Embed(source='src/assets/icons/icon_upload.png')"
+			label="Upload" />
+		
 		<components:CapacityButton
 			click="showBuySlotsWindow()"
 			line1="Capacity: {CurrentUser.getInstance().slots.avatarSlots}"
@@ -195,37 +206,6 @@
 	
 	
 	<s:VGroup top="10" left="10" right="10" bottom="10" gap="10">
-		<s:HGroup width="100%" verticalAlign="middle">
-			<!--
-			<mx:LinkButton
-				styleName="lockerNavButton"
-				icon="@Embed(source='src/assets/icons/icon_avatar.png')"
-				color="#c18a13"
-				color.avatars="#000000"
-				click="currentState = 'avatars';"
-				label="Avatars" />
-			<mx:LinkButton
-				styleName="lockerNavButton"
-				icon="@Embed(source='src/assets/icons/icon_props.png')"
-				color="#c18a13"
-				color.props="#000000"
-				click="currentState = 'props';"
-				label="Props" />
-			-->
-			
-			<mx:Spacer width="100%" />
-			
-			<components:UploadProgressIndicator
-				uploader="{avatarUploader}" />
-			
-			<mx:LinkButton
-				id="uploadButton"
-				click="uploadAvatar()"
-				styleName="lockerNavButton"
-				color="#2b9610"
-				icon="@Embed(source='src/assets/icons/icon_upload.png')"
-				label="Upload" />
-		</s:HGroup>
 		<s:Group id="avatars" width="100%" height="100%">
 			<!--
 			<s:Rect top="0" right="0" left="0" bottom="0">

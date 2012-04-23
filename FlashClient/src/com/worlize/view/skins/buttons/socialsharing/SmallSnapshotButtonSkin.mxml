@@ -61,7 +61,7 @@ in accordance with the terms of the license agreement accompanying it.
 		<s:State name="disabled" />
 	</s:states>
 	
-	<s:Image source="@Embed(source='src/assets/icons/social/fb-32.png')"
+	<s:Image source="@Embed(source='src/assets/icons/social/camera-32.png')"
 			 filters="{filtersUp}"
 			 filters.over="{filtersOver}"
 			 />

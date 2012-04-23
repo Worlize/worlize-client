@@ -246,3 +246,13 @@ s|Label.friendsListTitle {
 	paddingLeft: 4px;
 	paddingRight: 4px;
 }
+
+s|Label.snapshotOverlay {
+	fontFamily: PTSansNarrowBold;
+	fontSize: 24pt;
+	paddingTop: 10px;
+	paddingBottom: 10px;
+	paddingRight: 20px;
+	paddingLeft: 20px;
+	color: #FFFFFF;
+}

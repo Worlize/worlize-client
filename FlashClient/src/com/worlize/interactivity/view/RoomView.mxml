@@ -67,6 +67,7 @@
 			import mx.events.FlexEvent;
 			import mx.events.MenuEvent;
 			import mx.events.PropertyChangeEvent;
+			import mx.graphics.codec.JPEGEncoder;
 			import mx.logging.ILogger;
 			import mx.logging.Log;
 			import mx.managers.DragManager;
@@ -886,6 +887,22 @@
 					lastY = mouseY;
 					dispatchEvent(new MouseEvent("customMouseMove", false, false, mouseX, mouseY, null, false, false, false, false, 0));
 				}
+			}
+			
+			public function snapshot():BitmapData {
+				var bitmapData:BitmapData = new BitmapData(width, height, false);
+				try {
+					bitmapData.draw(this);
+				}
+				catch(e:Error) {
+					return null;
+				}
+				return bitmapData;
+			}
+			
+			public function snapshotJPEG():ByteArray {
+				var encoder:JPEGEncoder = new JPEGEncoder(90);
+				return encoder.encode(snapshot());
 			}
 			
 		]]>

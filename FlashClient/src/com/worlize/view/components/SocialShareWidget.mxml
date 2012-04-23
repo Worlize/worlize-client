@@ -2,14 +2,19 @@
 <s:HGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
 		  xmlns:s="library://ns.adobe.com/flex/spark" 
 		  xmlns:mx="library://ns.adobe.com/flex/mx"
-		  verticalAlign="middle" gap="1">
+		  verticalAlign="middle" gap="3">
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
 	
+	<fx:Metadata>
+		[Event(name="snapshotRequested",type="com.worlize.event.SocialShareEvent")]
+	</fx:Metadata>
+	
 	<fx:Script>
 		<![CDATA[
 			import com.worlize.components.visualnotification.VisualNotification;
+			import com.worlize.event.SocialShareEvent;
 			import com.worlize.interactivity.model.CurrentRoom;
 			import com.worlize.interactivity.rpc.InteractivityClient;
 			import com.worlize.model.WorldDefinition;
@@ -96,6 +101,10 @@
 				EmbedCodeWindow.open(systemManager.getSandboxRoot());
 			}
 			
+			private function handleSnapshotButtonClick(event:MouseEvent):void {
+				dispatchEvent(new SocialShareEvent(SocialShareEvent.SNAPSHOT_REQUESTED));
+			}
+			
 			private function getFacebookPicture():String {
 				if (facebookPicture) {
 					return facebookPicture;
@@ -111,22 +120,21 @@
 		]]>
 	</fx:Script>
 	
-	<s:Label text="SHARE:"
-			 paddingTop="2"
-			 fontFamily="PTSansNarrowBold"
-			 fontSize="14"
-			 paddingRight="3"
-			 color="#333333" />
-	<s:Button id="shareTwitterButton"
-			  tabEnabled="false"
-			  click="handleShareTwitterButtonClick(event)"
-			  skinClass="com.worlize.view.skins.buttons.socialsharing.SmallTweetButtonSkin"
-			  toolTip="Post {description} on Twitter." />
 	<s:Button id="shareFacebookButton"
 			  tabEnabled="false"
 			  click="handleShareFacebookButtonClick(event)"
 			  skinClass="com.worlize.view.skins.buttons.socialsharing.SmallFacebookButtonSkin"
 			  toolTip="Post {description} on Facebook." />
+	<s:Button id="shareTwitterButton"
+			  tabEnabled="false"
+			  click="handleShareTwitterButtonClick(event)"
+			  skinClass="com.worlize.view.skins.buttons.socialsharing.SmallTweetButtonSkin"
+			  toolTip="Post {description} on Twitter." />
+	<s:Button id="snapshotButton"
+			  tabEnabled="false"
+			  click="handleSnapshotButtonClick(event)"
+			  skinClass="com.worlize.view.skins.buttons.socialsharing.SmallSnapshotButtonSkin"
+			  toolTip="Post Snapshot to Facebook" />
 	<s:Button id="shareLinkButton"
 			  tabEnabled="false"
 			  click="handleShareLinkButtonClick(event)"
@@ -137,5 +145,6 @@
 			  click="handleEmbedButtonClick(event)"
 			  skinClass="com.worlize.view.skins.buttons.socialsharing.SmallEmbedButtonSkin"
 			  toolTip="Get Embed Code." />
+
 	
 </s:HGroup>

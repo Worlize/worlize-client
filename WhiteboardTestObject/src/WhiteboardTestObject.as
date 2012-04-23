@@ -3,8 +3,12 @@ package
 	import com.worlize.api.WorlizeAPI;
 	import com.worlize.api.event.MessageEvent;
 	
+	import flash.display.Bitmap;
+	import flash.display.BitmapData;
 	import flash.display.Sprite;
 	import flash.events.MouseEvent;
+	
+	import mx.core.BitmapAsset;
 	
 	public class WhiteboardTestObject extends Sprite
 	{
@@ -18,12 +22,18 @@ package
 		public var blackSwatch:ColorSwatch;
 		public var currentSwatch:ColorSwatch;
 		
+		[Embed(source="eraser.png")]
+		public var eraserImage:Class;
+		public var eraserBitmapData:BitmapData;
+		
 		public function WhiteboardTestObject()
 		{
-			WorlizeAPI.options.defaultWidth = 500;
-			WorlizeAPI.options.defaultHeight = 375;
+			WorlizeAPI.options.defaultWidth = 405;
+			WorlizeAPI.options.defaultHeight = 335;
 			WorlizeAPI.options.resizableByUser = false;
 			WorlizeAPI.options.name = "Whiteboard Test App";
+			
+			initAssets();
 			
 			api = WorlizeAPI.init(this);
 			
@@ -47,18 +57,34 @@ package
 			var currentX:int = 1;
 			for each (var color:uint in colors) {
 				var swatch:ColorSwatch = new ColorSwatch(color);
-				addChild(swatch);
+//				addChild(swatch);
 				swatch.x = currentX;
 				swatch.y = 1;
 				currentX += 25;
 			}
 			
 			currentSwatch = new ColorSwatch(0x000000);
-			addChild(currentSwatch);
+//			addChild(currentSwatch);
 			currentSwatch.x = api.thisObject.width-26;
 			currentSwatch.y = 1;
 			
 			addEventListener(MouseEvent.CLICK, handleClick);
+			
+			var eraserSprite:Sprite = new Sprite();
+			var eraserBitmap:Bitmap = new Bitmap(eraserBitmapData);
+			eraserBitmap.x = api.thisObject.width / 2 - eraserBitmap.width / 2;
+			eraserBitmap.y = api.thisObject.height - eraserBitmap.height;
+			eraserSprite.addChild(eraserBitmap);
+			addChild(eraserSprite);
+			eraserSprite.addEventListener(MouseEvent.CLICK, handleEraserClick);
+		}
+		
+		private function initAssets():void {
+			eraserBitmapData = BitmapAsset(new eraserImage()).bitmapData;
+		}
+		
+		private function handleEraserClick(event:MouseEvent):void {
+			canvas.eraseCanvas();
 		}
 		
 		private function handleMessageReceived(event:MessageEvent):void {

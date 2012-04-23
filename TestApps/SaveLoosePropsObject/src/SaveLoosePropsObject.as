@@ -21,11 +21,11 @@ package
 			
 			api.thisRoom.addEventListener(ChatEvent.OUTGOING_CHAT, handleOutgoingChat);
 			
-			api.thisRoom.addEventListener(LoosePropEvent.PROP_ADDED, handlePropAdded);
-			api.thisRoom.addEventListener(LoosePropEvent.PROP_MOVED, handlePropMoved);
-			api.thisRoom.addEventListener(LoosePropEvent.PROP_REMOVED, handlePropRemoved);
-			api.thisRoom.addEventListener(LoosePropEvent.PROP_LAYER_CHANGED, handlePropLayerChanged);
-			api.thisRoom.addEventListener(LoosePropEvent.PROPS_CLEARED, handlePropsCleared);
+//			api.thisRoom.addEventListener(LoosePropEvent.PROP_ADDED, handlePropAdded);
+//			api.thisRoom.addEventListener(LoosePropEvent.PROP_MOVED, handlePropMoved);
+//			api.thisRoom.addEventListener(LoosePropEvent.PROP_REMOVED, handlePropRemoved);
+//			api.thisRoom.addEventListener(LoosePropEvent.PROP_LAYER_CHANGED, handlePropLayerChanged);
+//			api.thisRoom.addEventListener(LoosePropEvent.PROPS_CLEARED, handlePropsCleared);
 			
 			// Restore previously saved props
 			if (api.thisRoom.users.length === 1 &&
@@ -60,51 +60,51 @@ package
 				event.preventDefault();
 				saveLooseProps();
 			}
-			else if (event.originalText === 'scramble') {
-				event.preventDefault();
-				for each (looseProp in api.thisRoom.looseProps) {
-					looseProp.moveTo(
-						Math.ceil(Math.random()*950),
-						Math.ceil(Math.random()*570)
-					);
-				}
-			}
-			else if (event.originalText === 'remove') {
-				event.preventDefault();
-				var looseProps:Vector.<LooseProp> = api.thisRoom.looseProps;
-				
-				looseProp = looseProps[Math.ceil(Math.random()*looseProps.length)];
-				looseProp.remove();
-			}
+//			else if (event.originalText === 'scramble') {
+//				event.preventDefault();
+//				for each (looseProp in api.thisRoom.looseProps) {
+//					looseProp.moveTo(
+//						Math.ceil(Math.random()*950),
+//						Math.ceil(Math.random()*570)
+//					);
+//				}
+//			}
+//			else if (event.originalText === 'remove') {
+//				event.preventDefault();
+//				var looseProps:Vector.<LooseProp> = api.thisRoom.looseProps;
+//				
+//				looseProp = looseProps[Math.ceil(Math.random()*looseProps.length)];
+//				looseProp.remove();
+//			}
 		}
 		
 		// **************************
 		// Begin test functions
 		
 		
-		private function handlePropAdded(event:LoosePropEvent):void {
-			api.log("Prop " + event.looseProp.id + " - " + event.looseProp.prop.guid + " added at " + event.looseProp.x + "," + event.looseProp.y);
-		}
-		
-		private function handlePropRemoved(event:LoosePropEvent):void {
-			api.log("Prop " + event.looseProp.id + " - " + event.looseProp.prop.guid + " removed.");
-		}
-		
-		private function handlePropMoved(event:LoosePropEvent):void {
-			api.log("Prop " + event.looseProp.id + " moved to " + event.looseProp.x + "," + event.looseProp.y);
-		}
-		
-		private function handlePropsCleared(event:LoosePropEvent):void {
-			api.log("Props cleared.");
-		}
-		
-		private function handlePropLayerChanged(event:LoosePropEvent):void {
-			api.log("Prop " + event.looseProp.id + " layer changed from " + event.oldIndex + " to " + event.newIndex + ".  Delta: " + event.delta);
-			var order:Array = [];
-			for (var i:int = 0; i < api.thisRoom.looseProps.length; i++) {
-				order.push(api.thisRoom.looseProps[i].id);
-			}
-			api.log("New prop order: " + order.join(', '));
-		}
+//		private function handlePropAdded(event:LoosePropEvent):void {
+//			api.log("Prop " + event.looseProp.id + " - " + event.looseProp.prop.guid + " added at " + event.looseProp.x + "," + event.looseProp.y);
+//		}
+//		
+//		private function handlePropRemoved(event:LoosePropEvent):void {
+//			api.log("Prop " + event.looseProp.id + " - " + event.looseProp.prop.guid + " removed.");
+//		}
+//		
+//		private function handlePropMoved(event:LoosePropEvent):void {
+//			api.log("Prop " + event.looseProp.id + " moved to " + event.looseProp.x + "," + event.looseProp.y);
+//		}
+//		
+//		private function handlePropsCleared(event:LoosePropEvent):void {
+//			api.log("Props cleared.");
+//		}
+//		
+//		private function handlePropLayerChanged(event:LoosePropEvent):void {
+//			api.log("Prop " + event.looseProp.id + " layer changed from " + event.oldIndex + " to " + event.newIndex + ".  Delta: " + event.delta);
+//			var order:Array = [];
+//			for (var i:int = 0; i < api.thisRoom.looseProps.length; i++) {
+//				order.push(api.thisRoom.looseProps[i].id);
+//			}
+//			api.log("New prop order: " + order.join(', '));
+//		}
 	}
 }

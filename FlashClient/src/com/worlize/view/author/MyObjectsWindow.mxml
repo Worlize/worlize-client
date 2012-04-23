@@ -141,14 +141,6 @@
 	</fx:Script>
 	
 	<components:controlBarContent>
-		<components:CapacityButton
-			click="showBuySlotsWindow()"
-			line1="Capacity: {CurrentUser.getInstance().slots.inWorldObjectSlots}"
-			line2="Used: {inWorldObjectLocker.count}"
-			toolTip="Click to buy more locker space"/>
-	</components:controlBarContent>
-	
-	<s:HGroup right="10" top="5" gap="10" verticalAlign="middle">
 		<components:UploadProgressIndicator
 			uploader="{uploader}" />
 		
@@ -160,10 +152,15 @@
 			color="#2b9610"
 			icon="@Embed(source='src/assets/icons/icon_upload.png')"
 			label="Upload" />
-	</s:HGroup>
+		
+		<components:CapacityButton
+			click="showBuySlotsWindow()"
+			line1="Capacity: {CurrentUser.getInstance().slots.inWorldObjectSlots}"
+			line2="Used: {inWorldObjectLocker.count}"
+			toolTip="Click to buy more locker space"/>
+	</components:controlBarContent>
 	
-	
-	<s:List top="40" right="10" left="10" bottom="10"
+	<s:List top="10" right="10" left="10" bottom="10"
 			id="inWorldObjectsList" dataProvider="{inWorldObjectLocker.instances}"
 			borderVisible="false"
 			itemRenderer="com.worlize.view.itemrenderers.InWorldObjectLockerItemRenderer">

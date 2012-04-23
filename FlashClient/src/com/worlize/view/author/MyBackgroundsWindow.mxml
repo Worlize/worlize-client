@@ -180,17 +180,9 @@
 	
 	
 	<components:controlBarContent>
-		<components:CapacityButton
-			click="showBuySlotsWindow()"
-			line1="Capacity: {CurrentUser.getInstance().slots.backgroundSlots}"
-			line2="Used: {backgroundsLocker.count}"
-			toolTip="Click to buy more locker space"/>
-	</components:controlBarContent>
-
-	<s:HGroup right="10" top="5" gap="10" verticalAlign="middle">
 		<components:UploadProgressIndicator
 			uploader="{uploader}" />
-
+		
 		<mx:LinkButton
 			id="uploadButton"
 			click="uploadBackground()"
@@ -199,9 +191,15 @@
 			color="#2b9610"
 			icon="@Embed(source='src/assets/icons/icon_upload.png')"
 			label="Upload" />
-	</s:HGroup>
-	
-	<s:List top="40" right="10" left="10" bottom="10"
+		
+		<components:CapacityButton
+			click="showBuySlotsWindow()"
+			line1="Capacity: {CurrentUser.getInstance().slots.backgroundSlots}"
+			line2="Used: {backgroundsLocker.count}"
+			toolTip="Click to buy more locker space"/>
+	</components:controlBarContent>
+
+	<s:List top="10" right="10" left="10" bottom="10"
 			id="backgroundImagesList" dataProvider="{backgroundsLocker.backgroundInstances}"
 			borderVisible="false"
 			change="handleBackgroundChange(event)"
