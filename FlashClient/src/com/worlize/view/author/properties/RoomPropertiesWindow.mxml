@@ -143,9 +143,8 @@
 				var serviceClient:WorlizeServiceClient = new WorlizeServiceClient();
 				serviceClient.addEventListener(WorlizeResultEvent.RESULT, function(event:WorlizeResultEvent):void {
 					if (event.resultJSON.success) {
-						var notification:RoomChangeNotification = new RoomChangeNotification(RoomChangeNotification.ROOM_DELETED);
-						notification.roomGuid = client.currentRoom.id;
-						NotificationCenter.postNotification(notification);
+						// Notification that the room is deleted will come through
+						// the Websocket connection.
 						close();
 					}
 					else { 

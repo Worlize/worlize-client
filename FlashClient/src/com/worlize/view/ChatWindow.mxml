@@ -260,9 +260,6 @@
 				if (RoomListDataGrid.closedAt && RoomListDataGrid.closedAt.valueOf() > (new Date()).valueOf() - 200) {
 					return;
 				} 
-				if (client.currentWorld.guid) {
-					client.currentWorld.load(client.currentWorld.guid);
-				}
 				var roomList:RoomListDataGrid = new RoomListDataGrid();
 				roomList.x = stage.mouseX + 15;
 				roomList.y = stage.mouseY + 15;

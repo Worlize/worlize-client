@@ -228,6 +228,9 @@ package com.worlize.interactivity.rpc
 			"room_entry_granted": handleRoomEntryGranted,
 			"lock_room": handleLockRoom,
 			"remove_loose_prop": handleRemoveLooseProp,
+			"room_created": handleRoomCreated,
+			"room_destroyed": handleRoomDestroyed,
+			"room_updated": handleRoomUpdated,
 			"room_msg": handleRoomMsg,
 			"room_population_update": handleRoomPopulationUpdate,
 			"room_redirect": handleRoomRedirect,
@@ -1106,6 +1109,25 @@ package com.worlize.interactivity.rpc
 			apiController.roomUnlocked(data.user);
 		}
 		
+		private function handleRoomCreated(data:Object):void {
+			var notification:RoomChangeNotification = new RoomChangeNotification(RoomChangeNotification.ROOM_ADDED);
+			notification.roomListEntry = RoomListEntry.fromData(data);
+			NotificationCenter.postNotification(notification);
+		}
+		
+		private function handleRoomDestroyed(data:Object):void {
+			var notification:RoomChangeNotification = new RoomChangeNotification(RoomChangeNotification.ROOM_DELETED);
+			notification.roomGuid = data.guid;
+			notification.worldGuid = data.world_guid;
+			NotificationCenter.postNotification(notification);
+		}
+		
+		private function handleRoomUpdated(data:Object):void {
+			var notification:RoomChangeNotification = new RoomChangeNotification(RoomChangeNotification.ROOM_UPDATED);
+			notification.roomListEntry = RoomListEntry.fromData(data);
+			NotificationCenter.postNotification(notification);
+		}
+		
 		private function handleRoomMsg(data:Object):void {
 			currentRoom.roomMessage(data.text);
 		}
@@ -1616,9 +1638,10 @@ package com.worlize.interactivity.rpc
 			var client:WorlizeServiceClient = new WorlizeServiceClient();
 			client.addEventListener(WorlizeResultEvent.RESULT, function(event:WorlizeResultEvent):void {
 				if (event.resultJSON.success) {
-					var notification:RoomChangeNotification = new RoomChangeNotification(RoomChangeNotification.ROOM_ADDED);
-					NotificationCenter.postNotification(notification);
-					gotoRoom(event.resultJSON.data.room_guid);
+					// notification that the room has been created will come through
+					// the websocket connection.
+					var roomListEntry:RoomListEntry = RoomListEntry.fromData(event.resultJSON.data.room);
+					gotoRoom(roomListEntry.guid);
 				}
 				else {
 					Alert.show("There was an error while trying to create the new area.", "Error");

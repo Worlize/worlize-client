@@ -3,6 +3,7 @@ package com.worlize.model
 	import com.worlize.rpc.WorlizeResultEvent;
 	import com.worlize.rpc.WorlizeServiceClient;
 	
+	import flash.events.Event;
 	import flash.events.EventDispatcher;
 	
 	import mx.collections.ArrayCollection;
@@ -34,6 +35,38 @@ package com.worlize.model
 				count += room.userCount;
 			}
 			return count;
+		}
+		
+		public function addRoom(entry:RoomListEntry):void {
+			for each (var existingEntry:RoomListEntry in rooms) {
+				if (existingEntry.guid === entry.guid) {
+					return;
+				}
+			}
+			rooms.addItem(entry);
+		}
+		
+		public function removeRoomByGuid(roomGuid:String):void {
+			for (var i:int = 0; i < rooms.length; i++) {
+				var entry:RoomListEntry = RoomListEntry(rooms.getItemAt(i));
+				if (entry.guid === roomGuid) {
+					rooms.removeItemAt(i);
+					return;
+				}
+			}
+		}
+		
+		public function updateRoom(entry:RoomListEntry):void {
+			for (var i:int = 0; i < rooms.length; i++) {
+				var existingEntry:RoomListEntry = RoomListEntry(rooms.getItemAt(i));
+				if (existingEntry.guid === entry.guid) {
+					existingEntry.name = entry.name;
+					existingEntry.thumbnail = entry.thumbnail;
+					rooms.removeItemAt(i);
+					rooms.addItemAt(entry, i);
+					return;
+				}
+			}
 		}
 		
 		public function updateFromData(data:Array):void {

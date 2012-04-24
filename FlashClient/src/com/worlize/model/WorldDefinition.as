@@ -27,17 +27,33 @@ package com.worlize.model
 		
 		public function WorldDefinition()
 		{
-			NotificationCenter.addListener(RoomChangeNotification.ROOM_DELETED, handleRoomListChanged);
-			NotificationCenter.addListener(RoomChangeNotification.ROOM_ADDED, handleRoomListChanged);
+			NotificationCenter.addListener(RoomChangeNotification.ROOM_DELETED, handleRoomRemoved);
+			NotificationCenter.addListener(RoomChangeNotification.ROOM_ADDED, handleRoomAdded);
+			NotificationCenter.addListener(RoomChangeNotification.ROOM_UPDATED, handleRoomUpdated);
 		}
 		
-		private function handleRoomListChanged(notification:RoomChangeNotification):void {
-			load(guid);
+		private function handleRoomAdded(notification:RoomChangeNotification):void {
+			if (notification.roomListEntry.worldGuid === guid) {
+				roomList.rooms.addItem(notification.roomListEntry);
+			}
+		}
+		
+		private function handleRoomRemoved(notification:RoomChangeNotification):void {
+			if (notification.worldGuid === guid) {
+				roomList.removeRoomByGuid(notification.roomGuid);
+			}
+		}
+		
+		private function handleRoomUpdated(notification:RoomChangeNotification):void {
+			if (notification.roomListEntry.worldGuid === guid) {
+				roomList.updateRoom(notification.roomListEntry);
+			}
 		}
 		
 		public function load(worldGuid:String):void {
 			if (worldGuid === null) { return; }
 
+			reset();
 			guid = worldGuid;
 			
 			var client:WorlizeServiceClient = new WorlizeServiceClient();

@@ -438,6 +438,10 @@ package com.worlize.interactivity.iptscrae
 			return client.currentRoom.id;
 		}
 		
+		public function getWorldId():String {
+			return client.currentWorld.guid;
+		}
+		
 		public function setScriptAlarm(tokenList:IptTokenList, spotId:int, futureTime:int):void {
 			var context:WorlizeIptExecutionContext = new WorlizeIptExecutionContext(scriptManager);
 			context.hotspotId = spotId;

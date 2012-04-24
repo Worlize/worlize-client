@@ -68,7 +68,8 @@ package com.worlize.interactivity.iptscrae
 			"WHOME": USERIDCommand,
 			"WHONAME": WHONAMECommand,
 			"WHOPOS": WHOPOSCommand,
-			"WHOTARGET": WHOTARGETCommand
+			"WHOTARGET": WHOTARGETCommand,
+			"WORLDID": WORLDIDCommand
 		};
 	}
 }
