@@ -207,6 +207,7 @@ package com.worlize.interactivity.rpc
 			"hotspot_dest_updated": handleHotspotDestUpdated,
 			"in_world_object_instance_added": handleInWorldObjectInstanceAdded,
 			"invitation_to_join_friend": handleInvitationToJoinFriend,
+			"lock_room": handleLockRoom,
 			"logged_out": handleLoggedOut,
 			"move": handleMove,
 			"move_loose_prop": handleMoveLooseProp,
@@ -223,11 +224,11 @@ package com.worlize.interactivity.rpc
 			"prop_instance_added": handlePropInstanceAdded,
 			"prop_instance_deleted": handlePropInstanceDeleted,
 			"request_permission_to_join": handleRequestPermissionToJoin,
+			"remove_loose_prop": handleRemoveLooseProp,
 			"room_definition": handleRoomDefinition,
+			"room_definition_updated": handleRoomDefinitionUpdated,
 			"room_entry_denied": handleRoomEntryDenied,
 			"room_entry_granted": handleRoomEntryGranted,
-			"lock_room": handleLockRoom,
-			"remove_loose_prop": handleRemoveLooseProp,
 			"room_created": handleRoomCreated,
 			"room_destroyed": handleRoomDestroyed,
 			"room_updated": handleRoomUpdated,
@@ -1071,6 +1072,30 @@ package com.worlize.interactivity.rpc
 			// sound for every single one of them so we set this flag to true
 			// until we receive the user_enter message for ourself.
 			receivingInitialRoomOccupants = true;
+		}
+		
+		private function handleRoomDefinitionUpdated(data:Object):void {
+			if (data.guid === currentRoom.id) {
+				logger.info("Room definition updated: " + JSON.stringify(data.changes));
+				for (var key:String in data.changes) {
+					var oldValue:* = data.changes[key][0];
+					var newValue:* = data.changes[key][1];
+					switch (key) {
+						case "name":
+							currentRoom.name = newValue;
+							break;
+						case "background":
+							currentRoom.backgroundFile = newValue;
+							break;
+						default:
+							logger.warn("Unsupported change of room definition property " + key + " to " + JSON.stringify(newValue));
+							break;
+					}
+				}
+			}
+			else {
+				logger.warn("Room definition update received for incorrect room: " + JSON.stringify(data));
+			}
 		}
 		
 		private function handleRoomEntryDenied(data:Object):void {
