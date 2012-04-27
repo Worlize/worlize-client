@@ -1,5 +1,7 @@
 package com.worlize.model
 {
+	import mx.utils.ObjectProxy;
+
 	[Bindable]
 	public class RoomListEntry
 	{
@@ -8,6 +10,9 @@ package com.worlize.model
 		public var guid:String;
 		public var thumbnail:String;
 		public var worldGuid:String;
+		public var hidden:Boolean;
+		public var locked:Boolean;
+		public var properties:ObjectProxy;
 		
 		public static function fromData(data:Object):RoomListEntry {
 			var obj:RoomListEntry = new RoomListEntry();
@@ -15,10 +20,45 @@ package com.worlize.model
 			obj.userCount = data.user_count;
 			obj.guid = data.guid;
 			obj.worldGuid = data.world_guid;
+			obj.hidden = data.hidden;
+			obj.locked = data.locked;
+			obj.properties = new ObjectProxy(data.properties);
 			if (data.thumbnail) {
 				obj.thumbnail = data.thumbnail;				
 			}
 			return obj;
+		}
+		
+		public function clone():RoomListEntry {
+			var e:RoomListEntry = new RoomListEntry();
+			e.name = name;
+			e.userCount = userCount;
+			e.guid = guid;
+			e.thumbnail = thumbnail;
+			e.worldGuid = worldGuid;
+			e.hidden = hidden;
+			e.locked = locked;
+			e.properties = new ObjectProxy();
+			for (var key:String in properties) {
+				e.properties[key] = properties[key];
+			}
+			return e;
+		}
+		
+		public function toJSON(k:String):* {
+			var props:Object = {};
+			for (var key:String in properties) {
+				props[key] = properties[key];
+			}
+			return {
+				name: name,
+				userCount: userCount,
+				guid: guid,
+				thumbnail: thumbnail,
+				hidden: hidden,
+				locked: locked,
+				properties: props
+			};
 		}
 	}
 }

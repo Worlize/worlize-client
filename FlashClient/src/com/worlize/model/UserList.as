@@ -1,5 +1,6 @@
 package com.worlize.model
 {
+	import com.worlize.interactivity.rpc.InteractivityClient;
 	import com.worlize.rpc.HTTPMethod;
 	import com.worlize.rpc.WorlizeResultEvent;
 	import com.worlize.rpc.WorlizeServiceClient;
@@ -39,6 +40,16 @@ package com.worlize.model
 			users.refresh();
 		}
 		
+		public function clone():UserList {
+			var ul:UserList = new UserList();
+			ul.state = state;
+			ul.worldGuid = worldGuid;
+			for each (var entry:UserListEntry in users) {
+				ul.users.addItem(entry.clone());
+			}
+			return ul;
+		}
+		
 		
 		public function load(worldGuid:String=null):void {
 			if (worldGuid) {
@@ -48,13 +59,14 @@ package com.worlize.model
 			state = STATE_LOADING;
 			var client:WorlizeServiceClient = new WorlizeServiceClient();
 			client.addEventListener(WorlizeResultEvent.RESULT, function(event:WorlizeResultEvent):void {
+				var roomList:RoomList = InteractivityClient.getInstance().currentWorld.roomList;
 				if (event.resultJSON.success) {
 					users.disableAutoUpdate();
 					users.removeAll();
 					for each (var userListEntry:Object in event.resultJSON.data) {
-						users.addItem(UserListEntry.fromData(userListEntry));
+						users.addItem(UserListEntry.fromData(userListEntry, roomList));
 					}
-					users.enableAutoUpdate();				
+					users.enableAutoUpdate();
 					state = STATE_READY;
 				}
 				else {

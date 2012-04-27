@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:HGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 width="100%" height="100%"
+		 paddingTop="10" paddingLeft="10" paddingRight="10" paddingBottom="10" xmlns:properties="com.worlize.view.author.properties.*">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.interactivity.rpc.InteractivityClient;
+			import com.worlize.model.RoomListEntry;
+			import com.worlize.model.WorldDefinition;
+			
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			
+			import spark.events.ListEvent;
+			[Bindable]
+			public var world:WorldDefinition;
+			
+			[Bindable]
+			public var selectedRoom:RoomListEntry;
+			
+			protected function createRoom():void {
+				InteractivityClient.getInstance().createNewRoom("Untitled Room", false);
+			}
+			
+			private function deleteRoom():void {
+				Alert.show("Are you sure you want to delete \"" + RoomListEntry(roomList.selectedItem).name + "\"?", "Delete Room",
+					Alert.YES | Alert.NO,
+					null,
+					handleDeleteConfirmationClose,
+					null,
+					Alert.NO);
+			}
+			
+			private function handleDeleteConfirmationClose(event:CloseEvent):void {
+				if (event.detail === Alert.YES) {
+					InteractivityClient.getInstance().deleteRoom(RoomListEntry(roomList.selectedItem).guid);
+					roomList.dataProvider.removeItemAt(roomList.selectedIndex);
+				}				
+			}
+			
+			
+			protected function handleRoomListDoubleClick(event:ListEvent):void {
+				InteractivityClient.getInstance().gotoRoom(RoomListEntry(event.item).guid);
+			}
+			
+			protected function handleRoomListCreationComplete():void {
+				roomList.addEventListener('itemDoubleClick', handleRoomListDoubleClick);
+			}
+			
+			protected function handleRoomListKeyDown(event:KeyboardEvent):void {
+				if (roomList.selectedItem !== null) {
+					switch (event.keyCode) {
+						case Keyboard.BACKSPACE:
+						case Keyboard.DELETE:
+							deleteRoom();
+							break;
+					}
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<s:VGroup width="200" height="100%">
+		<s:List width="100%" height="100%"
+				creationComplete="handleRoomListCreationComplete()"
+				toolTip="Drag to sort.  The first room will be the main entrance to your world."
+				id="roomList"
+				labelField="name"
+				dragEnabled="true"
+				dropEnabled="true"
+				dragMoveEnabled="true"
+				doubleClickEnabled="true"
+				dataProvider="{world.roomList.rooms}"
+				keyDown="handleRoomListKeyDown(event)"
+				selectedItem="{selectedRoom}">
+			<s:itemRenderer>
+				<fx:Component>
+					<s:ItemRenderer doubleClick="handleDoubleClick()" doubleClickEnabled="true">
+						<fx:Script>
+							<![CDATA[
+								import spark.components.List;
+								import spark.events.ListEvent;
+								private function handleDoubleClick():void {
+									var e:ListEvent = new ListEvent("itemDoubleClick");
+									e.item = data;
+									e.itemIndex = itemIndex;
+									owner.dispatchEvent(e);
+								}
+							]]>
+						</fx:Script>
+						<s:Label text="{data.name}" top="5" bottom="5" right="3" left="3" />
+					</s:ItemRenderer>
+				</fx:Component>
+			</s:itemRenderer>
+		</s:List>
+		<s:HGroup>
+			<s:Button id="createRoomButton" label="+" width="30"
+					  click="createRoom()"
+					  toolTip="Create a new room" />
+			<s:Button id="deleteRoomButton" label="-" width="30"
+					  toolTip="Delete the selected room"
+					  click="deleteRoom()"
+					  enabled="{roomList.selectedItem}" />
+		</s:HGroup>
+	</s:VGroup>
+	
+	<properties:RoomPropertiesEditor width="100%" height="100%"
+									 room="{roomList.selectedItem}" />
+	
+</s:HGroup>
+

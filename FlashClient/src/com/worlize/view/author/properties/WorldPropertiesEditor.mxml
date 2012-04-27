@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Form xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		
+		<mx:StringValidator source="{worldNameField}" property="text"
+							minLength="2" maxLength="60"
+							valid="handleNameValid(event)"
+							invalid="handleNameInvalid(event)"/>
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.model.WorldDefinition;
+			
+			import mx.events.ValidationResultEvent;
+			[Bindable]
+			public var world:WorldDefinition;
+			
+			[Bindable]
+			public var valid:Boolean = true;
+			
+			protected function handleNameValid(event:ValidationResultEvent):void {
+				valid = true;
+			}
+			
+			protected function handleNameInvalid(event:ValidationResultEvent):void {
+				valid = false;
+			}
+			
+		]]>
+	</fx:Script>
+	<s:layout>
+		<s:FormLayout paddingRight="10" />
+	</s:layout>
+	
+	<s:FormItem label="Name" required="true">
+		<s:TextInput id="worldNameField" text="@{world.name}" width="250" />
+		<s:helpContent>
+			<s:Label text="e.g. &quot;Joe's World&quot; or &quot;Turtle Town&quot;" />
+		</s:helpContent>
+	</s:FormItem>
+</s:Form>

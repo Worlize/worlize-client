@@ -231,6 +231,7 @@ package com.worlize.interactivity.rpc
 			"room_entry_granted": handleRoomEntryGranted,
 			"room_created": handleRoomCreated,
 			"room_destroyed": handleRoomDestroyed,
+			"room_list": handleRoomList,
 			"room_updated": handleRoomUpdated,
 			"room_msg": handleRoomMsg,
 			"room_population_update": handleRoomPopulationUpdate,
@@ -249,6 +250,7 @@ package com.worlize.interactivity.rpc
 			"user_enter": handleUserNew,
 			"user_leave": handleUserLeaving,
 			"whisper": handleReceiveWhisper,
+			"world_definition": handleWorldDefinition,
 			"youtube_load": handleYouTubeLoad,
 			"youtube_pause": handleYouTubePause,
 			"youtube_play": handleYouTubePlay,
@@ -294,7 +296,7 @@ package com.worlize.interactivity.rpc
 			webcamBroadcastManager.addEventListener(WebcamBroadcastEvent.BROADCAST_START, handleCameraBroadcastStart);
 			webcamBroadcastManager.addEventListener(WebcamBroadcastEvent.CAMERA_PERMISSION_REVOKED, handleCameraPermissionRevoked);
 			
-			currentWorld.load(worlizeConfig.interactivitySession.worldGuid);
+			currentWorld.addRoomChangeListeners();
 			
 			apiController = new APIController(this);
 			
@@ -303,8 +305,6 @@ package com.worlize.interactivity.rpc
 			connection.addEventListener(WorlizeCommEvent.DISCONNECTED, handleDisconnected);
 			connection.addEventListener(WorlizeCommEvent.CONNECTION_FAIL, handleConnectionFail);
 			connection.addEventListener(WorlizeCommEvent.MESSAGE, handleIncomingMessage);
-			
-			ChangeWatcher.watch(this, ['currentWorld', 'ownerGuid'], handleWorldOwnerChange);
 		}
 		
 		[Bindable(event="connectedChange")]
@@ -312,12 +312,8 @@ package com.worlize.interactivity.rpc
 			return connection.connected;
 		}
 		
-		private function handleWorldOwnerChange(event:Event):void {
-			verifyUserCanAuthor();
-		}
-		
 		private function verifyUserCanAuthor():void {
-			canAuthor = (currentWorld.ownerGuid === id);
+			canAuthor = (currentRoom.ownerGuid === id);
 			if (AuthorModeState.getInstance().enabled && !canAuthor) {
 				var authorModeNotificaton:AuthorModeNotification = new AuthorModeNotification(AuthorModeNotification.AUTHOR_DISABLED);
 				NotificationCenter.postNotification(authorModeNotificaton);
@@ -1021,6 +1017,10 @@ package com.worlize.interactivity.rpc
 		private function handleRoomDefinition(data:Object):void {
 			logger.info("Got room definition for room " + data.guid + ".");
 			
+			// Make sure to refresh the information about the current world
+			// when going to a new room.
+			currentWorld.load(data.world_guid);
+			
 			var room:RoomDefinition = RoomDefinition.fromData(data);
 			currentRoom.id = room.guid;
 			currentRoom.name = room.name;
@@ -1063,6 +1063,8 @@ package com.worlize.interactivity.rpc
 				currentRoom.addYoutubePlayer(youtubePlayerDefinition);
 			}
 			
+			verifyUserCanAuthor();
+			
 			// Update room properties, resetting to defaults for all values if
 			// no value is supplied for a given property in the room definition.
 			currentRoom.updateProperties(room.properties, true);
@@ -1098,6 +1100,10 @@ package com.worlize.interactivity.rpc
 			}
 		}
 		
+		private function handleWorldDefinition(data:Object):void {
+			currentWorld.updateFromData(data.world);
+		}
+		
 		private function handleRoomEntryDenied(data:Object):void {
 			currentRoom.localMessage(data.message);
 		}
@@ -1108,10 +1114,6 @@ package com.worlize.interactivity.rpc
 		private function handleRoomEntryGranted(data:Object):void {
 			logger.info("Room entry granted!  Room Guid: " + data.roomGuid + " World Guid: " + data.worldGuid);
 			resetState();
-			
-			// Make sure to refresh the information about the current world
-			// when going to a new room.
-			currentWorld.load(data.worldGuid);
 			
 			// Make sure to update the room count since we won't receive a
 			// room_population_update message after we disconnect.
@@ -1147,6 +1149,11 @@ package com.worlize.interactivity.rpc
 			NotificationCenter.postNotification(notification);
 		}
 		
+		private function handleRoomList(data:Object):void {
+			currentWorld.roomList.updateFromData(data.rooms);
+			currentWorld.roomList.initFilter(currentUser, currentWorld);
+		}
+		
 		private function handleRoomUpdated(data:Object):void {
 			var notification:RoomChangeNotification = new RoomChangeNotification(RoomChangeNotification.ROOM_UPDATED);
 			notification.roomListEntry = RoomListEntry.fromData(data);
@@ -1169,21 +1176,30 @@ package com.worlize.interactivity.rpc
 			var roomListEntry:RoomListEntry;
 			var i:int;
 			
+			var foundRoom:Boolean = false;
+			
 			for each (roomListEntry in roomList.rooms) {
 				if (roomListEntry.guid === data.guid) {
+					foundRoom = true;
 					break;
 				}
 			}
-			if (roomListEntry) {
+			if (foundRoom) {
 				roomListEntry.userCount = data.userCount;
 			}
 			else {
+				// UPDATE: For now lets just accept the discrepancy since the
+				// message doesn't provide enough data for all use cases to
+				// actually add the room to the list, and we don't know the
+				// order in which it should appear.
+				
 				// apparently the room wasn't in the list.  Let's add it.
-				roomListEntry = new RoomListEntry();
-				roomListEntry.guid = data.guid;
-				roomListEntry.name = data.name;
-				roomListEntry.userCount = data.userCount;
-				roomList.rooms.addItem(roomListEntry);
+//				roomListEntry = new RoomListEntry();
+//				roomListEntry.guid = data.guid;
+//				roomListEntry.name = data.name;
+//				roomListEntry.hidden = data.hidden;
+//				roomListEntry.userCount = data.userCount;
+//				roomList.rooms.addItem(roomListEntry);
 			}
 			
 			if (data.userAdded) {
@@ -1193,16 +1209,15 @@ package com.worlize.interactivity.rpc
 				for each (userListEntry in userList.users) {
 					if (userListEntry.userGuid === data.userAdded.guid) {
 						foundUser = true;
-						userListEntry.roomGuid = data.guid;
-						userListEntry.roomName = data.name;
 					}
 				}
 				if (!foundUser) {
 					userListEntry = new UserListEntry();
 					userListEntry.username = data.userAdded.userName;
 					userListEntry.userGuid = data.userAdded.guid;
-					userListEntry.roomGuid = data.guid;
-					userListEntry.roomName = data.name;
+					if (foundRoom) {
+						userListEntry.roomListEntry = roomListEntry;
+					}
 					userList.users.addItem(userListEntry);
 				}
 			}
@@ -1655,7 +1670,7 @@ package com.worlize.interactivity.rpc
 			});
 		}
 		
-		public function createNewRoom(roomName:String = null):void {
+		public function createNewRoom(roomName:String = null, gotoNewRoom:Boolean = true):void {
 			var newRoomOptions:Object = {};
 			if (roomName) {
 				newRoomOptions['room_name'] = roomName;
@@ -1666,7 +1681,9 @@ package com.worlize.interactivity.rpc
 					// notification that the room has been created will come through
 					// the websocket connection.
 					var roomListEntry:RoomListEntry = RoomListEntry.fromData(event.resultJSON.data.room);
-					gotoRoom(roomListEntry.guid);
+					if (gotoNewRoom) {
+						gotoRoom(roomListEntry.guid);
+					}
 				}
 				else {
 					Alert.show("There was an error while trying to create the new area.", "Error");
@@ -1676,6 +1693,23 @@ package com.worlize.interactivity.rpc
 				Alert.show("There was an error while trying to create the new area.", "Error");
 			});
 			client.send("/worlds/" + currentWorld.guid + "/rooms.json", HTTPMethod.POST, newRoomOptions);
+		}
+		
+		public function deleteRoom(roomGuid:String):void {
+			var serviceClient:WorlizeServiceClient = new WorlizeServiceClient();
+			serviceClient.addEventListener(WorlizeResultEvent.RESULT, function(event:WorlizeResultEvent):void {
+				if (event.resultJSON.success) {
+					// Notification that the room is deleted will come through
+					// the Websocket connection.
+				}
+				else { 
+					Alert.show("Unable to delete area: " + event.resultJSON.description, "Error");
+				}
+			});
+			serviceClient.addEventListener(FaultEvent.FAULT, function(event:FaultEvent):void {
+				Alert.show("Unable to delete area: Communication Error", "Error");
+			});
+			serviceClient.send('/rooms/' + roomGuid + '.json', HTTPMethod.DELETE);
 		}
 		
 		private var leaveEventHandlers:Vector.<IptTokenList>;

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:DataGrid xmlns:fx="http://ns.adobe.com/mxml/2009" 
+<s:DataGrid xmlns:fx="http://ns.adobe.com/mxml/2009" 
 			 xmlns:s="library://ns.adobe.com/flex/spark" 
 			 xmlns:mx="library://ns.adobe.com/flex/mx"
 			 dataProvider="{client.currentWorld.userList.users}"
-			 change="handleChange(event)"
+			 selectionChange="handleSelectionChange(event)"
 			 mouseDownOutside="handleMouseDownOutside(event)"
 			 width="325" height="220"
 			 >
@@ -16,8 +16,9 @@
 			import com.worlize.interactivity.rpc.InteractivityClient;
 			import com.worlize.model.UserListEntry;
 			
-			import mx.events.ListEvent;
 			import mx.managers.PopUpManager;
+			
+			import spark.events.GridSelectionEvent;
 			[Bindable]
 			private var client:InteractivityClient = InteractivityClient.getInstance();
 			
@@ -27,9 +28,15 @@
 				close();
 			}
 			
-			private function handleChange(event:ListEvent):void {
+			private function handleSelectionChange(event:GridSelectionEvent):void {
 				if (selectedItem) {
-					client.gotoRoom(UserListEntry(selectedItem).roomGuid);
+					var entry:UserListEntry = UserListEntry(selectedItem);
+					if (entry.roomListEntry) {
+						client.gotoRoom(entry.roomGuid);
+					}
+					else {
+						client.currentRoom.localMessage("The requested room is private.");
+					}
 					close();
 				}
 			}
@@ -42,8 +49,10 @@
 	</fx:Script>
 	
 	
-	<mx:columns>
-		<mx:DataGridColumn headerText="Username" dataField="username" />
-		<mx:DataGridColumn headerText="Area" dataField="roomName" />
-	</mx:columns>
-</mx:DataGrid>
+	<s:columns>
+		<s:ArrayList>
+			<s:GridColumn headerText="Username" dataField="username" />
+			<s:GridColumn headerText="Area" dataField="roomName" />
+		</s:ArrayList>
+	</s:columns>
+</s:DataGrid>

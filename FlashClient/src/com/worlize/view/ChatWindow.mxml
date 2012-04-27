@@ -42,16 +42,17 @@
 			import com.worlize.interactivity.iptscrae.command.CLIENTTYPECommand;
 			import com.worlize.interactivity.model.WebcamBroadcastManager;
 			import com.worlize.interactivity.rpc.InteractivityClient;
+			import com.worlize.model.WorldDefinition;
 			import com.worlize.notification.WorlizeNotification;
 			import com.worlize.state.AuthorModeState;
 			import com.worlize.view.author.MyBackgroundsWindow;
 			import com.worlize.view.author.MyGamesWindow;
 			import com.worlize.view.author.MyMediaWindow;
 			import com.worlize.view.author.MyObjectsWindow;
-			import com.worlize.view.author.properties.RoomPropertiesWindow;
 			import com.worlize.view.components.RoomListDataGrid;
 			import com.worlize.view.components.UserListDataGrid;
 			import com.worlize.view.windows.LogWindow;
+			import com.worlize.view.windows.WorldPropertiesWindow;
 			
 			import flash.filters.BitmapFilterQuality;
 			
@@ -252,8 +253,10 @@
 				}
 			}
 			
-			private function handleAreaSettingsClick():void {
-				RoomPropertiesWindow.toggleOpen(systemManager.getSandboxRoot());
+			private function handleWorldSettingsClick():void {
+				if (client.currentWorld.state === WorldDefinition.STATE_READY) {
+					WorldPropertiesWindow.toggleOpen(systemManager.getSandboxRoot(), client.currentRoom.id);
+				}
 			}
 			
 			private function showRoomList():void {
@@ -361,7 +364,7 @@
 				click="showUserList()"
 				styleName="chatWindowVisitorsTitle"
 				toolTip="Click for User List"
-				text="Visitors: {client.currentWorld.roomList.totalUserCount}" />
+				text="Visitors: {client.currentWorld.userList.users.length}" />
 				
 			<mx:Image source="@Embed(source='src/assets/icons/icon_visitor_list_dropdown.png')"
 					  click="showUserList()"
@@ -394,20 +397,19 @@
 				<mx:Image useHandCursor="true" buttonMode="true"
 						  toolTip="Add YouTube Player" source="@Embed(source='src/assets/icons/YouTubeIcon.png')"
 						  click="createYoutubePlayer()" />
-				<mx:Image toolTip="Area Settings"
-						  click="handleAreaSettingsClick()"
+				<s:Image  toolTip="World Settings"
+						  click="handleWorldSettingsClick()"
 						  useHandCursor="true" buttonMode="true"
-						  source="@Embed(source='src/assets/icons/icon_room_settings.png')"
-						  visible="{client.canAuthor}" includeInLayout="{client.canAuthor}" />
+						  source="@Embed(source='src/assets/icons/icon_room_settings.png')" />
 			</s:HGroup>
-			<mx:Image
-				toolTip="Author Mode"
-				visible="{client.canAuthor}"
-				includeInLayout="{client.canAuthor}"
-				useHandCursor="true" buttonMode="true"
-				source="@Embed(source='src/assets/icons/icon_authormode_grey.png')"
-				source.authormode="@Embed(source='src/assets/icons/icon_authormode_red.png')"
-				click="toggleAuthorMode();"/>
+			
+			<s:Image toolTip="Author Mode"
+					 visible="{client.canAuthor}"
+					 includeInLayout="{client.canAuthor}"
+					 useHandCursor="true" buttonMode="true"
+					 source="@Embed(source='src/assets/icons/icon_authormode_grey.png')"
+					 source.authormode="@Embed(source='src/assets/icons/icon_authormode_red.png')"
+					 click="toggleAuthorMode();"/>
 		</s:HGroup>
 	</s:BorderContainer>
 	

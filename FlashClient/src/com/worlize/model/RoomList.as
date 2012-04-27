@@ -1,5 +1,7 @@
 package com.worlize.model
 {
+	import com.worlize.interactivity.model.InteractivityUser;
+	import com.worlize.interactivity.rpc.InteractivityClient;
 	import com.worlize.rpc.WorlizeResultEvent;
 	import com.worlize.rpc.WorlizeServiceClient;
 	
@@ -15,9 +17,36 @@ package com.worlize.model
 	{
 		public var rooms:ArrayCollection;
 		
+		private var currentUser:InteractivityUser;
+		private var currentWorld:WorldDefinition;
+		
 		function RoomList() {
 			rooms = new ArrayCollection();
 			rooms.addEventListener(CollectionEvent.COLLECTION_CHANGE, handleCollectionChange);
+			rooms.filterFunction = filterFunction;
+		}
+		
+		private function filterFunction(item:Object):Boolean {
+			if (currentUser === null || currentWorld === null) { return false; }
+			var entry:RoomListEntry = RoomListEntry(item);
+			if (entry.hidden && currentWorld.ownerGuid !== currentUser.id) {
+				return false;
+			}
+			return true;
+		}
+		
+		public function initFilter(currentUser:InteractivityUser, currentWorld:WorldDefinition):void {
+			this.currentUser = currentUser;
+			this.currentWorld = currentWorld;
+			rooms.filterFunction = filterFunction;
+		}
+		
+		public function clone():RoomList {
+			var rl:RoomList = new RoomList();
+			for each (var entry:RoomListEntry in rooms) {
+				rl.rooms.addItem(entry.clone());
+			}
+			return rl;
 		}
 		
 		private function handleCollectionChange(event:CollectionEvent):void {
@@ -37,15 +66,6 @@ package com.worlize.model
 			return count;
 		}
 		
-		public function addRoom(entry:RoomListEntry):void {
-			for each (var existingEntry:RoomListEntry in rooms) {
-				if (existingEntry.guid === entry.guid) {
-					return;
-				}
-			}
-			rooms.addItem(entry);
-		}
-		
 		public function removeRoomByGuid(roomGuid:String):void {
 			for (var i:int = 0; i < rooms.length; i++) {
 				var entry:RoomListEntry = RoomListEntry(rooms.getItemAt(i));
@@ -62,8 +82,6 @@ package com.worlize.model
 				if (existingEntry.guid === entry.guid) {
 					existingEntry.name = entry.name;
 					existingEntry.thumbnail = entry.thumbnail;
-					rooms.removeItemAt(i);
-					rooms.addItemAt(entry, i);
 					return;
 				}
 			}
@@ -71,6 +89,9 @@ package com.worlize.model
 		
 		public function updateFromData(data:Array):void {
 			rooms.disableAutoUpdate();
+			rooms.filterFunction = null;
+			rooms.sort = null;
+			rooms.refresh();
 			rooms.removeAll();
 			for each (var roomDefinition:Object in data) {
 				rooms.addItem(RoomListEntry.fromData(roomDefinition));

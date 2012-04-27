@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8"?>
+<components:WorlizeWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+						  xmlns:s="library://ns.adobe.com/flex/spark" 
+						  xmlns:mx="library://ns.adobe.com/flex/mx"
+						  xmlns:components="com.worlize.view.components.*"
+						  title="World Settings"
+						  titleBarColor="#c9c9c9"
+						  titleTextColor="#7d8487"
+						  windowIcon="@Embed('assets/icons/large/w_icon_room_settings.png')"
+						  resizable="false"
+						  creationComplete="handleCreationComplete()"
+						  currentState="normal"
+						  width="600" height="450" xmlns:properties="com.worlize.view.author.properties.*">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.event.AuthorModeNotification;
+			import com.worlize.event.NotificationCenter;
+			import com.worlize.interactivity.rpc.InteractivityClient;
+			import com.worlize.model.PreferencesManager;
+			import com.worlize.model.RoomListEntry;
+			import com.worlize.model.WorldDefinition;
+			import com.worlize.rpc.HTTPMethod;
+			import com.worlize.rpc.WorlizeResultEvent;
+			import com.worlize.rpc.WorlizeServiceClient;
+			
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.logging.ILogger;
+			import mx.logging.Log;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			
+			import spark.components.ButtonBarButton;
+			import spark.events.IndexChangeEvent;
+			import spark.events.ListEvent;
+			import spark.events.TitleWindowBoundsEvent;
+			private static var _instance:WorldPropertiesWindow;
+			private static var _open:Boolean = false;
+			
+			private var logger:ILogger = Log.getLogger("com.worlize.view.author.properties.WorldPropertiesWindow");
+			
+			[Bindable]
+			private var client:InteractivityClient = InteractivityClient.getInstance();
+			
+			[Bindable]
+			private var world:WorldDefinition;
+			
+			[Bindable]
+			private var selectedRoom:RoomListEntry;
+			
+			public static function toggleOpen(parent:DisplayObject, roomGuid:String = null):void {
+				if (_open) {
+					close();
+				}
+				else {
+					open(parent);
+					if (roomGuid) {
+						_instance.jumpToRoom(roomGuid);
+					}
+				}
+			}
+			
+			public static function open(parent:DisplayObject):void {
+				var preferences:PreferencesManager = PreferencesManager.getInstance();
+				if (_open) {
+					PopUpManager.bringToFront(_instance);
+					_instance.setFocus();
+				}
+				else {
+					var needsPosition:Boolean = false;
+					if (!_instance) {
+						needsPosition = true;
+						_instance = new WorldPropertiesWindow();
+						_instance.addEventListener(CloseEvent.CLOSE, function(event:CloseEvent):void {
+							close();
+						});
+						_instance.addEventListener(TitleWindowBoundsEvent.WINDOW_MOVE_END, function(event:TitleWindowBoundsEvent):void {
+							preferences.setPreference('worldPreferencesPosition', [_instance.x, _instance.y]);
+						});
+					}
+					PopUpManager.addPopUp(_instance, parent);
+					if (needsPosition) {
+						var coordinates:Array = preferences.getPreference('worldPreferencesPosition') as Array;
+						if (coordinates &&
+							_instance.boundsAreValid(coordinates[0], coordinates[1], _instance.width, _instance.height))
+						{
+							_instance.x = coordinates[0];
+							_instance.y = coordinates[1];
+						}
+						else {
+							PopUpManager.centerPopUp(_instance);
+						}
+					}
+					_open = true;
+				}
+				_instance.initData();
+			}
+			
+			public function initData():void {
+				world = client.currentWorld.clone();
+				world.addRoomChangeListeners();
+			}
+			
+			public static function close():void {
+				if (_open && _instance) {
+					PopUpManager.removePopUp(_instance);
+					_open = false;
+					_instance.world.removeRoomChangeListeners();
+					_instance = null;
+				}
+			}
+
+			public function jumpToRoom(roomGuid:String):void {
+				worldPropertiesViewStack.selectedChild = rooms;
+				for each (var room:RoomListEntry in world.roomList.rooms) {
+					if (room.guid === roomGuid) {
+						selectedRoom = room;
+						break;
+					}
+				}
+			}
+			
+			private function handleCreationComplete():void {
+				NotificationCenter.addListener(AuthorModeNotification.AUTHOR_DISABLED, handleAuthorModeDisabled);
+			}
+			
+			private function handleAuthorModeDisabled(event:AuthorModeNotification):void {
+				close();
+			}
+			
+			private function handleCancelClick():void {
+				close();
+			}
+			
+			private function handleSaveClick():void {
+				saveChanges();
+			}
+			
+			public function saveChanges():void {
+				currentState = "saving";
+				var data:Object = {};
+				data.name = world.name;
+				data.guid = world.guid;
+				data.rooms = world.roomList.rooms.source;
+				var client:WorlizeServiceClient = new WorlizeServiceClient();
+				client.addEventListener(WorlizeResultEvent.RESULT, handleSaveResult);
+				client.addEventListener(FaultEvent.FAULT, handleSaveFault);
+				client.send('/worlds/' + world.guid + ".json", HTTPMethod.PUT, {
+					data: JSON.stringify(data)
+				});
+			}
+			
+			private function handleSaveResult(event:WorlizeResultEvent):void {
+				currentState = "normal";
+				if (event.resultJSON.success) {
+					close();
+				}
+				else {
+					
+				}
+			}
+			
+			private function handleSaveFault(event:FaultEvent):void {
+				Alert.show("Unable to save changes. HTTP Status " + event.statusCode);
+				logger.error("Unable to save changes. HTTP Status " + event.statusCode + " Message: " + event.message);
+				currentState = "normal";
+			}
+		]]>
+	</fx:Script>
+	
+	<components:states>
+		<s:State name="saving" />
+		<s:State name="normal" />
+	</components:states>
+	
+	<s:VGroup gap="0" paddingTop="10" width="100%" height="100%">
+		<s:Group width="100%">
+			<s:TabBar left="10" id="tabBar"
+					  dataProvider="{worldPropertiesViewStack}" />
+			<s:Rect width="100%" height="1" bottom="0">
+				<s:fill>
+					<s:SolidColor color="#777777" />
+				</s:fill>
+			</s:Rect>
+		</s:Group>
+		
+		<mx:ViewStack id="worldPropertiesViewStack" width="100%" height="100%">
+			<s:NavigatorContent id="general" label="General">
+				<s:VGroup width="100%" height="100%"
+						  paddingTop="10" paddingLeft="10" paddingRight="10" paddingBottom="10">
+					
+					<properties:WorldPropertiesEditor id="worldPropertiesForm"
+													  width="100%" height="100%"
+													  world="{world}" />
+					
+				</s:VGroup>
+			</s:NavigatorContent>
+			
+			<s:NavigatorContent id="rooms" label="Rooms">
+				
+				<properties:RoomsTabForWorldSettings world="{world}"
+													 selectedRoom="{selectedRoom}"/>
+				
+			</s:NavigatorContent>
+		</mx:ViewStack>
+		
+		<s:Group width="100%">
+			<s:Rect bottom="0" right="0" top="0" left="0">
+				<s:fill>
+					<s:SolidColor color="#EEEEEE" />
+				</s:fill>
+			</s:Rect>
+			<s:Rect top="0" width="100%" height="1">
+				<s:fill>
+					<s:SolidColor color="#BBBBBB" />
+				</s:fill>
+			</s:Rect>
+			<s:HGroup horizontalAlign="right" verticalAlign="baseline"
+					  width="100%"
+					  paddingTop="6" paddingRight="5" paddingBottom="5">
+				<s:Button label="Cancel" click="handleCancelClick()" enabled.saving="false" />
+				<s:Button label="Save" emphasized="true"
+						  click="handleSaveClick()"
+						  enabled="{worldPropertiesForm.valid}"
+						  enabled.saving="false" />
+			</s:HGroup>
+		</s:Group>
+	</s:VGroup>	
+</components:WorlizeWindow>

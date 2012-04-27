@@ -1,8 +1,11 @@
 package com.worlize.view.components
 {
 	import flash.display.Stage;
+	import flash.events.KeyboardEvent;
+	import flash.ui.Keyboard;
 	
 	import mx.core.FlexGlobals;
+	import mx.events.CloseEvent;
 	import mx.styles.CSSStyleDeclaration;
 	
 	import spark.components.TitleWindow;
@@ -17,6 +20,18 @@ package com.worlize.view.components
 		public function WorlizeWindow()
 		{
 			super();
+		}
+		
+		override protected function initializationComplete():void {
+			super.initializationComplete();
+			addEventListener(KeyboardEvent.KEY_DOWN, handleKeyDown);
+		}
+		
+		protected function handleKeyDown(event:KeyboardEvent):void {
+			if (event.keyCode === Keyboard.ESCAPE) {
+				var closeEvent:CloseEvent = new CloseEvent(CloseEvent.CLOSE);
+				dispatchEvent(closeEvent);
+			}	
 		}
 		
 		[Bindable]

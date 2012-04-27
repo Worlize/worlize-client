@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:DataGrid xmlns:fx="http://ns.adobe.com/mxml/2009" 
+<s:DataGrid xmlns:fx="http://ns.adobe.com/mxml/2009" 
 			 xmlns:s="library://ns.adobe.com/flex/spark" 
 			 xmlns:mx="library://ns.adobe.com/flex/mx"
-			 width="225" height="220"
+			 maxHeight="405"
+			 creationComplete="handleCreationComplete()"
 			 mouseDownOutside="handleMouseDownOutside()"
-			 change="handleChange(event)"
+			 selectionChange="handleSelectionChange(event)"
 			 dataProvider="{client.currentWorld.roomList.rooms}">
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
@@ -18,6 +19,8 @@
 			import mx.events.ListEvent;
 			import mx.managers.PopUpManager;
 			
+			import spark.events.GridSelectionEvent;
+			
 			public static var closedAt:Date;
 			
 			[Bindable]
@@ -27,23 +30,32 @@
 				close();
 			}
 			
-			private function handleChange(event:ListEvent):void {
-				if (selectedItem) {
-					client.gotoRoom(RoomListEntry(selectedItem).guid);
-					close();
-				}
+			private function handleCreationComplete():void {
+				client.currentWorld.roomList.rooms.sort = null;
+				client.currentWorld.roomList.initFilter(client.currentUser, client.currentWorld);
+				client.currentWorld.roomList.rooms.refresh();
 			}
 			
 			public function close():void {
 				closedAt = new Date();
 				PopUpManager.removePopUp(this);
 			}
+			
+			protected function handleSelectionChange(event:GridSelectionEvent):void {
+				if (selectedItem) {
+					client.gotoRoom(RoomListEntry(selectedItem).guid);
+					close();
+				}
+			}
+			
 		]]>
 	</fx:Script>
 	
-	<mx:columns>
-		<mx:DataGridColumn headerText="Area" dataField="name" width="175" />
-		<mx:DataGridColumn headerText="Users" dataField="userCount" width="50" />
-	</mx:columns>
+	<s:columns>
+		<s:ArrayList>
+			<s:GridColumn headerText="Area" dataField="name" width="200" sortable="true" />
+			<s:GridColumn headerText="Users" dataField="userCount" width="50" sortable="true" />
+		</s:ArrayList>
+	</s:columns>
 	
-</mx:DataGrid>
+</s:DataGrid>

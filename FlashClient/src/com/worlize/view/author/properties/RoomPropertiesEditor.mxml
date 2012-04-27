@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 currentState="noRoom">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<mx:StringValidator id="roomNameValidator"
+							source="{nameField}"
+							property="text"
+							minLength="1"
+							maxLength="60" />
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.model.RoomListEntry;
+			
+			import mx.events.FlexEvent;
+			[Bindable]
+			private var _room:RoomListEntry;
+			
+			[Bindable(event="roomChanged")]
+			public function set room(newValue:RoomListEntry):void {
+				if (_room !== newValue) {
+					_room = newValue;
+					currentState = (_room) ? "normal" : "noRoom";
+					dispatchEvent(new FlexEvent("roomChanged"));
+				}
+			}
+			public function get room():RoomListEntry {
+				return _room;
+			}
+		]]>
+	</fx:Script>
+	
+	<s:states>
+		<s:State name="noRoom" />
+		<s:State name="normal" />
+	</s:states>
+
+	<s:Form includeIn="normal" top="-20" left="-20" right="0">
+		<s:layout>
+			<s:FormLayout gap="0" />
+		</s:layout>
+		<s:FormHeading label="Room Options" />
+		<s:FormItem label="Name" required="true">
+			<s:TextInput width="100%"
+						 id="nameField"
+						 text="@{room.name}" />
+			<s:helpContent>
+				<s:Label text="e.g. &quot;Living Room&quot;" />
+			</s:helpContent>
+		</s:FormItem>
+		
+		<s:FormItem label="Options">
+			<s:CheckBox label="Hidden"
+						selected="@{room.hidden}"
+						toolTip="Other users will not see hidden rooms in the room list, and they will not appear in the directory."/>
+		</s:FormItem>
+		
+		<s:FormItem label="Extras">
+			<s:CheckBox label="Falling Snow"
+						selected="@{room.properties.snowEnabled}"
+						toolTip="Add some holiday cheer to your room with a falling snow animation." />
+		</s:FormItem>
+	</s:Form>
+		
+	<s:Label includeIn="noRoom"
+			 fontSize="18" color="#999999" text="Select a room."
+			 verticalCenter="0" horizontalCenter="0" />
+
+</s:Group>

@@ -54,7 +54,6 @@
 			import com.worlize.view.windows.DirectoryWindow;
 			import com.worlize.view.windows.GiftsWindow;
 			import com.worlize.view.windows.ScreenshotWindow;
-			import com.worlize.view.windows.WorldsWindow;
 			
 			import flash.desktop.Clipboard;
 			import flash.desktop.ClipboardFormats;

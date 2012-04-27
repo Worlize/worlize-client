@@ -27,7 +27,7 @@ s|List.noScroll s|Scroller {
 global {
 	modal-transparency-blur: 0;
 	modal-transparency-duration: 0;
-	focusColor: #FFFFFF;
+/*	focusColor: #FFFFFF; */
 }
 
 .buyLockerSlotQuantityOption s|Label {
@@ -43,9 +43,11 @@ s|Label {
 }
 
 s|TextInput {
+	/*
 	fontFamily: "Lucida Grande", "Arial";
 	contentBackgroundColor: #f2f2f2;
 	color: #858585;
+	*/
 }
 
 s|TextInput.big {
