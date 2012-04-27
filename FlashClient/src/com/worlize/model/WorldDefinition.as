@@ -1,5 +1,6 @@
 package com.worlize.model
 {
+	import com.adobe.net.URI;
 	import com.worlize.event.NotificationCenter;
 	import com.worlize.interactivity.rpc.InteractivityClient;
 	import com.worlize.notification.RoomChangeNotification;
@@ -7,13 +8,17 @@ package com.worlize.model
 	import com.worlize.rpc.WorlizeResultEvent;
 	import com.worlize.rpc.WorlizeServiceClient;
 	
+	import flash.events.EventDispatcher;
+	
 	import mx.controls.Alert;
+	import mx.core.FlexGlobals;
+	import mx.events.FlexEvent;
 	import mx.logging.ILogger;
 	import mx.logging.Log;
 	import mx.rpc.events.FaultEvent;
 
 	[Bindable]
-	public class WorldDefinition
+	public class WorldDefinition extends EventDispatcher
 	{
 		private var logger:ILogger = Log.getLogger('com.worlize.model.WorldDefinition');
 		
@@ -26,6 +31,7 @@ package com.worlize.model
 		
 		public var name:String;
 		public var guid:String;
+		private var _permalink:String;
 		
 		public var canCreateNewRoom:Boolean;
 		
@@ -36,6 +42,34 @@ package com.worlize.model
 		
 		public function WorldDefinition() {
 			
+		}
+		
+		[Bindable(event="permalinkChanged")]
+		public function set permalink(newValue:String):void {
+			if (_permalink !== newValue) {
+				_permalink = newValue;
+				dispatchEvent(new FlexEvent("permalinkChanged"));
+			}
+		}
+		public function get permalink():String {
+			return _permalink;
+		}
+		
+		[Bindable(event="permalinkChanged")]
+		public function get url():String {
+			var uri:String;
+			
+			if (permalink === null) {
+				return baseURL + "worlds/" + guid;
+			}
+			
+			return baseURL + permalink;
+		}
+		
+		[Bindable(event="baseURLChanged")]
+		public function get baseURL():String {
+			var appURI:URI = new URI(FlexGlobals.topLevelApplication.url);
+			return appURI.scheme + "://" + appURI.authority + "/";
 		}
 		
 		public function addRoomChangeListeners():void {
@@ -84,10 +118,11 @@ package com.worlize.model
 		
 		private function handleResult(event:WorlizeResultEvent):void {
 			if (event.resultJSON.success) {
-				this.name = event.resultJSON.data.name;
-				this.guid = event.resultJSON.data.guid;
-				this.ownerGuid = event.resultJSON.data.owner.guid;
-				this.canCreateNewRoom = event.resultJSON.data.can_create_new_room;
+				name = event.resultJSON.data.name;
+				guid = event.resultJSON.data.guid;
+				ownerGuid = event.resultJSON.data.owner.guid;
+				canCreateNewRoom = event.resultJSON.data.can_create_new_room;
+				permalink = event.resultJSON.data.permalink;
 				
 				var client:InteractivityClient = InteractivityClient.getInstance();
 				roomList.updateFromData(event.resultJSON.data.rooms);
@@ -113,6 +148,7 @@ package com.worlize.model
 		public function reset():void {
 			name = null;
 			canCreateNewRoom = false;
+			permalink = null;
 			ownerGuid = null;
 		}
 		
@@ -120,6 +156,7 @@ package com.worlize.model
 			var w:WorldDefinition = new WorldDefinition();
 			w.name = name;
 			w.guid = guid;
+			w.permalink = permalink;
 			w.canCreateNewRoom = canCreateNewRoom;
 			w.ownerGuid = ownerGuid;
 			w.roomList = roomList.clone();
@@ -132,6 +169,7 @@ package com.worlize.model
 			name = data.name;
 			guid = data.guid;
 			ownerGuid = data.owner.guid;
+			permalink = data.permalink;
 			state = STATE_READY;
 		}
 	}

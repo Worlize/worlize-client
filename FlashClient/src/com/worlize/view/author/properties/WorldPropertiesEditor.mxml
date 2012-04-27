@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<s:Form xmlns:fx="http://ns.adobe.com/mxml/2009" 
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
 		 xmlns:s="library://ns.adobe.com/flex/spark" 
-		 xmlns:mx="library://ns.adobe.com/flex/mx">
+		 xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:properties="com.worlize.view.author.properties.*">
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 		
@@ -13,8 +13,13 @@
 	
 	<fx:Script>
 		<![CDATA[
+			import com.worlize.components.visualnotification.VisualNotification;
 			import com.worlize.model.WorldDefinition;
 			
+			import flash.desktop.Clipboard;
+			import flash.desktop.ClipboardFormats;
+			
+			import mx.events.CloseEvent;
 			import mx.events.ValidationResultEvent;
 			[Bindable]
 			public var world:WorldDefinition;
@@ -30,16 +35,66 @@
 				valid = false;
 			}
 			
+			protected function copyURL():void {
+				Clipboard.generalClipboard.setData(ClipboardFormats.TEXT_FORMAT, world.url);
+				var notification:VisualNotification = new VisualNotification(
+					"Your world's permalink has been copied to the clipboard.",
+					"Link Copied"
+				);
+				notification.show();
+			}
+			
+			protected function activePermalinkChooser():void {
+				permalinkViewStack.selectedIndex = 1;
+				if (permalinkChooser) {
+					permalinkChooser.reset();
+				}
+			}
+			
+			protected function handlePermalinkChooserClose(event:CloseEvent):void {
+				permalinkViewStack.selectedIndex = 0;
+			}
+			
 		]]>
 	</fx:Script>
-	<s:layout>
-		<s:FormLayout paddingRight="10" />
-	</s:layout>
 	
-	<s:FormItem label="Name" required="true">
-		<s:TextInput id="worldNameField" text="@{world.name}" width="250" />
-		<s:helpContent>
-			<s:Label text="e.g. &quot;Joe's World&quot; or &quot;Turtle Town&quot;" />
-		</s:helpContent>
-	</s:FormItem>
-</s:Form>
+	<s:Form width="100%">
+		<s:layout>
+			<s:FormLayout paddingRight="10" />
+		</s:layout>
+		
+		<s:FormItem label="Name" required="true">
+			<s:TextInput id="worldNameField" text="@{world.name}" width="250" />
+			<s:helpContent>
+				<s:Label text="e.g. &quot;Joe's World&quot; or &quot;Turtle Town&quot;" />
+			</s:helpContent>
+		</s:FormItem>
+	</s:Form>
+
+	<s:VGroup paddingLeft="25" width="100%">
+		<s:RichText>
+			<s:span fontWeight="bold">Permalink</s:span> - this is the link to your world:
+		</s:RichText>
+		<mx:ViewStack id="permalinkViewStack" width="100%" selectedIndex="0">
+			<s:NavigatorContent>
+				<s:VGroup>
+					<s:HGroup verticalAlign="baseline">
+						<s:Label text="{world.url}" color="blue" textDecoration="underline" />
+						<s:Button icon="@Embed(source='src/assets/icons/silk/paste_plain.png')"
+								  label="Copy" click="copyURL()" />
+					</s:HGroup>
+					<s:Spacer height="10" />
+					<s:HGroup verticalAlign="baseline">
+						<s:Label text="Not your style?" />
+						<s:Button label="Change It" click="activePermalinkChooser()" />
+					</s:HGroup>
+				</s:VGroup>
+			</s:NavigatorContent>
+			<s:NavigatorContent>
+				<properties:WorldPermalinkChooser width="100%" world="{world}" id="permalinkChooser"
+												  close="handlePermalinkChooserClose(event)"/>
+			</s:NavigatorContent>
+		</mx:ViewStack>
+	</s:VGroup>
+	
+</s:VGroup>

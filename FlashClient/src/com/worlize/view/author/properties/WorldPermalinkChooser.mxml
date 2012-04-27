@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 creationComplete="handleCreationComplete()">
+	<fx:Metadata>
+		[Event(name="close",type="mx.events.CloseEvent")]
+	</fx:Metadata>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.command.CheckPermalinkAvailabilityCommand;
+			import com.worlize.command.SetWorldPermalinkCommand;
+			import com.worlize.model.WorldDefinition;
+			import com.worlize.rpc.WorlizeResultEvent;
+			import com.worlize.rpc.WorlizeServiceClient;
+			
+			import mx.events.CloseEvent;
+			
+			[Bindable]
+			public var world:WorldDefinition;
+			
+			[Bindable]
+			private var checkAvailabilityCommand:CheckPermalinkAvailabilityCommand = new CheckPermalinkAvailabilityCommand();
+			
+			[Bindable]
+			private var setPermalinkCommand:SetWorldPermalinkCommand = new SetWorldPermalinkCommand();
+			
+			private var checkAvailabilityTimer:Timer = new Timer(250, 1);
+			
+			private function handleCreationComplete():void {
+				checkAvailabilityTimer.addEventListener(TimerEvent.TIMER, handleTimer);
+				setPermalinkCommand.addEventListener(WorlizeResultEvent.RESULT, handleSetPermalinkResult);
+				reset();
+			}
+			
+			public function reset():void {
+				permalinkField.text = world.permalink;
+				checkAvailabilityCommand.reset();
+			}
+			
+			private function handleTimer(event:TimerEvent):void {
+				checkAvailabilityCommand.execute(permalinkField.text);
+			}
+			
+			protected function handlePermalinkFieldChange():void {
+				if (permalinkField.text === world.permalink) {
+					checkAvailabilityTimer.reset();
+					checkAvailabilityCommand.reset();
+					return;
+				}
+				if (permalinkField.text !== checkAvailabilityCommand.requestedPermalink) {
+					checkAvailabilityTimer.reset();
+					checkAvailabilityTimer.start();
+				}
+			}
+			
+			protected function handleCancelClick(event:MouseEvent):void {
+				dispatchEvent(new CloseEvent(CloseEvent.CLOSE));
+			}
+			
+			protected function handleSetPermalinkResult(event:WorlizeResultEvent):void {
+				if (event.resultJSON.success) {
+					dispatchEvent(new CloseEvent(CloseEvent.CLOSE));
+				}
+			}
+			
+			protected function handleSaveClick():void {
+				setPermalinkCommand.execute(world, permalinkField.text);
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<mx:StringValidator source="{permalinkField}" property="text"
+							minLength="1" maxLength="40" required="false" />
+	</fx:Declarations>
+	<s:VGroup id="errorDisplay"
+			  visible="{checkAvailabilityCommand.state === CheckPermalinkAvailabilityCommand.STATE_ERROR}"
+			  includeInLayout="{checkAvailabilityCommand.state === CheckPermalinkAvailabilityCommand.STATE_ERROR}">
+		<s:Label color="#AA0000" text="There was an error while checking permalink availability." />
+	</s:VGroup>
+	
+	<s:HGroup width="100%" verticalAlign="baseline" gap="0">
+		<s:Label text="{world.baseURL}" id="baseURLDisplay" />
+		<s:TextInput id="permalinkField"
+					 width="100%"
+					 change="handlePermalinkFieldChange()"
+					 maxChars="40"
+					 restrict="a-zA-Z0-9_\-" />
+		<s:HGroup width="150" verticalAlign="baseline" paddingLeft="5">
+			<s:Label color="#00AA00" text="Available" fontWeight="bold"
+					 visible="{checkAvailabilityCommand.state === CheckPermalinkAvailabilityCommand.STATE_AVAILABLE}"
+					 includeInLayout="{checkAvailabilityCommand.state === CheckPermalinkAvailabilityCommand.STATE_AVAILABLE}" />
+			<s:Label color="#AA0000" text="Not available" fontWeight="bold"
+					 visible="{checkAvailabilityCommand.state === CheckPermalinkAvailabilityCommand.STATE_UNAVAILABLE}"
+					 includeInLayout="{checkAvailabilityCommand.state === CheckPermalinkAvailabilityCommand.STATE_UNAVAILABLE}" />
+			<s:Label color="#666666" text="Checking..." fontWeight="bold"
+					 visible="{checkAvailabilityCommand.state === CheckPermalinkAvailabilityCommand.STATE_LOADING}"
+					 includeInLayout="{checkAvailabilityCommand.state === CheckPermalinkAvailabilityCommand.STATE_LOADING}" />
+		</s:HGroup>
+	</s:HGroup>
+	
+	<s:HGroup paddingLeft="{baseURLDisplay.width}" width="{baseURLDisplay.width + permalinkField.width}"
+			  horizontalAlign="right">
+		<s:Button label="Cancel" click="handleCancelClick(event)" />
+		<s:Button label="Save" emphasized="true"
+				  click="handleSaveClick()"
+				  enabled="{permalinkField.text !== world.permalink &amp;&amp; checkAvailabilityCommand.state === CheckPermalinkAvailabilityCommand.STATE_AVAILABLE &amp;&amp; setPermalinkCommand.state !== SetWorldPermalinkCommand.STATE_LOADING}" />
+	</s:HGroup>
+</s:VGroup>

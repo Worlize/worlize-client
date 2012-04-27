@@ -34,12 +34,12 @@ package com.worlize.rpc
 			service.addEventListener(FaultEvent.FAULT, handleFault);
 		}
 		
-		public function cancel():void {
+		public function cancel():AsyncToken {
 			logger.info("Cancel");
-			service.cancel();
+			return service.cancel();
 		}
 		
-		public function send(url:String, method:String, params:Object = null):void {
+		public function send(url:String, method:String, params:Object = null):AsyncToken {
 			logger.info("Send url: " + url + " method: " + method);
 			if (params === null) {
 				params = {};
@@ -57,8 +57,9 @@ package com.worlize.rpc
 			service.resultFormat = "text";
 			service.url = url;
 			service.method = method;
-			service.send(params);
+			var token:AsyncToken = service.send(params);
 			loading = true;
+			return token;
 		}
 		
 		private function handleResult(event:ResultEvent):void {
