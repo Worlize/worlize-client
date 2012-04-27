@@ -1152,6 +1152,7 @@ package com.worlize.interactivity.rpc
 		private function handleRoomList(data:Object):void {
 			currentWorld.roomList.updateFromData(data.rooms);
 			currentWorld.roomList.initFilter(currentUser, currentWorld);
+			currentWorld.roomList.rooms.refresh();
 		}
 		
 		private function handleRoomUpdated(data:Object):void {
