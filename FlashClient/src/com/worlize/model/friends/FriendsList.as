@@ -498,8 +498,10 @@ package com.worlize.model.friends
 			});
 			var params:Object = {};
 			var accessToken:String = ExternalInterface.call('FB.getAccessToken');
-			if (accessToken) {
+			var fbUserID:String = ExternalInterface.call('FB.getUserID');
+			if (accessToken && fbUserID) {
 				params['access_token'] = accessToken;
+				params['facebook_user_id'] = fbUserID;
 			}
 			client.send('/friends.json', HTTPMethod.GET, params);
 		}

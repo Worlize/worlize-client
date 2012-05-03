@@ -63,6 +63,7 @@
 			public function reset():void {
 				usernameField.text = user.username;
 				checkAvailabilityCommand.reset();
+				dispatchEvent(new FlexEvent("validChanged"));
 			}
 			
 			private function handleTimer(event:TimerEvent):void {

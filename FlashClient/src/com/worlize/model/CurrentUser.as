@@ -8,6 +8,7 @@ package com.worlize.model
 	import com.worlize.rpc.WorlizeResultEvent;
 	import com.worlize.rpc.WorlizeServiceClient;
 	
+	import mx.collections.ArrayList;
 	import mx.logging.ILogger;
 	import mx.logging.Log;
 	import mx.rpc.events.FaultEvent;
@@ -29,16 +30,13 @@ package com.worlize.model
 		public var coins:int;
 		public var bucks:int;
 		public var slots:Slots = new Slots();
-		public var twitter:String;
-		public var twitterProfile:String;
-		public var facebookProfile:String;
-		public var facebookId:String;
 		public var email:String;
 		public var birthday:Date;
 		public var state:String;
 		public var worldEntrance:String;
 		public var worldName:String;
 		public var worldGuid:String;
+		public var linkedProfiles:ArrayList;
 		
 		
 		public function clone():CurrentUser {
@@ -52,16 +50,17 @@ package com.worlize.model
 			u.name = name;
 			u.coins = coins;
 			u.bucks = bucks;
-			u.twitter = twitter;
-			u.twitterProfile = twitterProfile;
-			u.facebookProfile = facebookProfile;
-			u.facebookId = facebookId;
 			u.email = email;
 			u.birthday = birthday;
 			u.state = state;
 			u.worldEntrance = worldEntrance;
 			u.worldName = worldName;
 			u.worldGuid = worldGuid;
+			u.linkedProfiles = new ArrayList();
+			for (var i:int = 0; i < linkedProfiles.length; i++) {
+				var profile:LinkedProfile = LinkedProfile(linkedProfiles.getItemAt(i));
+				u.linkedProfiles.addItem(profile.clone());
+			}
 			return u;
 		}
 		
@@ -71,12 +70,26 @@ package com.worlize.model
 			}
 			return _instance;
 		}
+		
+		public function addLinkedProfile(profile:LinkedProfile):void {
+			linkedProfiles.addItem(profile);
+		}
+		
+		public function removeLinkedProfile(provider:String):void {
+			for (var i:int = 0; i < linkedProfiles.length; i ++) {
+				var profile:LinkedProfile = LinkedProfile(linkedProfiles.getItemAt(i));
+				if (profile.provider === provider) {
+					linkedProfiles.removeItemAt(i);
+					return;
+				}
+			}
+		}
 
 		public function load(guid:String):void {
 			var client:WorlizeServiceClient = new WorlizeServiceClient();
 			client.addEventListener(WorlizeResultEvent.RESULT, handleResult);
 			client.addEventListener(FaultEvent.FAULT, handleFault);
-			client.send('/users/' + guid + ".json", HTTPMethod.GET);
+			client.send('/me.json', HTTPMethod.GET);
 		}
 		
 		public function updateFromData(data:Object):void {
@@ -98,15 +111,15 @@ package com.worlize.model
 			email = data.email;
 			guid = data.guid;
 			state = data.state;
-			twitter = data.twitter;
-			facebookProfile = data.facebook_profile;
-			twitterProfile = data.twitter_profile;
-			facebookId = data.facebook_id;
 			username = data.username;
 			name = data.name;
 			worldEntrance = data.world_entrance;
 			worldName = data.world_name;
 			worldGuid = data.world_guid;
+			linkedProfiles = new ArrayList();
+			for each (var profileData:Object in data.authentications) {
+				linkedProfiles.addItem(LinkedProfile.fromData(profileData));
+			}
 		}
 		
 		private function handleResult(event:WorlizeResultEvent):void {

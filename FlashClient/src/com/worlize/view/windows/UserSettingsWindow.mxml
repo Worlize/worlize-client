@@ -165,7 +165,8 @@
 			</s:NavigatorContent>
 			
 			<s:NavigatorContent id="linkedProfilesTab" label="Linked Profiles">
-				<s:Group />
+				<settings:LinkedProfilesSettingsPanel id="linkedProfilesSettingsPanel"
+													  width="100%" height="100%" />
 			</s:NavigatorContent>
 		</mx:ViewStack>
 		

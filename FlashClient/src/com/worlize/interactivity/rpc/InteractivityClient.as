@@ -35,6 +35,7 @@ package com.worlize.interactivity.rpc
 	import com.worlize.model.BackgroundImageInstance;
 	import com.worlize.model.CurrentUser;
 	import com.worlize.model.InWorldObjectInstance;
+	import com.worlize.model.LinkedProfile;
 	import com.worlize.model.PreferencesManager;
 	import com.worlize.model.PropInstance;
 	import com.worlize.model.PublicWorldsList;
@@ -94,6 +95,7 @@ package com.worlize.interactivity.rpc
 	
 	import mx.binding.utils.ChangeWatcher;
 	import mx.collections.ArrayCollection;
+	import mx.collections.ArrayList;
 	import mx.controls.Alert;
 	import mx.events.CloseEvent;
 	import mx.events.FlexEvent;
@@ -208,6 +210,8 @@ package com.worlize.interactivity.rpc
 			"hotspot_dest_updated": handleHotspotDestUpdated,
 			"in_world_object_instance_added": handleInWorldObjectInstanceAdded,
 			"invitation_to_join_friend": handleInvitationToJoinFriend,
+			"linked_profile_added": handleLinkedProfileAdded,
+			"linked_profile_removed": handleLinkedProfileRemoved,
 			"lock_room": handleLockRoom,
 			"logged_out": handleLoggedOut,
 			"move": handleMove,
@@ -2053,6 +2057,16 @@ package com.worlize.interactivity.rpc
 			if (user) {
 				user.username = data.username;
 			}
+		}
+		
+		private function handleLinkedProfileAdded(data:Object):void {
+			logger.info("Adding linked profile for " + data.provider);
+			CurrentUser.getInstance().addLinkedProfile(LinkedProfile.fromData(data));
+		}
+		
+		private function handleLinkedProfileRemoved(data:Object):void {
+			logger.info("Removing linked profile for " + data.provider);
+			CurrentUser.getInstance().removeLinkedProfile(data.provider);
 		}
 	}
 }
