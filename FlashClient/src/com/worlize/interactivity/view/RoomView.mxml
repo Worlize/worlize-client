@@ -536,7 +536,7 @@
 				}
 				else {
 					message.x = 0;
-					message.y = 10;
+					message.y = 35;
 				}
 				
 				var notification:VisualNotification;
