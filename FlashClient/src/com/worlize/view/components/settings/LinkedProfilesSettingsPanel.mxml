@@ -15,6 +15,8 @@
 			import com.worlize.rpc.WorlizeServiceClient;
 			
 			import mx.binding.utils.ChangeWatcher;
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
 			import mx.events.CollectionEvent;
 			import mx.events.FlexEvent;
 			import mx.rpc.events.FaultEvent;
@@ -83,10 +85,23 @@
 			}
 			
 			protected function disconnectAccount(provider:String):void {
-				var client:WorlizeServiceClient = new WorlizeServiceClient();
-				client.addEventListener(WorlizeResultEvent.RESULT, handleResult);
-				client.addEventListener(FaultEvent.FAULT, handleFault);
-				client.send("/authentications/" + provider + ".json", HTTPMethod.DELETE);
+				var capitalized:String = provider.charAt(0).toUpperCase() + provider.slice(1);
+				Alert.show("Are you sure you want to unlink your " + capitalized +
+							" account?  You will no longer be able to use " + capitalized +
+							" to log into Worlize!",
+						   "Unlink " + capitalized + " account",
+						   Alert.YES | Alert.NO,
+						   null,
+				           function(event:CloseEvent):void {
+							   if (event.detail === Alert.YES) {
+								   var client:WorlizeServiceClient = new WorlizeServiceClient();
+								   client.addEventListener(WorlizeResultEvent.RESULT, handleResult);
+								   client.addEventListener(FaultEvent.FAULT, handleFault);
+								   client.send("/authentications/" + provider + ".json", HTTPMethod.DELETE);
+							   }
+						   },
+						   null,
+						   Alert.NO);
 			}
 			
 			protected function handleResult(event:WorlizeResultEvent):void {
