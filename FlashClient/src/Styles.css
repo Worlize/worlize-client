@@ -9,6 +9,11 @@
 	fontFamily: PTSansNarrowBold;
 	embedAsCFF: true;
 }
+@font-face {
+	src: url("assets/fonts/PT_Sans_Narrow.ttf");
+	fontFamily: PTSansNarrow;
+	embedAsCFF: true;
+}
 
 components|DynamicHeightList {
 	skinClass: ClassReference("com.worlize.view.skins.DynamicHeightListSkin"); 
@@ -27,6 +32,7 @@ s|List.noScroll s|Scroller {
 global {
 	modal-transparency-blur: 0;
 	modal-transparency-duration: 0;
+	modal-transparency-color: #888888;
 /*	focusColor: #FFFFFF; */
 }
 
@@ -97,6 +103,14 @@ s|Label.socialCallout {
 	rollOverColor: #9f3030;
 	textRollOverColor: #FFFFFF;
 }
+
+.accountMenuToggleButton {
+	cornerRadius: 0px;
+	paddingLeft: 15px;
+	paddingRight: 15px;
+	skinClass: ClassReference("com.worlize.view.skins.AccountMenuToggleButtonSkin");
+}
+
 
 .pushToTalkButton {
 	cornerRadius: 10px;
@@ -181,9 +195,9 @@ s|Label.socialCallout {
 }
 
 mx|ToolTip {
-	fontFamily: PTSansNarrowBold;
-	fontSize: 16pt;
-	backgroundColor: #FFFFFF;
+	fontFamily: PTSansNarrow;
+	fontSize: 14pt;
+	backgroundColor: #FFFFDD;
 	cornerRadius: 0;
 }
 
@@ -193,11 +207,20 @@ mx|ProgressBar {
 }
 
 mx|Menu {
+	fontFamily: PTSansNarrow;
+	fontSize: 14pt;
 	text-align: left;
-	paddingTop: 2px;
-	paddingBottom: 2px;
-	paddingLeft: 5px;
-	paddingRight: 5px;
+	paddingTop: 0px;
+	paddingBottom: 0px;
+	paddingLeft: 0px;
+	paddingRight: 0px;
+}
+
+mx|Menu.accountMenu {
+	paddingTop: 5px;
+	paddingBottom: 5px;
+	paddingLeft: 10px;
+	paddingRight: 10px;
 }
 
 s|Label.friendListFullName {

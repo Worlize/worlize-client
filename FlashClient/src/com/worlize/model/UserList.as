@@ -50,6 +50,15 @@ package com.worlize.model
 			return ul;
 		}
 		
+		public function getUserByGuid(guid:String):UserListEntry {
+			for each (var user:UserListEntry in users) {
+				if (user.userGuid === guid) {
+					return user;
+				}
+			}
+			return null;
+		}
+		
 		
 		public function load(worldGuid:String=null):void {
 			if (worldGuid) {

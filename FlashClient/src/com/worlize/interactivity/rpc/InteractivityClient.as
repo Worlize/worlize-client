@@ -197,6 +197,7 @@ package com.worlize.interactivity.rpc
 			"clear_loose_props": handleClearLooseProps,
 			"disconnect": handleDisconnectMessage,
 			"friend_added": handleFriendAdded,
+			"friend_data_updated": handleFriendDataUpdated,
 			"friend_removed": handleFriendRemoved,
 			"friend_request_accepted": handleFriendRequestAccepted,
 			"gift_received": handleGiftReceived,
@@ -249,6 +250,7 @@ package com.worlize.interactivity.rpc
 			"update_room_property": handleUpdateRoomProperty,
 			"user_enter": handleUserNew,
 			"user_leave": handleUserLeaving,
+			"user_updated": handleUserUpdated,
 			"whisper": handleReceiveWhisper,
 			"world_definition": handleWorldDefinition,
 			"youtube_load": handleYouTubeLoad,
@@ -726,6 +728,12 @@ package com.worlize.interactivity.rpc
 			else {
 				notification.friendsListEntry.friendType = FriendsListEntry.TYPE_WORLIZE;
 			}
+			NotificationCenter.postNotification(notification);
+		}
+		
+		private function handleFriendDataUpdated(data:Object):void {
+			var notification:FriendsNotification = new FriendsNotification(FriendsNotification.FRIEND_UPDATED);
+			notification.friendsListEntry = FriendsListEntry.fromData(data);
 			NotificationCenter.postNotification(notification);
 		}
 		
@@ -2032,6 +2040,18 @@ package com.worlize.interactivity.rpc
 			if (currentRoom.selectedUser && currentRoom.selectedUser.id == userId)
 			{
 				currentRoom.selectedUser = null;
+			}
+		}
+		
+		private function handleUserUpdated(data:Object):void {
+			var interactivityUser:InteractivityUser = currentRoom.getUserById(data.guid);
+			if (interactivityUser) {
+				interactivityUser.name = data.username;
+			}
+			
+			var user:UserListEntry = currentWorld.userList.getUserByGuid(data.guid);
+			if (user) {
+				user.username = data.username;
 			}
 		}
 	}

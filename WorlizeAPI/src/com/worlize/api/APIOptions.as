@@ -31,7 +31,7 @@ package com.worlize.api
 	 *     options.defaultWidth = 200;
 	 *     options.defaultHeight = 150;
 	 * 
-	 *     // Initialize the api *AFTER* setting the config options
+	 *     // Initialize the api AFTER setting the config options
 	 *     WorlizeAPI.init(this);
 	 *   }
 	 * }

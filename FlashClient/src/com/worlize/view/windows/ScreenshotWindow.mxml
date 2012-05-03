@@ -71,7 +71,9 @@
 				var timer:Timer = new Timer(10, 1);
 				timer.addEventListener(TimerEvent.TIMER, function(event:TimerEvent):void {
 					var encoder:JPEGEncoder = new JPEGEncoder(90);
-					jpegData = encoder.encode(bitmapData);
+					if (bitmapData) {
+						jpegData = encoder.encode(bitmapData);
+					}
 					currentState = "normal";
 					ready = true;
 				});

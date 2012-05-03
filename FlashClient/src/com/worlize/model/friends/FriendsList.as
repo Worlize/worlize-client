@@ -167,6 +167,7 @@ package com.worlize.model.friends
 			
 			NotificationCenter.addListener(FriendsNotification.FRIEND_REQUEST_ACCEPTED, handleFriendRequestAccepted);
 			NotificationCenter.addListener(FriendsNotification.FRIEND_REQUEST_REJECTED, handleFriendRequestRejected);
+			NotificationCenter.addListener(FriendsNotification.FRIEND_UPDATED, handleFriendUpdated);
 			
 			// TODO: Can't use the native direct FQL query for online users yet.
 			// Have to resolve the integer overflow issue first.
@@ -385,6 +386,11 @@ package com.worlize.model.friends
 		private function handleFriendRequestAccepted(notification:FriendsNotification):void {
 			addFriendsListEntry(notification.friendsListEntry);
 			removeFriendRequestFromListByGuid(notification.friendsListEntry.guid);
+		}
+		
+		private function handleFriendUpdated(notification:FriendsNotification):void {
+			removeFriendFromListByGuid(notification.friendsListEntry.guid);
+			addFriendsListEntry(notification.friendsListEntry);
 		}
 		
 		private function handleFriendRequestRejected(notification:FriendsNotification):void {

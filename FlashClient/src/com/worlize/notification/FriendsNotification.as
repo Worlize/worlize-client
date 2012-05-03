@@ -10,6 +10,7 @@ package com.worlize.notification
 		public static const FRIEND_REQUEST_REJECTED:String = "friendRequestRejected";
 		public static const FRIEND_REMOVED:String = "friendRemoved";
 		public static const FRIEND_ADDED:String = "friendAdded";
+		public static const FRIEND_UPDATED:String = "friendUpdated";
 		
 		public var userGuid:String;
 		public var friendsListEntry:FriendsListEntry;

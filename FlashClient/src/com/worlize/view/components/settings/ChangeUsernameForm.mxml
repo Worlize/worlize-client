@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" 
+		  xmlns:mx="library://ns.adobe.com/flex/mx"
+		  creationComplete="handleCreationComplete()">
+	<fx:Metadata>
+		[Event(name="close",type="mx.events.CloseEvent")]
+	</fx:Metadata>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.command.CheckUsernameAvailabilityCommand;
+			import com.worlize.model.CurrentUser;
+			import com.worlize.model.WorldDefinition;
+			import com.worlize.rpc.WorlizeResultEvent;
+			import com.worlize.rpc.WorlizeServiceClient;
+			
+			import mx.binding.utils.ChangeWatcher;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			
+			private var _user:CurrentUser;
+			
+			private var initialUsername:String;
+			
+			[Bindable(event="userChanged")]
+			public function set user(newValue:CurrentUser):void {
+				if (_user !== newValue) {
+					_user = newValue;
+					initialUsername = _user.username;
+					dispatchEvent(new FlexEvent("userChanged"));
+				}
+			}
+			public function get user():CurrentUser {
+				return _user;
+			}
+			
+			[Bindable]
+			private var checkAvailabilityCommand:CheckUsernameAvailabilityCommand = new CheckUsernameAvailabilityCommand();
+			
+			[Bindable(event="validChanged")]
+			public function get valid():Boolean {
+				if (usernameField && usernameField.text === initialUsername) {
+					return true;
+				}
+				return usernameValid && checkAvailabilityCommand.state === CheckUsernameAvailabilityCommand.STATE_AVAILABLE;
+			}
+			
+			private var usernameValid:Boolean = true;
+			
+			private var checkAvailabilityTimer:Timer = new Timer(250, 1);
+			
+			private function handleCreationComplete():void {
+				checkAvailabilityTimer.addEventListener(TimerEvent.TIMER, handleTimer);
+				checkAvailabilityCommand.addEventListener(WorlizeResultEvent.RESULT, handleCheckAvailabilityResult);
+				reset();
+			}
+			
+			private function handleCheckAvailabilityResult(event:WorlizeResultEvent):void {
+				dispatchEvent(new FlexEvent("validChanged"));
+			}
+			
+			public function reset():void {
+				usernameField.text = user.username;
+				checkAvailabilityCommand.reset();
+			}
+			
+			private function handleTimer(event:TimerEvent):void {
+				checkAvailabilityCommand.execute(usernameField.text);
+			}
+			
+			protected function handleUsernameFieldChange():void {
+				if (usernameField.text === initialUsername) {
+					checkAvailabilityTimer.reset();
+					checkAvailabilityCommand.reset();
+					dispatchEvent(new FlexEvent("validChanged"));
+					return;
+				}
+				if (usernameField.text !== checkAvailabilityCommand.requestedUsername) {
+					checkAvailabilityCommand.reset();
+					checkAvailabilityTimer.reset();
+					checkAvailabilityTimer.start();
+					dispatchEvent(new FlexEvent("validChanged"));
+					return;
+				}
+			}
+			
+			private function handleUsernameValid():void {
+				usernameValid = true;
+				dispatchEvent(new FlexEvent("validChanged"));
+			}
+			
+			private function handleUsernameInvalid():void {
+				usernameValid = false;
+				dispatchEvent(new FlexEvent("validChanged"));
+			}
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<mx:StringValidator source="{usernameField}" property="text"
+							valid="handleUsernameValid()"
+							invalid="handleUsernameInvalid()"
+							minLength="3" maxLength="50" />
+	</fx:Declarations>
+	<s:Form>
+		<s:layout>
+			<s:FormLayout paddingRight="10"  />
+		</s:layout>
+		
+		<s:FormItem label="Username" required="true">
+			<s:TextInput id="usernameField" text="@{user.username}"
+						 change="handleUsernameFieldChange()"
+						 restrict="a-zA-Z0-9_\-\ " width="200" />
+			<s:helpContent>
+				<s:Label color="#00AA00" text="Available" fontWeight="bold"
+						 visible="{checkAvailabilityCommand.state === CheckUsernameAvailabilityCommand.STATE_AVAILABLE}"
+						 includeInLayout="{checkAvailabilityCommand.state === CheckUsernameAvailabilityCommand.STATE_AVAILABLE}" />
+				<s:Label color="#AA0000" text="Not available" fontWeight="bold"
+						 visible="{checkAvailabilityCommand.state === CheckUsernameAvailabilityCommand.STATE_UNAVAILABLE}"
+						 includeInLayout="{checkAvailabilityCommand.state === CheckUsernameAvailabilityCommand.STATE_UNAVAILABLE}" />
+				<s:Label color="#666666" text="Checking..." fontWeight="bold"
+						 visible="{checkAvailabilityCommand.state === CheckUsernameAvailabilityCommand.STATE_LOADING}"
+						 includeInLayout="{checkAvailabilityCommand.state === CheckUsernameAvailabilityCommand.STATE_LOADING}" />
+				<s:Label color="#AA0000" text="Error" fontWeight="bold"
+						 visible="{checkAvailabilityCommand.state === CheckUsernameAvailabilityCommand.STATE_ERROR}"
+						 includeInLayout="{checkAvailabilityCommand.state === CheckUsernameAvailabilityCommand.STATE_ERROR}" />
+			</s:helpContent>
+		</s:FormItem>
+	</s:Form>
+</s:VGroup>

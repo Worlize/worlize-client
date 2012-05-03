@@ -23,6 +23,7 @@ package com.worlize.model
 		public var admin:Boolean;
 		public var developer:Boolean;
 		public var createdAt:Date;
+		public var passwordChangedAt:Date;
 		public var username:String;
 		public var name:String;
 		public var coins:int;
@@ -39,12 +40,31 @@ package com.worlize.model
 		public var worldName:String;
 		public var worldGuid:String;
 		
-		public function CurrentUser()
-		{
-			if (_instance !== null) {
-				throw new Error("You can only create one instance of CurrentUser");
-			}
+		
+		public function clone():CurrentUser {
+			var u:CurrentUser = new CurrentUser();
+			u.guid = guid;
+			u.admin = admin;
+			u.developer = developer;
+			u.createdAt = createdAt;
+			u.passwordChangedAt = passwordChangedAt;
+			u.username = username;
+			u.name = name;
+			u.coins = coins;
+			u.bucks = bucks;
+			u.twitter = twitter;
+			u.twitterProfile = twitterProfile;
+			u.facebookProfile = facebookProfile;
+			u.facebookId = facebookId;
+			u.email = email;
+			u.birthday = birthday;
+			u.state = state;
+			u.worldEntrance = worldEntrance;
+			u.worldName = worldName;
+			u.worldGuid = worldGuid;
+			return u;
 		}
+		
 		public static function getInstance():CurrentUser {
 			if (_instance === null) {
 				_instance = new CurrentUser();
@@ -68,6 +88,9 @@ package com.worlize.model
 			slots.propSlots = data.prop_slots;
 			if (data.birthday) {
 				birthday = new Date(Date.parse(data.birthday.replace(/-/g, '/')));					
+			}
+			if (data.password_changed_at) {
+				passwordChangedAt = DateUtil.parseW3CDTF(data.password_changed_at);
 			}
 			bucks = data.bucks;
 			coins = data.coins;

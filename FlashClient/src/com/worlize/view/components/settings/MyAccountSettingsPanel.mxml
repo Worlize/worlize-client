@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" 
+		  xmlns:mx="library://ns.adobe.com/flex/mx"
+		  xmlns:validation="com.inversion.model.validation.*"
+		  xmlns:settings="com.worlize.view.components.settings.*"
+		  addedToStage="handleAddedToStage(event)"
+		  removedFromStage="handleRemovedFromStage(event)">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.model.CurrentUser;
+			
+			import mx.binding.utils.ChangeWatcher;
+			[Bindable]
+			public var user:CurrentUser;
+			
+			[Bindable]
+			public var valid:Boolean = true;
+			
+			private var validWatcher:ChangeWatcher;
+			
+			protected function handleAddedToStage(event:Event):void {
+				validWatcher = ChangeWatcher.watch(this, ['changeUsernameForm', 'valid'], handleValidityChange);
+				handleValidityChange();
+			}
+			
+			protected function handleRemovedFromStage(event:Event):void {
+				if (validWatcher) {
+					validWatcher.unwatch();
+					validWatcher = null;
+				}
+			}
+			
+			protected function handleValidityChange(event:Event=null):void {
+				valid = changeUsernameForm.valid;
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<settings:ChangeUsernameForm id="changeUsernameForm"
+								 width="100%" user="{user}" />
+	
+	<settings:ChangePasswordForm width="100%"
+								 user="{user}"
+								 passwordChangedAt="{user.passwordChangedAt}"/>
+</s:VGroup>

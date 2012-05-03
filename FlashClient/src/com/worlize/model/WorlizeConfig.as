@@ -20,6 +20,7 @@ package com.worlize.model
 		private static var _instance:WorlizeConfig;
 		
 		public var interactivitySession:InteractivitySession;
+		
 		public var currentUser:CurrentUser = CurrentUser.getInstance();
 		
 		public var hostname:String;

@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<components:WorlizeWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+						  xmlns:s="library://ns.adobe.com/flex/spark" 
+						  xmlns:mx="library://ns.adobe.com/flex/mx"
+						  xmlns:components="com.worlize.view.components.*"
+						  title="Settings"
+						  titleBarColor="#c9c9c9"
+						  titleTextColor="#7d8487"
+						  windowIcon="@Embed('assets/icons/large/w_icon_room_settings.png')"
+						  resizable="false"
+						  creationComplete="handleCreationComplete()"
+						  currentState="normal"
+						  width="600" height="450" xmlns:properties="com.worlize.view.author.properties.*" xmlns:settings="com.worlize.view.components.settings.*">
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.model.CurrentUser;
+			import com.worlize.model.PreferencesManager;
+			import com.worlize.model.WorlizeConfig;
+			import com.worlize.rpc.HTTPMethod;
+			import com.worlize.rpc.WorlizeResultEvent;
+			import com.worlize.rpc.WorlizeServiceClient;
+			
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.logging.ILogger;
+			import mx.logging.Log;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			
+			import spark.events.TitleWindowBoundsEvent;
+			private static var _instance:UserSettingsWindow;
+			private static var _open:Boolean = false;
+			
+			private var logger:ILogger = Log.getLogger("com.worlize.view.windows.UserSettingsWindow");
+			
+			[Bindable]
+			public var user:CurrentUser;
+			
+			protected function handleCreationComplete():void {
+				
+			}
+			
+			public static function toggleOpen(parent:DisplayObject, roomGuid:String = null):void {
+				if (_open) {
+					close();
+				}
+				else {
+					open(parent);
+				}
+			}
+			
+			public static function open(parent:DisplayObject):void {
+				var preferences:PreferencesManager = PreferencesManager.getInstance();
+				if (_open) {
+					PopUpManager.bringToFront(_instance);
+					_instance.setFocus();
+				}
+				else {
+					var needsPosition:Boolean = false;
+					if (!_instance) {
+						needsPosition = true;
+						_instance = new UserSettingsWindow();
+						_instance.initData();
+						_instance.addEventListener(CloseEvent.CLOSE, function(event:CloseEvent):void {
+							close();
+						});
+						_instance.addEventListener(TitleWindowBoundsEvent.WINDOW_MOVE_END, function(event:TitleWindowBoundsEvent):void {
+							preferences.setPreference('userSettingsPosition', [_instance.x, _instance.y]);
+						});
+					}
+					PopUpManager.addPopUp(_instance, parent);
+					if (needsPosition) {
+						var coordinates:Array = preferences.getPreference('userSettingsPosition') as Array;
+						if (coordinates &&
+							_instance.boundsAreValid(coordinates[0], coordinates[1], _instance.width, _instance.height))
+						{
+							_instance.x = coordinates[0];
+							_instance.y = coordinates[1];
+						}
+						else {
+							PopUpManager.centerPopUp(_instance);
+						}
+					}
+					_open = true;
+				}
+			}
+			
+			public static function close():void {
+				if (_open && _instance) {
+					PopUpManager.removePopUp(_instance);
+					_open = false;
+					_instance = null;
+				}
+			}
+			
+			private function handleCancelClick():void {
+				close();
+			}
+			
+			public function initData():void {
+				user = CurrentUser.getInstance().clone();
+			}
+			
+			private function handleSaveClick():void {
+				currentState = "saving";
+				var data:Object = {};
+				data.user = {
+					username: user.username
+				};
+				var client:WorlizeServiceClient = new WorlizeServiceClient();
+				client.addEventListener(WorlizeResultEvent.RESULT, handleSaveResult);
+				client.addEventListener(FaultEvent.FAULT, handleSaveFault);
+				client.send("/me/settings", HTTPMethod.PUT, {
+					data: JSON.stringify(data)
+				});
+			}
+			
+			private function handleSaveResult(event:WorlizeResultEvent):void {
+				currentState = "normal";
+				if (event.resultJSON.success) {
+					CurrentUser.getInstance().username = event.resultJSON.user.username;
+					var config:WorlizeConfig = WorlizeConfig.getInstance();
+					config.interactivitySession.username = event.resultJSON.user.username;
+					close();
+				}
+				else {
+					
+				}
+			}
+			
+			private function handleSaveFault(event:FaultEvent):void {
+				Alert.show("Unable to save changes. HTTP Status " + event.statusCode);
+				logger.error("Unable to save changes. HTTP Status " + event.statusCode + " Message: " + event.message);
+				currentState = "normal";
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<components:states>
+		<s:State name="saving" />
+		<s:State name="normal" />
+	</components:states>
+	
+	<s:VGroup gap="0" paddingTop="10" width="100%" height="100%">
+		<s:Group width="100%">
+			<s:TabBar left="10" id="tabBar"
+					  dataProvider="{userSettingsViewStack}" />
+			<s:Rect width="100%" height="1" bottom="0">
+				<s:fill>
+					<s:SolidColor color="#777777" />
+				</s:fill>
+			</s:Rect>
+		</s:Group>
+		
+		<mx:ViewStack id="userSettingsViewStack" width="100%" height="100%">
+			<s:NavigatorContent id="accountTab" label="My Account">
+				<settings:MyAccountSettingsPanel id="accountSettingsPanel"
+												 width="100%" height="100%"
+												 user="{user}"/>
+			</s:NavigatorContent>
+			
+			<s:NavigatorContent id="linkedProfilesTab" label="Linked Profiles">
+				<s:Group />
+			</s:NavigatorContent>
+		</mx:ViewStack>
+		
+		<s:Group width="100%">
+			<s:Rect bottom="0" right="0" top="0" left="0">
+				<s:fill>
+					<s:SolidColor color="#EEEEEE" />
+				</s:fill>
+			</s:Rect>
+			<s:Rect top="0" width="100%" height="1">
+				<s:fill>
+					<s:SolidColor color="#BBBBBB" />
+				</s:fill>
+			</s:Rect>
+			<s:HGroup horizontalAlign="right" verticalAlign="baseline"
+					  width="100%"
+					  paddingTop="6" paddingRight="5" paddingBottom="5">
+				<s:Button label="Cancel" click="handleCancelClick()" enabled.saving="false" />
+				<s:Button label="Save" emphasized="true"
+						  enabled="{accountSettingsPanel.valid}"
+						  click="handleSaveClick()"
+						  enabled.saving="false" />
+			</s:HGroup>
+		</s:Group>
+	</s:VGroup>
+</components:WorlizeWindow>
