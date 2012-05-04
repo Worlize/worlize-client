@@ -9,6 +9,9 @@ package com.worlize.interactivity.model
 	import flash.events.NetStatusEvent;
 	import flash.events.StatusEvent;
 	import flash.media.Camera;
+	import flash.media.H264Level;
+	import flash.media.H264Profile;
+	import flash.media.H264VideoStreamSettings;
 	import flash.media.Microphone;
 	import flash.media.SoundCodec;
 	import flash.media.Video;
@@ -258,6 +261,10 @@ package com.worlize.interactivity.model
 			netStream.bufferTime = 0;
 			netStream.addEventListener(NetStatusEvent.NET_STATUS, handleNetStreamNetStatus);
 			
+			var h264Settings:H264VideoStreamSettings = new H264VideoStreamSettings();
+			h264Settings.setProfileLevel(H264Profile.BASELINE, H264Level.LEVEL_3_1);
+			
+			netStream.videoStreamSettings = h264Settings;
 			netStream.publish(streamName, 'live');
 		}
 		
