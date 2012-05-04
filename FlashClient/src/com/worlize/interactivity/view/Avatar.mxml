@@ -320,12 +320,11 @@
 		<s:BasicLayout />
 	</s:layout>
 	
-	<s:Group x="0" y="5" width="50" height="40"
+	<s:Image x="0" y="5" width="50" height="40"
+			 visible="{user.showFace}"
 			 mouseEnabled="false"
 			 mouseChildren="false"
-			 visible="{user.showFace}">
-		<mx1:Image smoothBitmapContent="true" source="{user.faceImage}" />
-	</s:Group>
+			 smooth="true" source="{user.faceImage}" />
 	
 	<s:SpriteVisualElement id="imageContainer"
 						   mouseEnabled="false"
@@ -337,6 +336,7 @@
 					 label=""
 					 mode="manual"
 					 mouseEnabled="false"
+					 mouseChildren="false"
 					 height="20" width="50"
 					 id="simpleAvatarProgressBar" visible="false" />
 
