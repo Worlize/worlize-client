@@ -50,6 +50,7 @@ package com.worlize.interactivity.api
 		}
 		
 		protected var dimLevelChangeWatcher:ChangeWatcher;
+		protected var roomNameChangeWatcher:ChangeWatcher;
 		
 		protected function addMouseEvents():void {
 			if (mouseEventsAdded) { return; }
@@ -82,6 +83,7 @@ package com.worlize.interactivity.api
 			room.loosePropList.addEventListener(LoosePropEvent.PROP_BROUGHT_FORWARD, handleLoosePropBroughtForward);
 			room.loosePropList.addEventListener(LoosePropEvent.PROP_SENT_BACKWARD, handleLoosePropSentBackward);
 			dimLevelChangeWatcher = ChangeWatcher.watch(room, 'dimLevel', handleRoomDimLevelChanged);
+			roomNameChangeWatcher = ChangeWatcher.watch(room, 'name', handleRoomNameChanged);
 		}
 		
 		protected function removeInteractivityClientEvents():void {
@@ -263,6 +265,12 @@ package com.worlize.interactivity.api
 		protected function handleRoomDimLevelChanged(event:PropertyChangeEvent):void {
 			for each (var client:IAPIClientAdapter in apiClientAdapters) {
 				client.roomDimLevelChanged(Math.round(int(event.newValue)*100));
+			}
+		}
+		
+		protected function handleRoomNameChanged(event:PropertyChangeEvent):void {
+			for each (var client:IAPIClientAdapter in apiClientAdapters) {
+				client.roomNameChanged(interactivityClient.currentRoom.id, interactivityClient.currentRoom.name);
 			}
 		}
 		

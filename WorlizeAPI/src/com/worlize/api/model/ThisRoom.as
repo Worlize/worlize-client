@@ -132,6 +132,14 @@ package com.worlize.api.model
 	[Event(name="objectAdded",type="com.worlize.api.event.RoomEvent")]
 	
 	/**
+	 * Dispatched after the room's name has been changed by its owner.
+	 * 
+	 * @eventType com.worlize.api.event.RoomEvent.NAME_CHANGED
+	 * @productversion Worlize API.v3 
+	 */	
+	[Event(name="nameChanged",type="com.worlize.api.event.RoomEvent")]
+	
+	/**
 	 * Dispatched after an object has been removed from the room.
 	 * 
 	 * @eventType com.worlize.api.event.RoomEvent.OBJECT_REMOVED
@@ -860,6 +868,7 @@ package com.worlize.api.model
 			sharedEvents.addEventListener('host_loosePropBroughtForward', handleLoosePropBroughtForward);
 			sharedEvents.addEventListener('host_loosePropSentBackward', handleLoosePropSentBackward);
 			sharedEvents.addEventListener('host_loosePropsReset', handleLoosePropsReset);
+			sharedEvents.addEventListener('host_roomNameChanged', handleRoomNameChanged);
 		}
 		
 		private function handleRoomMouseMove(event:Event):void {
@@ -1119,6 +1128,17 @@ package com.worlize.api.model
 			}
 			var propEvent:LoosePropEvent = new LoosePropEvent(LoosePropEvent.PROPS_CLEARED);
 			dispatchEvent(propEvent);
+		}
+		
+		private function handleRoomNameChanged(event:Event):void {
+			var data:Object = (event as Object).data;
+			if (data.guid && data.name) {
+				if (_guid === data.guid) {
+					_name = data.name;
+					var roomEvent:RoomEvent = new RoomEvent(RoomEvent.NAME_CHANGED);
+					dispatchEvent(roomEvent);
+				}
+			}
 		}
 	}
 }

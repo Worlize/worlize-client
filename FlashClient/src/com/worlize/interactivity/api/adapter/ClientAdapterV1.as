@@ -616,6 +616,16 @@ package com.worlize.interactivity.api.adapter
 			sharedEvents.dispatchEvent(event);
 		}
 		
+		public function roomNameChanged(guid:String, name:String):void {
+			if (sharedEvents === null) { return; }
+			var event:APIBridgeEvent = new APIBridgeEvent("host_roomNameChanged");
+			event.data = {
+				guid: guid,
+				name: name
+			};
+			sharedEvents.dispatchEvent(event);
+		}
+		
 		public function roomLocked(lockedByUserGuid:String):void {
 			if (sharedEvents === null) { return; }
 			var event:APIBridgeEvent = new APIBridgeEvent("host_roomLockedChanged");

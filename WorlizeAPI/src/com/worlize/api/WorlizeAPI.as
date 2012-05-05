@@ -1,12 +1,13 @@
 package com.worlize.api
 {
+	import com.worlize.api.data.ConfigData;
 	import com.worlize.api.data.StateHistory;
 	import com.worlize.api.data.SyncedDataStore;
 	import com.worlize.api.event.APIEvent;
 	import com.worlize.api.event.AuthorEvent;
 	import com.worlize.api.event.ChatEvent;
 	import com.worlize.api.event.MessageEvent;
-	import com.worlize.api.data.ConfigData;
+	import com.worlize.api.model.Room;
 	import com.worlize.api.model.RoomObject;
 	import com.worlize.api.model.ThisRoom;
 	import com.worlize.api.model.ThisRoomObject;
@@ -106,7 +107,7 @@ package com.worlize.api
 		 * 
 		 * @productversion Worlize APIv.1 
 		 */
-		public static const VERSION:int = 2;
+		public static const VERSION:int = 3;
 		
 		/**
 		 * @private
