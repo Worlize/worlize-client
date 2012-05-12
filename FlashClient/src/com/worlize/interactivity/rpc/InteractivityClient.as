@@ -1829,6 +1829,7 @@ package com.worlize.interactivity.rpc
 			user.name = data.userName;
 			user.face = data.face;
 			user.color = data.color;
+			user.facebookId = data.facebookId;
 			
 			if (data.avatar) {
 				if (data.avatar.type == "simple") {
