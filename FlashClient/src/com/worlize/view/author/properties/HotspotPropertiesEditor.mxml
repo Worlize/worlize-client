@@ -9,7 +9,6 @@
 	
 	<fx:Script>
 		<![CDATA[
-			import com.worlize.command.SetHotspotDestinationCommand;
 			import com.worlize.interactivity.model.Hotspot;
 			import com.worlize.interactivity.rpc.InteractivityClient;
 			import com.worlize.model.RoomList;
@@ -83,10 +82,8 @@
 				var destRoom:RoomListEntry = roomList.getItemAt(event.newIndex) as RoomListEntry;
 				hotspot.dest = destRoom.guid;
 				
-				var command:SetHotspotDestinationCommand = new SetHotspotDestinationCommand();
-				
 				var destString:String = (destRoom.guid === null) ? "" : destRoom.guid;
-				command.execute(client.currentRoom.id, hotspot.guid, destString);
+				client.setHotspotDestination(hotspot.guid, destString);
 			}
 
 			private function handleCloseClick():void {

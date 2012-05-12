@@ -17,6 +17,7 @@ package com.worlize.interactivity.rpc
 	import com.worlize.interactivity.iptscrae.IptInteractivityController;
 	import com.worlize.interactivity.model.CurrentRoom;
 	import com.worlize.interactivity.model.Hotspot;
+	import com.worlize.interactivity.model.IRoomItem;
 	import com.worlize.interactivity.model.InteractivityConfig;
 	import com.worlize.interactivity.model.InteractivityUser;
 	import com.worlize.interactivity.model.RoomHistoryManager;
@@ -34,6 +35,7 @@ package com.worlize.interactivity.rpc
 	import com.worlize.model.AvatarInstance;
 	import com.worlize.model.BackgroundImageInstance;
 	import com.worlize.model.CurrentUser;
+	import com.worlize.model.InWorldObject;
 	import com.worlize.model.InWorldObjectInstance;
 	import com.worlize.model.LinkedProfile;
 	import com.worlize.model.PreferencesManager;
@@ -205,9 +207,9 @@ package com.worlize.interactivity.rpc
 			"gift_received": handleGiftReceived,
 			"global_msg": handleGlobalMessage,
 			"goto_room": handleGotoRoomMessage,
-			"hotspot_moved": handleHotspotMoved,
-			"hotspot_removed": handleHotspotRemoved,
-			"hotspot_dest_updated": handleHotspotDestUpdated,
+			"move_hotspot": handleMoveHotspot,
+			"remove_hotspot": handleRemoveHotspot,
+			"set_hotspot_dest": handleSetHotspotDest,
 			"in_world_object_instance_added": handleInWorldObjectInstanceAdded,
 			"invitation_to_join_friend": handleInvitationToJoinFriend,
 			"linked_profile_added": handleLinkedProfileAdded,
@@ -218,11 +220,11 @@ package com.worlize.interactivity.rpc
 			"move_loose_prop": handleMoveLooseProp,
 			"naked": handleNaked,
 			"new_friend_request": handleNewFriendRequest,
-			"new_hotspot": handleNewHotspot,
-			"new_object": handleNewObject,
-			"object_moved": handleObjectMoved,
-			"object_removed": handleObjectRemoved,
-			"object_updated": handleObjectUpdated, // dest changed
+			"add_hotspot": handleAddHotspot,
+			"add_object_instance": handleAddObjectInstance,
+			"move_object_instance": handleMoveObjectInstance,
+			"remove_object_instance": handleRemoveObjectInstance,
+			"set_object_instance_dest": handleSetObjectInstanceDest, // dest changed
 			"payment_completed": handlePaymentCompleted,
 			"ping": handlePing,
 			"presence_status_change": handlePresenceStatusChange,
@@ -489,7 +491,7 @@ package com.worlize.interactivity.rpc
 		}
 		
 		private function handleInWorldObjectInstanceAdded(data:Object):void {
-			var inWorldObjectInstance:InWorldObjectInstance = InWorldObjectInstance.fromData(data);
+			var inWorldObjectInstance:InWorldObjectInstance = InWorldObjectInstance.fromLockerData(data);
 			
 			var notification:InWorldObjectNotification = new InWorldObjectNotification(InWorldObjectNotification.IN_WORLD_OBJECT_INSTANCE_ADDED);
 			notification.inWorldObjectInstance = inWorldObjectInstance;
@@ -762,9 +764,17 @@ package com.worlize.interactivity.rpc
 			SoundPlayer.getInstance().playRequestReceivedSound();
 		}
 		
-		private function handleNewObject(data:Object):void {
+		private function handleAddObjectInstance(data:Object):void {
 			if (data.room == currentRoom.id && data.object) {
-				currentRoom.addObject(data.object);
+				var inWorldObjectInstance:InWorldObjectInstance = InWorldObjectInstance.fromData(data.object);
+				
+				var room:RoomListEntry = new RoomListEntry();
+				room.name = currentRoom.name;
+				room.guid = currentRoom.id;
+					
+				inWorldObjectInstance.room = room;
+				
+				currentRoom.addObject(inWorldObjectInstance);
 			}
 		}
 		
@@ -888,19 +898,19 @@ package com.worlize.interactivity.rpc
 		
 		// END Binary Message Handler Functions
 		
-		private function handleObjectMoved(data:Object):void {
+		private function handleMoveObjectInstance(data:Object):void {
 			if (data.room == currentRoom.id && data.object) {
 				currentRoom.moveObject(data.object.guid, data.object.x, data.object.y);
 			}
 		}
 		
-		private function handleObjectUpdated(data:Object):void {
+		private function handleSetObjectInstanceDest(data:Object):void {
 			if (data.room == currentRoom.id && data.object) {
-				currentRoom.updateObject(data.object.guid, data.object.dest);
+				currentRoom.setObjectDest(data.object, data.dest);
 			}
 		}
 		
-		private function handleObjectRemoved(data:Object):void {
+		private function handleRemoveObjectInstance(data:Object):void {
 			if (data.room == currentRoom.id && data.guid) {
 				currentRoom.removeObject(data.guid);
 			}
@@ -955,14 +965,14 @@ package com.worlize.interactivity.rpc
 			});
 		}
 		
-		private function handleHotspotDestUpdated(data:Object):void {
+		private function handleSetHotspotDest(data:Object):void {
 			var hotspot:Hotspot = currentRoom.hotSpotsByGuid[data.guid];
 			if (hotspot) {
 				hotspot.dest = data.dest;
 			}
 		}
 		
-		private function handleHotspotRemoved(data:Object):void {
+		private function handleRemoveHotspot(data:Object):void {
 			var hotspot:Hotspot = currentRoom.hotSpotsByGuid[data.guid];
 			if (hotspot) {
 				var authorModeState:AuthorModeState = AuthorModeState.getInstance();
@@ -985,14 +995,14 @@ package com.worlize.interactivity.rpc
 			}
 		}
 		
-		private function handleHotspotMoved(data:Object):void {
+		private function handleMoveHotspot(data:Object):void {
 			var hotspot:Hotspot = currentRoom.hotSpotsByGuid[data.guid];
 			if (hotspot) {
 				hotspot.moveTo(data.x, data.y, data.points);
 			}
 		}
 		
-		private function handleNewHotspot(data:Object):void {
+		private function handleAddHotspot(data:Object):void {
 			var hotspot:Hotspot = Hotspot.fromData(data)
 			currentRoom.hotSpots.addItem(hotspot);
 			currentRoom.hotSpotsAboveNothing.addItem(hotspot);
@@ -1045,17 +1055,31 @@ package com.worlize.interactivity.rpc
 				roomHistoryManager.addItem(currentRoom.id, currentRoom.name, currentWorld.name);
 			}
 			
-			// Hotspots:
+			// clear room items state
 			currentRoom.hotSpotsAboveNothing.removeAll();
 			currentRoom.hotSpots.removeAll();
 			currentRoom.hotSpotsByGuid = {};
 			currentRoom.hotSpotsById = {};
+			currentRoom.resetInWorldObjects();
+			currentRoom.resetYoutubePlayers();
 			
-			for each (var hotspot:Hotspot in room.hotspots) {
-				currentRoom.hotSpots.addItem(hotspot);
-				currentRoom.hotSpotsAboveNothing.addItem(hotspot);
-				currentRoom.hotSpotsById[hotspot.id] = hotspot;
-				currentRoom.hotSpotsByGuid[hotspot.guid] = hotspot;
+			for each (var item:IRoomItem in room.items) {
+				if (item is Hotspot) {
+					var hotspot:Hotspot = item as Hotspot;
+					currentRoom.hotSpots.addItem(hotspot);
+					currentRoom.hotSpotsAboveNothing.addItem(hotspot);
+					currentRoom.hotSpotsById[hotspot.id] = hotspot;
+					currentRoom.hotSpotsByGuid[hotspot.guid] = hotspot;
+				}
+				else if (item is InWorldObjectInstance) {
+					currentRoom.addObject(item as InWorldObjectInstance);
+				}
+				else if (item is YouTubePlayerDefinition) {
+					currentRoom.addYoutubePlayer(item as YouTubePlayerDefinition);
+				}
+				else {
+					logger.error("Unsupported room item encountered!");
+				}
 			}
 			
 			currentRoom.loosePropList.reset();
@@ -1063,17 +1087,6 @@ package com.worlize.interactivity.rpc
 				currentRoom.loosePropList.add(loosePropData);
 			}
 			
-			// In-World Objects
-			currentRoom.resetInWorldObjects();
-			for each (var objectData:Object in room.objects) {
-				currentRoom.addObject(objectData);
-			}
-			
-			// YouTube Players
-			currentRoom.resetYoutubePlayers();
-			for each (var youtubePlayerDefinition:YouTubePlayerDefinition in room.youtubePlayers) {
-				currentRoom.addYoutubePlayer(youtubePlayerDefinition);
-			}
 			
 			verifyUserCanAuthor();
 			
@@ -1679,6 +1692,90 @@ package com.worlize.interactivity.rpc
 				data: {
 					id: id,
 					layerCount: layerCount
+				}
+			});
+		}
+		
+		public function addHotspot(x:int, y:int, points:Array, destGuid:String = null):void {
+			connection.send({
+				msg: 'add_hotspot',
+				data: {
+					x: x,
+					y: y,
+					points: points,
+					dest: destGuid
+				}
+			});
+		}
+		
+		public function addObjectInstance(instanceGuid:String, x:int, y:int):void {
+			connection.send({
+				msg: 'add_object_instance',
+				data: {
+					guid: instanceGuid,
+					x: x,
+					y: y
+				}
+			});
+		}
+		
+		public function removeObjectInstance(instanceGuid:String):void {
+			connection.send({
+				msg: 'remove_object_instance',
+				data: {
+					guid: instanceGuid
+				}
+			});
+		}
+		
+		public function moveObjectInstance(instanceGuid:String, x:int, y:int):void {
+			connection.send({
+				msg: 'move_object_instance',
+				data: {
+					guid: instanceGuid,
+					x: x,
+					y: y
+				}
+			});
+		}
+		
+		public function setObjectInstanceDest(instanceGuid:String, dest:String):void {
+			connection.send({
+				msg: 'set_object_instance_dest',
+				data: {
+					guid: instanceGuid,
+					destGuid: dest
+				}
+			});
+		}
+		
+		public function moveHotspot(guid:String, x:int, y:int, points:Array):void {
+			connection.send({
+				msg: 'move_hotspot',
+				data: {
+					guid: guid,
+					x: x,
+					y: y,
+					points: points
+				}
+			});
+		}
+		
+		public function setHotspotDestination(hotspotGuid:String, destGuid:String):void {
+			connection.send({
+				msg: 'set_hotspot_dest',
+				data: {
+					guid: hotspotGuid,
+					destGuid: destGuid
+				}
+			});
+		}
+		
+		public function removeHotspot(guid:String):void {
+			connection.send({
+				msg: 'remove_hotspot',
+				data: {
+					guid: guid
 				}
 			});
 		}

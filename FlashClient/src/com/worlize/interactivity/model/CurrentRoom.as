@@ -1,9 +1,9 @@
 package com.worlize.interactivity.model
 {
-	import com.worlize.command.CreateHotspotCommand;
 	import com.worlize.event.NotificationCenter;
 	import com.worlize.interactivity.event.ChatEvent;
 	import com.worlize.interactivity.event.RoomEvent;
+	import com.worlize.interactivity.rpc.InteractivityClient;
 	import com.worlize.interactivity.util.WorlizeTextUtil;
 	import com.worlize.interactivity.view.RoomView;
 	import com.worlize.model.BackgroundImageInstance;
@@ -178,36 +178,8 @@ package com.worlize.interactivity.model
 			inWorldObjectInstance.removeEventListener(RoomEvent.OBJECT_STATE_CHANGED, redispatchObjectEvent);
 		}
 				
-		public function addObject(objectData:Object):void {
+		public function addObject(inWorldObjectInstance:InWorldObjectInstance):void {
 			//objectData.guid, objectData.x, objectData.y, objectData.fullsize_url, objectData.dest
-			var inWorldObjectInstance:InWorldObjectInstance = new InWorldObjectInstance();
-			inWorldObjectInstance.guid = objectData.guid;
-			inWorldObjectInstance.x = objectData.x;
-			inWorldObjectInstance.y = objectData.y;
-			
-			inWorldObjectInstance.inWorldObject = new InWorldObject();
-			inWorldObjectInstance.inWorldObject.kind = (objectData.kind) ? objectData.kind : InWorldObject.KIND_IMAGE;
-			
-			if (objectData.kind === 'app') {
-				inWorldObjectInstance.inWorldObject.guid = objectData.object_guid;
-				inWorldObjectInstance.inWorldObject.name = objectData.name;
-				inWorldObjectInstance.inWorldObject.appURL = objectData.app_url;
-				inWorldObjectInstance.inWorldObject.fullsizeURL = objectData.app_url;
-				inWorldObjectInstance.inWorldObject.smallIconURL = objectData.small_icon;
-				inWorldObjectInstance.inWorldObject.width = objectData.width;
-				inWorldObjectInstance.inWorldObject.height = objectData.height;
-				inWorldObjectInstance.configData = objectData.config;
-				inWorldObjectInstance.syncedData = {};
-				inWorldObjectInstance.stateHistory = [];
-			}
-			else {
-				inWorldObjectInstance.dest = objectData.dest;
-				inWorldObjectInstance.inWorldObject.fullsizeURL = objectData.fullsize_url;
-			}
-			var roomListEntry:RoomListEntry = new RoomListEntry();
-			roomListEntry.guid = id;
-			roomListEntry.name = name;
-			inWorldObjectInstance.room = roomListEntry;
 			
 			inWorldObjects.addItem(inWorldObjectInstance);
 			inWorldObjectsByGuid[inWorldObjectInstance.guid] = inWorldObjectInstance;
@@ -220,8 +192,8 @@ package com.worlize.interactivity.model
 			
 			var notification:InWorldObjectNotification =
 				new InWorldObjectNotification(InWorldObjectNotification.IN_WORLD_OBJECT_ADDED_TO_ROOM);
-			notification.instanceGuid = objectData.guid;
-			notification.room = roomListEntry;
+			notification.instanceGuid = inWorldObjectInstance.guid;
+			notification.room = inWorldObjectInstance.room;
 			NotificationCenter.postNotification(notification);
 		}
 
@@ -273,7 +245,7 @@ package com.worlize.interactivity.model
 			}
 		}
 		
-		public function updateObject(guid:String, dest:String):void {
+		public function setObjectDest(guid:String, dest:String):void {
 			var inWorldObjectInstance:InWorldObjectInstance = inWorldObjectsByGuid[guid];
 			if (inWorldObjectInstance) {
 				inWorldObjectInstance.dest = dest;
@@ -299,9 +271,11 @@ package com.worlize.interactivity.model
 		}
 		
 		public function createHotspot():void {
-			var command:CreateHotspotCommand = new CreateHotspotCommand();
-			command.currentRoom = this;
-			command.execute(this.id);
+			var x:int = 950/2;
+			var y:int = 570/2;
+			var points:Array = [ [-150,-100], [150,-100], [150,100], [-150,100] ];
+			var client:InteractivityClient = InteractivityClient.getInstance();
+			client.addHotspot(x, y, points);
 		}
 		
 		public function createYoutubePlayer():void {

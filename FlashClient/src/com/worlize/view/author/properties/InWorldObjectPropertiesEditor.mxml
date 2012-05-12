@@ -9,7 +9,6 @@
 	
 	<fx:Script>
 		<![CDATA[
-			import com.worlize.command.SetHotspotDestinationCommand;
 			import com.worlize.interactivity.model.Hotspot;
 			import com.worlize.interactivity.rpc.InteractivityClient;
 			import com.worlize.model.InWorldObject;

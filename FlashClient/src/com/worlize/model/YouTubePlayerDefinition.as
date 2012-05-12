@@ -1,6 +1,7 @@
 package com.worlize.model
 {
 	import com.worlize.interactivity.event.WorlizeYouTubeEvent;
+	import com.worlize.interactivity.model.IRoomItem;
 	import com.worlize.rpc.HTTPMethod;
 	import com.worlize.rpc.WorlizeResultEvent;
 	import com.worlize.rpc.WorlizeServiceClient;
@@ -24,7 +25,7 @@ package com.worlize.model
 	[Event(name="unlockPlayerRequested", type="com.worlize.interactivity.event.WorlizeYouTubeEvent")]
 	
 	[Bindable]
-	public class YouTubePlayerDefinition extends EventDispatcher
+	public class YouTubePlayerDefinition extends EventDispatcher implements IRoomItem
 	{
 		public var guid:String;
 		public var x:int;

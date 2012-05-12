@@ -1,12 +1,11 @@
 package com.worlize.interactivity.model
 {
-	import com.worlize.command.DeleteHotspotCommand;
-	import com.worlize.command.MoveHotspotCommand;
 	import com.worlize.interactivity.event.HotspotEvent;
 	import com.worlize.interactivity.iptscrae.IptEventHandler;
 	import com.worlize.interactivity.iptscrae.WorlizeIptManager;
 	import com.worlize.interactivity.rpc.InteractivityClient;
 	
+	import flash.events.Event;
 	import flash.events.EventDispatcher;
 	import flash.geom.Point;
 	
@@ -20,7 +19,7 @@ package com.worlize.interactivity.model
 	[Event(name="moved",type="com.worlize.interactivity.event.HotspotEvent")]
 
 	[Bindable]
-	public class Hotspot extends EventDispatcher
+	public class Hotspot extends EventDispatcher implements IRoomItem
 	{
 		
 		public var type:int = 0;
@@ -79,20 +78,18 @@ package com.worlize.interactivity.model
 		}
 		
 		public function savePosition():void {
-			var command:MoveHotspotCommand = new MoveHotspotCommand();
-			var room:CurrentRoom = InteractivityClient.getInstance().currentRoom;
 			var points:Array = [];
 			for each (var point:Point in polygon) {
 				points.push([point.x, point.y]);
 			}
-			command.execute(room.id, guid, location.x, location.y, points);
+			InteractivityClient.getInstance().moveHotspot(guid, location.x, location.y, points);
 		}
 		
 		public function deleteHotspot():void {
 			var logger:ILogger = Log.getLogger('com.worlize.interactivity.model.Hotspot');
 			logger.info("Deleting hotspot " + this.guid);
-			var command:DeleteHotspotCommand = new DeleteHotspotCommand();
-			command.execute(InteractivityClient.getInstance().currentRoom.id, guid);
+			var client:InteractivityClient = InteractivityClient.getInstance();
+			client.removeHotspot(guid);
 		}
 		
 		public function selectForAuthoring():void {

@@ -1,14 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<components:WorlizeWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
 						  xmlns:s="library://ns.adobe.com/flex/spark" 
 						  xmlns:mx="library://ns.adobe.com/flex/mx"
 						  xmlns:components="com.worlize.view.components.*"
-						  title="My Backgrounds"
-						  titleBarColor="#962626" titleTextColor="#962626" 
-						  windowIcon="@Embed('assets/icons/large/w_icon_backgrounds.png')"
-						  minWidth="525" minHeight="415"
-						  creationComplete="handleCreationComplete()"
-						  width="525" height="415">
+						  creationComplete="handleCreationComplete()">
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
@@ -49,8 +44,6 @@
 			import spark.events.IndexChangeEvent;
 			import spark.events.TitleWindowBoundsEvent;
 			import spark.primitives.Rect;
-			private static var _open:Boolean = false;
-			private static var _instance:MyBackgroundsWindow;
 			
 			private var logger:ILogger = Log.getLogger("com.worlize.view.author.MyBackgroundsWindow");
 			
@@ -60,73 +53,8 @@
 			[Bindable]
 			private var backgroundsLocker:BackgroundsLocker = new BackgroundsLocker();
 			
-			public static function toggleOpen(parent:DisplayObject):void {
-				if (_open) {
-					close();
-				}
-				else {
-					open(parent);
-				}
-			}
-			
-			public static function open(parent:DisplayObject):void {
-				var preferences:PreferencesManager = PreferencesManager.getInstance();
-				if (_open) {
-					PopUpManager.bringToFront(_instance);
-					_instance.setFocus();
-				}
-				else {
-					var needsPosition:Boolean = false;
-					if (!_instance) {
-						needsPosition = true;
-						_instance = new MyBackgroundsWindow();
-						_instance.addEventListener(CloseEvent.CLOSE, function(event:CloseEvent):void {
-							close();
-						});
-						_instance.addEventListener(ResizeManager.RESIZE_END, function(event:ResizeEvent):void {
-							preferences.setPreference('myBackgroundsSize', [_instance.width, _instance.height]);
-						});
-						_instance.addEventListener(TitleWindowBoundsEvent.WINDOW_MOVE_END, function(event:TitleWindowBoundsEvent):void {
-							preferences.setPreference('myBackgroundsPosition', [_instance.x, _instance.y]);
-						});
-					}
-					PopUpManager.addPopUp(_instance, parent);
-					if (needsPosition) {
-						var coordinates:Array = preferences.getPreference('myBackgroundsPosition') as Array;
-						var size:Array = preferences.getPreference('myBackgroundsSize') as Array;
-						if (coordinates && size &&
-							_instance.boundsAreValid(coordinates[0], coordinates[1], size[0], size[1]))
-						{
-							_instance.x = coordinates[0];
-							_instance.y = coordinates[1];
-							_instance.width = size[0];
-							_instance.height = size[1];
-						}
-						else {
-							PopUpManager.centerPopUp(_instance);
-						}
-					}
-					_open = true;
-				}
-			}
-			
-			public static function close():void {
-				if (_open && _instance) {
-					PopUpManager.removePopUp(_instance);
-					_open = false;
-				}
-			}
 			
 			private function handleCreationComplete():void {
-				NotificationCenter.addListener(AuthorModeNotification.AUTHOR_DISABLED, handleAuthorModeDisabled);
-				loadData();
-			}
-			
-			private function handleAuthorModeDisabled(notification:AuthorModeNotification):void {
-				close();
-			}
-			
-			public function loadData():void {
 				backgroundsLocker.load();
 			}
 			
@@ -178,7 +106,7 @@
 	</fx:Script>
 	
 	
-	
+	<!--
 	<components:controlBarContent>
 		<components:UploadProgressIndicator
 			uploader="{uploader}" />
@@ -198,17 +126,19 @@
 			line2="Used: {backgroundsLocker.count}"
 			toolTip="Click to buy more locker space"/>
 	</components:controlBarContent>
+	-->
 
-	<s:List top="10" right="10" left="10" bottom="10"
-			id="backgroundImagesList" dataProvider="{backgroundsLocker.backgroundInstances}"
+	<s:List id="backgroundImagesList" dataProvider="{backgroundsLocker.backgroundInstances}"
+			top="0" right="0" left="0" bottom="0"
 			borderVisible="false"
 			change="handleBackgroundChange(event)"
 			itemRenderer="com.worlize.view.itemrenderers.BackgroundLockerItemRenderer">
 		<s:layout>
-			<s:TileLayout verticalGap="10" horizontalGap="10" />
+			<s:TileLayout paddingTop="10" paddingLeft="10" paddingBottom="10" paddingRight="10"
+						  verticalGap="10" horizontalGap="10" />
 		</s:layout>
 	</s:List>
 	
 	
 	
-</components:WorlizeWindow>
+</s:Group>

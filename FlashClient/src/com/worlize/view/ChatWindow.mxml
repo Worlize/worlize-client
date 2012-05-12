@@ -33,7 +33,6 @@
 	
 	<fx:Script>
 		<![CDATA[
-			import com.worlize.command.CreateHotspotCommand;
 			import com.worlize.event.AuthorModeNotification;
 			import com.worlize.event.NotificationCenter;
 			import com.worlize.interactivity.api.AppLoader;
@@ -45,10 +44,11 @@
 			import com.worlize.model.WorldDefinition;
 			import com.worlize.notification.WorlizeNotification;
 			import com.worlize.state.AuthorModeState;
-			import com.worlize.view.author.MyBackgroundsWindow;
+			import com.worlize.view.author.AuthorLockerWindow;
+			import com.worlize.view.author.MyBackgroundsLockerView;
 			import com.worlize.view.author.MyGamesWindow;
 			import com.worlize.view.author.MyMediaWindow;
-			import com.worlize.view.author.MyObjectsWindow;
+			import com.worlize.view.author.MyObjectsLockerView;
 			import com.worlize.view.components.RoomListDataGrid;
 			import com.worlize.view.components.UserListDataGrid;
 			import com.worlize.view.windows.LogWindow;
@@ -196,12 +196,9 @@
 				client.currentRoom.clearStatusMessage();
 			}
 			
-			private function handleBackgroundsClick():void {
-				MyBackgroundsWindow.toggleOpen(systemManager.getSandboxRoot());
-			}
-			
 			private function handleObjectsClick():void {
-				MyObjectsWindow.toggleOpen(systemManager.getSandboxRoot());
+//				MyObjectsWindow.toggleOpen(systemManager.getSandboxRoot());
+				AuthorLockerWindow.toggleOpen(systemManager.getSandboxRoot());
 			}
 			
 			private function handleGamesClick():void {
@@ -389,10 +386,7 @@
 						  toolTip="Create new Door" source="@Embed(source='src/assets/icons/icon_author_door.png')"
 						  click="createHotspot()" />
 				<mx:Image useHandCursor="true" buttonMode="true"
-						  toolTip="Backgrounds" source="@Embed(source='src/assets/icons/icon_author_bkg.png')"
-						  click="handleBackgroundsClick()" />
-				<mx:Image useHandCursor="true" buttonMode="true"
-						  toolTip="Objects" source="@Embed(source='src/assets/icons/icon_author_object.png')"
+						  toolTip="My Locker" source="@Embed(source='src/assets/icons/icon_author_object.png')"
 						  click="handleObjectsClick()" />
 				<mx:Image useHandCursor="true" buttonMode="true"
 						  toolTip="Add YouTube Player" source="@Embed(source='src/assets/icons/YouTubeIcon.png')"

@@ -144,7 +144,7 @@ package com.worlize.model.locker
 				logger.info("Success: Got " + result.count + " objects.");
 				instances.removeAll();
 				for each (var rawData:Object in result.data) {
-					instance = InWorldObjectInstance.fromData(rawData);
+					instance = InWorldObjectInstance.fromLockerData(rawData);
 					instances.addItem(instance);
 					instanceMap[instance.guid] = instance;
 				}

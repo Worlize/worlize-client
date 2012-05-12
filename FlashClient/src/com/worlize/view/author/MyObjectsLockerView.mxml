@@ -1,14 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<components:WorlizeWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
 						  xmlns:s="library://ns.adobe.com/flex/spark" 
 						  xmlns:mx="library://ns.adobe.com/flex/mx"
 						  xmlns:components="com.worlize.view.components.*"
-						  title="My Objects"
-						  titleBarColor="#c04848" titleTextColor="#c04848" 
-						  windowIcon="@Embed('assets/icons/large/w_icon_objects.png')"
-						  minWidth="525" minHeight="415"
-						  creationComplete="handleCreationComplete()"
-						  width="525" height="415">
+						  creationComplete="handleCreationComplete()">
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
@@ -36,82 +31,14 @@
 			
 			import spark.events.TitleWindowBoundsEvent;
 			import spark.primitives.Rect;
-			private static var _open:Boolean = false;
-			private static var _instance:WorlizeWindow;
-			
+
 			[Bindable]
 			private var inWorldObjectLocker:InWorldObjectLocker = new InWorldObjectLocker();
 			
 			[Bindable]
 			private var uploader:InWorldObjectUploader = new InWorldObjectUploader();
 			
-			public static function toggleOpen(parent:DisplayObject):void {
-				if (_open) {
-					close();
-				}
-				else {
-					open(parent);
-				}
-			}
-			
-			public static function open(parent:DisplayObject):void {
-				var preferences:PreferencesManager = PreferencesManager.getInstance();
-				if (_open) {
-					PopUpManager.bringToFront(_instance);
-					_instance.setFocus();
-				}
-				else {
-					var needsPosition:Boolean = false;
-					if (!_instance) {
-						needsPosition = true;
-						_instance = new MyObjectsWindow();
-						_instance.addEventListener(CloseEvent.CLOSE, function(event:CloseEvent):void {
-							close();
-						});
-						_instance.addEventListener(ResizeManager.RESIZE_END, function(event:ResizeEvent):void {
-							preferences.setPreference('myObjectsSize', [_instance.width, _instance.height]);
-						});
-						_instance.addEventListener(TitleWindowBoundsEvent.WINDOW_MOVE_END, function(event:TitleWindowBoundsEvent):void {
-							preferences.setPreference('myObjectsPosition', [_instance.x, _instance.y]);
-						});
-					}
-					PopUpManager.addPopUp(_instance, parent);
-					if (needsPosition) {
-						var coordinates:Array = preferences.getPreference('myObjectsPosition') as Array;
-						var size:Array = preferences.getPreference('myObjectsSize') as Array;
-						if (coordinates && size &&
-							_instance.boundsAreValid(coordinates[0], coordinates[1], size[0], size[1]))
-						{
-							_instance.x = coordinates[0];
-							_instance.y = coordinates[1];
-							_instance.width = size[0];
-							_instance.height = size[1];
-						}
-						else {
-							PopUpManager.centerPopUp(_instance);
-						}
-					}
-					_open = true;
-				}
-			}
-			
-			public static function close():void {
-				if (_open && _instance) {
-					PopUpManager.removePopUp(_instance);
-					_open = false;
-				}
-			}
-			
 			private function handleCreationComplete():void {
-				NotificationCenter.addListener(AuthorModeNotification.AUTHOR_DISABLED, handleAuthorModeDisabled);
-				loadData();
-			}
-			
-			private function handleAuthorModeDisabled(notification:AuthorModeNotification):void {
-				close();
-			}
-			
-			private function loadData():void {
 				inWorldObjectLocker.load();
 			}
 			
@@ -140,6 +67,7 @@
 		]]>
 	</fx:Script>
 	
+	<!--
 	<components:controlBarContent>
 		<components:UploadProgressIndicator
 			uploader="{uploader}" />
@@ -159,14 +87,15 @@
 			line2="Used: {inWorldObjectLocker.count}"
 			toolTip="Click to buy more locker space"/>
 	</components:controlBarContent>
+	-->
 	
-	<s:List top="10" right="10" left="10" bottom="10"
+	<s:List top="0" right="0" left="0" bottom="0"
 			id="inWorldObjectsList" dataProvider="{inWorldObjectLocker.instances}"
 			borderVisible="false"
 			itemRenderer="com.worlize.view.itemrenderers.InWorldObjectLockerItemRenderer">
 		<s:layout>
-			<s:TileLayout verticalGap="10" horizontalGap="10" />
+			<s:TileLayout paddingTop="10" paddingLeft="10" paddingRight="10" paddingBottom="10" verticalGap="10" horizontalGap="10" />
 		</s:layout>
 	</s:List>	
 	
-</components:WorlizeWindow>
+</s:Group>
