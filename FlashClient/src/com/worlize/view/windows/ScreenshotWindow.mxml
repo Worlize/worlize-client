@@ -9,7 +9,7 @@
 						  resizable="false"
 						  close="close()"
 						  windowIcon="@Embed('assets/icons/large/w_icon_screenshot.png')"
-						  currentState="normal"
+						  currentState="init"
 						  width="525"
 						  height="400" xmlns:controls="controls.*">
 	<fx:Declarations>
@@ -21,6 +21,7 @@
 			import com.worlize.interactivity.model.InteractivityUser;
 			import com.worlize.interactivity.rpc.InteractivityClient;
 			import com.worlize.model.PreferencesManager;
+			import com.worlize.rpc.HTTPMethod;
 			
 			import mx.controls.Alert;
 			import mx.events.CloseEvent;
@@ -38,12 +39,11 @@
 			public var facebookPhotoId:String;
 			public var users:Vector.<InteractivityUser>;
 			protected var facebookAccessToken:String;
+			private var facebookFriends:Array;
 			
 			[Bindable]
 			private var ready:Boolean = false;
-			
-			public static var externalInterfaceCallbackRegistered:Boolean = false;
-			
+						
 			[Bindable(event="bitmapDataChanged")]
 			public function set bitmapData(newValue:BitmapData):void {
 				if (_bitmapData !== newValue) {
@@ -67,7 +67,6 @@
 			
 			public function encode():void {
 				currentState = "encoding";
-				ready = false;
 				var timer:Timer = new Timer(10, 1);
 				timer.addEventListener(TimerEvent.TIMER, function(event:TimerEvent):void {
 					var encoder:JPEGEncoder = new JPEGEncoder(90);
@@ -75,7 +74,6 @@
 						jpegData = encoder.encode(bitmapData);
 					}
 					currentState = "normal";
-					ready = true;
 				});
 				timer.start();
 			}
@@ -148,7 +146,8 @@
 			private function uploadToFacebook():void {
 				getFacebookAccessToken();
 				if (facebookAccessToken) {
-					doFacebookUpload();
+					loadFacebookFriends();
+					
 				}
 				else {
 					ExternalInterface.addCallback('fbLoginForSnapshotComplete', handleFacebookLoginComplete);
@@ -156,17 +155,78 @@
 				}
 			}
 			
+			private function loadFacebookFriends():void {
+//				doFacebookUpload();
+				currentState = "uploading";
+				if (autoTagCheckbox.selected) {
+					var urlRequest:URLRequest = new URLRequest("https://graph.facebook.com/me/friends");
+					urlRequest.method = HTTPMethod.GET;
+					var variables:URLVariables = new URLVariables();
+					variables.access_token = facebookAccessToken;
+					urlRequest.data = variables;
+					var urlLoader:URLLoader = new URLLoader();
+					urlLoader.addEventListener(Event.COMPLETE, handleLoadFriendsComplete);
+					urlLoader.addEventListener(IOErrorEvent.IO_ERROR, handleLoadFriendsIOError);
+					urlLoader.load(urlRequest);
+				}
+				else {
+					doFacebookUpload();
+				}
+			}
+			
+			private function handleLoadFriendsComplete(event:Event):void {
+				var loader:URLLoader = (event.target as URLLoader);
+				try {
+					var resultJSON:Object = JSON.parse(loader.data);
+					facebookFriends = resultJSON.data;
+				}
+				catch(e:Error) {
+					facebookFriends = null;
+				}
+				finally {
+					doFacebookUpload();
+				}
+			}
+			
+			private function isFacebookFriend(uid:String):Boolean {
+				if (facebookFriends === null) { return false; }
+				for each (var friend:Object in facebookFriends) {
+					if (friend.id === uid) {
+						return true;
+					}
+				}
+				return false;
+			}
+			
+			private function handleLoadFriendsIOError(event:IOErrorEvent):void {
+				facebookFriends = null;
+				doFacebookUpload();
+			}
+			
 			private function doFacebookUpload():void {
 				currentState = "uploading";
 				var client:InteractivityClient = InteractivityClient.getInstance();
-				var linkURL:String = "https://www.worlize.com/rooms/" + client.currentRoom.id + "/enter";
+				var linkURL:String = "https://www.worlize.com/rooms/"  + client.currentRoom.id + "/enter";
 				var urlRequest:URLRequest = new URLRequest("https://graph.facebook.com/me/photos");
 				var urlLoader:MultipartURLLoader = new MultipartURLLoader();
+				var tags:Array = [];
+				for each (var user:InteractivityUser in users) {
+					if (user.facebookId !== null && ((autoTagCheckbox.selected && isFacebookFriend(user.facebookId)) || user.isSelf)) {
+						tags.push({
+							tag_uid: user.facebookId,
+							x: Math.max(Math.min(user.x/950*100,100),0),
+							y: Math.max(Math.min((user.y-35)/570*100,100),0)
+						});
+					}
+				}
 				urlLoader.dataFormat = URLLoaderDataFormat.TEXT;
 				urlLoader.addEventListener(Event.COMPLETE, handleUploadComplete);
 				urlLoader.addEventListener(IOErrorEvent.IO_ERROR, handleUploadIOError);
 				urlLoader.addVariable("message", client.currentRoom.name + " at " + client.currentWorld.name + " \n" + linkURL);
 				urlLoader.addVariable("access_token", facebookAccessToken);
+				if (tags.length > 0) {
+					urlLoader.addVariable("tags", JSON.stringify(tags));
+				}
 //				urlLoader.addVariable("no_story", "1");
 				urlLoader.addFile(jpegData, "screenshot.jpg", "source", "image/jpeg");
 				urlLoader.load("https://graph.facebook.com/me/photos");
@@ -175,7 +235,7 @@
 			private function handleFacebookLoginComplete():void {
 				getFacebookAccessToken();
 				if (facebookAccessToken) {
-					doFacebookUpload();
+					loadFacebookFriends();
 				}
 			}
 			
@@ -184,13 +244,15 @@
 //				Alert.show("Your snapshot has been uploaded to the Worlize Photos photo album on Facebook", "Upload Complete");
 				var loader:MultipartURLLoader = event.target as MultipartURLLoader;
 				var result:String = loader.loader.data;
+				trace("Facebook Result: " + result);
+				
 				var resultJSON:Object;
 				try {
 					resultJSON = JSON.parse(result);
 				}
 				catch(e:Error) {
 					// Facebook fail.
-					return;
+					currentState = "uploadFailed";
 				}
 				
 				var timer:Timer = new Timer(3000, 1);
@@ -199,50 +261,11 @@
 					close();
 				});
 				timer.start();
-				
-//				tagFacebookUsers(resultJSON.id);
 			}
 			
 			private function handleUploadIOError(event:IOErrorEvent):void {
 				currentState = "normal";
 				Alert.show("There was an IO Error while uploading the snapshot.", "IO Error");
-			}
-			
-			private function tagFacebookUsers(facebookPhotoId:String):void {
-				var userId:String = ExternalInterface.call("FB.getUserID");
-				var request:URLRequest = new URLRequest("https://graph.facebook.com/" + facebookPhotoId + "/tags");
-				var loader:URLLoader = new URLLoader();
-				var tags:Array = [];
-				var params:URLVariables = new URLVariables();
-				
-				for each (var user:InteractivityUser in users) {
-					if (user.isSelf) {
-						tags.push({
-							id: userId,
-							tag_text: user.name,
-							x: user.x,
-							y: user.y
-						});
-						params.to = userId;
-						params.tag_text = user.name;
-						params.x = user.x;
-						params.y = user.y;
-						break;
-					}
-				}
-				request.method = URLRequestMethod.POST;
-				params.access_token = facebookAccessToken;
-//				params.tags = JSON.stringify(tags);
-				
-				request.data = params;
-				
-				loader.addEventListener(Event.COMPLETE, handleTaggingComplete);
-				loader.addEventListener(IOErrorEvent.IO_ERROR, handleTaggingIOError);
-				loader.load(request);
-			}
-			
-			private function handleTaggingComplete(event:Event):void {
-				Alert.show("Tagging photo complete.", "Done!");
 			}
 			
 			private function handleTaggingIOError(event:IOErrorEvent):void {
@@ -253,10 +276,12 @@
 	</fx:Script>
 	
 	<components:states>
+		<s:State name="init" />
 		<s:State name="normal" />
 		<s:State name="encoding" stateGroups="overlay" />
 		<s:State name="uploading" stateGroups="overlay" />
 		<s:State name="uploadComplete" stateGroups="overlay" />
+		<s:State name="uploadFailed" stateGroups="overlay" />
 	</components:states>
 
 	
@@ -266,7 +291,7 @@
 			<s:Image id="previewImage" width="475" height="285" scaleMode="zoom" source="{bitmapData}" />
 			<s:Group id="overlay"
 					 verticalCenter="0" horizontalCenter="0"
-					 alpha.normal="0"
+					 alpha="0"
 					 alpha.overlay="1.0">
 				<s:Rect radiusX="10" radiusY="10" top="0" right="0" bottom="0" left="0">
 					<s:fill>
@@ -276,7 +301,8 @@
 				<s:Label styleName="snapshotOverlay"
 						 text.encoding="Encoding Image..."
 						 text.uploading="Uploading..."
-						 text.uploadComplete="Upload Complete!">
+						 text.uploadComplete="Upload Complete!"
+						 text.uploadFailed="Upload Failed!">
 					<s:filters>
 						<s:DropShadowFilter color="#000000" blurX="0" blurY="0"
 											angle="270" distance="1" />
@@ -284,9 +310,11 @@
 				</s:Label>
 			</s:Group>
 		</s:Group>
-		<s:HGroup gap="10">
+		<s:HGroup gap="10" width="475">
 			<s:Button label="Save As..." click="saveImage()" enabled="{ready}" />
-			<s:Button label="Upload to Facebook" click="uploadToFacebook()" enabled="{ready}" />
+			<s:Spacer width="100%" />
+			<s:CheckBox label="Auto-tag Friends" id="autoTagCheckbox" selected="true" />
+			<s:Button label="Upload to Facebook" click="uploadToFacebook()" enabled="false" enabled.normal="true" />
 		</s:HGroup>
 	</s:VGroup>
 	
