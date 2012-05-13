@@ -3,7 +3,7 @@
 						  xmlns:s="library://ns.adobe.com/flex/spark" 
 						  xmlns:mx="library://ns.adobe.com/flex/mx"
 						  xmlns:components="com.worlize.view.components.*"
-						  creationComplete="handleCreationComplete()">
+						  creationComplete="handleCreationComplete()" xmlns:controls="controls.*">
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
@@ -53,11 +53,31 @@
 			[Bindable]
 			private var backgroundsLocker:BackgroundsLocker = new BackgroundsLocker();
 			
+			private var stateWatcher:ChangeWatcher;
+			
 			
 			private function handleCreationComplete():void {
+				stateWatcher = ChangeWatcher.watch(backgroundsLocker, ['state'], handleLockerStateChange);
 				backgroundsLocker.load();
 			}
-			
+
+			private function handleLockerStateChange(event:Event):void {
+				switch (backgroundsLocker.state) {
+					case BackgroundsLocker.STATE_ERROR:
+						currentState = "loadError";
+						break;
+					case BackgroundsLocker.STATE_INIT:
+						currentState = "init";
+						break;
+					case BackgroundsLocker.STATE_LOADING:
+						currentState = "loading";
+						break;
+					case BackgroundsLocker.STATE_READY:
+						currentState = "ready";
+						break;
+				}
+			}
+
 			private function uploadBackground():void {
 				if (backgroundsLocker.emptySlots > 0) {
 					uploader.browse();
@@ -106,6 +126,14 @@
 	</fx:Script>
 	
 	
+	<s:states>
+		<s:State name="init" />
+		<s:State name="loading" />
+		<s:State name="loadError" />
+		<s:State name="ready" />
+	</s:states>
+
+	
 	<!--
 	<components:controlBarContent>
 		<components:UploadProgressIndicator
@@ -129,6 +157,7 @@
 	-->
 
 	<s:List id="backgroundImagesList" dataProvider="{backgroundsLocker.backgroundInstances}"
+			includeIn="ready"
 			top="0" right="0" left="0" bottom="0"
 			borderVisible="false"
 			change="handleBackgroundChange(event)"
@@ -139,6 +168,23 @@
 		</s:layout>
 	</s:List>
 	
-	
-	
+	<s:Group width="100%" height="100%" includeIn="loading">
+		<controls:Spinner id="loadingSpinner"
+						  autoPlay="true"
+						  mouseEnabled="false"
+						  mouseChildren="false"
+						  size="44" numTicks="13"
+						  tickWidth="3" speed="600"
+						  horizontalCenter="0"
+						  top="30"
+						  fadeSpeed="500" tickColor="#222222" />
+	</s:Group>
+
+	<s:VGroup width="100%" height="100%" includeIn="loadError"
+			  horizontalAlign="center" verticalAlign="middle">
+		<s:Label fontSize="18" fontFamily="PTSansNarrow"
+				 text="Unable to load backgrounds." />
+		<s:Button label="Retry" click="backgroundsLocker.load()" />
+	</s:VGroup>
+
 </s:Group>

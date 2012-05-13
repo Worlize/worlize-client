@@ -35,9 +35,8 @@ package com.worlize.model.locker
 		public var instances:ArrayCollection = new ArrayCollection();
 		private var instanceMap:Object = {};
 		
-		public var state:String = STATE_INIT; 
-		
-		
+		public var state:String = STATE_INIT;
+				
 		public function InWorldObjectLocker(target:IEventDispatcher=null)
 		{
 			super(target);

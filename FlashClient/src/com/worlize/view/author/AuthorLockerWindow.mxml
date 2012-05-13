@@ -122,7 +122,7 @@
 		</mx:ViewStack>
 		
 		<s:Group width="100%">
-			<s:Rect bottom="0" right="10" top="0" left="0">
+			<s:Rect bottom="0" right="0" top="0" left="0">
 				<s:fill>
 					<s:SolidColor color="#EEEEEE" />
 				</s:fill>
@@ -134,7 +134,7 @@
 			</s:Rect>
 			<s:HGroup horizontalAlign="right" verticalAlign="baseline"
 					  width="100%"
-					  paddingTop="6" paddingRight="5" paddingBottom="5">
+					  paddingTop="6" paddingRight="15" paddingBottom="5">
 				<s:Button label="Upload" />
 			</s:HGroup>
 		</s:Group>
