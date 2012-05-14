@@ -99,24 +99,25 @@
 			
 			private function handleBackgroundChange(event:IndexChangeEvent):void {
 				var backgroundInstance:BackgroundImageInstance = backgroundImagesList.selectedItem;
-				var roomId:String = InteractivityClient.getInstance().currentRoom.id;
+				var client:InteractivityClient = InteractivityClient.getInstance();
+				client.setBackgroundInstance(backgroundInstance.guid);
 				
-				var client:WorlizeServiceClient = new WorlizeServiceClient();
-				client.addEventListener(WorlizeResultEvent.RESULT, function(event:WorlizeResultEvent):void {
-					if (event.resultJSON.success) {
-						backgroundsLocker.updateItems(event.resultJSON.data.updated_background_instances);
-						backgroundImagesList.selectedIndex = -1;
-					}
-					else {
-						Alert.show("Unable to set background: " + event.resultJSON.description);
-					}
-				});
-				client.addEventListener(FaultEvent.FAULT, function(event:FaultEvent):void {
-					Alert.show("Unable to set room background.");
-				});
-				client.send("/rooms/" + roomId + "/set_background.json", HTTPMethod.POST, {
-					background_instance_guid: backgroundInstance.guid
-				});
+//				var client:WorlizeServiceClient = new WorlizeServiceClient();
+//				client.addEventListener(WorlizeResultEvent.RESULT, function(event:WorlizeResultEvent):void {
+//					if (event.resultJSON.success) {
+//						backgroundsLocker.updateItems(event.resultJSON.data.updated_background_instances);
+//						backgroundImagesList.selectedIndex = -1;
+//					}
+//					else {
+//						Alert.show("Unable to set background: " + event.resultJSON.description);
+//					}
+//				});
+//				client.addEventListener(FaultEvent.FAULT, function(event:FaultEvent):void {
+//					Alert.show("Unable to set room background.");
+//				});
+//				client.send("/rooms/" + roomId + "/set_background.json", HTTPMethod.POST, {
+//					background_instance_guid: backgroundInstance.guid
+//				});
 			}
 			
 			private function showBuySlotsWindow():void {

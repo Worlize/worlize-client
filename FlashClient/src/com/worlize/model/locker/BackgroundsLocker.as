@@ -44,6 +44,8 @@ package com.worlize.model.locker
 			NotificationCenter.addListener(BackgroundImageNotification.BACKGROUND_INSTANCE_ADDED, handleBackgroundInstanceAdded);
 			NotificationCenter.addListener(BackgroundImageNotification.BACKGROUND_INSTANCE_DELETED, handleBackgroundDeleted);
 			NotificationCenter.addListener(BackgroundImageNotification.BACKGROUND_INSTANCE_UPDATED, handleBackgroundInstanceUpdated);
+			NotificationCenter.addListener(BackgroundImageNotification.BACKGROUND_INSTANCE_USED, handleBackgroundInstanceUsed);
+			NotificationCenter.addListener(BackgroundImageNotification.BACKGROUND_INSTANCE_UNUSED, handleBackgroundInstanceUnused);
 			
 			currentUser.slots.addEventListener(LockerEvent.BACKGROUND_LOCKER_CAPACITY_CHANGED, handleBackgroundLockerCapacityChanged);
 		}
@@ -86,7 +88,7 @@ package com.worlize.model.locker
 		}
 		
 		private function handleBackgroundDeleted(notification:BackgroundImageNotification):void {
-			removeBackgroundInstanceByGuid(notification.deletedInstanceGuid);
+			removeBackgroundInstanceByGuid(notification.instanceGuid);
 		}
 		
 		private function removeBackgroundInstanceByGuid(guid:String):void {
@@ -122,6 +124,20 @@ package com.worlize.model.locker
 			var existingInstance:BackgroundImageInstance = backgroundInstanceMap[notification.updatedBackgroundInstanceGuid];
 			if (existingInstance) {
 				existingInstance.updateData(notification.updatedBackgroundInstanceData);				
+			}
+		}
+		
+		private function handleBackgroundInstanceUsed(notification:BackgroundImageNotification):void {
+			var instance:BackgroundImageInstance = backgroundInstanceMap[notification.instanceGuid];
+			if (instance) {
+				instance.room = notification.room;
+			}
+		}
+		
+		private function handleBackgroundInstanceUnused(notification:BackgroundImageNotification):void {
+			var instance:BackgroundImageInstance = backgroundInstanceMap[notification.instanceGuid];
+			if (instance) {
+				instance.room = null;
 			}
 		}
 		

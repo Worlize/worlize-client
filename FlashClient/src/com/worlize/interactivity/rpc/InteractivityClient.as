@@ -246,6 +246,7 @@ package com.worlize.interactivity.rpc
 			"save_app_config": handleSaveAppConfig,
 			"say": handleReceiveTalk,
 			"send_loose_prop_backward": handleSendLoosePropBackward,
+			"set_background_instance": handleSetBackgroundInstance,
 			"set_color": handleUserColor,
 			"set_face": handleUserFace,
 			"set_simple_avatar": handleSetSimpleAvatar,
@@ -765,7 +766,7 @@ package com.worlize.interactivity.rpc
 		}
 		
 		private function handleAddObjectInstance(data:Object):void {
-			if (data.room == currentRoom.id && data.object) {
+			if (data.room === currentRoom.id && data.object) {
 				var inWorldObjectInstance:InWorldObjectInstance = InWorldObjectInstance.fromData(data.object);
 				
 				var room:RoomListEntry = new RoomListEntry();
@@ -775,6 +776,27 @@ package com.worlize.interactivity.rpc
 				inWorldObjectInstance.room = room;
 				
 				currentRoom.addObject(inWorldObjectInstance);
+			}
+		}
+		
+		private function handleSetBackgroundInstance(data:Object):void {
+			if (data.room === currentRoom.id && data.background) {
+				var notification:BackgroundImageNotification;
+				
+				currentRoom.backgroundFile = data.background;
+				
+				notification = new BackgroundImageNotification(BackgroundImageNotification.BACKGROUND_INSTANCE_USED);
+				notification.room = new RoomListEntry();
+				notification.room.guid = currentRoom.id;
+				notification.room.name = currentRoom.name;
+				notification.instanceGuid = data.background_instance_guid;
+				NotificationCenter.postNotification(notification);
+				
+				if (data.old_background_instance_guid) {
+					notification = new BackgroundImageNotification(BackgroundImageNotification.BACKGROUND_INSTANCE_UNUSED);
+					notification.instanceGuid = data.old_background_instance_guid;
+					NotificationCenter.postNotification(notification);
+				}
 			}
 		}
 		
@@ -1774,6 +1796,15 @@ package com.worlize.interactivity.rpc
 		public function removeHotspot(guid:String):void {
 			connection.send({
 				msg: 'remove_hotspot',
+				data: {
+					guid: guid
+				}
+			});
+		}
+		
+		public function setBackgroundInstance(guid:String):void {
+			connection.send({
+				msg: 'set_background_instance',
 				data: {
 					guid: guid
 				}

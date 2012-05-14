@@ -1,6 +1,7 @@
 package com.worlize.notification
 {
 	import com.worlize.model.BackgroundImageInstance;
+	import com.worlize.model.RoomListEntry;
 	
 	import flash.events.Event;
 
@@ -9,9 +10,12 @@ package com.worlize.notification
 		public static const BACKGROUND_INSTANCE_ADDED:String = "newBackgroundInstanceAdded";
 		public static const BACKGROUND_INSTANCE_DELETED:String = "backgroundInstanceDeleted";
 		public static const BACKGROUND_INSTANCE_UPDATED:String = "backgroundInstanceUpdated";
+		public static const BACKGROUND_INSTANCE_USED:String = "backgroundInstanceUsed";
+		public static const BACKGROUND_INSTANCE_UNUSED:String = "backgroundInstanceUnused";
 		
+		public var room:RoomListEntry;
 		public var backgroundInstance:BackgroundImageInstance;
-		public var deletedInstanceGuid:String;
+		public var instanceGuid:String;
 		public var updatedBackgroundInstanceData:Object;
 		public var updatedBackgroundInstanceGuid:String;
 		

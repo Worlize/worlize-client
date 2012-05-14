@@ -58,7 +58,7 @@ package com.worlize.model
 		
 		private function handleDeleteResult(event:WorlizeResultEvent):void {
 			var notification:BackgroundImageNotification = new BackgroundImageNotification(BackgroundImageNotification.BACKGROUND_INSTANCE_DELETED);
-			notification.deletedInstanceGuid = guid;
+			notification.instanceGuid = guid;
 			NotificationCenter.postNotification(notification);
 		}
 	}
