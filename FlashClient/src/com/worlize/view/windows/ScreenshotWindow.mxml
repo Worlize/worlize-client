@@ -41,14 +41,10 @@
 			protected var facebookAccessToken:String;
 			private var facebookFriends:Array;
 			
-			[Bindable]
-			private var ready:Boolean = false;
-						
 			[Bindable(event="bitmapDataChanged")]
 			public function set bitmapData(newValue:BitmapData):void {
 				if (_bitmapData !== newValue) {
 					_bitmapData = newValue;
-					ready = false;
 					jpegData = null;
 					dispatchEvent(new FlexEvent("bitmapDataChanged"));
 				}
@@ -311,7 +307,7 @@
 			</s:Group>
 		</s:Group>
 		<s:HGroup gap="10" width="475">
-			<s:Button label="Save As..." click="saveImage()" enabled="{ready}" />
+			<s:Button label="Save As..." click="saveImage()" enabled="false" enabled.normal="true" />
 			<s:Spacer width="100%" />
 			<s:CheckBox label="Auto-tag Friends" id="autoTagCheckbox" selected="true" />
 			<s:Button label="Upload to Facebook" click="uploadToFacebook()" enabled="false" enabled.normal="true" />
