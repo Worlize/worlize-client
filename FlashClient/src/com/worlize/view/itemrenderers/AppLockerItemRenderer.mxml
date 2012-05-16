@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				xmlns:s="library://ns.adobe.com/flex/spark" 
+				xmlns:mx="library://ns.adobe.com/flex/mx"
+				mouseDown="handleMouseDown(event)"
+				width="82" height="82" xmlns:components="com.worlize.view.components.*">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.model.AppInstance;
+			
+			import mx.binding.utils.ChangeWatcher;
+			import mx.controls.Alert;
+			import mx.core.DragSource;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.managers.DragManager;
+			
+			/**
+			 *  @private
+			 *  Storage for the data property.
+			 */
+			private var _data:Object;
+			
+			private var emptySlotWatcher:ChangeWatcher;
+			
+			[Bindable("dataChange")]
+			override public function get data():Object
+			{
+				return _data;
+			}
+			
+			/**
+			 *  @private
+			 */
+			override public function set data(value:Object):void
+			{
+				if (_data === value) { return; }
+				if (_data) {
+					// remove old change watchers
+					removeWatchers();
+				}
+				_data = value;
+				if (_data) {
+					// add change watchers
+					addWatchers(); 
+				}
+				handleDataStateChanged();
+				dispatchEvent(new FlexEvent(FlexEvent.DATA_CHANGE));
+			}
+			
+			private function handleDataStateChanged(event:Event = null):void {
+				if (_data === null) {
+					this.enabled = false;
+				}
+				else {
+					if (_data.emptySlot) {
+						this.enabled = false;
+					}
+					else {
+						this.enabled = true;
+					}
+				}
+			}
+			
+			private function removeWatchers():void {
+				emptySlotWatcher.unwatch();
+			}
+			
+			private function addWatchers():void {
+				emptySlotWatcher = ChangeWatcher.watch(_data, 'emptySlot', handleDataStateChanged);
+			}
+			
+			private function stopPropagation(event:MouseEvent):void {
+				event.stopImmediatePropagation();
+				event.preventDefault();
+			}
+			
+			private function handleDeleteClick(event:MouseEvent):void {
+				event.stopImmediatePropagation();
+				var alert:Alert = Alert.show(
+					"Are you sure you want to delete this object?",
+					"Delete Object",
+					Alert.YES | Alert.NO,
+					null,
+					handleAlertClose,
+					null,
+					Alert.NO);
+			}
+			
+			private function handleAlertClose(event:CloseEvent):void {
+				if (event.detail == Alert.YES) {
+					requestDelete();
+					enabled = false;
+				}
+			}
+			
+			private function requestDelete():void {
+				AppInstance(data).requestDelete();
+			}
+			
+			private function handleMouseDown(event:MouseEvent):void {
+				if (AppInstance(data).room === null) {
+					systemManager.getSandboxRoot().addEventListener(MouseEvent.MOUSE_UP, handleStageMouseUp);
+					addEventListener(MouseEvent.MOUSE_MOVE, handleMouseMove);
+				}
+			}
+			
+			private function handleStageMouseUp(event:MouseEvent):void {
+				systemManager.getSandboxRoot().removeEventListener(MouseEvent.MOUSE_UP, handleStageMouseUp);
+				removeEventListener(MouseEvent.MOUSE_MOVE, handleMouseMove);
+			}
+			
+			private function handleMouseMove(event:MouseEvent):void {
+				systemManager.getSandboxRoot().removeEventListener(MouseEvent.MOUSE_UP, handleStageMouseUp);
+				removeEventListener(MouseEvent.MOUSE_MOVE, handleMouseMove);
+				
+				if (event.buttonDown) {
+					var dragSource:DragSource = new DragSource();
+					dragSource.addData({
+						startMouseX: event.stageX,
+						startMouseY: event.stageY,
+						guid: data.guid
+					}, 'appFromLocker');
+					DragManager.doDrag(this, dragSource, event);
+				}
+			}
+		]]>
+	</fx:Script>
+	
+	<s:states>
+		<s:State name="normal" />
+		<s:State name="hovered" stateGroups="active" />
+		<s:State name="selected" stateGroups="active" />
+	</s:states>
+	
+	<s:Rect left="0" top="0" right="0" bottom="0">
+		<s:stroke>
+			<s:SolidColorStroke weight="1" color="#CCCCCC" />
+		</s:stroke>
+		<s:fill>
+			<s:SolidColor color="#F0F0F0" />
+		</s:fill>
+	</s:Rect>
+	
+	<!--
+	<components:InWorldObjectThumbnailView left="1" top="1" dataProvider="{data}" />
+	-->
+	
+	<s:Label text="App" horizontalCenter="0" verticalCenter="0" />
+	
+	<s:Label visible="{data.emptySlot}" horizontalCenter="0" verticalCenter="0" text="Empty" />
+	
+	<!-- Item in use... -->
+	<s:Rect left="0" top="0" right="0" bottom="0" visible="{data.room}">
+		<s:fill>
+			<s:SolidColor color="#CCCCCC" alpha="0.5" />
+		</s:fill>
+	</s:Rect>
+	
+	<s:Label visible="{data.room}"
+			 width="95%"  textAlign="center"
+			 fontFamily="PTSansNarrowBold" color="#000"
+			 horizontalCenter="0" verticalCenter="0"
+			 text="Used in: {data.room.name}" />
+	<!-- End: Item in use... -->
+	
+	<s:Rect left="0" top="0" right="0" bottom="0" includeIn="active">
+		<s:stroke>
+			<s:SolidColorStroke joints="miter"
+								weight.hovered="1" color.hovered="#ffe49b" alpha.hovered="0.3"
+								color="#f5b501" weight="5" />
+		</s:stroke>
+		<s:fill>
+			<s:SolidColor color="#ffe49b" alpha="0.3" alpha.selected="0.4" />
+		</s:fill>
+	</s:Rect>
+	
+	<mx:Image source="@Embed(source='../../../../assets/icons/icon_delete.png')"
+			  toolTip="Delete" useHandCursor="true"
+			  includeIn="active" bottom="4" right="4" mouseDown="stopPropagation(event)" click="handleDeleteClick(event)" />
+	
+	
+</s:ItemRenderer>

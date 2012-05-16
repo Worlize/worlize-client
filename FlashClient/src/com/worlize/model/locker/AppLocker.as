@@ -3,8 +3,9 @@ package com.worlize.model.locker
 	import com.worlize.event.LockerEvent;
 	import com.worlize.event.NotificationCenter;
 	import com.worlize.model.CurrentUser;
-	import com.worlize.model.InWorldObjectInstance;
-	import com.worlize.notification.InWorldObjectNotification;
+	import com.worlize.model.AppInstance;
+	import com.worlize.notification.AppNotification;
+	import com.worlize.notification.AppNotification;
 	import com.worlize.rpc.HTTPMethod;
 	import com.worlize.rpc.WorlizeResultEvent;
 	import com.worlize.rpc.WorlizeServiceClient;
@@ -18,14 +19,14 @@ package com.worlize.model.locker
 	import mx.rpc.events.FaultEvent;
 	
 	[Bindable]
-	public class InWorldObjectLocker extends EventDispatcher
+	public class AppLocker extends EventDispatcher
 	{
 		public static const STATE_INIT:String = "init";
 		public static const STATE_LOADING:String = "loading";
 		public static const STATE_READY:String = "ready";
 		public static const STATE_ERROR:String = "error";
 		
-		private var logger:ILogger = Log.getLogger('com.worlize.model.locker.InWorldObjectLocker');
+		private var logger:ILogger = Log.getLogger('com.worlize.model.locker.AppLocker');
 		
 		public var currentUser:CurrentUser = CurrentUser.getInstance();
 		
@@ -36,19 +37,19 @@ package com.worlize.model.locker
 		private var instanceMap:Object = {};
 		
 		public var state:String = STATE_INIT;
-				
-		public function InWorldObjectLocker(target:IEventDispatcher=null)
+		
+		public function AppLocker(target:IEventDispatcher=null)
 		{
 			super(target);
-			NotificationCenter.addListener(InWorldObjectNotification.IN_WORLD_OBJECT_INSTANCE_ADDED, handleInWorldObjectAdded);
-			NotificationCenter.addListener(InWorldObjectNotification.IN_WORLD_OBJECT_INSTANCE_DELETED, handleInWorldObjectDeleted);
-			NotificationCenter.addListener(InWorldObjectNotification.IN_WORLD_OBJECT_ADDED_TO_ROOM, handleInWorldObjectAddedToRoom);
-			NotificationCenter.addListener(InWorldObjectNotification.IN_WORLD_OBJECT_REMOVED_FROM_ROOM, handleInWorldObjectRemovedFromRoom);
+			NotificationCenter.addListener(AppNotification.APP_INSTANCE_ADDED, handleAppInstanceAdded);
+			NotificationCenter.addListener(AppNotification.APP_INSTANCE_DELETED, handleAppInstanceDeleted);
+			NotificationCenter.addListener(AppNotification.APP_INSTANCE_ADDED_TO_ROOM, handleAppInstanceAddedToRoom);
+			NotificationCenter.addListener(AppNotification.APP_INSTANCE_REMOVED_FROM_ROOM, handleAppInstanceRemovedFromRoom);
 			
-			currentUser.slots.addEventListener(LockerEvent.IN_WORLD_OBJECT_LOCKER_CAPACITY_CHANGED, handleInWorldObjectLockerCapacityChanged);
+			currentUser.slots.addEventListener(LockerEvent.APP_LOCKER_CAPACITY_CHANGED, handleAppLockerCapacityChanged);
 		}
 		
-		private function handleInWorldObjectLockerCapacityChanged(event:LockerEvent):void {
+		private function handleAppLockerCapacityChanged(event:LockerEvent):void {
 //			var oldCapacity:int = event.oldCapacity;
 //			var newCapacity:int = event.newCapacity;
 //			var i:int;
@@ -79,27 +80,26 @@ package com.worlize.model.locker
 //				}
 //			}
 //			instances.enableAutoUpdate();
-			
 			updateCount();
 		}
-
-		private function handleInWorldObjectAddedToRoom(notification:InWorldObjectNotification):void {
-			var instance:InWorldObjectInstance = instanceMap[notification.instanceGuid];
+		
+		private function handleAppInstanceAddedToRoom(notification:AppNotification):void {
+			var instance:AppInstance = instanceMap[notification.instanceGuid];
 			if (instance) {
 				instance.room = notification.room;
 			}
 		}
 		
-		private function handleInWorldObjectRemovedFromRoom(notification:InWorldObjectNotification):void {
-			var instance:InWorldObjectInstance = instanceMap[notification.instanceGuid];
+		private function handleAppInstanceRemovedFromRoom(notification:AppNotification):void {
+			var instance:AppInstance = instanceMap[notification.instanceGuid];
 			if (instance) {
 				instance.room = null;
 			}
 		}
 		
-		private function handleInWorldObjectDeleted(notification:InWorldObjectNotification):void {
+		private function handleAppInstanceDeleted(notification:AppNotification):void {
 			for (var i:int = 0, len:int = instances.length; i < len; i++) {
-				var instance:InWorldObjectInstance = InWorldObjectInstance(instances.getItemAt(i));
+				var instance:AppInstance = AppInstance(instances.getItemAt(i));
 				if (instance.guid == notification.instanceGuid) {
 					instances.removeItemAt(i);
 					delete instanceMap[instance.guid];
@@ -110,19 +110,19 @@ package com.worlize.model.locker
 			}
 		}
 		
-		private function handleInWorldObjectAdded(notification:InWorldObjectNotification):void {
-			instanceMap[notification.inWorldObjectInstance.guid] = notification.inWorldObjectInstance;
+		private function handleAppInstanceAdded(notification:AppNotification):void {
+			instanceMap[notification.appInstance.guid] = notification.appInstance;
 //			for (var i:int = 0, len:int = instances.length; i < len; i++) {
-//				var instance:InWorldObjectInstance = InWorldObjectInstance(instances.getItemAt(i));
+//				var instance:AppInstance = AppInstance(instances.getItemAt(i));
 //				if (instance.emptySlot) {
 //					instances.removeItemAt(i);
 //					delete instanceMap[instance.guid];
-//					instances.addItemAt(notification.inWorldObjectInstance, 0);
+//					instances.addItemAt(notification.appInstance, 0);
 //					updateCount();
 //					return;
 //				}
 //			}
-			instances.addItem(notification.inWorldObjectInstance);
+			instances.addItem(notification.appInstance);
 			updateCount();
 		}
 		
@@ -130,22 +130,22 @@ package com.worlize.model.locker
 			var client:WorlizeServiceClient = new WorlizeServiceClient();
 			client.addEventListener(WorlizeResultEvent.RESULT, handleLoadResult);
 			client.addEventListener(FaultEvent.FAULT, handleFault);
-			client.send('/locker/in_world_objects.json', HTTPMethod.GET);
+			client.send('/locker/apps.json', HTTPMethod.GET);
 			state = STATE_LOADING;
 		}
 		
 		private function handleLoadResult(event:WorlizeResultEvent):void {
 			var result:Object = event.resultJSON;
-			var instance:InWorldObjectInstance;
+			var instance:AppInstance;
 			if (result.success) {
-				logger.info("Success: Got " + result.count + " objects.");
+				logger.info("Success: Got " + result.count + " apps.");
 				instances.removeAll();
 				for each (var rawData:Object in result.data) {
-					instance = InWorldObjectInstance.fromLockerData(rawData);
+					instance = AppInstance.fromLockerData(rawData);
 					instances.addItem(instance);
 					instanceMap[instance.guid] = instance;
 				}
-				var capacity:int = currentUser.slots.inWorldObjectSlots = result.capacity;
+				var capacity:int = currentUser.slots.appSlots = result.capacity;
 				count = result.count;
 				emptySlots = capacity - count;
 //				for (var i:int = 0; i < emptySlots; i++) {
@@ -154,7 +154,7 @@ package com.worlize.model.locker
 				state = STATE_READY;
 			}
 			else {
-				logger.error("Failed to load object locker information.");
+				logger.error("Failed to load app locker information.");
 				state = STATE_ERROR;
 			}
 		}
@@ -162,24 +162,24 @@ package com.worlize.model.locker
 		private function updateCount():void {
 //			var count:int = 0;
 //			for (var i:int = 0, len:int = instances.length; i < len; i++) {
-//				if (!InWorldObjectInstance(instances.getItemAt(i)).emptySlot) {
+//				if (!AppInstance(instances.getItemAt(i)).emptySlot) {
 //					count ++;
 //				}
 //			}
 //			this.count = count;
 			this.count = instances.length;
-			emptySlots = currentUser.slots.inWorldObjectSlots - this.count;
+			emptySlots = currentUser.slots.appSlots - this.count;
 		}
 		
 //		private function addEmptySlot():void {
-//			var asset:InWorldObjectInstance = new InWorldObjectInstance();
+//			var asset:AppInstance = new AppInstance();
 //			asset.emptySlot = true;
 //			instances.addItem(asset);
 //		}
-//		
+		
 //		private function removeEmptySlot():void {
 //			for (var i:int = instances.length-1; i > 0; i--) {
-//				var instance:InWorldObjectInstance = InWorldObjectInstance(instances.getItemAt(i));
+//				var instance:AppInstance = AppInstance(instances.getItemAt(i));
 //				if (instance.emptySlot) {
 //					instances.removeItemAt(i);
 //					return;
@@ -189,6 +189,7 @@ package com.worlize.model.locker
 //		}
 		
 		private function handleFault(event:FaultEvent):void {
+			logger.error("Unable to load app locker. " + event);
 			state = STATE_ERROR;
 		}
 	}

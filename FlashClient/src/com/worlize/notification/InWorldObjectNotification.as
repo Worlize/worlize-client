@@ -13,7 +13,6 @@ package com.worlize.notification
 		public static const IN_WORLD_OBJECT_REMOVED_FROM_ROOM:String = "inWorldObjectRemovedFromRoom";
 		
 		public var inWorldObjectInstance:InWorldObjectInstance;
-		public var deletedInstanceGuid:String;
 		public var room:RoomListEntry;
 		public var instanceGuid:String;
 		

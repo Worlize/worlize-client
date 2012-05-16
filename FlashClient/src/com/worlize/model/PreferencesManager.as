@@ -42,7 +42,7 @@ package com.worlize.model
 			return _instance;		
 		}
 		
-		public function getPreference(name:String):Object {
+		public function getPreference(name:String):* {
 			return prefs[name];
 		}
 		public function setPreference(name:String, value:Object):void {

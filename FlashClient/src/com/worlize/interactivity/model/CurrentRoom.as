@@ -167,15 +167,15 @@ package com.worlize.interactivity.model
 		}
 		
 		private function addInWorldObjectInstanceListeners(inWorldObjectInstance:InWorldObjectInstance):void {
-			inWorldObjectInstance.addEventListener(RoomEvent.OBJECT_MOVED, redispatchObjectEvent);
-			inWorldObjectInstance.addEventListener(RoomEvent.OBJECT_RESIZED, redispatchObjectEvent);
-			inWorldObjectInstance.addEventListener(RoomEvent.OBJECT_STATE_CHANGED, redispatchObjectEvent);
+			inWorldObjectInstance.addEventListener(RoomEvent.APP_MOVED, redispatchObjectEvent);
+			inWorldObjectInstance.addEventListener(RoomEvent.APP_RESIZED, redispatchObjectEvent);
+			inWorldObjectInstance.addEventListener(RoomEvent.APP_STATE_CHANGED, redispatchObjectEvent);
 		}
 		
 		private function removeInWorldObjectInstanceListeners(inWorldObjectInstance:InWorldObjectInstance):void {
-			inWorldObjectInstance.removeEventListener(RoomEvent.OBJECT_MOVED, redispatchObjectEvent);
-			inWorldObjectInstance.removeEventListener(RoomEvent.OBJECT_RESIZED, redispatchObjectEvent);
-			inWorldObjectInstance.removeEventListener(RoomEvent.OBJECT_STATE_CHANGED, redispatchObjectEvent);
+			inWorldObjectInstance.removeEventListener(RoomEvent.APP_MOVED, redispatchObjectEvent);
+			inWorldObjectInstance.removeEventListener(RoomEvent.APP_RESIZED, redispatchObjectEvent);
+			inWorldObjectInstance.removeEventListener(RoomEvent.APP_STATE_CHANGED, redispatchObjectEvent);
 		}
 				
 		public function addObject(inWorldObjectInstance:InWorldObjectInstance):void {
@@ -186,7 +186,7 @@ package com.worlize.interactivity.model
 			
 			addInWorldObjectInstanceListeners(inWorldObjectInstance);
 			
-			var event:RoomEvent = new RoomEvent(RoomEvent.OBJECT_ADDED);
+			var event:RoomEvent = new RoomEvent(RoomEvent.APP_ADDED);
 			event.roomObject = inWorldObjectInstance;
 			dispatchEvent(event);
 			
@@ -205,7 +205,7 @@ package com.worlize.interactivity.model
 				if (index != -1) {
 					inWorldObjects.removeItemAt(index);
 					
-					var event:RoomEvent = new RoomEvent(RoomEvent.OBJECT_REMOVED);
+					var event:RoomEvent = new RoomEvent(RoomEvent.APP_REMOVED);
 					event.roomObject = inWorldObjectInstance;
 					dispatchEvent(event);
 					
@@ -227,7 +227,7 @@ package com.worlize.interactivity.model
 				inWorldObjectInstance.x = x;
 				inWorldObjectInstance.y = y;
 				
-				var event:RoomEvent = new RoomEvent(RoomEvent.OBJECT_MOVED);
+				var event:RoomEvent = new RoomEvent(RoomEvent.APP_MOVED);
 				event.roomObject = inWorldObjectInstance;
 				dispatchEvent(event);
 			}
@@ -239,7 +239,7 @@ package com.worlize.interactivity.model
 				inWorldObjectInstance.width = width;
 				inWorldObjectInstance.height = height;
 				
-				var event:RoomEvent = new RoomEvent(RoomEvent.OBJECT_RESIZED);
+				var event:RoomEvent = new RoomEvent(RoomEvent.APP_RESIZED);
 				event.roomObject = inWorldObjectInstance;
 				dispatchEvent(event);
 			}

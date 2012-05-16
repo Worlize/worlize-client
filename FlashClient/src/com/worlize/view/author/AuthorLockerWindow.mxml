@@ -6,7 +6,8 @@
 						  title="My Locker"
 						  titleBarColor="#c04848" titleTextColor="#c04848" 
 						  windowIcon="@Embed('assets/icons/large/w_icon_objects.png')"
-						  minWidth="525" minHeight="415"
+						  minWidth="485" minHeight="315"
+						  creationComplete="handleCreationComplete()"
 						  width="525" height="415" xmlns:author="com.worlize.view.author.*">
 	
 	<fx:Script>
@@ -18,12 +19,13 @@
 			import flex.utils.spark.resize.ResizeManager;
 			
 			import mx.events.CloseEvent;
+			import mx.events.IndexChangedEvent;
 			import mx.events.ResizeEvent;
 			import mx.managers.PopUpManager;
 			
 			import spark.events.TitleWindowBoundsEvent;
 			private static var _open:Boolean = false;
-			private static var _instance:WorlizeWindow;
+			private static var _instance:AuthorLockerWindow;
 			
 			public static function toggleOpen(parent:DisplayObject):void {
 				if (_open) {
@@ -59,6 +61,7 @@
 					if (needsPosition) {
 						var coordinates:Array = preferences.getPreference('authorLockerPosition') as Array;
 						var size:Array = preferences.getPreference('authorLockerSize') as Array;
+						var selectedTabIndex:int = preferences.getPreference('authorLockerSelectedTab');
 						if (coordinates && size &&
 							_instance.boundsAreValid(coordinates[0], coordinates[1], size[0], size[1]))
 						{
@@ -66,6 +69,9 @@
 							_instance.y = coordinates[1];
 							_instance.width = size[0];
 							_instance.height = size[1];
+							if (!(isNaN(selectedTabIndex) || _instance.lockerViewStack.numChildren < selectedTabIndex)) {
+								_instance.lockerViewStack.selectedIndex = selectedTabIndex;
+							}
 						}
 						else {
 							PopUpManager.centerPopUp(_instance);
@@ -89,6 +95,11 @@
 			private function handleAuthorModeDisabled(notification:AuthorModeNotification):void {
 				close();
 			}
+			
+			private function handleViewStackChange(event:IndexChangedEvent):void {
+				var preferences:PreferencesManager = PreferencesManager.getInstance();
+				preferences.setPreference("authorLockerSelectedTab", event.newIndex);
+			}
 		]]>
 	</fx:Script>
 	
@@ -107,7 +118,7 @@
 			</s:Rect>
 		</s:Group>
 		
-		<mx:ViewStack id="lockerViewStack" width="100%" height="100%">
+		<mx:ViewStack id="lockerViewStack" width="100%" height="100%" change="handleViewStackChange(event)">
 			<s:NavigatorContent id="backgroundsTab" label="Backgrounds">
 				<author:MyBackgroundsLockerView width="100%" height="100%" />
 			</s:NavigatorContent>
@@ -117,27 +128,9 @@
 			</s:NavigatorContent>
 			
 			<s:NavigatorContent id="appsTab" label="Apps">
-				
+				<author:MyAppsLockerView width="100%" height="100%" />
 			</s:NavigatorContent>
 		</mx:ViewStack>
-		
-		<s:Group width="100%">
-			<s:Rect bottom="0" right="0" top="0" left="0">
-				<s:fill>
-					<s:SolidColor color="#EEEEEE" />
-				</s:fill>
-			</s:Rect>
-			<s:Rect top="0" width="100%" height="1">
-				<s:fill>
-					<s:SolidColor color="#BBBBBB" />
-				</s:fill>
-			</s:Rect>
-			<s:HGroup horizontalAlign="right" verticalAlign="baseline"
-					  width="100%"
-					  paddingTop="6" paddingRight="15" paddingBottom="5">
-				<s:Button label="Upload" />
-			</s:HGroup>
-		</s:Group>
 	</s:VGroup>
 	
 	

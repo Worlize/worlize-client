@@ -1,6 +1,7 @@
 package com.worlize.interactivity.event
 {
 	import com.worlize.interactivity.model.InteractivityUser;
+	import com.worlize.model.AppInstance;
 	import com.worlize.model.InWorldObjectInstance;
 	
 	import flash.events.Event;
@@ -13,14 +14,15 @@ package com.worlize.interactivity.event
 		public static const USER_MOVED:String = "userMoved";
 		public static const SELECTED_USER_CHANGED:String = "selectedUserChanged";
 		
-		public static const OBJECT_ADDED:String = "objectAdded";
-		public static const OBJECT_REMOVED:String = "objectRemoved";
-		public static const OBJECT_MOVED:String = "objectMoved";
-		public static const OBJECT_RESIZED:String = "objectResized";
-		public static const OBJECT_STATE_CHANGED:String = "objectStateChanged";
+		public static const APP_ADDED:String = "appAdded";
+		public static const APP_REMOVED:String = "appRemoved";
+		public static const APP_MOVED:String = "appMoved";
+		public static const APP_RESIZED:String = "appResized";
+		public static const APP_STATE_CHANGED:String = "appStateChanged";
 		
 		public var user:InteractivityUser;
 		public var roomObject:InWorldObjectInstance;
+		public var appInstance:AppInstance;
 		
 		public function RoomEvent(type:String, user:InteractivityUser = null)
 		{

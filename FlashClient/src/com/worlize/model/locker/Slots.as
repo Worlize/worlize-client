@@ -53,6 +53,7 @@ package com.worlize.model.locker
 		private var _backgroundSlots:int;
 		private var _inWorldObjectSlots:int;
 		private var _propSlots:int;
+		private var _appSlots:int;
 		
 		[Bindable(event="avatarLockerCapacityChanged")]
 		public function set avatarSlots(newValue:int):void {
@@ -97,6 +98,21 @@ package com.worlize.model.locker
 		}
 		public function get inWorldObjectSlots():int {
 			return _inWorldObjectSlots;
+		}
+		
+		[Bindable(event="appLockerCapacityChanged")]
+		public function set appSlots(newValue:int):void {
+			if (_appSlots !== newValue) {
+				var oldValue:int = _appSlots;
+				_appSlots = newValue;
+				var event:LockerEvent = new LockerEvent(LockerEvent.APP_LOCKER_CAPACITY_CHANGED);
+				event.oldCapacity = oldValue;
+				event.newCapacity = newValue;
+				dispatchEvent(event);
+			}
+		}
+		public function get appSlots():int {
+			return _appSlots;
 		}
 		
 		[Bindable(event="propLockerCapacityChanged")]

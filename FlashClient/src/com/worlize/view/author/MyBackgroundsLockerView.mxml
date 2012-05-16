@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
 						  xmlns:s="library://ns.adobe.com/flex/spark" 
 						  xmlns:mx="library://ns.adobe.com/flex/mx"
 						  xmlns:components="com.worlize.view.components.*"
-						  creationComplete="handleCreationComplete()" xmlns:controls="controls.*">
+						  xmlns:controls="controls.*"
+						  gap="0"
+						  creationComplete="handleCreationComplete()">
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
@@ -137,9 +139,6 @@
 	
 	<!--
 	<components:controlBarContent>
-		<components:UploadProgressIndicator
-			uploader="{uploader}" />
-		
 		<mx:LinkButton
 			id="uploadButton"
 			click="uploadBackground()"
@@ -157,35 +156,66 @@
 	</components:controlBarContent>
 	-->
 
-	<s:List id="backgroundImagesList" dataProvider="{backgroundsLocker.backgroundInstances}"
-			includeIn="ready"
-			top="0" right="0" left="0" bottom="0"
-			borderVisible="false"
-			change="handleBackgroundChange(event)"
-			itemRenderer="com.worlize.view.itemrenderers.BackgroundLockerItemRenderer">
-		<s:layout>
-			<s:TileLayout paddingTop="10" paddingLeft="10" paddingBottom="10" paddingRight="10"
-						  verticalGap="10" horizontalGap="10" />
-		</s:layout>
-	</s:List>
+	<s:Group width="100%" height="100%">
+		<s:List id="backgroundImagesList" dataProvider="{backgroundsLocker.backgroundInstances}"
+				includeIn="ready"
+				top="0" right="0" left="0" bottom="0"
+				borderVisible="false"
+				change="handleBackgroundChange(event)"
+				itemRenderer="com.worlize.view.itemrenderers.BackgroundLockerItemRenderer">
+			<s:layout>
+				<s:TileLayout paddingTop="10" paddingLeft="10" paddingBottom="10" paddingRight="10"
+							  verticalGap="10" horizontalGap="10" />
+			</s:layout>
+		</s:List>
+		
+		<s:Group width="100%" height="100%" includeIn="loading">
+			<controls:Spinner id="loadingSpinner"
+							  autoPlay="true"
+							  mouseEnabled="false"
+							  mouseChildren="false"
+							  size="44" numTicks="13"
+							  tickWidth="3" speed="600"
+							  horizontalCenter="0"
+							  top="30"
+							  fadeSpeed="500" tickColor="#222222" />
+		</s:Group>
+		
+		<s:VGroup width="100%" height="100%" includeIn="loadError"
+				  horizontalAlign="center" verticalAlign="middle">
+			<s:Label fontSize="18" fontFamily="PTSansNarrow"
+					 text="Unable to load backgrounds." />
+			<s:Button label="Retry" click="backgroundsLocker.load()" />
+		</s:VGroup>
+	</s:Group>
 	
-	<s:Group width="100%" height="100%" includeIn="loading">
-		<controls:Spinner id="loadingSpinner"
-						  autoPlay="true"
-						  mouseEnabled="false"
-						  mouseChildren="false"
-						  size="44" numTicks="13"
-						  tickWidth="3" speed="600"
-						  horizontalCenter="0"
-						  top="30"
-						  fadeSpeed="500" tickColor="#222222" />
+	<s:Group width="100%">
+		<s:Rect bottom="0" right="0" top="0" left="0">
+			<s:fill>
+				<s:SolidColor color="#EEEEEE" />
+			</s:fill>
+		</s:Rect>
+		<s:Rect top="0" width="100%" height="1">
+			<s:fill>
+				<s:SolidColor color="#BBBBBB" />
+			</s:fill>
+		</s:Rect>
+		<s:HGroup horizontalAlign="right" verticalAlign="middle"
+				  width="100%"
+				  paddingTop="6" paddingRight="15" paddingBottom="5">
+			<components:UploadProgressIndicator
+				uploader="{uploader}" />
+
+			<mx:LinkButton
+				id="uploadButton"
+				click="uploadBackground()"
+				enabled="{uploader.state === Uploader.STATE_READY &amp;&amp; backgroundsLocker.state === BackgroundsLocker.STATE_READY}"
+				styleName="lockerNavButton"
+				color="#2b9610"
+				icon="@Embed(source='src/assets/icons/icon_upload.png')"
+				toolTip="Click to upload a new Background."
+				label="Upload" />
+		</s:HGroup>
 	</s:Group>
 
-	<s:VGroup width="100%" height="100%" includeIn="loadError"
-			  horizontalAlign="center" verticalAlign="middle">
-		<s:Label fontSize="18" fontFamily="PTSansNarrow"
-				 text="Unable to load backgrounds." />
-		<s:Button label="Retry" click="backgroundsLocker.load()" />
-	</s:VGroup>
-
-</s:Group>
+</s:VGroup>

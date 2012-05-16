@@ -16,9 +16,9 @@ package com.worlize.model
 	import mx.logging.Log;
 	import mx.rpc.events.FaultEvent;
 	import mx.utils.object_proxy;
-
+	
 	[Bindable]
-	public class InWorldObjectInstance extends EventDispatcher implements IRoomItem
+	public class AppInstance extends EventDispatcher implements IRoomItem
 	{
 		public static const STATE_INIT:String = "init";
 		public static const STATE_LOADING:String = "loading";
@@ -29,8 +29,10 @@ package com.worlize.model
 		public static const STATE_UNLOADED:String = "unloaded";
 		public static const STATE_BOMBED:String = "bombed";
 		
+		public static var logger:ILogger = Log.getLogger("com.worlize.model.AppInstance");
+		
 		private var _state:String = STATE_INIT;
-		public var inWorldObject:InWorldObject;
+		public var app:App;
 		public var guid:String;
 		public var x:int;
 		public var y:int;
@@ -38,6 +40,7 @@ package com.worlize.model
 		public var height:Number;
 		public var room:RoomListEntry;
 		public var dest:String;
+		
 		public var emptySlot:Boolean = false;
 		
 		public var configData:Object;
@@ -58,7 +61,7 @@ package com.worlize.model
 				_state = newValue;
 				dispatchEvent(new FlexEvent('stateChanged'));
 				var event:RoomEvent = new RoomEvent(RoomEvent.APP_STATE_CHANGED);
-				event.roomObject = this;
+				event.appInstance = this;
 				dispatchEvent(event);
 			}
 		}
@@ -74,24 +77,23 @@ package com.worlize.model
 			}
 		}
 		
-		public static function fromLockerData(data:Object):InWorldObjectInstance {
-			var object:InWorldObjectInstance = new InWorldObjectInstance();
-			object.guid = data.guid;
-			object.inWorldObject = InWorldObject.fromData(data.in_world_object);
+		public static function fromLockerData(data:Object):AppInstance {
+			var appInstance:AppInstance = new AppInstance();
+			appInstance.guid = data.guid;
+			appInstance.app = App.fromData(data.app);
 			if (data.room) {
-				object.room = new RoomListEntry();
-				object.room.name = data.room.name;
-				object.room.guid = data.room.guid;
+				appInstance.room = new RoomListEntry();
+				appInstance.room.name = data.room.name;
+				appInstance.room.guid = data.room.guid;
 			}
-			object.emptySlot = false;
-			return object;
+			return appInstance;
 		}
 		
 		public function moveLocal(x:int, y:int):void {
 			this.x = x;
 			this.y = y;
 			var event:RoomEvent = new RoomEvent(RoomEvent.APP_MOVED);
-			event.roomObject = this;
+			event.appInstance = this;
 			dispatchEvent(event);
 		}
 		
@@ -100,7 +102,7 @@ package com.worlize.model
 				this.width = width;
 				this.height = height;
 				var event:RoomEvent = new RoomEvent(RoomEvent.APP_RESIZED);
-				event.roomObject = this;
+				event.appInstance = this;
 				dispatchEvent(event);
 			}
 		}
@@ -109,49 +111,38 @@ package com.worlize.model
 			var client:WorlizeServiceClient = new WorlizeServiceClient();
 			client.addEventListener(WorlizeResultEvent.RESULT, handleDeleteResult);
 			client.addEventListener(FaultEvent.FAULT, handleFault);
-			client.send("/locker/in_world_objects/" + guid + ".json", HTTPMethod.DELETE);
+			client.send("/locker/apps/" + guid + ".json", HTTPMethod.DELETE);
 		}
 		
 		private function handleFault(event:FaultEvent):void {
-			var logger:ILogger = Log.getLogger("com.worlize.model.InWorldObjectInstance");
-			logger.error("Object Delete Failed. " + event);
+			logger.error("App Instance " + guid + " delete failed. " + event);
 		}
 		
 		private function handleDeleteResult(event:WorlizeResultEvent):void {
+			logger.info("App Instance " + guid + " deleted successfully.");
 			var notification:InWorldObjectNotification = new InWorldObjectNotification(InWorldObjectNotification.IN_WORLD_OBJECT_INSTANCE_DELETED);
 			notification.instanceGuid = guid;
 			NotificationCenter.postNotification(notification);
 		}
-
-		public static function fromData(objectData:Object):InWorldObjectInstance {
-			var inWorldObjectInstance:InWorldObjectInstance = new InWorldObjectInstance();
-			inWorldObjectInstance.guid = objectData.guid;
-			inWorldObjectInstance.x = objectData.x;
-			inWorldObjectInstance.y = objectData.y;
-			
-			inWorldObjectInstance.inWorldObject = new InWorldObject();
-			inWorldObjectInstance.inWorldObject.creatorGuid = objectData.creator;
-			inWorldObjectInstance.inWorldObject.guid = objectData.object_guid;
-			inWorldObjectInstance.inWorldObject.width = objectData.width;
-			inWorldObjectInstance.inWorldObject.height = objectData.height;
-			
-			if (objectData.type === 'app') {
-				inWorldObjectInstance.inWorldObject.kind = InWorldObject.KIND_APP;
-				inWorldObjectInstance.inWorldObject.name = objectData.name;
-				inWorldObjectInstance.inWorldObject.appURL = objectData.app_url;
-				inWorldObjectInstance.inWorldObject.smallIconURL = objectData.small_icon;
-				inWorldObjectInstance.configData = objectData.config;
-				inWorldObjectInstance.syncedData = {};
-				inWorldObjectInstance.stateHistory = [];
-			}
-			else {
-				inWorldObjectInstance.inWorldObject.kind = InWorldObject.KIND_IMAGE;
-				inWorldObjectInstance.dest = objectData.dest;
-				inWorldObjectInstance.inWorldObject.thumbnailURL = objectData.thumbnail_url;
-				inWorldObjectInstance.inWorldObject.fullsizeURL = objectData.fullsize_url;
-			}
-			
-			return inWorldObjectInstance;
+		
+		public static function fromData(objectData:Object):AppInstance {
+			var appInstance:AppInstance = new AppInstance();
+			appInstance.guid = objectData.guid;
+			appInstance.x = objectData.x;
+			appInstance.y = objectData.y;
+			appInstance.app = new App();
+			appInstance.app.creatorGuid = objectData.creator;
+			appInstance.app.guid = objectData.app_guid;
+			appInstance.app.width = objectData.width;
+			appInstance.app.height = objectData.height;
+			appInstance.app.name = objectData.name;
+			appInstance.app.appURL = objectData.app_url;
+			appInstance.app.smallIconURL = objectData.small_icon;
+			appInstance.configData = objectData.config;
+			appInstance.syncedData = {};
+			appInstance.stateHistory = [];
+			appInstance.dest = objectData.dest;
+			return appInstance;
 		}
 	}
 }

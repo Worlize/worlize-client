@@ -59,5 +59,6 @@
 	<s:Label fontFamily="PTSansNarrowBold" fontSize="14" text="Processing..." includeIn="processing" />
 	
 	<mx:ProgressBar includeIn="uploading"
-		width="75" height="5" label="" source="{_uploader}" chromeColor="#777777" />
+		width="125" height="5" label=""
+		source="{_uploader}" chromeColor="#777777" />
 </s:Group>

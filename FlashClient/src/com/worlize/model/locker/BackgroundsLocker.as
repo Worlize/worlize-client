@@ -51,39 +51,36 @@ package com.worlize.model.locker
 		}
 		
 		private function handleBackgroundLockerCapacityChanged(event:LockerEvent):void {
-			var oldCapacity:int = event.oldCapacity;
-			var newCapacity:int = event.newCapacity;
-			var i:int;
-			
-			if (isNaN(oldCapacity)) { oldCapacity = 0 };
-			
-			
-			backgroundInstances.disableAutoUpdate();
-			if (newCapacity - oldCapacity > 0) {
-				var slotsToAdd:int = newCapacity - oldCapacity;
-				// if there were previously fewer slots than the user had avatars...
-				if (emptySlots < 0) {
-					slotsToAdd += emptySlots;
-				}
-				for (i = 0; i < slotsToAdd; i++) {
-					addEmptySlot();
-				}
-			}
-			else if (newCapacity - oldCapacity < 0) {
-				var slotsToRemove:int = oldCapacity - newCapacity;
-				for (i = 0; i < slotsToRemove; i++) {
-					try {
-						removeEmptySlot();
-					}
-					catch(e:Error) {
-						// bail out
-						logger.warn("Tried to remove an empty slot but there are none left to remove.");
-						break;
-					}
-				}
-			}
-			backgroundInstances.enableAutoUpdate();
-			
+//			var oldCapacity:int = event.oldCapacity;
+//			var newCapacity:int = event.newCapacity;
+//			var i:int;
+//			
+//			if (isNaN(oldCapacity)) { oldCapacity = 0 };
+//			backgroundInstances.disableAutoUpdate();
+//			if (newCapacity - oldCapacity > 0) {
+//				var slotsToAdd:int = newCapacity - oldCapacity;
+//				// if there were previously fewer slots than the user had avatars...
+//				if (emptySlots < 0) {
+//					slotsToAdd += emptySlots;
+//				}
+//				for (i = 0; i < slotsToAdd; i++) {
+//					addEmptySlot();
+//				}
+//			}
+//			else if (newCapacity - oldCapacity < 0) {
+//				var slotsToRemove:int = oldCapacity - newCapacity;
+//				for (i = 0; i < slotsToRemove; i++) {
+//					try {
+//						removeEmptySlot();
+//					}
+//					catch(e:Error) {
+//						// bail out
+//						logger.warn("Tried to remove an empty slot but there are none left to remove.");
+//						break;
+//					}
+//				}
+//			}
+//			backgroundInstances.enableAutoUpdate();
 			updateCount();
 		}
 		
@@ -97,7 +94,7 @@ package com.worlize.model.locker
 				if (instance.guid === guid) {
 					backgroundInstances.removeItemAt(i);
 					delete backgroundInstanceMap[guid];
-					addEmptySlot();
+//					addEmptySlot();
 					updateCount();
 					return;
 				}
@@ -106,16 +103,16 @@ package com.worlize.model.locker
 		
 		private function handleBackgroundInstanceAdded(notification:BackgroundImageNotification):void {
 			backgroundInstanceMap[notification.backgroundInstance.guid] = notification.backgroundInstance;
-			for (var i:int = 0, len:int = backgroundInstances.length; i < len; i++) {
-				var instance:BackgroundImageInstance = BackgroundImageInstance(backgroundInstances.getItemAt(i));
-				if (instance.emptySlot) {
-					backgroundInstances.removeItemAt(i);
-					delete backgroundInstanceMap[instance.guid];
-					backgroundInstances.addItemAt(notification.backgroundInstance, 0);
-					updateCount();
-					return;
-				}
-			}
+//			for (var i:int = 0, len:int = backgroundInstances.length; i < len; i++) {
+//				var instance:BackgroundImageInstance = BackgroundImageInstance(backgroundInstances.getItemAt(i));
+//				if (instance.emptySlot) {
+//					backgroundInstances.removeItemAt(i);
+//					delete backgroundInstanceMap[instance.guid];
+//					backgroundInstances.addItemAt(notification.backgroundInstance, 0);
+//					updateCount();
+//					return;
+//				}
+//			}
 			backgroundInstances.addItem(notification.backgroundInstance);
 			updateCount();
 		}
@@ -172,9 +169,9 @@ package com.worlize.model.locker
 				var capacity:int = currentUser.slots.backgroundSlots = result.capacity;
 				count = result.count;
 				emptySlots = capacity - count;
-				for (var i:int = 0; i < emptySlots; i++) {
-					addEmptySlot();
-				}
+//				for (var i:int = 0; i < emptySlots; i++) {
+//					addEmptySlot();
+//				}
 				state = STATE_READY;
 			}
 			else {
@@ -184,34 +181,36 @@ package com.worlize.model.locker
 		}
 		
 		private function updateCount():void {
-			var count:int = 0;
-			for (var i:int = 0, len:int = backgroundInstances.length; i < len; i++) {
-				if (!BackgroundImageInstance(backgroundInstances.getItemAt(i)).emptySlot) {
-					count ++;
-				}
-			}
-			this.count = count;
+//			var count:int = 0;
+//			for (var i:int = 0, len:int = backgroundInstances.length; i < len; i++) {
+//				if (!BackgroundImageInstance(backgroundInstances.getItemAt(i)).emptySlot) {
+//					count ++;
+//				}
+//			}
+//			this.count = count;
+			this.count = backgroundInstances.length;
 			emptySlots = currentUser.slots.backgroundSlots - this.count;
 		}
 		
-		private function addEmptySlot():void {
-			var asset:BackgroundImageInstance = new BackgroundImageInstance();
-			asset.emptySlot = true;
-			backgroundInstances.addItem(asset);
-		}
+//		private function addEmptySlot():void {
+//			var asset:BackgroundImageInstance = new BackgroundImageInstance();
+//			asset.emptySlot = true;
+//			backgroundInstances.addItem(asset);
+//		}
 		
-		private function removeEmptySlot():void {
-			for (var i:int = backgroundInstances.length-1; i > 0; i--) {
-				var instance:BackgroundImageInstance = BackgroundImageInstance(backgroundInstances.getItemAt(i));
-				if (instance.emptySlot) {
-					backgroundInstances.removeItemAt(i);
-					return;
-				}
-			}
-			throw new Error("There are no empty slots to remove.");
-		}
+//		private function removeEmptySlot():void {
+//			for (var i:int = backgroundInstances.length-1; i > 0; i--) {
+//				var instance:BackgroundImageInstance = BackgroundImageInstance(backgroundInstances.getItemAt(i));
+//				if (instance.emptySlot) {
+//					backgroundInstances.removeItemAt(i);
+//					return;
+//				}
+//			}
+//			throw new Error("There are no empty slots to remove.");
+//		}
 		
 		private function handleFault(event:FaultEvent):void {
+			logger.error("Unable to load backgrounds locker. " + event);
 			state = STATE_ERROR;
 		}
 	}

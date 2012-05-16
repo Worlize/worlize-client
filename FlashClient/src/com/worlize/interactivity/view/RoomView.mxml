@@ -305,7 +305,7 @@
 				if (event.dragSource.hasFormat('objectFromLocker') ||
 					event.dragSource.hasFormat('propFromLocker'))
 				{
-					DragManager.showFeedback(DragManager.MOVE);
+					DragManager.showFeedback(DragManager.COPY);
 				}
 				else if (event.dragSource.hasFormat('propInRoom')) {
 					if (event.altKey || event.ctrlKey) {
