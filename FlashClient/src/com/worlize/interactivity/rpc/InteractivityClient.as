@@ -32,6 +32,7 @@ package com.worlize.interactivity.rpc
 	import com.worlize.interactivity.rpc.messages.SyncedDataDumpMessage;
 	import com.worlize.interactivity.rpc.messages.SyncedDataSetMessage;
 	import com.worlize.interactivity.view.SoundPlayer;
+	import com.worlize.model.AppInstance;
 	import com.worlize.model.AvatarInstance;
 	import com.worlize.model.BackgroundImageInstance;
 	import com.worlize.model.CurrentUser;
@@ -59,6 +60,7 @@ package com.worlize.interactivity.rpc
 	import com.worlize.model.gifts.GiftsList;
 	import com.worlize.model.locker.AvatarLocker;
 	import com.worlize.model.locker.Slots;
+	import com.worlize.notification.AppNotification;
 	import com.worlize.notification.AvatarNotification;
 	import com.worlize.notification.BackgroundImageNotification;
 	import com.worlize.notification.ConnectionNotification;
@@ -192,6 +194,7 @@ package com.worlize.interactivity.rpc
 		// Incoming Message Handlers
 		private var incomingMessageHandlers:Object = {
 			"add_loose_prop": handleAddLooseProp,
+			"app_instance_added": handleAppInstanceAdded,
 			"avatar_instance_added": handleAvatarInstanceAdded,
 			"avatar_instance_deleted": handleAvatarInstanceDeleted,
 			"background_instance_added": handleBackgroundInstanceAdded,
@@ -470,6 +473,9 @@ package com.worlize.interactivity.rpc
 			if (typeof(data.prop_slots) === 'number') {
 				slots.propSlots = data.prop_slots;
 			}
+			if (typeof(data.app_slots) === 'number') {
+				slots.appSlots = data.app_slots;
+			}
 		}
 		
 		private function handleDisconnectMessage(data:Object):void {
@@ -496,6 +502,12 @@ package com.worlize.interactivity.rpc
 			
 			var notification:InWorldObjectNotification = new InWorldObjectNotification(InWorldObjectNotification.IN_WORLD_OBJECT_INSTANCE_ADDED);
 			notification.inWorldObjectInstance = inWorldObjectInstance;
+			NotificationCenter.postNotification(notification);
+		}
+		
+		private function handleAppInstanceAdded(data:Object):void {
+			var notification:AppNotification = new AppNotification(AppNotification.APP_INSTANCE_ADDED);
+			notification.appInstance = AppInstance.fromLockerData(data);
 			NotificationCenter.postNotification(notification);
 		}
 		

@@ -82,8 +82,8 @@
 			private function handleDeleteClick(event:MouseEvent):void {
 				event.stopImmediatePropagation();
 				var alert:Alert = Alert.show(
-					"Are you sure you want to delete this object?",
-					"Delete Object",
+					"Are you sure you want to delete this app?",
+					"Delete App",
 					Alert.YES | Alert.NO,
 					null,
 					handleAlertClose,

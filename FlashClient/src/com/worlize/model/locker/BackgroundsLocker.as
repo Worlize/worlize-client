@@ -113,7 +113,7 @@ package com.worlize.model.locker
 //					return;
 //				}
 //			}
-			backgroundInstances.addItem(notification.backgroundInstance);
+			backgroundInstances.addItemAt(notification.backgroundInstance, 0);
 			updateCount();
 		}
 		

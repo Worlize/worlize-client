@@ -128,11 +128,15 @@
 						slotPrice = slots.propSlotPrice;
 						titleText = "Buy Prop Locker Space";
 						break;
+					case 'app':
+						slotPrice = slots.appSlotPrice;
+						titleText = "Buy App Locker Space";
+						break;
 				}
 			}
 			
 			public function set slotKind(slotKind:String):void {
-				if (['avatar','background','in_world_object','prop'].indexOf(slotKind) === -1) {
+				if (['avatar','background','in_world_object','prop','app'].indexOf(slotKind) === -1) {
 					throw new Error("Invalid slot kind: " + slotKind);
 				}
 				if (_slotKind === slotKind) { return; }
@@ -190,6 +194,9 @@
 						break;
 					case "prop":
 						typeString = "prop";
+						break;
+					case "app":
+						typeString = "app";
 						break;
 				}
 				

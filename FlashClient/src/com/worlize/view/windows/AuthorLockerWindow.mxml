@@ -8,7 +8,7 @@
 						  windowIcon="@Embed('assets/icons/large/w_icon_objects.png')"
 						  minWidth="485" minHeight="315"
 						  creationComplete="handleCreationComplete()"
-						  width="525" height="415" xmlns:author="com.worlize.view.author.*">
+						  width="485" height="422" xmlns:author="com.worlize.view.author.*">
 	
 	<fx:Script>
 		<![CDATA[

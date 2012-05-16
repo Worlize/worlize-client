@@ -122,7 +122,7 @@ package com.worlize.model.locker
 //					return;
 //				}
 //			}
-			instances.addItem(notification.appInstance);
+			instances.addItemAt(notification.appInstance, 0);
 			updateCount();
 		}
 		

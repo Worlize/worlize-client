@@ -4,7 +4,7 @@ package com.worlize.model
 	import com.worlize.interactivity.event.RoomEvent;
 	import com.worlize.interactivity.model.IRoomItem;
 	import com.worlize.interactivity.rpc.InteractivityClient;
-	import com.worlize.notification.InWorldObjectNotification;
+	import com.worlize.notification.AppNotification;
 	import com.worlize.rpc.HTTPMethod;
 	import com.worlize.rpc.WorlizeResultEvent;
 	import com.worlize.rpc.WorlizeServiceClient;
@@ -120,7 +120,7 @@ package com.worlize.model
 		
 		private function handleDeleteResult(event:WorlizeResultEvent):void {
 			logger.info("App Instance " + guid + " deleted successfully.");
-			var notification:InWorldObjectNotification = new InWorldObjectNotification(InWorldObjectNotification.IN_WORLD_OBJECT_INSTANCE_DELETED);
+			var notification:AppNotification = new AppNotification(AppNotification.APP_INSTANCE_DELETED);
 			notification.instanceGuid = guid;
 			NotificationCenter.postNotification(notification);
 		}

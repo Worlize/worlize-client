@@ -142,6 +142,9 @@ package com.worlize.model.locker
 		[Bindable]
 		public var propSlotPrice:int;
 		
+		[Bindable]
+		public var appSlotPrice:int;
+		
 		public function Slots(target:IEventDispatcher=null)
 		{
 			super(target);
@@ -193,6 +196,7 @@ package com.worlize.model.locker
 				backgroundSlotPrice = data.background_slot_price;
 				inWorldObjectSlotPrice = data.in_world_object_slot_price;
 				propSlotPrice = data.prop_slot_price;
+				appSlotPrice = data.app_slot_price;
 				pricingState = STATE_READY;
 			}
 			else {
@@ -205,7 +209,7 @@ package com.worlize.model.locker
 		}
 		
 		public function buySlots(slotKind:String, quantity:int, callback:Function=null):void {
-			if (['avatar','background','prop','in_world_object'].indexOf(slotKind) === -1) {
+			if (['avatar','background','prop','in_world_object','app'].indexOf(slotKind) === -1) {
 				throw new Error("Invalid slot kind: " + slotKind);
 			}
 			if (quantity <= 0) {

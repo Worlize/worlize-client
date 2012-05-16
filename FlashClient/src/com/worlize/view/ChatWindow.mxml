@@ -44,7 +44,7 @@
 			import com.worlize.model.WorldDefinition;
 			import com.worlize.notification.WorlizeNotification;
 			import com.worlize.state.AuthorModeState;
-			import com.worlize.view.author.AuthorLockerWindow;
+			import com.worlize.view.windows.AuthorLockerWindow;
 			import com.worlize.view.author.MyBackgroundsLockerView;
 			import com.worlize.view.author.MyGamesWindow;
 			import com.worlize.view.author.MyMediaWindow;

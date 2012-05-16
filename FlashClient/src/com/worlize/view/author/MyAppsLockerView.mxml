@@ -65,7 +65,7 @@
 				}
 			}
 			
-			private function uploadObject():void {
+			private function uploadApp():void {
 				if (appLocker.emptySlots > 0) {
 					uploader.browse();
 				}
@@ -167,7 +167,7 @@
 			
 			<mx:LinkButton
 				id="uploadButton"
-				click="uploadObject()"
+				click="uploadApp()"
 				enabled="{CurrentUser.getInstance().developer &amp;&amp; uploader.state === Uploader.STATE_READY &amp;&amp; appLocker.state === AppLocker.STATE_READY}"
 				styleName="lockerNavButton"
 				color="#2b9610"
