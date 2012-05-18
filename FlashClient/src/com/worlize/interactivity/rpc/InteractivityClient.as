@@ -266,10 +266,10 @@ package com.worlize.interactivity.rpc
 			"youtube_load": handleYouTubeLoad,
 			"youtube_pause": handleYouTubePause,
 			"youtube_play": handleYouTubePlay,
-			"youtube_player_added": handleYouTubePlayerAdded,
-			"youtube_player_moved": handleYouTubePlayerMoved,
-			"youtube_player_data_updated": handleYouTubePlayerDataUpdated,
-			"youtube_player_removed": handleYouTubePlayerRemoved,
+			"add_youtube_player": handleAddYouTubePlayer,
+			"move_youtube_player": handleMoveYouTubePlayer,
+			"update_youtube_player_data": handleUpdateYouTubePlayerData,
+			"remove_youtube_player": handleRemoveYouTubePlayer,
 			"youtube_seek": handleYouTubeSeek,
 			"youtube_stop": handleYouTubeStop
 		};
@@ -613,15 +613,15 @@ package com.worlize.interactivity.rpc
 			}
 		}			
 		
-		private function handleYouTubePlayerAdded(data:Object):void {
-			if (data.room != currentRoom.id) { return; }
+		private function handleAddYouTubePlayer(data:Object):void {
+			if (data.room !== currentRoom.id) { return; }
 			var player:YouTubePlayerDefinition = YouTubePlayerDefinition.fromData(data.player);
 			player.roomGuid = data.room;
 			currentRoom.addYoutubePlayer(player);
 		}
 		
-		private function handleYouTubePlayerMoved(data:Object):void {
-			if (data.room != currentRoom.id) { return; }
+		private function handleMoveYouTubePlayer(data:Object):void {
+			if (data.room !== currentRoom.id) { return; }
 			var player:YouTubePlayerDefinition = currentRoom.getYoutubePlayerByGuid(data.player.guid);
 			if (player) {
 				player.x = data.player.x;
@@ -630,19 +630,19 @@ package com.worlize.interactivity.rpc
 			}
 		}
 		
-		private function handleYouTubePlayerDataUpdated(data:Object):void {
-			if (data.room != currentRoom.id) { return; }
+		private function handleUpdateYouTubePlayerData(data:Object):void {
+			if (data.room !== currentRoom.id) { return; }
 			var player:YouTubePlayerDefinition = currentRoom.getYoutubePlayerByGuid(data.player.guid);
 			player.data.updateData(data.player.data);
 		}
 		
-		private function handleYouTubePlayerRemoved(data:Object):void {
-			if (data.room != currentRoom.id) { return; }
+		private function handleRemoveYouTubePlayer(data:Object):void {
+			if (data.room !== currentRoom.id) { return; }
 			currentRoom.removeYoutubePlayer(data.guid);
 		}
 		
 		private function handleYouTubeLoad(data:Object):void {
-			if (data.room != currentRoom.id) { return; }
+			if (data.room !== currentRoom.id) { return; }
 			var player:YouTubePlayerDefinition = currentRoom.getYoutubePlayerByGuid(data.player);
 			
 			// Load implies lock..
@@ -1742,6 +1742,12 @@ package com.worlize.interactivity.rpc
 			});
 		}
 		
+		public function addYouTubePlayer():void {
+			connection.send({
+				msg: 'add_youtube_player'
+			});
+		}
+		
 		public function addObjectInstance(instanceGuid:String, x:int, y:int):void {
 			connection.send({
 				msg: 'add_object_instance',
@@ -1810,6 +1816,38 @@ package com.worlize.interactivity.rpc
 				msg: 'remove_hotspot',
 				data: {
 					guid: guid
+				}
+			});
+		}
+		
+		public function removeYouTubePlayer(guid:String):void {
+			connection.send({
+				msg: 'remove_youtube_player',
+				data: {
+					guid: guid
+				}
+			});
+		}
+		
+		public function updateYouTubePlayerData(guid:String, data:Object):void {
+			connection.send({
+				msg: 'update_youtube_player_data',
+				data: {
+					guid: guid,
+					data: data
+				}
+			});
+		}
+		
+		public function moveYouTubePlayer(guid:String, x:int, y:int, width:int, height:int):void {
+			connection.send({
+				msg: 'move_youtube_player',
+				data: {
+					guid: guid,
+					x: x,
+					y: y,
+					width: width,
+					height: height
 				}
 			});
 		}

@@ -2,6 +2,7 @@ package com.worlize.model
 {
 	import com.worlize.interactivity.event.WorlizeYouTubeEvent;
 	import com.worlize.interactivity.model.IRoomItem;
+	import com.worlize.interactivity.rpc.InteractivityClient;
 	import com.worlize.rpc.HTTPMethod;
 	import com.worlize.rpc.WorlizeResultEvent;
 	import com.worlize.rpc.WorlizeServiceClient;
@@ -70,49 +71,18 @@ package com.worlize.model
 		}
 		
 		public function saveUpdatedPositionAndDimensions():void {
-			var client:WorlizeServiceClient = new WorlizeServiceClient();
-			client.addEventListener(WorlizeResultEvent.RESULT, function(event:WorlizeResultEvent):void {
-				if (!event.resultJSON.success) {
-					Alert.show(event.resultJSON.description, "Error");
-				}
-			});
-			client.addEventListener(FaultEvent.FAULT, function(event:FaultEvent):void {
-				Alert.show("There was a fault encountered while moving the YouTube Player.", "Error");
-			});
-			client.send("/rooms/" + roomGuid + "/youtube_players/" + guid + ".json", HTTPMethod.PUT, {
-				"x": x,
-				"y": y,
-				"width": width,
-				"height": height
-			});
+			var client:InteractivityClient = InteractivityClient.getInstance();
+			client.moveYouTubePlayer(guid, x, y, width, height);
 		}
 		
 		public function saveUpdatedData():void {
-			var client:WorlizeServiceClient = new WorlizeServiceClient();
-			client.addEventListener(WorlizeResultEvent.RESULT, function(event:WorlizeResultEvent):void {
-				if (!event.resultJSON.success) {
-					Alert.show(event.resultJSON.description, "Error");
-				}
-			});
-			client.addEventListener(FaultEvent.FAULT, function(event:FaultEvent):void {
-				Alert.show("There was a fault encountered while updating the YouTube Player data.", "Error");
-			});
-			client.send("/rooms/" + roomGuid + "/youtube_players/" + guid + ".json", HTTPMethod.PUT, {
-				"data": JSON.stringify(data)
-			});
+			var client:InteractivityClient = InteractivityClient.getInstance();
+			client.updateYouTubePlayerData(guid, data);
 		}
 		
 		public function removePlayer():void {
-			var client:WorlizeServiceClient = new WorlizeServiceClient();
-			client.addEventListener(WorlizeResultEvent.RESULT, function(event:WorlizeResultEvent):void {
-				if (!event.resultJSON.success) {
-					Alert.show(event.resultJSON.description, "Error");
-				}
-			});
-			client.addEventListener(FaultEvent.FAULT, function(event:FaultEvent):void {
-				Alert.show("There was a fault encountered while updating the YouTube Player data.", "Error");
-			});
-			client.send("/rooms/" + roomGuid + "/youtube_players/" + guid + ".json", HTTPMethod.DELETE);
+			var client:InteractivityClient = InteractivityClient.getInstance();
+			client.removeYouTubePlayer(guid);
 		}
 		
 		public function loadVideoRequested(videoId:String, title:String = "unknown", autoPlay:Boolean = true):void {

@@ -278,22 +278,6 @@ package com.worlize.interactivity.model
 			client.addHotspot(x, y, points);
 		}
 		
-		public function createYoutubePlayer():void {
-			var client:WorlizeServiceClient = new WorlizeServiceClient();
-			client.addEventListener(WorlizeResultEvent.RESULT, function(event:WorlizeResultEvent):void {
-				// New player shows up in response to an event broadcast
-				// to the room by the server.
-				if (!event.resultJSON.success) {
-					Alert.show("There was an error while tring to create a new embedded YouTube player: " +
-								event.resultJSON.description, "Error");
-				}
-			});
-			client.addEventListener(FaultEvent.FAULT, function(event:FaultEvent):void {
-				Alert.show("There was a fault encountered while trying to create a new embedded YouTube player.", "Error");
-			});
-			client.send("/rooms/" + this.id + "/youtube_players.json", HTTPMethod.POST);
-		}
-		
 		private function shouldDisplayMessage(message:String):Boolean {
 			var retValue:Boolean = true;
 			if (lastMessage == message && lastMessageReceived > (new Date()).valueOf() - 250) {

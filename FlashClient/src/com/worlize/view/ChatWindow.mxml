@@ -214,7 +214,7 @@
 			}
 			
 			private function createYoutubePlayer():void {
-				client.currentRoom.createYoutubePlayer();
+				client.addYouTubePlayer();
 			}
 			
 			private var stateBeforeAuthorMode:String;
