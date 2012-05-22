@@ -227,6 +227,7 @@ package com.worlize.interactivity.rpc
 			"add_object_instance": handleAddObjectInstance,
 			"move_object_instance": handleMoveObjectInstance,
 			"remove_object_instance": handleRemoveObjectInstance,
+			"remove_item": handleRemoveItem,
 			"set_object_instance_dest": handleSetObjectInstanceDest, // dest changed
 			"payment_completed": handlePaymentCompleted,
 			"ping": handlePing,
@@ -947,6 +948,14 @@ package com.worlize.interactivity.rpc
 		private function handleRemoveObjectInstance(data:Object):void {
 			if (data.room == currentRoom.id && data.guid) {
 				currentRoom.removeObject(data.guid);
+			}
+		}
+		
+		private function handleRemoveItem(data:Object):void {
+			if (data.room == currentRoom.id && data.item) {
+				if (data.item.type === 'object') {
+					currentRoom.removeObject(data.item.guid);
+				}
 			}
 		}
 		
