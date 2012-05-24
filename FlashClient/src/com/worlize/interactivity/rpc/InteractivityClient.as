@@ -1009,48 +1009,40 @@ package com.worlize.interactivity.rpc
 		}
 		
 		private function handleSetHotspotDest(data:Object):void {
-			var hotspot:Hotspot = currentRoom.hotSpotsByGuid[data.guid];
-			if (hotspot) {
-				hotspot.dest = data.dest;
+			var item:IRoomItem = currentRoom.itemsByGuid[data.guid];
+			if (item && item is Hotspot) {
+				Hotspot(item).dest = data.dest;
 			}
 		}
 		
 		private function handleRemoveHotspot(data:Object):void {
-			var hotspot:Hotspot = currentRoom.hotSpotsByGuid[data.guid];
-			if (hotspot) {
+			var item:IRoomItem = currentRoom.itemsByGuid[data.guid];
+			if (item && item is Hotspot) {
 				var authorModeState:AuthorModeState = AuthorModeState.getInstance();
-				if (authorModeState.selectedItem === hotspot) {
+				if (authorModeState.selectedItem === item) {
 					authorModeState.selectedItem = null;
 				}
 				
-				var index:int = currentRoom.hotSpots.getItemIndex(hotspot);
+				var index:int = currentRoom.items.getItemIndex(item);
 				if (index != -1) {
-					currentRoom.hotSpots.removeItemAt(index);
+					currentRoom.items.removeItemAt(index);
 				}
 				
-				index = currentRoom.hotSpotsAboveNothing.getItemIndex(hotspot);
-				if (index != -1) {
-					currentRoom.hotSpotsAboveNothing.removeItemAt(index);
-				}
-				
-				delete currentRoom.hotSpotsById[hotspot.id];
-				delete currentRoom.hotSpotsByGuid[hotspot.guid];
+				delete currentRoom.itemsByGuid[item.guid];
 			}
 		}
 		
 		private function handleMoveHotspot(data:Object):void {
-			var hotspot:Hotspot = currentRoom.hotSpotsByGuid[data.guid];
-			if (hotspot) {
-				hotspot.moveTo(data.x, data.y, data.points);
+			var item:IRoomItem = currentRoom.itemsByGuid[data.guid];
+			if (item && item is Hotspot) {
+				Hotspot(item).moveTo(data.x, data.y, data.points);
 			}
 		}
 		
 		private function handleAddHotspot(data:Object):void {
 			var hotspot:Hotspot = Hotspot.fromData(data)
-			currentRoom.hotSpots.addItem(hotspot);
-			currentRoom.hotSpotsAboveNothing.addItem(hotspot);
-			currentRoom.hotSpotsByGuid[hotspot.guid] = hotspot;
-			currentRoom.hotSpotsById[hotspot.id] = hotspot;
+			currentRoom.items.addItem(hotspot);
+			currentRoom.itemsByGuid[hotspot.guid] = hotspot;
 		}
 		
 		private function handleAddLooseProp(data:Object):void {
@@ -1099,20 +1091,16 @@ package com.worlize.interactivity.rpc
 			}
 			
 			// clear room items state
-			currentRoom.hotSpotsAboveNothing.removeAll();
-			currentRoom.hotSpots.removeAll();
-			currentRoom.hotSpotsByGuid = {};
-			currentRoom.hotSpotsById = {};
+			currentRoom.items.removeAll();
+			currentRoom.itemsByGuid = {};
 			currentRoom.resetInWorldObjects();
 			currentRoom.resetYoutubePlayers();
 			
 			for each (var item:IRoomItem in room.items) {
 				if (item is Hotspot) {
 					var hotspot:Hotspot = item as Hotspot;
-					currentRoom.hotSpots.addItem(hotspot);
-					currentRoom.hotSpotsAboveNothing.addItem(hotspot);
-					currentRoom.hotSpotsById[hotspot.id] = hotspot;
-					currentRoom.hotSpotsByGuid[hotspot.guid] = hotspot;
+					currentRoom.items.addItem(hotspot);
+					currentRoom.itemsByGuid[hotspot.guid] = hotspot;
 				}
 				else if (item is InWorldObjectInstance) {
 					currentRoom.addObject(item as InWorldObjectInstance);
@@ -1328,13 +1316,8 @@ package com.worlize.interactivity.rpc
 			currentRoom.backgroundFile = null;
 			currentRoom.selectedUser = null;
 			currentRoom.removeAllUsers();
-			currentRoom.hotSpots.removeAll();
-			currentRoom.hotSpotsAboveAvatars.removeAll();
-			currentRoom.hotSpotsAboveEverything.removeAll();
-			currentRoom.hotSpotsAboveNametags.removeAll();
-			currentRoom.hotSpotsAboveNothing.removeAll();
-			currentRoom.hotSpotsByGuid = {};
-			currentRoom.hotSpotsById = {};
+			currentRoom.items.removeAll();
+			currentRoom.itemsByGuid = {};
 			currentRoom.resetYoutubePlayers();
 			currentRoom.loosePropList.reset();
 			currentRoom.drawBackCommands.removeAll();
@@ -1961,21 +1944,21 @@ package com.worlize.interactivity.rpc
 			connection.gotoRoom(roomGuid);
 		}
 		
-		public function lockDoor(roomId:String, spotId:int):void {
+		public function lockDoor(roomId:String, spotGuid:String):void {
 			connection.send({
 				msg: 'lock_door',
 				data: {
-					door_id: spotId
+					door_id: spotGuid
 				}
 			});
 		}
 		
-		public function unlockDoor(roomGuid:String, spotId:int):void {
+		public function unlockDoor(roomGuid:String, spotGuid:String):void {
 			connection.send({
 				msg: 'unlock_door',
 				data: {
 					roomGuid: roomGuid,
-					spotId: spotId
+					spotGuid: spotGuid
 				}
 			});
 		}

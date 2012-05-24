@@ -130,13 +130,16 @@ package com.worlize.model
 			appInstance.guid = objectData.guid;
 			appInstance.x = objectData.x;
 			appInstance.y = objectData.y;
+			appInstance.width = objectData.width;
+			appInstance.height = objectData.height;
 			appInstance.app = new App();
 			appInstance.app.creatorGuid = objectData.creator;
 			appInstance.app.guid = objectData.app_guid;
 			appInstance.app.width = objectData.width;
 			appInstance.app.height = objectData.height;
-			appInstance.app.name = objectData.name;
+			appInstance.app.name = objectData.app_name;
 			appInstance.app.appURL = objectData.app_url;
+			appInstance.app.iconURL = objectData.icon;
 			appInstance.app.smallIconURL = objectData.small_icon;
 			appInstance.configData = objectData.config;
 			appInstance.syncedData = {};

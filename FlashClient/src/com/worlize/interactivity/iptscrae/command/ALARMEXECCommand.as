@@ -14,7 +14,7 @@ package com.worlize.interactivity.iptscrae.command
 			var delayTicks:IntegerToken = context.stack.popType(IntegerToken);
 			var tokenList:IptTokenList = context.stack.popType(IptTokenList);
 			var newContext:WorlizeIptExecutionContext = new WorlizeIptExecutionContext(context.manager);
-			newContext.hotspotId = WorlizeIptExecutionContext(context).hotspotId;
+			newContext.hotspotGuid = WorlizeIptExecutionContext(context).hotspotGuid;
 			var alarm:IptAlarm = new IptAlarm(tokenList, context.manager, delayTicks.data, newContext);
 			context.manager.addAlarm(alarm);
 		}

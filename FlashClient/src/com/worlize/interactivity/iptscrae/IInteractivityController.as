@@ -12,7 +12,7 @@ package com.worlize.interactivity.iptscrae
 		function getWhoChat():String;
 		function midiLoop(loopNbr:int, name:String):void;
 		function midiPlay(name:String):void;
-		function selectHotSpot(spotId:int):void;
+		function selectHotSpot(spotGuid:String):void;
 		function getNumDoors():int;
 		function dimRoom(dimLevel:int):void;
 		function getSelfPosY():int;
@@ -26,17 +26,17 @@ package com.worlize.interactivity.iptscrae
 		function clearAlarms():void;
 		function getWhoTarget():String;
 		function beep():void;
-		function getSpotDest(spotId:int):String;
+		function getSpotDest(spotGuid:String):String;
 		function doMacro(macro:int):void;
 		function changeColor(colorNumber:int):void;
 		function getUserName(userId:String):String;
 		function getSelfUserName():String;
 		function getNumRoomUsers():int;
 		function getSelfUserId():String;
-		function lock(spotId:int):void;
+		function lock(spotGuid:String):void;
 		function midiStop():void;
 		function gotoRoom(roomId:String):void;
-		function inSpot(spotId:int):Boolean;
+		function inSpot(spotGuid:String):Boolean;
 		function sendGlobalMessage(message:String):void;
 		function sendRoomMessage(message:String):void;
 		function sendSusrMessage(message:String):void;
@@ -47,22 +47,22 @@ package com.worlize.interactivity.iptscrae
 		function playSound(soundName:String):void;
 		function getPosX(userId:String):int;
 		function getPosY(userId:String):int;
-		function setPicOffset(spotId:int, x:int, y:int):void;
+		function setPicOffset(spotGuid:String, x:int, y:int):void;
 		function killUser(userId:String):void;
-		function getSpotIdByIndex(spotIndex:int):int;
+		function getSpotIdByIndex(spotIndex:int):String;
 		function setChatString(message:String):void;
 		function getNumSpots():int;
-		function unlock(spotId:int):void;
+		function unlock(spotGuid:String):void;
 		function setFace(faceId:int):void;
 		function logMessage(message:String):void;
 		function sendPrivateMessage(message:String, userId:String):void;
 		function getUserByName(userName:String):String;
 		function getRoomId():String;
-		function setScriptAlarm(tokenList:IptTokenList, spotId:int, futureTime:int):void;
-		function moveSpot(spotId:int, xBy:int, yBy:int):void;
+		function setScriptAlarm(tokenList:IptTokenList, spotGuid:String, futureTime:int):void;
+		function moveSpot(spotGuid:String, xBy:int, yBy:int):void;
 		function getRoomUserIdByIndex(userIndex:int):String;
 		function getChatString():String;
-		function setSpotAlarm(spotId:int, futureTime:int):void;
+		function setSpotAlarm(spotGuid:String, futureTime:int):void;
 		function triggerHotspotEvent(hotspot:Hotspot, eventType:int):Boolean;
 	}
 }

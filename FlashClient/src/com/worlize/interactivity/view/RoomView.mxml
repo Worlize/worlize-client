@@ -88,10 +88,6 @@
 			private var avatarsByUser:Dictionary = new Dictionary();
 			private var nameTagsByUser:Dictionary = new Dictionary();
 			
-			private var baseBackgroundFile:String;
-			private var forcingPng:Boolean = false;
-			private var forcingJpeg:Boolean = false;
-			
 			private var currentMenu:Menu;
 			
 			private var snowPlaying:Boolean = false;
@@ -927,17 +923,22 @@
 			 includeIn="unableToLoadBackground"
 			 textAlign="center"
 			 verticalCenter="0" horizontalCenter="0" />
-	
+
+	<!--
 	<view:InWorldObjectLayer id="inWorldObjectLayer" inWorldObjects="{room.inWorldObjects}" 
 							 top="0" left="0" right="0" bottom="0" />
 	
 	<view:YouTubePlayersLayer youTubePlayerDefinitions="{room.youtubePlayers}" />
+
+	-->
 	
 	<view:HotspotView id="hotSpotCanvas" room="{room}"
 							securityError="handleSecurityError()"
-							hotSpots="{room.hotSpotsAboveNothing}" top="0" right="0" bottom="0" left="0"
+							hotSpots="{room.items}" top="0" right="0" bottom="0" left="0"
 							/>
-
+	
+	<view:ItemsView id="itemsViewLayer" items="{room.items}" />
+	
 	<view:LoosePropsLayer id="loosePropsLayer"
 						  propList="{room.loosePropList}"
 						  top="0" left="0" right="0" bottom="0" />
@@ -956,6 +957,8 @@
 	</s:Rect>
 	
 	<s:Group id="avatarsGroup" top="0" right="0" bottom="0" left="0"
+			 mouseChildren="{room.showAvatars}"
+			 mouseEnabled="{room.showAvatars}"
 			 visible="{room.showAvatars}">
 		<s:layout>
 			<s:BasicLayout />
@@ -963,16 +966,8 @@
 	</s:Group>
 	
 	<s:SpriteVisualElement id="snowContainer" mouseEnabled="false" mouseChildren="false"
-						   top="0" right="0" bottom="0" left="0">
-		
-	</s:SpriteVisualElement>
+						   top="0" right="0" bottom="0" left="0" />
 
-	<view:HotspotView id="hotSpotAboveAvatarsCanvas" room="{room}"
-							securityError="handleSecurityError()"
-							hotSpots="{room.hotSpotsAboveAvatars}"
-							top="0" right="0" bottom="0" left="0"
-							/>
-	
 	<s:Group id="nameTagGroup" mouseEnabled="false"
 			 mouseChildren="false"
 			 visible="{room.showAvatars}">
@@ -981,24 +976,12 @@
 		</s:layout>
 	</s:Group>
 	
-	<view:HotspotView id="hotSpotAboveNametagsCanvas" room="{room}"
-							securityError="handleSecurityError()"
-							hotSpots="{room.hotSpotsAboveNametags}"
-							top="0" right="0" bottom="0" left="0"
-							/>
-	
 	<s:Group id="textGroup" mouseEnabled="false" mouseChildren="false"
 			 top="0" right="0" bottom="0" left="0">
 		<s:layout>
 			<s:BasicLayout />
 		</s:layout>
 	</s:Group>
-	
-	<view:HotspotView id="hotSpotAboveEverythingCanvas" room="{room}"
-							securityError="handleSecurityError()"
-							hotSpots="{room.hotSpotsAboveEverything}"
-							top="0" right="0" bottom="0" left="0"
-							/>
 	
 	<mx1:ProgressBar
 		width="950"

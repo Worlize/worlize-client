@@ -16,15 +16,15 @@
 		<![CDATA[
 			import com.worlize.event.AuthorModeNotification;
 			import com.worlize.event.NotificationCenter;
-			
-			import mx.collections.ArrayCollection;
-			import mx.events.CollectionEvent;
-			import mx.events.CollectionEventKind;
-			
 			import com.worlize.interactivity.event.HotspotEvent;
 			import com.worlize.interactivity.event.InteractivitySecurityErrorEvent;
 			import com.worlize.interactivity.model.CurrentRoom;
 			import com.worlize.interactivity.model.Hotspot;
+			import com.worlize.interactivity.model.IRoomItem;
+			
+			import mx.collections.ArrayCollection;
+			import mx.events.CollectionEvent;
+			import mx.events.CollectionEventKind;
 			
 			[Bindable]
 			public var hotSpots:ArrayCollection;
@@ -87,15 +87,19 @@
 			}
 			
 			private function handleHotSpotsChange(event:CollectionEvent):void {
-				var hotSpot:Hotspot;
+				var item:IRoomItem;
 				if (event.kind == CollectionEventKind.ADD) {
-					for each (hotSpot in event.items) {
-						addHotSpot(hotSpot);
+					for each (item in event.items) {
+						if (item is Hotspot) {
+							addHotSpot(item as Hotspot);
+						}
 					}
 				}
 				else if (event.kind == CollectionEventKind.REMOVE) {
-					for each (hotSpot in event.items) {
-						removeHotSpot(hotSpot);
+					for each (item in event.items) {
+						if (item is Hotspot) {
+							removeHotSpot(item as Hotspot);
+						}
 					}
 				}
 				else if (event.kind == CollectionEventKind.RESET) {

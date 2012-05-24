@@ -53,13 +53,8 @@ package com.worlize.interactivity.model
 		public var roomFlags:int;
 		public var images:Object = {};
 		public var spotImages:Object = {};
-		public var hotSpots:ArrayCollection = new ArrayCollection();
-		public var hotSpotsAboveNothing:ArrayCollection = new ArrayCollection();
-		public var hotSpotsAboveAvatars:ArrayCollection = new ArrayCollection();
-		public var hotSpotsAboveNametags:ArrayCollection = new ArrayCollection();
-		public var hotSpotsAboveEverything:ArrayCollection = new ArrayCollection();
-		public var hotSpotsById:Object = {};
-		public var hotSpotsByGuid:Object = {};
+		public var items:ArrayCollection = new ArrayCollection();
+		public var itemsByGuid:Object = {};
 		public var drawFrontCommands:ArrayCollection = new ArrayCollection();
 		public var drawBackCommands:ArrayCollection = new ArrayCollection();
 		public var drawLayerHistory:Vector.<uint> = new Vector.<uint>();
@@ -295,8 +290,12 @@ package com.worlize.interactivity.model
 			return retValue;
 		}
 		
-		public function getHotspotById(spotId:int):Hotspot {
-			return Hotspot(hotSpotsById[spotId]);
+		public function getHotspotByGuid(spotGuid:String):Hotspot {
+			var item:IRoomItem = itemsByGuid[spotGuid];
+			if (item && item is Hotspot) {
+				return Hotspot(item);
+			}
+			return null;
 		}
 		
 		public function dimRoom(level:int):void {

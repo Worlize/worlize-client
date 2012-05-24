@@ -5,11 +5,12 @@ package com.worlize.interactivity.iptscrae.command
 	import org.openpalace.iptscrae.IptCommand;
 	import org.openpalace.iptscrae.IptExecutionContext;
 	import org.openpalace.iptscrae.token.IntegerToken;
+	import org.openpalace.iptscrae.token.StringToken;
 	
 	public class LOCKCommand extends IptCommand
 	{
 		override public function execute(context:IptExecutionContext) : void {
-			var spotId:IntegerToken = context.stack.popType(IntegerToken);
+			var spotId:StringToken = context.stack.popType(StringToken);
 			WorlizeIptManager(context.manager).pc.lock(spotId.data);
 		}
 	}

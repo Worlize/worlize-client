@@ -21,11 +21,8 @@ package com.worlize.interactivity.model
 	[Bindable]
 	public class Hotspot extends EventDispatcher implements IRoomItem
 	{
-		
-		public var type:int = 0;
 		public var dest:String = null;
 		public var guid:String;
-		private var _id:int = 0;
 		private var _flags:int = 0;
 		public var polygon:Array = []; // Array of points
 		private var _name:String = null;
@@ -33,18 +30,10 @@ package com.worlize.interactivity.model
 		public var scriptEventMask:int = 0;
 		public var nbrScripts:int = 0;
 		public var scriptString:String = "";
-		public var scriptCursor:int = 0;
-		private var ungetFlag:Boolean = false;
-		private var gToken:String;
-		public var secureInfo:int;
-		public var refCon:int;
-		public var groupId:int;
-		public var scriptRecordOffset:int;
 		public var eventHandlers:Vector.<IptEventHandler> = new Vector.<IptEventHandler>();
 		
 		public static function fromData(data:Object):Hotspot {
 			var hs:Hotspot = new Hotspot();
-			hs.id = data.id;
 			hs.guid = data.guid;
 			hs.dest = data.dest;
 			hs.location = new FlexPoint();
@@ -58,19 +47,24 @@ package com.worlize.interactivity.model
 			return hs;
 		}
 		
-		public function requestRedraw():void {
-			dispatchEvent(new HotspotEvent(HotspotEvent.REDRAW_REQUESTED));
+		public function get x():int {
+			return location.x;
 		}
 		
-		[Bindable('idChanged')]
-		public function set id(newValue:int):void {
-			if (_id != newValue) {
-				_id = newValue;
-				dispatchEvent(new Event('idChanged'));
-			}
+		public function set x(newValue:int):void {
+			location.x = newValue;
 		}
-		public function get id():int {
-			return _id;
+		
+		public function get y():int {
+			return location.y;
+		}
+		
+		public function set y(newValue:int):void {
+			location.y = newValue;
+		}
+		
+		public function requestRedraw():void {
+			dispatchEvent(new HotspotEvent(HotspotEvent.REDRAW_REQUESTED));
 		}
 		
 		public function Hotspot()

@@ -11,7 +11,7 @@ package com.worlize.interactivity.iptscrae
 	
 	public class WorlizeIptExecutionContext extends IptExecutionContext
 	{
-		public var hotspotId:int = 0;
+		public var hotspotGuid:String = "";
 		
 		public function WorlizeIptExecutionContext(manager:IptManager, stack:IptTokenStack=null, variableStore:IptVariableStore=null)
 		{

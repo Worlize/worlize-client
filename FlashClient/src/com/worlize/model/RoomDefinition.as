@@ -31,6 +31,7 @@ package com.worlize.model
 		
 		public static function fromData(data:Object):RoomDefinition {
 			var room:RoomDefinition = new RoomDefinition();
+			var roomListEntry:RoomListEntry;
 			room.name = String(data.name);
 			room.ownerGuid = data.owner_guid;
 			if (data.guid) {
@@ -51,9 +52,16 @@ package com.worlize.model
 							room.items.push(Hotspot.fromData(itemData));
 							break;
 						case "app":
+							var appInstance:AppInstance = AppInstance.fromData(itemData);
+							roomListEntry = new RoomListEntry();
+							roomListEntry.guid = room.guid;
+							roomListEntry.name = room.name;
+							appInstance.room = roomListEntry;
+							room.items.push(appInstance);
+							break;
 						case "object":
 							var inWorldObjectInstance:InWorldObjectInstance = InWorldObjectInstance.fromData(itemData);
-							var roomListEntry:RoomListEntry = new RoomListEntry();
+							roomListEntry = new RoomListEntry();
 							roomListEntry.guid = room.guid;
 							roomListEntry.name = room.name;
 							inWorldObjectInstance.room = roomListEntry;

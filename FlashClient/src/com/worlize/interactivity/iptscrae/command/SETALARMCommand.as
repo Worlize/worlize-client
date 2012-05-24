@@ -7,17 +7,18 @@ package com.worlize.interactivity.iptscrae.command
 	import org.openpalace.iptscrae.IptCommand;
 	import org.openpalace.iptscrae.IptExecutionContext;
 	import org.openpalace.iptscrae.token.IntegerToken;
+	import org.openpalace.iptscrae.token.StringToken;
 	
 	public class SETALARMCommand extends IptCommand
 	{
 		override public function execute(context:IptExecutionContext) : void {
 			var pc:IptInteractivityController = WorlizeIptManager(context.manager).pc;
-			var spotId:int = context.stack.popType(IntegerToken).data;
+			var spotGuid:String = StringToken(context.stack.popType(StringToken)).data;
 			var futureTime:IntegerToken = context.stack.popType(IntegerToken);
-			if (spotId == 0) {
-				spotId = WorlizeIptExecutionContext(pc).hotspotId;
+			if (spotGuid === "") {
+				spotGuid = WorlizeIptExecutionContext(pc).hotspotGuid;
 			}
-			pc.setSpotAlarm(spotId, futureTime.data);
+			pc.setSpotAlarm(spotGuid, futureTime.data);
 		}
 	}
 }

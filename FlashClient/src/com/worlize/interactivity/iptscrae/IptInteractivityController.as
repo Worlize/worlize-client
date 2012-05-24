@@ -4,6 +4,7 @@ package com.worlize.interactivity.iptscrae
 	import com.worlize.components.visualnotification.VisualNotificationManager;
 	import com.worlize.interactivity.model.CurrentRoom;
 	import com.worlize.interactivity.model.Hotspot;
+	import com.worlize.interactivity.model.IRoomItem;
 	import com.worlize.interactivity.model.InteractivityUser;
 	import com.worlize.interactivity.rpc.InteractivityClient;
 	import com.worlize.interactivity.util.WorlizeColorUtil;
@@ -69,7 +70,7 @@ package com.worlize.interactivity.iptscrae
 			var tokenList:IptTokenList = hotspot.getEventHandler(eventType);
 			if (tokenList) {
 				var context:WorlizeIptExecutionContext = new WorlizeIptExecutionContext(scriptManager);
-				context.hotspotId = hotspot.id;
+				context.hotspotGuid = hotspot.guid;
 				scriptManager.executeTokenListWithContext(tokenList, context);
 				scriptManager.start();
 				return true;
@@ -79,8 +80,10 @@ package com.worlize.interactivity.iptscrae
 		
 		public function triggerHotspotEvents(eventType:int):Boolean {
 			var ranScripts:Boolean = false;
-			for (var i:int = client.currentRoom.hotSpots.length-1; i > -1; i --) {
-				var hotspot:Hotspot = Hotspot(client.currentRoom.hotSpots.getItemAt(i));
+			for (var i:int = client.currentRoom.items.length-1; i > -1; i --) {
+				var item:IRoomItem = IRoomItem(client.currentRoom.items.getItemAt(i));
+				if (!(item is Hotspot)) { continue; }
+				var hotspot:Hotspot = Hotspot(item);
 				if (triggerHotspotEvent(hotspot, eventType)) {
 					ranScripts = true;
 				};				
@@ -94,8 +97,10 @@ package com.worlize.interactivity.iptscrae
 		public function getHotspotEvents(eventType:int):Vector.<IptTokenList> {
 			var scripts:Vector.<IptTokenList> = new Vector.<IptTokenList>;
 			var handler:IptTokenList;
-			for (var i:int = client.currentRoom.hotSpots.length-1; i > -1; i --) {
-				var hotspot:Hotspot = Hotspot(client.currentRoom.hotSpots.getItemAt(i));
+			for (var i:int = client.currentRoom.items.length-1; i > -1; i --) {
+				var item:IRoomItem = IRoomItem(client.currentRoom.items.getItemAt(i));
+				if (!(item is Hotspot)) { continue; }
+				var hotspot:Hotspot = Hotspot(item);
 				handler = hotspot.getEventHandler(eventType);
 				if (handler) {
 					scripts.push(handler);
@@ -149,9 +154,9 @@ package com.worlize.interactivity.iptscrae
 //			ExternalInterface.call("midiPlay", client.mediaServer + name);
 		}
 		
-		public function selectHotSpot(spotId:int):void
+		public function selectHotSpot(spotGuid:String):void
 		{
-			var hotspot:Hotspot = client.currentRoom.getHotspotById(spotId);
+			var hotspot:Hotspot = client.currentRoom.getHotspotByGuid(spotGuid);
 			if (hotspot) {
 				triggerHotspotEvent(hotspot, IptEventHandler.TYPE_SELECT);
 			}
@@ -159,7 +164,13 @@ package com.worlize.interactivity.iptscrae
 		
 		public function getNumDoors():int
 		{
-			return client.currentRoom.hotSpots.length;
+			var count:int = 0;
+			for each (var item:IRoomItem in client.currentRoom.items) {
+				if (item is Hotspot) {
+					count ++;
+				}
+			}
+			return count;
 		}
 		
 		public function dimRoom(dimLevel:int):void
@@ -225,9 +236,9 @@ package com.worlize.interactivity.iptscrae
 			logResult("beep");
 		}
 		
-		public function getSpotDest(spotId:int):String
+		public function getSpotDest(spotId:String):String
 		{
-			var hotspot:Hotspot = client.currentRoom.getHotspotById(spotId);
+			var hotspot:Hotspot = client.currentRoom.getHotspotByGuid(spotId);
 			if (hotspot) {
 				return hotspot.dest;
 			}
@@ -268,9 +279,9 @@ package com.worlize.interactivity.iptscrae
 			return client.currentUser.id;
 		}
 		
-		public function lock(spotId:int):void
+		public function lock(spotGuid:String):void
 		{
-			client.lockDoor(client.currentRoom.id, spotId);
+			client.lockDoor(client.currentRoom.id, spotGuid);
 		}
 		
 		public function midiStop():void
@@ -283,16 +294,18 @@ package com.worlize.interactivity.iptscrae
 			client.gotoRoom(roomId);
 		}
 		
-		public function inSpot(spotId:int):Boolean
+		public function inSpot(spotGuid:String):Boolean
 		{
+			// TODO: Should we fix this?
+			
 			var x:int = client.currentUser.x;
 			var y:int = client.currentUser.y;
 			var point:Point = new Point(x, y);
 			var globalPoint:Point = client.currentRoom.roomView.localToGlobal(point);
 			
-			var hotspot:Hotspot = client.currentRoom.getHotspotById(spotId);
+			var hotspot:Hotspot = client.currentRoom.getHotspotByGuid(spotGuid);
 			if (hotspot) {
-				return client.currentRoom.roomView.hotSpotCanvas.hitTestHotSpot(hotspot, globalPoint);
+//				return client.currentRoom.roomView.hotSpotCanvas.hitTestHotSpot(hotspot, globalPoint);
 			}
 			
 			return false;
@@ -356,16 +369,17 @@ package com.worlize.interactivity.iptscrae
 			return 0;
 		}
 		
-		public function setPicOffset(spotId:int, x:int, y:int):void
+		public function setPicOffset(spotGuid:String, x:int, y:int):void
 		{
 			// TODO: Implement this
-			logResult("setPicOffset spotId: " + spotId + " x: " + x + " y: " + y);
+			logResult("setPicOffset spotId: " + spotGuid + " x: " + x + " y: " + y);
 		}
 		
-		public function getSpotLocation(spotId:int):Point {
-			var hotspot:Hotspot = Hotspot(client.currentRoom.hotSpotsById[spotId]);
+		public function getSpotLocation(spotGuid:String):Point {
+			var item:IRoomItem = IRoomItem(client.currentRoom.itemsByGuid[spotGuid]);
 			var point:Point = new Point(0,0);
-			if (hotspot) {
+			if (item && item is Hotspot) {
+				var hotspot:Hotspot = Hotspot(item);
 				point.x = hotspot.location.x;
 				point.y = hotspot.location.y;
 			}
@@ -377,13 +391,24 @@ package com.worlize.interactivity.iptscrae
 			client.privateMessage("`kill", userId);
 		}
 		
-		public function getSpotIdByIndex(spotIndex:int):int
+		public function getSpotIdByIndex(spotIndex:int):String
 		{
-			var hotspot:Hotspot = Hotspot(client.currentRoom.hotSpots.getItemAt(spotIndex));
-			if (hotspot) {
-				return hotspot.id;
+			var hotspots:Array = [];
+			for each (var item:IRoomItem in client.currentRoom.items) {
+				if (item is Hotspot) {
+					hotspots.push(item);
+				}
 			}
-			return 0;
+			
+			if (spotIndex < 0 || spotIndex > hotspots.length-1) {
+				return null;
+			}
+			
+			var hotspot:Hotspot = Hotspot(hotspots[spotIndex]);
+			if (hotspot) {
+				return hotspot.guid;
+			}
+			return null;
 		}
 		
 		public function setChatString(message:String):void
@@ -397,12 +422,12 @@ package com.worlize.interactivity.iptscrae
 		
 		public function getNumSpots():int
 		{
-			return client.currentRoom.hotSpots.length;
+			return getNumDoors();
 		}
 		
-		public function unlock(spotId:int):void
+		public function unlock(spotGuid:String):void
 		{
-			client.unlockDoor(client.currentRoom.id, spotId);
+			client.unlockDoor(client.currentRoom.id, spotGuid);
 		}
 		
 		public function setFace(faceId:int):void
@@ -442,22 +467,22 @@ package com.worlize.interactivity.iptscrae
 			return client.currentWorld.guid;
 		}
 		
-		public function setScriptAlarm(tokenList:IptTokenList, spotId:int, futureTime:int):void {
+		public function setScriptAlarm(tokenList:IptTokenList, spotGuid:String, futureTime:int):void {
 			var context:WorlizeIptExecutionContext = new WorlizeIptExecutionContext(scriptManager);
-			context.hotspotId = spotId;
+			context.hotspotGuid = spotGuid;
 			var alarm:IptAlarm = new IptAlarm(tokenList, scriptManager, futureTime, context);
 			scriptManager.addAlarm(alarm);
 		}
 		
-		public function moveSpot(spotId:int, xBy:int, yBy:int):void
+		public function moveSpot(spotGuid:String, xBy:int, yBy:int):void
 		{
 			// TODO: Implement
-			logResult("moveSpot spotId: " + spotId + " xBy: " + xBy + " yBy: " + yBy);
+			logResult("moveSpot spotId: " + spotGuid + " xBy: " + xBy + " yBy: " + yBy);
 		}
 		
-		public function moveSpotLocal(spotId:int, xBy:int, yBy:int):void
+		public function moveSpotLocal(spotGuid:String, xBy:int, yBy:int):void
 		{
-			var hotspot:Hotspot = client.currentRoom.getHotspotById(spotId);
+			var hotspot:Hotspot = client.currentRoom.getHotspotByGuid(spotGuid);
 			if (hotspot) {
 				hotspot.moveTo(hotspot.location.x, hotspot.location.y);
 			}
@@ -477,13 +502,13 @@ package com.worlize.interactivity.iptscrae
 			return client.chatstr;
 		}
 	
-		public function setSpotAlarm(spotId:int, futureTime:int):void
+		public function setSpotAlarm(spotGuid:String, futureTime:int):void
 		{
-			var hotspot:Hotspot = client.currentRoom.getHotspotById(spotId);
+			var hotspot:Hotspot = client.currentRoom.getHotspotByGuid(spotGuid);
 			if (hotspot) {
 				var tokenList:IptTokenList = hotspot.getEventHandler(IptEventHandler.TYPE_ALARM);
 				if (tokenList) {
-					setScriptAlarm(tokenList, hotspot.id, futureTime);
+					setScriptAlarm(tokenList, hotspot.guid, futureTime);
 				}
 			}
 		}

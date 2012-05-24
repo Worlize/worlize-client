@@ -12,7 +12,7 @@ package com.worlize.interactivity.iptscrae.command
 	{
 		override public function execute(context:IptExecutionContext) : void {
 			var pc:IptInteractivityController = WorlizeIptManager(context.manager).pc;
-			var spotId:IntegerToken = context.stack.popType(IntegerToken);
+			var spotId:StringToken = context.stack.popType(StringToken);
 			context.stack.push(new StringToken(pc.getSpotDest(spotId.data)));
 		}
 	}

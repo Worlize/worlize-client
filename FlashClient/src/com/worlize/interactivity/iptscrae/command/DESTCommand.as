@@ -12,8 +12,8 @@ package com.worlize.interactivity.iptscrae.command
 	{
 		override public function execute(context:IptExecutionContext):void {
 			var pc:IptInteractivityController = WorlizeIptManager(context.manager).pc;
-			var selfHotspotId:int = WorlizeIptExecutionContext(context).hotspotId;
-			context.stack.push(new StringToken(pc.getSpotDest(selfHotspotId)));
+			var selfHotspotGuid:String = WorlizeIptExecutionContext(context).hotspotGuid;
+			context.stack.push(new StringToken(pc.getSpotDest(selfHotspotGuid)));
 		}
 	}
 }
