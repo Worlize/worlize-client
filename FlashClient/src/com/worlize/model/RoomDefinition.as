@@ -52,12 +52,13 @@ package com.worlize.model
 							room.items.push(Hotspot.fromData(itemData));
 							break;
 						case "app":
-							var appInstance:AppInstance = AppInstance.fromData(itemData);
-							roomListEntry = new RoomListEntry();
-							roomListEntry.guid = room.guid;
-							roomListEntry.name = room.name;
-							appInstance.room = roomListEntry;
-							room.items.push(appInstance);
+// leave these out for now
+//							var appInstance:AppInstance = AppInstance.fromData(itemData);
+//							roomListEntry = new RoomListEntry();
+//							roomListEntry.guid = room.guid;
+//							roomListEntry.name = room.name;
+//							appInstance.room = roomListEntry;
+//							room.items.push(appInstance);
 							break;
 						case "object":
 							var inWorldObjectInstance:InWorldObjectInstance = InWorldObjectInstance.fromData(itemData);

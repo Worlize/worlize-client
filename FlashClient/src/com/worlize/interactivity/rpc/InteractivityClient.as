@@ -587,28 +587,36 @@ package com.worlize.interactivity.rpc
 		}
 		
 		private function handleYouTubePause(data:Object):void {
-			var player:YouTubePlayerDefinition = currentRoom.getYoutubePlayerByGuid(data.player);
+			var item:IRoomItem = currentRoom.getItemByGuid(data.player);
+			if (!(item is YouTubePlayerDefinition)) { return; }
+			var player:YouTubePlayerDefinition = YouTubePlayerDefinition(item);
 			if (player) {
 				player.pauseRequested();
 			}
 		}
 		
 		private function handleYouTubePlay(data:Object):void {
-			var player:YouTubePlayerDefinition = currentRoom.getYoutubePlayerByGuid(data.player);
+			var item:IRoomItem = currentRoom.getItemByGuid(data.player);
+			if (!(item is YouTubePlayerDefinition)) { return; }
+				var player:YouTubePlayerDefinition = YouTubePlayerDefinition(item);
 			if (player) {
 				player.playRequested();
 			}
 		}
 		
 		private function handleYouTubeStop(data:Object):void {
-			var player:YouTubePlayerDefinition = currentRoom.getYoutubePlayerByGuid(data.player);
+			var item:IRoomItem = currentRoom.getItemByGuid(data.player);
+			if (!(item is YouTubePlayerDefinition)) { return; }
+				var player:YouTubePlayerDefinition = YouTubePlayerDefinition(item);
 			if (player) {
 				player.stopRequested();
 			}	
 		}
 		
 		private function handleYouTubeSeek(data:Object):void {
-			var player:YouTubePlayerDefinition = currentRoom.getYoutubePlayerByGuid(data.player);
+			var item:IRoomItem = currentRoom.getItemByGuid(data.player);
+			if (!(item is YouTubePlayerDefinition)) { return; }
+				var player:YouTubePlayerDefinition = YouTubePlayerDefinition(item);
 			if (player) {
 				player.seekRequested(data.seek_to);
 			}
@@ -618,33 +626,37 @@ package com.worlize.interactivity.rpc
 			if (data.room !== currentRoom.id) { return; }
 			var player:YouTubePlayerDefinition = YouTubePlayerDefinition.fromData(data.player);
 			player.roomGuid = data.room;
-			currentRoom.addYoutubePlayer(player);
+			currentRoom.addItem(player);
 		}
 		
 		private function handleMoveYouTubePlayer(data:Object):void {
 			if (data.room !== currentRoom.id) { return; }
-			var player:YouTubePlayerDefinition = currentRoom.getYoutubePlayerByGuid(data.player.guid);
-			if (player) {
-				player.x = data.player.x;
-				player.y = data.player.y;
-				player.setSize(data.player.width, data.player.height);
-			}
+			var item:IRoomItem = currentRoom.getItemByGuid(data.player);
+			if (!item || !(item is YouTubePlayerDefinition)) { return; }
+			var player:YouTubePlayerDefinition = YouTubePlayerDefinition(item);
+			player.x = data.player.x;
+			player.y = data.player.y;
+			player.setSize(data.player.width, data.player.height);
 		}
 		
 		private function handleUpdateYouTubePlayerData(data:Object):void {
 			if (data.room !== currentRoom.id) { return; }
-			var player:YouTubePlayerDefinition = currentRoom.getYoutubePlayerByGuid(data.player.guid);
-			player.data.updateData(data.player.data);
+			var item:IRoomItem = currentRoom.getItemByGuid(data.player.guid);
+			if (!item || !(item is YouTubePlayerDefinition)) { return; }
+			YouTubePlayerDefinition(item).data.updateData(data.player.data);
 		}
 		
 		private function handleRemoveYouTubePlayer(data:Object):void {
 			if (data.room !== currentRoom.id) { return; }
-			currentRoom.removeYoutubePlayer(data.guid);
+			currentRoom.removeItemByGuid(data.guid);
 		}
 		
 		private function handleYouTubeLoad(data:Object):void {
 			if (data.room !== currentRoom.id) { return; }
-			var player:YouTubePlayerDefinition = currentRoom.getYoutubePlayerByGuid(data.player);
+			
+			var item:IRoomItem = currentRoom.getItemByGuid(data.player);
+			if (!item || !(item is YouTubePlayerDefinition)) { return; }
+			var player:YouTubePlayerDefinition = YouTubePlayerDefinition(item);
 			
 			// Load implies lock..
 			var interactivityUser:InteractivityUser = currentRoom.getUserById(data.user);
@@ -788,7 +800,7 @@ package com.worlize.interactivity.rpc
 					
 				inWorldObjectInstance.room = room;
 				
-				currentRoom.addObject(inWorldObjectInstance);
+				currentRoom.addItem(inWorldObjectInstance);
 			}
 		}
 		
@@ -947,14 +959,14 @@ package com.worlize.interactivity.rpc
 		
 		private function handleRemoveObjectInstance(data:Object):void {
 			if (data.room == currentRoom.id && data.guid) {
-				currentRoom.removeObject(data.guid);
+				currentRoom.removeItemByGuid(data.guid);
 			}
 		}
 		
 		private function handleRemoveItem(data:Object):void {
 			if (data.room == currentRoom.id && data.item) {
 				if (data.item.type === 'object') {
-					currentRoom.removeObject(data.item.guid);
+					currentRoom.removeItemByGuid(data.item.guid);
 				}
 			}
 		}
@@ -1091,26 +1103,10 @@ package com.worlize.interactivity.rpc
 			}
 			
 			// clear room items state
-			currentRoom.items.removeAll();
-			currentRoom.itemsByGuid = {};
-			currentRoom.resetInWorldObjects();
-			currentRoom.resetYoutubePlayers();
+			currentRoom.resetItems();
 			
 			for each (var item:IRoomItem in room.items) {
-				if (item is Hotspot) {
-					var hotspot:Hotspot = item as Hotspot;
-					currentRoom.items.addItem(hotspot);
-					currentRoom.itemsByGuid[hotspot.guid] = hotspot;
-				}
-				else if (item is InWorldObjectInstance) {
-					currentRoom.addObject(item as InWorldObjectInstance);
-				}
-				else if (item is YouTubePlayerDefinition) {
-					currentRoom.addYoutubePlayer(item as YouTubePlayerDefinition);
-				}
-				else {
-					logger.error("Unsupported room item encountered!");
-				}
+				currentRoom.addItem(item);
 			}
 			
 			currentRoom.loosePropList.reset();
@@ -1310,19 +1306,12 @@ package com.worlize.interactivity.rpc
 			// make sure to unload all the objects before removing
 			// the users so that we don't fire a userLeft event for everyone
 			// in the room in each object.
-			currentRoom.inWorldObjects.removeAll();
-			currentRoom.inWorldObjectsByGuid = {};
 			currentRoom.name = "";
 			currentRoom.backgroundFile = null;
 			currentRoom.selectedUser = null;
 			currentRoom.removeAllUsers();
-			currentRoom.items.removeAll();
-			currentRoom.itemsByGuid = {};
-			currentRoom.resetYoutubePlayers();
+			currentRoom.resetItems();
 			currentRoom.loosePropList.reset();
-			currentRoom.drawBackCommands.removeAll();
-			currentRoom.drawFrontCommands.removeAll();
-			currentRoom.drawLayerHistory = new Vector.<uint>();
 			currentRoom.showAvatars = true;
 		}
 		

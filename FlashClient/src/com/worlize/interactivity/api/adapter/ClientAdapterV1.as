@@ -4,6 +4,7 @@ package com.worlize.interactivity.api.adapter
 	import com.worlize.interactivity.api.AppLoader;
 	import com.worlize.interactivity.api.event.APIBridgeEvent;
 	import com.worlize.interactivity.model.CurrentRoom;
+	import com.worlize.interactivity.model.IRoomItem;
 	import com.worlize.interactivity.model.InteractivityUser;
 	import com.worlize.interactivity.model.LooseProp;
 	import com.worlize.interactivity.record.ChatRecord;
@@ -835,7 +836,9 @@ package com.worlize.interactivity.api.adapter
 				height: 570
 			};
 			
-			for each (var objInst:InWorldObjectInstance in room.inWorldObjects) {
+			for each (var item:IRoomItem in room.items) {
+				if (!(item is InWorldObjectInstance)) { continue; }
+				var objInst:InWorldObjectInstance = InWorldObjectInstance(item);
 				if (objInst.inWorldObject.kind === InWorldObject.KIND_APP) {
 					obj.objects.push(inWorldObjectInstanceToObject(objInst));
 				}

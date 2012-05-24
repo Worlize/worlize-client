@@ -6,13 +6,13 @@ package com.worlize.interactivity.model
 	import com.worlize.interactivity.rpc.InteractivityClient;
 	import com.worlize.interactivity.util.WorlizeTextUtil;
 	import com.worlize.interactivity.view.RoomView;
+	import com.worlize.model.AppInstance;
 	import com.worlize.model.BackgroundImageInstance;
 	import com.worlize.model.InWorldObject;
 	import com.worlize.model.InWorldObjectInstance;
 	import com.worlize.model.RoomListEntry;
 	import com.worlize.model.YouTubePlayerDefinition;
 	import com.worlize.notification.InWorldObjectNotification;
-	import com.worlize.notification.YouTubePlayerNotification;
 	import com.worlize.rpc.HTTPMethod;
 	import com.worlize.rpc.WorlizeResultEvent;
 	import com.worlize.rpc.WorlizeServiceClient;
@@ -55,13 +55,6 @@ package com.worlize.interactivity.model
 		public var spotImages:Object = {};
 		public var items:ArrayCollection = new ArrayCollection();
 		public var itemsByGuid:Object = {};
-		public var drawFrontCommands:ArrayCollection = new ArrayCollection();
-		public var drawBackCommands:ArrayCollection = new ArrayCollection();
-		public var drawLayerHistory:Vector.<uint> = new Vector.<uint>();
-		public var inWorldObjects:ArrayCollection = new ArrayCollection();
-		public var inWorldObjectsByGuid:Object = {};
-		public var youtubePlayers:ArrayCollection = new ArrayCollection();
-		public var youtubePlayersByGuid:Object = {};
 		public var _selectedUser:InteractivityUser;
 		public var selfUserId:String = null;
 		public var roomView:RoomView;
@@ -86,6 +79,76 @@ package com.worlize.interactivity.model
 		{
 			lastMessageTimer.addEventListener(TimerEvent.TIMER, handleLastMessageTimer);
 			statusDisappearTimer.addEventListener(TimerEvent.TIMER, handleStatusDisappearTimer);
+		}
+		
+		public function addItem(item:IRoomItem):void {
+			items.addItem(item);
+			itemsByGuid[item.guid] = item;
+			
+			if (item is InWorldObjectInstance) {
+				registerInWorldObjectAdded(item as InWorldObjectInstance);
+			}
+			else if (item is AppInstance) {
+				registerAppAdded(item as AppInstance);
+			}
+		}
+		
+		public function getItemByGuid(guid:String):IRoomItem {
+			return itemsByGuid[guid];
+		}
+		
+		public function removeItemByGuid(guid:String):IRoomItem {
+			var item:IRoomItem = itemsByGuid[guid];
+			if (item) {
+				var index:int = items.getItemIndex(item);
+				if (index !== -1) {
+					items.removeItemAt(index);
+				}
+				delete itemsByGuid[guid];
+				
+				if (item is InWorldObjectInstance) {
+					registerInWorldObjectRemoved(item as InWorldObjectInstance);
+				}
+				if (item is AppInstance) {
+					registerAppRemoved(item as AppInstance);
+				}
+			}
+			return item;
+		}
+		
+		public function resetItems():void {
+			items.removeAll();
+			itemsByGuid = {};
+		}
+		
+		public function registerInWorldObjectAdded(inWorldObjectInstance:InWorldObjectInstance):void {
+			addInWorldObjectInstanceListeners(inWorldObjectInstance);
+			var notification:InWorldObjectNotification =
+				new InWorldObjectNotification(InWorldObjectNotification.IN_WORLD_OBJECT_ADDED_TO_ROOM);
+			notification.instanceGuid = inWorldObjectInstance.guid;
+			notification.room = inWorldObjectInstance.room;
+			NotificationCenter.postNotification(notification);
+		}
+		
+		public function registerInWorldObjectRemoved(inWorldObjectInstance:InWorldObjectInstance):void {
+			removeInWorldObjectInstanceListeners(inWorldObjectInstance);
+			
+			var notification:InWorldObjectNotification =
+				new InWorldObjectNotification(InWorldObjectNotification.IN_WORLD_OBJECT_REMOVED_FROM_ROOM);
+			notification.instanceGuid = inWorldObjectInstance.guid;
+			NotificationCenter.postNotification(notification);
+		}
+		
+		public function registerAppAdded(appInstance:AppInstance):void {
+			var event:RoomEvent = new RoomEvent(RoomEvent.APP_ADDED);
+			event.appInstance = appInstance;
+			dispatchEvent(event);
+		}
+		
+		public function registerAppRemoved(appInstance:AppInstance):void {
+			var event:RoomEvent = new RoomEvent(RoomEvent.APP_REMOVED);
+			event.appInstance = appInstance;
+			dispatchEvent(event);
 		}
 		
 		public function resetProperties():void {
@@ -126,41 +189,6 @@ package com.worlize.interactivity.model
 			}
 		}
 		
-		public function resetYoutubePlayers():void {
-			youtubePlayers.removeAll();
-			youtubePlayersByGuid = {};
-		}
-		
-		public function addYoutubePlayer(playerDefinition:YouTubePlayerDefinition):void {
-			youtubePlayers.addItem(playerDefinition);
-			youtubePlayersByGuid[playerDefinition.guid] = playerDefinition;
-			
-			var notification:YouTubePlayerNotification = new YouTubePlayerNotification(YouTubePlayerNotification.ADDED_TO_ROOM);
-			notification.roomGuid = this.id;
-			notification.playerDefinition = playerDefinition;
-			NotificationCenter.postNotification(notification);
-		}
-		
-		public function removeYoutubePlayer(guid:String):void {
-			var playerDefinition:YouTubePlayerDefinition = youtubePlayersByGuid[guid];
-			if (playerDefinition) {
-				var index:int = youtubePlayers.getItemIndex(playerDefinition);
-				if (index != -1) {
-					youtubePlayers.removeItemAt(index);
-				}
-				delete youtubePlayersByGuid[guid];
-			}
-		}
-		
-		public function getYoutubePlayerByGuid(guid:String):YouTubePlayerDefinition {
-			return YouTubePlayerDefinition(youtubePlayersByGuid[guid]);
-		}
-		
-		public function resetInWorldObjects():void {
-			inWorldObjects.removeAll();
-			inWorldObjectsByGuid = {};
-		}
-		
 		private function addInWorldObjectInstanceListeners(inWorldObjectInstance:InWorldObjectInstance):void {
 			inWorldObjectInstance.addEventListener(RoomEvent.APP_MOVED, redispatchObjectEvent);
 			inWorldObjectInstance.addEventListener(RoomEvent.APP_RESIZED, redispatchObjectEvent);
@@ -172,52 +200,13 @@ package com.worlize.interactivity.model
 			inWorldObjectInstance.removeEventListener(RoomEvent.APP_RESIZED, redispatchObjectEvent);
 			inWorldObjectInstance.removeEventListener(RoomEvent.APP_STATE_CHANGED, redispatchObjectEvent);
 		}
-				
-		public function addObject(inWorldObjectInstance:InWorldObjectInstance):void {
-			//objectData.guid, objectData.x, objectData.y, objectData.fullsize_url, objectData.dest
-			
-			inWorldObjects.addItem(inWorldObjectInstance);
-			inWorldObjectsByGuid[inWorldObjectInstance.guid] = inWorldObjectInstance;
-			
-			addInWorldObjectInstanceListeners(inWorldObjectInstance);
-			
-			var event:RoomEvent = new RoomEvent(RoomEvent.APP_ADDED);
-			event.roomObject = inWorldObjectInstance;
-			dispatchEvent(event);
-			
-			var notification:InWorldObjectNotification =
-				new InWorldObjectNotification(InWorldObjectNotification.IN_WORLD_OBJECT_ADDED_TO_ROOM);
-			notification.instanceGuid = inWorldObjectInstance.guid;
-			notification.room = inWorldObjectInstance.room;
-			NotificationCenter.postNotification(notification);
-		}
 
-		public function removeObject(guid:String):void {
-			var inWorldObjectInstance:InWorldObjectInstance = inWorldObjectsByGuid[guid];
-			if (inWorldObjectInstance) {
-				removeInWorldObjectInstanceListeners(inWorldObjectInstance);
-				var index:int = inWorldObjects.getItemIndex(inWorldObjectInstance);
-				if (index != -1) {
-					inWorldObjects.removeItemAt(index);
-					
-					var event:RoomEvent = new RoomEvent(RoomEvent.APP_REMOVED);
-					event.roomObject = inWorldObjectInstance;
-					dispatchEvent(event);
-					
-					var notification:InWorldObjectNotification =
-						new InWorldObjectNotification(InWorldObjectNotification.IN_WORLD_OBJECT_REMOVED_FROM_ROOM);
-					notification.instanceGuid = guid;
-					NotificationCenter.postNotification(notification);
-				}
-			}
-		}
-		
 		public function redispatchObjectEvent(event:RoomEvent):void {
 			dispatchEvent(event);
 		}
 		
 		public function moveObject(guid:String, x:int, y:int):void {
-			var inWorldObjectInstance:InWorldObjectInstance = inWorldObjectsByGuid[guid];
+			var inWorldObjectInstance:InWorldObjectInstance = itemsByGuid[guid];
 			if (inWorldObjectInstance) {
 				inWorldObjectInstance.x = x;
 				inWorldObjectInstance.y = y;
@@ -229,7 +218,7 @@ package com.worlize.interactivity.model
 		}
 		
 		public function resizeObject(guid:String, width:int, height:int):void {
-			var inWorldObjectInstance:InWorldObjectInstance = inWorldObjectsByGuid[guid];
+			var inWorldObjectInstance:InWorldObjectInstance = itemsByGuid[guid];
 			if (inWorldObjectInstance) {
 				inWorldObjectInstance.width = width;
 				inWorldObjectInstance.height = height;
@@ -241,7 +230,7 @@ package com.worlize.interactivity.model
 		}
 		
 		public function setObjectDest(guid:String, dest:String):void {
-			var inWorldObjectInstance:InWorldObjectInstance = inWorldObjectsByGuid[guid];
+			var inWorldObjectInstance:InWorldObjectInstance = itemsByGuid[guid];
 			if (inWorldObjectInstance) {
 				inWorldObjectInstance.dest = dest;
 			}
@@ -325,7 +314,11 @@ package com.worlize.interactivity.model
 		}
 		
 		public function getInWorldObjectInstanceById(id:String):InWorldObjectInstance {
-			return inWorldObjectsByGuid[id];
+			var item:IRoomItem = itemsByGuid[id];
+			if (item is InWorldObjectInstance) {
+				return item as InWorldObjectInstance;
+			}
+			return null;
 		}
 		
 		public function getUserByIndex(userIndex:int):InteractivityUser {

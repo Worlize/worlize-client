@@ -28,6 +28,7 @@
 			import com.worlize.components.youtube.YouTubePlayerError;
 			import com.worlize.components.youtube.YouTubePlayerEvent;
 			import com.worlize.components.youtube.YouTubePlayerState;
+			import com.worlize.event.AuthorModeNotification;
 			import com.worlize.event.NotificationCenter;
 			import com.worlize.interactivity.event.WorlizeYouTubeEvent;
 			import com.worlize.interactivity.rpc.InteractivityClient;
@@ -119,11 +120,20 @@
 			}
 			
 			private function handleAddedToStage():void {
+				var authorModeState:AuthorModeState = AuthorModeState.getInstance();
+				authorMode = authorModeState.enabled;
+				authorModeSelected = (authorModeState.selectedItem === youTubePlayerDefinition);
+				NotificationCenter.addListener(AuthorModeNotification.AUTHOR_ENABLED, handleAuthorEnabled);
+				NotificationCenter.addListener(AuthorModeNotification.AUTHOR_DISABLED, handleAuthorDisabled);
+				NotificationCenter.addListener(AuthorModeNotification.SELECTED_ITEM_CHANGED, handleSelectedItemChanged);
 				NotificationCenter.addListener(ConnectionNotification.DISCONNECTED, handleDisconnected, false, 0, true); // weak ref
 				defaultVideoWatcher = ChangeWatcher.watch(this, ['youTubePlayerDefinition', 'data', 'videoId'], handleDefaultVideoChange);
 			}
 			
 			private function handleRemovedFromStage():void {
+				NotificationCenter.removeListener(AuthorModeNotification.AUTHOR_ENABLED, handleAuthorEnabled);
+				NotificationCenter.removeListener(AuthorModeNotification.AUTHOR_DISABLED, handleAuthorDisabled);
+				NotificationCenter.removeListener(AuthorModeNotification.SELECTED_ITEM_CHANGED, handleSelectedItemChanged);
 				NotificationCenter.removeListener(ConnectionNotification.DISCONNECTED, handleDisconnected);
 				defaultVideoWatcher.unwatch();
 				defaultVideoWatcher = null;
@@ -134,6 +144,18 @@
 			
 			private function handleDisconnected(notification:ConnectionNotification):void {
 				player.stopVideo();
+			}
+			
+			private function handleAuthorEnabled(notification:AuthorModeNotification):void {
+				authorMode = true;
+			}
+			
+			private function handleAuthorDisabled(notification:AuthorModeNotification):void {
+				authorMode = false;
+			}
+			
+			private function handleSelectedItemChanged(notification:AuthorModeNotification):void {
+				authorModeSelected = (notification.newValue === youTubePlayerDefinition);
 			}
 			
 			[Bindable(event="authorModeChange")]

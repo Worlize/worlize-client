@@ -8,8 +8,8 @@
 		 addedToStage="handleAddedToStage()"
 		 removedFromStage="handleRemovedFromStage()"
 		 mouseDown="handleMouseDown(event)"
-		 mouseOver="handleMouseOver(event)"
-		 mouseOut="handleMouseOut(event)"
+		 rollOver="handleRollOver(event)"
+		 rollOut="handleRollOut(event)"
 		 mouseEnabled="false"
 		 currentState="normal"
 		 x="{inWorldObjectInstance.x - (loadedWidth >> 1)}"
@@ -18,12 +18,20 @@
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
+
+	<s:filters>
+		<s:GlowFilter includeIn="mouseOver" color="#f2f200" alpha="1" blurX="15" blurY="15" quality="3" />
+	</s:filters>
 	
 	<s:states>
-		<s:State name="normal" stateGroups="selected" />
-		<s:State name="normalSelected" />
+		<s:State name="normal" />
+		<s:State name="normalMouseOver" stateGroups="mouseOver" />
+		<s:State name="normalSelected" stateGroups="selected" />
+		<s:State name="normalMouseOverSelected" stateGroups="selected" />
 		<s:State name="author" stateGroups="authorMode" />
+		<s:State name="authorMouseOver" stateGroups="authorMode" />
 		<s:State name="authorSelected" stateGroups="authorModeAndSelected" />
+		<s:State name="authorMouseOverSelected" stateGroups="authorModeAndSelected" />
 	</s:states>
 	
 	<fx:Script>
@@ -50,6 +58,8 @@
 			import mx.logging.Log;
 			
 			private var _objInst:InWorldObjectInstance;
+			
+			private var _mouseOver:Boolean = false;
 			
 			[Bindable(event="inWorldObjectInstanceChange")]
 			public function set inWorldObjectInstance(newValue:InWorldObjectInstance):void {
@@ -192,6 +202,9 @@
 				else {
 					parts.push("normal");
 				}
+				if (_mouseOver && inWorldObjectInstance.dest) {
+					parts.push("MouseOver");
+				}
 				if (_selected) {
 					parts.push("Selected");
 				}
@@ -200,7 +213,7 @@
 			}
 			
 			private function updateMouseEnabled():void {
-				if (_authorMode) {
+				if (_authorMode || inWorldObjectInstance.dest) {
 					mouseEnabled = true;
 				}
 				else if (inWorldObjectInstance.inWorldObject.kind !== InWorldObject.KIND_APP) {
@@ -219,7 +232,9 @@
 				NotificationCenter.addListener(AuthorModeNotification.AUTHOR_ENABLED, handleAuthorModeEnabled);
 				NotificationCenter.addListener(AuthorModeNotification.AUTHOR_DISABLED, handleAuthorModeDisabled);
 				NotificationCenter.addListener(AuthorModeNotification.SELECTED_ITEM_CHANGED, handleSelectedItemChanged);
-				authorMode = AuthorModeState.getInstance().enabled;
+				var authorModeState:AuthorModeState = AuthorModeState.getInstance();
+				authorMode = authorModeState.enabled;
+				selected = (authorModeState.selectedItem === inWorldObjectInstance);
 			}
 			
 			private function handleRemovedFromStage():void {
@@ -246,19 +261,23 @@
 				selected = (notification.newValue === inWorldObjectInstance);
 			}
 			
-			private function handleMouseOver(event:MouseEvent):void {
+			private function handleRollOver(event:MouseEvent):void {
+				_mouseOver = true;
 				if (_authorMode) {
 					Mouse.cursor = MouseCursor.HAND;
 				}
 				else if (inWorldObjectInstance.dest) {
 					Mouse.cursor = MouseCursor.BUTTON;
 				}
+				updateState();
 			}
 			
-			private function handleMouseOut(event:MouseEvent):void {
+			private function handleRollOut(event:MouseEvent):void {
+				_mouseOver = false;
 				if (_authorMode || inWorldObjectInstance.dest) {
 					Mouse.cursor = MouseCursor.ARROW;
 				}
+				updateState();
 			}
 			
 			private function handleMouseDown(event:MouseEvent):void {

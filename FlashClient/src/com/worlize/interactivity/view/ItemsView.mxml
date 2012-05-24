@@ -99,24 +99,34 @@
 			
 			protected function handleCollectionChange(event:CollectionEvent):void {
 				var item:IRoomItem;
-				if (event.kind === CollectionEventKind.ADD) {
-					for each (item in event.items) {
-						addItem(item);
-					}
-				}
-				else if (event.kind === CollectionEventKind.REMOVE) {
-					for each (item in event.items) {
-						removeItem(item);
-					}
-				}
-				else if (event.kind === CollectionEventKind.RESET) {
-					removeAllItems();
-				}
-				else if (event.kind === CollectionEventKind.MOVE) {
-					changeItemIndex(event.oldLocation, event.location);
-				}
-				else {
-					logger.warn("Unhandled items view collection event: " + event.kind);
+				switch (event.kind) {
+					case CollectionEventKind.UPDATE:
+						// We don't care about updated properties on items here.
+						break;
+					
+					case CollectionEventKind.ADD:
+						for each (item in event.items) {
+							addItem(item);
+						}
+						break;
+					
+					case CollectionEventKind.REMOVE:
+						for each (item in event.items) {
+							removeItem(item);
+						}
+						break;
+					
+					case CollectionEventKind.RESET:
+						removeAllItems();
+						break;
+					
+					case CollectionEventKind.MOVE:
+						changeItemIndex(event.oldLocation, event.location);
+						break;
+					
+					default:
+						logger.warn("Unhandled items view collection event: " + event.kind);
+						break;
 				}
 			}
 			
@@ -160,13 +170,17 @@
 					return new HotSpotSprite(Hotspot(item), true);
 				}
 				if (item is InWorldObjectInstance) {
-					return null;
+					var imageView:EmbeddedImageView = new EmbeddedImageView();
+					imageView.inWorldObjectInstance = InWorldObjectInstance(item);
+					return imageView;
 				}
 				else if (item is AppInstance) {
 					return null;
 				}
 				else if (item is YouTubePlayerDefinition) {
-					return null;
+					var youtubeView:YouTubePlayerView = new YouTubePlayerView();
+					youtubeView.youTubePlayerDefinition = YouTubePlayerDefinition(item);
+					return youtubeView;
 				}
 				return null;
 			}
