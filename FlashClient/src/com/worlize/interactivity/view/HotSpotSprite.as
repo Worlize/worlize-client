@@ -1,5 +1,8 @@
 package com.worlize.interactivity.view
 {
+	import com.worlize.event.AuthorModeNotification;
+	import com.worlize.event.NotificationCenter;
+	import com.worlize.interactivity.event.DragHandleEvent;
 	import com.worlize.interactivity.event.HotspotEvent;
 	import com.worlize.interactivity.iptscrae.IptEventHandler;
 	import com.worlize.interactivity.model.Hotspot;
@@ -20,12 +23,15 @@ package com.worlize.interactivity.view
 	import flash.utils.setTimeout;
 	
 	import mx.core.FlexSprite;
+	import mx.core.IVisualElement;
 	import mx.logging.ILogger;
 	import mx.logging.Log;
 	import mx.managers.CursorManager;
 	import mx.managers.SystemManager;
+	
+	import spark.core.SpriteVisualElement;
 
-	public class HotSpotSprite extends FlexSprite
+	public class HotSpotSprite extends SpriteVisualElement
 	{
 		private var logger:ILogger = Log.getLogger('com.worlize.interactivity.view.HotSpotSprite');
 		
@@ -54,12 +60,50 @@ package com.worlize.interactivity.view
 			x = hotSpot.location.x;
 			y = hotSpot.location.y;
 			processMouseMove = hotSpot.hasEventHandler(IptEventHandler.TYPE_MOUSEMOVE);
+			addEventListener(Event.ADDED_TO_STAGE, handleAddedToStage);
+			addEventListener(Event.REMOVED_FROM_STAGE, handleRemovedFromStage);
 			addNormalEventListeners();
-			
+		}
+		
+		private function handleAddedToStage(event:Event):void {
+			var authorModeState:AuthorModeState = AuthorModeState.getInstance();
+			authorMode = authorModeState.enabled;
+			selected = (authorModeState.selectedItem === this.hotSpot);
+			NotificationCenter.addListener(AuthorModeNotification.AUTHOR_ENABLED, handleAuthorEnabled);
+			NotificationCenter.addListener(AuthorModeNotification.AUTHOR_DISABLED, handleAuthorDisabled);
+			NotificationCenter.addListener(AuthorModeNotification.SELECTED_ITEM_CHANGED, handleSelectedItemChanged);
 			draw();
 		}
 		
-		public function set authorMode(newValue:Boolean):void {
+		private function handleRemovedFromStage(event:Event):void {
+			// If the object is removed from the stage before the
+			// MOUSE_UP handler is fired, we can't unregister the
+			// event listener because we don't have a reference to
+			// the stage anymore.
+			if (dragging) {
+				dragging = false;
+				SystemManager.getSWFRoot(this).removeEventListener(MouseEvent.MOUSE_UP, handleStageMouseUp);
+				SystemManager.getSWFRoot(this).removeEventListener(MouseEvent.MOUSE_UP, handleAuthorStageMouseUp);
+			}
+			
+			NotificationCenter.removeListener(AuthorModeNotification.AUTHOR_ENABLED, handleAuthorEnabled);
+			NotificationCenter.removeListener(AuthorModeNotification.AUTHOR_DISABLED, handleAuthorDisabled);
+			NotificationCenter.removeListener(AuthorModeNotification.SELECTED_ITEM_CHANGED, handleSelectedItemChanged);
+		}
+		
+		private function handleAuthorEnabled(notification:AuthorModeNotification):void {
+			authorMode = true;
+		}
+		
+		private function handleAuthorDisabled(notification:AuthorModeNotification):void {
+			authorMode = false;
+		}
+		
+		private function handleSelectedItemChanged(notification:AuthorModeNotification):void {
+			selected = (notification.newValue === this.hotSpot);
+		}
+		
+		private function set authorMode(newValue:Boolean):void {
 			if (_authorMode !== newValue) {
 				_authorMode = newValue;
 				if (_authorMode) {
@@ -71,7 +115,7 @@ package com.worlize.interactivity.view
 				draw();
 			}
 		}
-		public function get authorMode():Boolean {
+		private function get authorMode():Boolean {
 			return _authorMode;
 		}
 		
@@ -128,7 +172,7 @@ package com.worlize.interactivity.view
 			removeEventListener(Event.ENTER_FRAME, handleAuthorEnterFrame);
 			removeEventListener(MouseEvent.MOUSE_OVER, handleAuthorMouseOver);
 			removeEventListener(MouseEvent.MOUSE_OUT, handleAuthorMouseOut);
-			stage.removeEventListener(MouseEvent.MOUSE_UP, handleAuthorStageMouseUp);
+			SystemManager.getSWFRoot(this).removeEventListener(MouseEvent.MOUSE_UP, handleAuthorStageMouseUp);
 		}
 		
 		private function enableAuthor():void {
@@ -137,6 +181,9 @@ package com.worlize.interactivity.view
 			
 			// ...and add author mode event listeners
 			addAuthorEventListeners();
+			
+			// Add drag handles
+			addDragHandles();
 		}
 		private function disableAuthor():void {
 			// Remove author mode event listeners...
@@ -144,13 +191,76 @@ package com.worlize.interactivity.view
 			
 			// ...and restore normal event listeners
 			addNormalEventListeners();
+			
+			// Remove drag handles
+			removeDragHandles();
+		}
+		
+		private function addDragHandles():void {
+			removeDragHandles();
+			for each (var point:Point in hotSpot.polygon) {
+				var dragHandle:DragHandle = new DragHandle();
+				dragHandle.x = point.x;
+				dragHandle.y = point.y;
+				dragHandle.addEventListener(DragHandleEvent.DRAG_COMPLETE, handleDragHandleDragComplete);
+				dragHandle.addEventListener(DragHandleEvent.DRAG_MOVE, handleDragHandleDragMove);
+				addChild(dragHandle);
+			}
+		}
+		
+		private function removeDragHandles():void {
+			for (var i:int = 0; i < numChildren; i++) {
+				var dragHandle:DragHandle = DragHandle(getChildAt(i));
+				dragHandle.removeEventListener(DragHandleEvent.DRAG_COMPLETE, handleDragHandleDragComplete);
+				dragHandle.removeEventListener(DragHandleEvent.DRAG_MOVE, handleDragHandleDragMove);
+			}
+			removeChildren();
+		}
+		
+		private function handleDragHandleDragComplete(event:DragHandleEvent):void {
+			hotSpot.savePosition();
+		}
+		
+		private function handleDragHandleDragMove(event:DragHandleEvent):void {
+			if (event.x + this.x > 950) {
+				event.x = 950 - this.x;
+			}
+			if (event.x + this.x < 0) {
+				event.x = 0 - this.x;
+			}
+			if (event.y + this.y > 570 - 25) {
+				event.y = 570 - 25 - this.y;
+			}
+			if (event.y + this.y < 0) {
+				event.y = 0 - this.y;
+			}
+			
+			var dragHandle:DragHandle = DragHandle(event.target);
+			try {
+				var index:int = getChildIndex(dragHandle);
+			}
+			catch(e:ArgumentError) {
+				// the drag handle isn't a member of this hotspot
+				return;
+			}
+			
+			var point:Point = hotSpot.polygon[index];
+			if (point) {
+				point.x = event.x;
+				point.y = event.y;
+				draw();
+			}
 		}
 		
 		private function handleAuthorMouseOver(event:MouseEvent):void {
-			Mouse.cursor = MouseCursor.HAND;
+			if (event.target === this) {
+				Mouse.cursor = MouseCursor.HAND;
+			}
 		}
 		private function handleAuthorMouseOut(event:MouseEvent):void {
-			Mouse.cursor = MouseCursor.AUTO;
+			if (event.target === this) {
+				Mouse.cursor = MouseCursor.AUTO;
+			}
 		}
 		
 		private function handleAuthorMouseDown(event:MouseEvent):void {
@@ -252,6 +362,25 @@ package com.worlize.interactivity.view
 		
 		private function handleRedrawRequested(event:HotspotEvent):void {
 			draw();
+			updateDragHandlePositions();
+		}
+		
+		private function updateDragHandlePositions():void {
+			if (numChildren !== hotSpot.polygon.length) {
+				addDragHandles();
+				return;
+			}
+			for (var i:int = 0; i < hotSpot.polygon.length; i++) {
+				try {
+					var dragHandle:DragHandle = DragHandle(getChildAt(i));
+				}
+				catch(e:ArgumentError) {
+					continue;
+				}
+				var point:Point = hotSpot.polygon[i];
+				dragHandle.x = point.x;
+				dragHandle.y = point.y;
+			}
 		}
 		
 		public function draw():void {
@@ -263,6 +392,7 @@ package com.worlize.interactivity.view
 				return;
 			}
 			var firstPoint:Point = Point(points[0]);
+			
 
 			if (authorMode) {
 				// Draw thicker line underneath for contrast
@@ -331,19 +461,18 @@ package com.worlize.interactivity.view
 			
 			dragging = true;
 			stage.addEventListener(MouseEvent.MOUSE_UP, handleStageMouseUp);
-			addEventListener(Event.REMOVED_FROM_STAGE, handleRemovedFromStage);
 			mousePos.x = client.currentRoom.roomView.mouseX;
 			mousePos.y = client.currentRoom.roomView.mouseY;
 			lastMousePos = mousePos.clone();
 			
 			var ranScript:Boolean = false;
-			if (hotSpot.hasEventHandler(IptEventHandler.TYPE_SELECT)) {
+			if (!authorMode && hotSpot.hasEventHandler(IptEventHandler.TYPE_SELECT)) {
 				setTimeout(function():void {
 					client.iptInteractivityController.triggerHotspotEvent(hotSpot, IptEventHandler.TYPE_SELECT);
 				}, 1);
 				ranScript = true;
 			}
-			if (hotSpot.hasEventHandler(IptEventHandler.TYPE_MOUSEDOWN)) {
+			if (!authorMode && hotSpot.hasEventHandler(IptEventHandler.TYPE_MOUSEDOWN)) {
 				setTimeout(function():void {
 					client.iptInteractivityController.triggerHotspotEvent(hotSpot, IptEventHandler.TYPE_MOUSEDOWN);
 				}, 2);
@@ -359,25 +488,13 @@ package com.worlize.interactivity.view
 			}
 		}
 		
-		private function handleRemovedFromStage(event:Event):void {
-			// If the object is removed from the stage before the
-			// MOUSE_UP handler is fired, we can't unregister the
-			// event listener because we don't have a reference to
-			// the stage anymore.
-			if (dragging) {
-				dragging = false;
-				stage.removeEventListener(MouseEvent.MOUSE_UP, handleStageMouseUp);
-				stage.removeEventListener(MouseEvent.MOUSE_UP, handleAuthorStageMouseUp);
-			}
-		}
-		
 		private function handleStageMouseUp(event:MouseEvent):void {
 			dragging = false;
-			stage.removeEventListener(MouseEvent.MOUSE_UP, handleStageMouseUp);
+			SystemManager.getSWFRoot(this).removeEventListener(MouseEvent.MOUSE_UP, handleStageMouseUp);
 		}
 		
 		private function handleHotSpotMouseUp(event:MouseEvent):void {
-			if (hotSpot.hasEventHandler(IptEventHandler.TYPE_MOUSEUP)) {
+			if (!authorMode && hotSpot.hasEventHandler(IptEventHandler.TYPE_MOUSEUP)) {
 				client.iptInteractivityController.triggerHotspotEvent(hotSpot, IptEventHandler.TYPE_MOUSEUP);
 			}
 		}

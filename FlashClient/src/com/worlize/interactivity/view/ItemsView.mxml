@@ -8,10 +8,168 @@
 	
 	<fx:Script>
 		<![CDATA[
-			import mx.collections.ArrayCollection;
-			[Bindable]
-			public var items:ArrayCollection;
+			import com.worlize.interactivity.model.Hotspot;
+			import com.worlize.interactivity.model.IRoomItem;
+			import com.worlize.model.AppInstance;
+			import com.worlize.model.InWorldObjectInstance;
+			import com.worlize.model.YouTubePlayerDefinition;
 			
+			import mx.collections.ArrayCollection;
+			import mx.core.IVisualElement;
+			import mx.events.CollectionEvent;
+			import mx.events.CollectionEventKind;
+			import mx.events.PropertyChangeEvent;
+			import mx.events.PropertyChangeEventKind;
+			import mx.logging.ILogger;
+			import mx.logging.Log;
+			
+			protected var viewsByRoomItem:Dictionary = new Dictionary();
+			protected var roomItemsByView:Dictionary = new Dictionary();
+			
+			protected var logger:ILogger = Log.getLogger('com.worlize.interactivity.view.ItemsView');
+			
+			[Bindable]
+			private var _items:ArrayCollection;
+			
+			[Bindable(event="itemsChanged")]
+			public function get items():ArrayCollection {
+				return _items;
+			}
+			
+			public function set items(newValue:ArrayCollection):void {
+				if (_items !== newValue) {
+					var oldValue:ArrayCollection = _items;
+					_items = newValue;
+					
+					if (oldValue) {
+						oldValue.removeEventListener(CollectionEvent.COLLECTION_CHANGE, handleCollectionChange);
+					}
+					if (newValue) {
+						newValue.addEventListener(CollectionEvent.COLLECTION_CHANGE, handleCollectionChange);
+						resetItems();
+					}
+					
+					var event:PropertyChangeEvent = new PropertyChangeEvent(
+						'itemsChanged', false, false,
+						PropertyChangeEventKind.UPDATE,
+						'items',
+						oldValue, newValue, this);
+					dispatchEvent(event);
+				}
+			}
+			
+			public function getElementsUnderPoint(roomPoint:Point):Vector.<IVisualElement> {
+				var globalPoint:Point = localToGlobal(roomPoint);
+				var elements:Vector.<IVisualElement> = new Vector.<IVisualElement>();
+				for each (var element:IVisualElement in viewsByRoomItem) {
+					if (DisplayObject(element).hitTestPoint(globalPoint.x, globalPoint.y, true)) {
+						elements.push(element);
+					}
+				}
+				return elements.reverse();
+			}
+			
+			public function getItemsUnderPoint(roomPoint:Point):Vector.<IRoomItem> {
+				var elements:Vector.<IVisualElement> = getElementsUnderPoint(roomPoint);
+				var items:Vector.<IRoomItem> = new Vector.<IRoomItem>();
+				for each (var view:IVisualElement in elements) {
+					var item:IRoomItem = roomItemsByView[view];
+					if (item) {
+						items.push(item);
+					}
+				}
+				return items.reverse();
+			}
+			
+			public function hitTestItem(item:IRoomItem, roomPoint:Point):Boolean {
+				var globalPoint:Point = localToGlobal(roomPoint);
+				var view:IVisualElement = viewsByRoomItem[item];
+				if (view && view is DisplayObject) {
+					return DisplayObject(view).hitTestPoint(globalPoint.x, globalPoint.y, true);
+				}
+				return false;
+			}
+			
+			protected function resetItems():void {
+				removeAllItems();
+				for each (var item:IRoomItem in _items) {
+					addItem(item);
+				}
+			}
+			
+			protected function handleCollectionChange(event:CollectionEvent):void {
+				var item:IRoomItem;
+				if (event.kind === CollectionEventKind.ADD) {
+					for each (item in event.items) {
+						addItem(item);
+					}
+				}
+				else if (event.kind === CollectionEventKind.REMOVE) {
+					for each (item in event.items) {
+						removeItem(item);
+					}
+				}
+				else if (event.kind === CollectionEventKind.RESET) {
+					removeAllItems();
+				}
+				else if (event.kind === CollectionEventKind.MOVE) {
+					changeItemIndex(event.oldLocation, event.location);
+				}
+				else {
+					logger.warn("Unhandled items view collection event: " + event.kind);
+				}
+			}
+			
+			protected function addItem(item:IRoomItem):void {
+				var view:IVisualElement = buildItemView(item);
+				if (view === null) {
+					logger.error("Unable to add unknown type of room item!");
+					return;
+				}
+				viewsByRoomItem[item] = view;
+				roomItemsByView[view] = item;
+				addElement(view);
+			}
+			
+			protected function changeItemIndex(oldIndex:int, newIndex:int):void {
+				var view:IVisualElement = getElementAt(oldIndex);
+				if (view) {
+					setElementIndex(view, newIndex);
+				}
+			}
+			
+			protected function removeItem(item:IRoomItem):void {
+				var view:IVisualElement = viewsByRoomItem[item];
+				if (view === null) {
+					logger.error("The view to be removed is not currently displayed in the room.");
+					return;
+				}
+				delete viewsByRoomItem[item];
+				delete roomItemsByView[view];
+				removeElement(view);
+			}
+
+			protected function removeAllItems():void {
+				viewsByRoomItem = new Dictionary();
+				roomItemsByView = new Dictionary();
+				removeAllElements();
+			}
+			
+			protected function buildItemView(item:IRoomItem):IVisualElement {
+				if (item is Hotspot) {
+					return new HotSpotSprite(Hotspot(item), true);
+				}
+				if (item is InWorldObjectInstance) {
+					return null;
+				}
+				else if (item is AppInstance) {
+					return null;
+				}
+				else if (item is YouTubePlayerDefinition) {
+					return null;
+				}
+				return null;
+			}
 			
 		]]>
 	</fx:Script>
