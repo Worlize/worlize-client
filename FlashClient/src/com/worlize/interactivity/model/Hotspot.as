@@ -19,7 +19,7 @@ package com.worlize.interactivity.model
 	[Event(name="moved",type="com.worlize.interactivity.event.HotspotEvent")]
 
 	[Bindable]
-	public class Hotspot extends EventDispatcher implements IRoomItem
+	public class Hotspot extends EventDispatcher implements ILinkableRoomItem
 	{
 		public var dest:String = null;
 		public var guid:String;
@@ -76,14 +76,14 @@ package com.worlize.interactivity.model
 			for each (var point:Point in polygon) {
 				points.push([point.x, point.y]);
 			}
-			InteractivityClient.getInstance().moveHotspot(guid, location.x, location.y, points);
+			InteractivityClient.getInstance().moveItem(guid, location.x, location.y, -1, -1, points);
 		}
 		
 		public function deleteHotspot():void {
 			var logger:ILogger = Log.getLogger('com.worlize.interactivity.model.Hotspot');
 			logger.info("Deleting hotspot " + this.guid);
 			var client:InteractivityClient = InteractivityClient.getInstance();
-			client.removeHotspot(guid);
+			client.removeItem(guid);
 		}
 		
 		public function selectForAuthoring():void {

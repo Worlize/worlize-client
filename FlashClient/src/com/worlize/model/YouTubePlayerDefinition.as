@@ -72,7 +72,7 @@ package com.worlize.model
 		
 		public function saveUpdatedPositionAndDimensions():void {
 			var client:InteractivityClient = InteractivityClient.getInstance();
-			client.moveYouTubePlayer(guid, x, y, width, height);
+			client.moveItem(guid, x, y, width, height);
 		}
 		
 		public function saveUpdatedData():void {
@@ -82,7 +82,7 @@ package com.worlize.model
 		
 		public function removePlayer():void {
 			var client:InteractivityClient = InteractivityClient.getInstance();
-			client.removeYouTubePlayer(guid);
+			client.removeItem(guid);
 		}
 		
 		public function loadVideoRequested(videoId:String, title:String = "unknown", autoPlay:Boolean = true):void {

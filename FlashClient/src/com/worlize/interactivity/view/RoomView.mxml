@@ -273,9 +273,7 @@
 				var data:Object;
 				if (event.dragSource.hasFormat('objectFromLocker')) {
 					data = event.dragSource.dataForFormat('objectFromLocker');
-					var roomDefinition:RoomDefinition = new RoomDefinition();
-					roomDefinition.guid = room.id;
-					roomDefinition.addObjectInstance(data, mouseX, mouseY);
+					InteractivityClient.getInstance().addObjectInstance(data.guid, mouseX, mouseY);
 				}
 				else if (event.dragSource.hasFormat('propFromLocker')) {
 					data = event.dragSource.dataForFormat('propFromLocker');

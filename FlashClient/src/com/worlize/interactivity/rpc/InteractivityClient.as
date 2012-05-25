@@ -17,6 +17,7 @@ package com.worlize.interactivity.rpc
 	import com.worlize.interactivity.iptscrae.IptInteractivityController;
 	import com.worlize.interactivity.model.CurrentRoom;
 	import com.worlize.interactivity.model.Hotspot;
+	import com.worlize.interactivity.model.ILinkableRoomItem;
 	import com.worlize.interactivity.model.IRoomItem;
 	import com.worlize.interactivity.model.InteractivityConfig;
 	import com.worlize.interactivity.model.InteractivityUser;
@@ -220,24 +221,18 @@ package com.worlize.interactivity.rpc
 			"lock_room": handleLockRoom,
 			"logged_out": handleLoggedOut,
 			"move": handleMove,
-			"move_hotspot": handleMoveHotspot,
+			"move_item": handleMoveItem,
 			"move_loose_prop": handleMoveLooseProp,
-			"move_youtube_player": handleMoveYouTubePlayer,
 			"naked": handleNaked,
 			"new_friend_request": handleNewFriendRequest,
-			"move_object_instance": handleMoveObjectInstance,
-			"remove_object_instance": handleRemoveObjectInstance,
-			"remove_item": handleRemoveItem,
-			"set_object_instance_dest": handleSetObjectInstanceDest, // dest changed
 			"payment_completed": handlePaymentCompleted,
 			"ping": handlePing,
 			"presence_status_change": handlePresenceStatusChange,
 			"prop_instance_added": handlePropInstanceAdded,
 			"prop_instance_deleted": handlePropInstanceDeleted,
 			"request_permission_to_join": handleRequestPermissionToJoin,
-			"remove_hotspot": handleRemoveHotspot,
+			"remove_item": handleRemoveItem,
 			"remove_loose_prop": handleRemoveLooseProp,
-			"remove_youtube_player": handleRemoveYouTubePlayer,
 			"room_definition": handleRoomDefinition,
 			"room_definition_updated": handleRoomDefinitionUpdated,
 			"room_entry_denied": handleRoomEntryDenied,
@@ -255,7 +250,7 @@ package com.worlize.interactivity.rpc
 			"set_background_instance": handleSetBackgroundInstance,
 			"set_color": handleUserColor,
 			"set_face": handleUserFace,
-			"set_hotspot_dest": handleSetHotspotDest,
+			"set_dest": handleSetDest,
 			"set_simple_avatar": handleSetSimpleAvatar,
 			"set_video_avatar": handleSetVideoAvatar,
 			"set_video_server": handleSetVideoServer,
@@ -629,16 +624,6 @@ package com.worlize.interactivity.rpc
 			currentRoom.addItem(player);
 		}
 		
-		private function handleMoveYouTubePlayer(data:Object):void {
-			if (data.room !== currentRoom.id) { return; }
-			var item:IRoomItem = currentRoom.getItemByGuid(data.player);
-			if (!item || !(item is YouTubePlayerDefinition)) { return; }
-			var player:YouTubePlayerDefinition = YouTubePlayerDefinition(item);
-			player.x = data.player.x;
-			player.y = data.player.y;
-			player.setSize(data.player.width, data.player.height);
-		}
-		
 		private function handleUpdateYouTubePlayerData(data:Object):void {
 			if (data.room !== currentRoom.id) { return; }
 			var item:IRoomItem = currentRoom.getItemByGuid(data.player.guid);
@@ -945,29 +930,9 @@ package com.worlize.interactivity.rpc
 		
 		// END Binary Message Handler Functions
 		
-		private function handleMoveObjectInstance(data:Object):void {
-			if (data.room == currentRoom.id && data.object) {
-				currentRoom.moveObject(data.object.guid, data.object.x, data.object.y);
-			}
-		}
-		
-		private function handleSetObjectInstanceDest(data:Object):void {
-			if (data.room == currentRoom.id && data.object) {
-				currentRoom.setObjectDest(data.object, data.dest);
-			}
-		}
-		
 		private function handleRemoveObjectInstance(data:Object):void {
 			if (data.room == currentRoom.id && data.guid) {
 				currentRoom.removeItemByGuid(data.guid);
-			}
-		}
-		
-		private function handleRemoveItem(data:Object):void {
-			if (data.room == currentRoom.id && data.item) {
-				if (data.item.type === 'object') {
-					currentRoom.removeItemByGuid(data.item.guid);
-				}
 			}
 		}
 		
@@ -1020,34 +985,43 @@ package com.worlize.interactivity.rpc
 			});
 		}
 		
-		private function handleSetHotspotDest(data:Object):void {
+		private function handleSetDest(data:Object):void {
 			var item:IRoomItem = currentRoom.itemsByGuid[data.guid];
-			if (item && item is Hotspot) {
-				Hotspot(item).dest = data.dest;
+			if (item && item is ILinkableRoomItem) {
+				ILinkableRoomItem(item).dest = data.dest;
 			}
 		}
 		
-		private function handleRemoveHotspot(data:Object):void {
-			var item:IRoomItem = currentRoom.itemsByGuid[data.guid];
-			if (item && item is Hotspot) {
+		private function handleRemoveItem(data:Object):void {
+			var item:IRoomItem = currentRoom.getItemByGuid(data.guid);
+			if (item) {
 				var authorModeState:AuthorModeState = AuthorModeState.getInstance();
 				if (authorModeState.selectedItem === item) {
 					authorModeState.selectedItem = null;
 				}
 				
-				var index:int = currentRoom.items.getItemIndex(item);
-				if (index != -1) {
-					currentRoom.items.removeItemAt(index);
-				}
-				
-				delete currentRoom.itemsByGuid[item.guid];
+				currentRoom.removeItemByGuid(data.guid);
 			}
 		}
 		
-		private function handleMoveHotspot(data:Object):void {
-			var item:IRoomItem = currentRoom.itemsByGuid[data.guid];
-			if (item && item is Hotspot) {
-				Hotspot(item).moveTo(data.x, data.y, data.points);
+		private function handleMoveItem(data:Object):void {
+			var item:IRoomItem = currentRoom.getItemByGuid(data.guid);
+			if (item) {
+				if (item is Hotspot) {
+					Hotspot(item).moveTo(data.x, data.y, data.points);
+					return;
+				}
+				if (item is InWorldObjectInstance) {
+					currentRoom.moveObject(data.guid, data.x, data.y);
+					return;
+				}
+				if (item is YouTubePlayerDefinition) {
+					var player:YouTubePlayerDefinition = YouTubePlayerDefinition(item);
+					player.x = data.x;
+					player.y = data.y;
+					player.setSize(data.width, data.height);
+					return;
+				}
 			}
 		}
 		
@@ -1740,70 +1714,38 @@ package com.worlize.interactivity.rpc
 			});
 		}
 		
-		public function removeObjectInstance(instanceGuid:String):void {
+		public function moveItem(guid:String, x:int, y:int, width:int=-1, height:int=-1, points:Array=null):void {
+			var data:Object = {
+				guid: guid,
+				x: x,
+				y: y
+			};
+			if (points !== null) {
+				data.points = points;
+			}
+			if (width > -1 && height > -1) {
+				data.width = width;
+				data.height = height;
+			}
 			connection.send({
-				msg: 'remove_object_instance',
-				data: {
-					guid: instanceGuid
-				}
+				msg: 'move_item',
+				data: data
 			});
 		}
 		
-		public function moveObjectInstance(instanceGuid:String, x:int, y:int):void {
+		public function setDest(itemGuid:String, destGuid:String):void {
 			connection.send({
-				msg: 'move_object_instance',
+				msg: 'set_dest',
 				data: {
-					guid: instanceGuid,
-					x: x,
-					y: y
-				}
-			});
-		}
-		
-		public function setObjectInstanceDest(instanceGuid:String, dest:String):void {
-			connection.send({
-				msg: 'set_object_instance_dest',
-				data: {
-					guid: instanceGuid,
-					destGuid: dest
-				}
-			});
-		}
-		
-		public function moveHotspot(guid:String, x:int, y:int, points:Array):void {
-			connection.send({
-				msg: 'move_hotspot',
-				data: {
-					guid: guid,
-					x: x,
-					y: y,
-					points: points
-				}
-			});
-		}
-		
-		public function setHotspotDestination(hotspotGuid:String, destGuid:String):void {
-			connection.send({
-				msg: 'set_hotspot_dest',
-				data: {
-					guid: hotspotGuid,
+					guid: itemGuid,
 					destGuid: destGuid
 				}
 			});
 		}
 		
-		public function removeHotspot(guid:String):void {
+		public function removeItem(guid:String):void {
 			connection.send({
-				msg: 'remove_hotspot',
-				data: {
-					guid: guid
-				}
-			});
-		}
-		
-		public function removeYouTubePlayer(guid:String):void {
-			connection.send({
-				msg: 'remove_youtube_player',
+				msg: 'remove_item',
 				data: {
 					guid: guid
 				}
@@ -1816,19 +1758,6 @@ package com.worlize.interactivity.rpc
 				data: {
 					guid: guid,
 					data: data
-				}
-			});
-		}
-		
-		public function moveYouTubePlayer(guid:String, x:int, y:int, width:int, height:int):void {
-			connection.send({
-				msg: 'move_youtube_player',
-				data: {
-					guid: guid,
-					x: x,
-					y: y,
-					width: width,
-					height: height
 				}
 			});
 		}

@@ -362,7 +362,9 @@ package com.worlize.interactivity.view
 		
 		private function handleRedrawRequested(event:HotspotEvent):void {
 			draw();
-			updateDragHandlePositions();
+			if (authorMode) {
+				updateDragHandlePositions();
+			}
 		}
 		
 		private function updateDragHandlePositions():void {
@@ -417,7 +419,7 @@ package com.worlize.interactivity.view
 			else if (authorMode) {
 				graphics.lineStyle(1, 0x000000, 1.0);
 			}
-			else if (mouseOver) {
+			else if (mouseOver && hotSpot.dest) {
 				graphics.lineStyle(1, 0xFFFFFF, 0.0);
 			}
 			else {
@@ -431,7 +433,7 @@ package com.worlize.interactivity.view
 			else if (authorMode && !mouseOver) {
 				graphics.beginFill(0x444444, 0.25);
 			}
-			else if (mouseOver) {
+			else if (mouseOver && hotSpot.dest) {
 				graphics.beginFill(0xf2f200, 0.2);
 			}
 			else {
@@ -446,7 +448,7 @@ package com.worlize.interactivity.view
 			graphics.lineTo(firstPoint.x, firstPoint.y);
 			graphics.endFill();
 			
-			if (mouseOver && !authorMode) {
+			if (mouseOver && !authorMode && hotSpot.dest) {
 				filters = [
 					new GlowFilter(0xf2f200, 1, 20, 20, 2, 3, false, true)
 				];
@@ -500,7 +502,7 @@ package com.worlize.interactivity.view
 		}
 		
 		private function handleMouseOver(event:MouseEvent):void {
-			if (useHand) {
+			if (useHand && hotSpot.dest) {
 				Mouse.cursor = MouseCursor.BUTTON;
 			}
 			if (InteractivityConfig.highlightHotspotsOnMouseover) {

@@ -2,6 +2,7 @@ package com.worlize.model
 {
 	import com.worlize.event.NotificationCenter;
 	import com.worlize.interactivity.event.RoomEvent;
+	import com.worlize.interactivity.model.ILinkableRoomItem;
 	import com.worlize.interactivity.model.IRoomItem;
 	import com.worlize.interactivity.rpc.InteractivityClient;
 	import com.worlize.notification.InWorldObjectNotification;
@@ -18,7 +19,7 @@ package com.worlize.model
 	import mx.utils.object_proxy;
 
 	[Bindable]
-	public class InWorldObjectInstance extends EventDispatcher implements IRoomItem
+	public class InWorldObjectInstance extends EventDispatcher implements ILinkableRoomItem
 	{
 		public static const STATE_INIT:String = "init";
 		public static const STATE_LOADING:String = "loading";

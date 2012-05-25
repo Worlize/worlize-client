@@ -85,25 +85,5 @@ package com.worlize.model
 			}
 			return room;
 		}
-		
-		public function addObjectInstance(instanceData:Object, x:int, y:int):void {
-			var client:InteractivityClient = InteractivityClient.getInstance();
-			client.addObjectInstance(instanceData.guid, x, y);
-		}
-		
-		public function moveObjectInstance(instanceGuid:String, x:int, y:int):void {
-			var client:InteractivityClient = InteractivityClient.getInstance();
-			client.moveObjectInstance(instanceGuid, x, y);
-		}
-		
-		public function setObjectInstanceDestination(instanceGuid:String, dest:String):void {
-			var client:InteractivityClient = InteractivityClient.getInstance();
-			client.setObjectInstanceDest(instanceGuid, dest);
-		}
-		
-		public function deleteObjectInstance(instanceGuid:String):void {
-			var client:InteractivityClient = InteractivityClient.getInstance();
-			client.removeObjectInstance(instanceGuid);
-		}
 	}
 }

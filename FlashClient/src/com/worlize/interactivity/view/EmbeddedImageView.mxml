@@ -304,9 +304,8 @@
 				if (startPoint.x != inWorldObjectInstance.x ||
 					startPoint.y != inWorldObjectInstance.y)
 				{
-					var roomDefinition:RoomDefinition = new RoomDefinition();
-					roomDefinition.guid = inWorldObjectInstance.room.guid 
-					roomDefinition.moveObjectInstance(inWorldObjectInstance.guid, inWorldObjectInstance.x, inWorldObjectInstance.y);
+					var client:InteractivityClient = InteractivityClient.getInstance(); 
+					client.moveItem(inWorldObjectInstance.guid, inWorldObjectInstance.x, inWorldObjectInstance.y);
 				}
 			}
 			

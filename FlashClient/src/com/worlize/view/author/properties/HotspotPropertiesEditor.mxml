@@ -81,9 +81,7 @@
 			{
 				var destRoom:RoomListEntry = roomList.getItemAt(event.newIndex) as RoomListEntry;
 				hotspot.dest = destRoom.guid;
-				
-				var destString:String = (destRoom.guid === null) ? "" : destRoom.guid;
-				client.setHotspotDestination(hotspot.guid, destString);
+				client.setDest(hotspot.guid, hotspot.dest);
 			}
 
 			private function handleCloseClick():void {
