@@ -66,26 +66,7 @@
 			}
 			
 			private function uploadApp():void {
-				if (appLocker.emptySlots > 0) {
-					uploader.browse();
-				}
-				else {
-					Alert.show(
-						"You've run out of space.  You'll have to delete some existing apps to make room, or purchase some more space.  Would you like to purchase more space now?",
-						"Oh no!",
-						Alert.YES | Alert.NO,
-						null,
-						function(event:CloseEvent):void {
-							if (event.detail === Alert.YES) {
-								BuyStorageSpaceWindow.open('app', systemManager.getSandboxRoot());
-							}
-						}
-					); 
-				}
-			}
-			
-			private function showBuySlotsWindow():void {
-				BuyStorageSpaceWindow.open('app', systemManager.getSandboxRoot());
+				uploader.browse();
 			}
 		]]>
 	</fx:Script>
@@ -117,16 +98,16 @@
 	</s:states>
 	
 	<s:Group width="100%" height="100%">
-		<s:List top="0" right="0" left="0" bottom="0"
+		<s:List width="100%" height="100%"
 				includeIn="ready"
-				id="appList" dataProvider="{appLocker.instances}"
+				id="appList" dataProvider="{appLocker.entries}"
 				borderVisible="false"
+				horizontalScrollPolicy="off"
 				itemRenderer="com.worlize.view.itemrenderers.AppLockerItemRenderer">
 			<s:layout>
-				<s:TileLayout paddingTop="10" paddingLeft="10" paddingRight="10" paddingBottom="10"
-							  verticalGap="10" horizontalGap="10" />
+				<s:VerticalLayout paddingTop="5" paddingBottom="5" gap="10" />
 			</s:layout>
-		</s:List>	
+		</s:List>
 		
 		<s:Group width="100%" height="100%" includeIn="loading">
 			<controls:Spinner id="loadingSpinner"

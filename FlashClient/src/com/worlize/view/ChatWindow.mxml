@@ -46,8 +46,6 @@
 			import com.worlize.state.AuthorModeState;
 			import com.worlize.view.windows.AuthorLockerWindow;
 			import com.worlize.view.author.MyBackgroundsLockerView;
-			import com.worlize.view.author.MyGamesWindow;
-			import com.worlize.view.author.MyMediaWindow;
 			import com.worlize.view.author.MyObjectsLockerView;
 			import com.worlize.view.components.RoomListDataGrid;
 			import com.worlize.view.components.UserListDataGrid;
@@ -199,14 +197,6 @@
 			private function handleObjectsClick():void {
 //				MyObjectsWindow.toggleOpen(systemManager.getSandboxRoot());
 				AuthorLockerWindow.toggleOpen(systemManager.getSandboxRoot());
-			}
-			
-			private function handleGamesClick():void {
-				MyGamesWindow.toggleOpen(systemManager.getSandboxRoot());
-			}
-			
-			private function handleMediaClick():void {
-				MyMediaWindow.toggleOpen(systemManager.getSandboxRoot());
 			}
 			
 			private function createHotspot():void {

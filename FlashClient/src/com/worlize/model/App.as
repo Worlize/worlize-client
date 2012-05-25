@@ -7,6 +7,7 @@ package com.worlize.model
 		public var creatorGuid:String;
 		public var name:String;
 		public var iconURL:String;
+		public var mediumIconURL:String;
 		public var smallIconURL:String;
 		public var appURL:String;
 		public var width:uint;
@@ -19,6 +20,7 @@ package com.worlize.model
 			app.name = data.name;
 			app.appURL = data.app_url;
 			app.iconURL = data.icon;
+			app.mediumIconURL = data.medium_icon;
 			app.smallIconURL = data.small_icon;
 			return app;
 		}

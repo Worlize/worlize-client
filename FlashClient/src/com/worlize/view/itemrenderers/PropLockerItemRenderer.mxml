@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
 				xmlns:s="library://ns.adobe.com/flex/spark" 
-				xmlns:mx="library://ns.adobe.com/flex/mx"
 				width="82" height="82"
 				mouseDown="handleMouseDown(event)"
 				
@@ -23,6 +22,9 @@
 			import mx.events.CloseEvent;
 			import mx.events.FlexEvent;
 			import mx.managers.DragManager;
+			
+			import spark.components.Image;
+			import spark.filters.DropShadowFilter;
 			
 			/**
 			 *  @private
@@ -146,7 +148,16 @@
 						startMouseY: event.stageY,
 						guid: data.prop.guid
 					}, 'propFromLocker');
-					DragManager.doDrag(this, dragSource, event);
+					
+					var proxy:Image = new Image();
+					proxy.source = PropInstance(data).prop.thumbnailURL;
+					proxy.width = 80;
+					proxy.height = 80;
+					proxy.filters = [
+						new DropShadowFilter(3, 45, 0, 0.7, 10, 10, 1, 2)
+					];
+					
+					DragManager.doDrag(this, dragSource, event, proxy, 0-event.localX+40, 0-event.localY+40, 0.5);
 				}
 			}
 			
@@ -187,7 +198,7 @@
 	</s:Rect>
 	
 	<!--
-	<mx:Image source="@Embed(source='src/assets/icons/icon_authormode_red.png')"
+	<s:Image source="@Embed(source='src/assets/icons/icon_authormode_red.png')"
 			  toolTip="Edit with Aviary Image Editor" useHandCursor="true"
 			  includeIn="active" bottom="4" right="56"
 			  alpha="{data.editable ? 1.0 : 0.0}"
@@ -195,14 +206,14 @@
 			  click="handleEditClick(event)" />
 	-->
 	
-	<mx:Image source="@Embed(source='../../../../assets/icons/icon_gifts.png')"
-			  toolTip="Send as Gift" useHandCursor="true"
-			  includeIn="active" bottom="4" right="30"
-			  mouseDown="stopPropagation(event)"
-			  click="handleGiftClick(event)" />
+	<s:Image source="@Embed(source='../../../../assets/icons/icon_gifts.png')"
+			 toolTip="Send as Gift" useHandCursor="true"
+			 includeIn="active" bottom="4" right="30"
+			 mouseDown="stopPropagation(event)"
+			 click="handleGiftClick(event)" />
 	
-	<mx:Image source="@Embed(source='../../../../assets/icons/icon_delete.png')"
-			  toolTip="Delete" useHandCursor="true"
-			  includeIn="active" bottom="4" right="4" mouseDown="stopPropagation(event)" click="handleDeleteClick(event)" />
+	<s:Image source="@Embed(source='../../../../assets/icons/icon_delete.png')"
+			 toolTip="Delete" useHandCursor="true"
+			 includeIn="active" bottom="4" right="4" mouseDown="stopPropagation(event)" click="handleDeleteClick(event)" />
 	
 </s:ItemRenderer>

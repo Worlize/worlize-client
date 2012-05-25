@@ -1,16 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
-				xmlns:s="library://ns.adobe.com/flex/spark" 
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009"
+				xmlns:s="library://ns.adobe.com/flex/spark"
 				xmlns:mx="library://ns.adobe.com/flex/mx"
-				mouseDown="handleMouseDown(event)"
-				width="82" height="82" xmlns:components="com.worlize.view.components.*">
+				xmlns:components="com.worlize.view.components.*"
+				autoDrawBackground="false"
+				currentState="normal"
+				
+				width="100%" height.normal="82">
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
 	
 	<fx:Script>
 		<![CDATA[
+			import com.worlize.model.App;
 			import com.worlize.model.AppInstance;
+			import com.worlize.model.locker.AppLockerEntry;
 			
 			import mx.binding.utils.ChangeWatcher;
 			import mx.controls.Alert;
@@ -18,14 +23,16 @@
 			import mx.events.CloseEvent;
 			import mx.events.FlexEvent;
 			import mx.managers.DragManager;
+			import mx.utils.StringUtil;
+			
+			import spark.filters.DropShadowFilter;
 			
 			/**
 			 *  @private
 			 *  Storage for the data property.
 			 */
-			private var _data:Object;
-			
-			private var emptySlotWatcher:ChangeWatcher;
+			[Bindable]
+			private var _data:AppLockerEntry;
 			
 			[Bindable("dataChange")]
 			override public function get data():Object
@@ -39,44 +46,18 @@
 			override public function set data(value:Object):void
 			{
 				if (_data === value) { return; }
+				if (value is AppLockerEntry) {
+					_data = AppLockerEntry(value);
+					invalidateRendererState();
+					dispatchEvent(new FlexEvent(FlexEvent.DATA_CHANGE));
+				}
+			}
+			
+			override protected function getCurrentRendererState():String {
 				if (_data) {
-					// remove old change watchers
-					removeWatchers();
+					return _data.viewExpanded ? "expanded" : "normal";
 				}
-				_data = value;
-				if (_data) {
-					// add change watchers
-					addWatchers(); 
-				}
-				handleDataStateChanged();
-				dispatchEvent(new FlexEvent(FlexEvent.DATA_CHANGE));
-			}
-			
-			private function handleDataStateChanged(event:Event = null):void {
-				if (_data === null) {
-					this.enabled = false;
-				}
-				else {
-					if (_data.emptySlot) {
-						this.enabled = false;
-					}
-					else {
-						this.enabled = true;
-					}
-				}
-			}
-			
-			private function removeWatchers():void {
-				emptySlotWatcher.unwatch();
-			}
-			
-			private function addWatchers():void {
-				emptySlotWatcher = ChangeWatcher.watch(_data, 'emptySlot', handleDataStateChanged);
-			}
-			
-			private function stopPropagation(event:MouseEvent):void {
-				event.stopImmediatePropagation();
-				event.preventDefault();
+				return "normal";
 			}
 			
 			private function handleDeleteClick(event:MouseEvent):void {
@@ -92,40 +73,73 @@
 			}
 			
 			private function handleAlertClose(event:CloseEvent):void {
-				if (event.detail == Alert.YES) {
+				if (event.detail === Alert.YES) {
 					requestDelete();
-					enabled = false;
 				}
 			}
 			
 			private function requestDelete():void {
-				AppInstance(data).requestDelete();
+				for each (var instance:AppInstance in AppLockerEntry(data).instances) {
+					instance.requestDelete();
+				}
 			}
 			
 			private function handleMouseDown(event:MouseEvent):void {
-				if (AppInstance(data).room === null) {
-					systemManager.getSandboxRoot().addEventListener(MouseEvent.MOUSE_UP, handleStageMouseUp);
-					addEventListener(MouseEvent.MOUSE_MOVE, handleMouseMove);
-				}
+				systemManager.getSandboxRoot().addEventListener(MouseEvent.MOUSE_UP, handleStageMouseUp);
+				systemManager.getSandboxRoot().addEventListener(MouseEvent.MOUSE_MOVE, handleMouseMove);
 			}
 			
 			private function handleStageMouseUp(event:MouseEvent):void {
 				systemManager.getSandboxRoot().removeEventListener(MouseEvent.MOUSE_UP, handleStageMouseUp);
-				removeEventListener(MouseEvent.MOUSE_MOVE, handleMouseMove);
+				systemManager.getSandboxRoot().removeEventListener(MouseEvent.MOUSE_MOVE, handleMouseMove);
 			}
 			
 			private function handleMouseMove(event:MouseEvent):void {
 				systemManager.getSandboxRoot().removeEventListener(MouseEvent.MOUSE_UP, handleStageMouseUp);
-				removeEventListener(MouseEvent.MOUSE_MOVE, handleMouseMove);
+				systemManager.getSandboxRoot().removeEventListener(MouseEvent.MOUSE_MOVE, handleMouseMove);
 				
 				if (event.buttonDown) {
+					var instance:AppInstance = AppLockerEntry(data).unusedInstance;
 					var dragSource:DragSource = new DragSource();
-					dragSource.addData({
-						startMouseX: event.stageX,
-						startMouseY: event.stageY,
-						guid: data.guid
-					}, 'appFromLocker');
-					DragManager.doDrag(this, dragSource, event);
+					if (instance) {
+						dragSource.addData({
+							startMouseX: event.stageX,
+							startMouseY: event.stageY,
+							guid: instance.guid
+						}, 'appFromLocker');
+					}
+					else {
+						dragSource.addData({
+							startMouseX: event.stageX,
+							startMouseY: event.stageY,
+							appGuid: AppLockerEntry(data).app.guid
+						}, 'appFromLockerRequiresDuplicate');
+					}
+						
+					var proxy:spark.components.Image = new spark.components.Image();
+					proxy.source = AppLockerEntry(data).app.mediumIconURL;
+					proxy.width = 80;
+					proxy.height = 80;
+					proxy.filters = [
+						new DropShadowFilter(3, 45, 0, 0.7, 10, 10, 1, 2)
+					];
+					
+					DragManager.doDrag(iconImage, dragSource, event, proxy, 0, 0, 0.7);
+				}
+			}
+			
+			protected function handleImageRollOver(event:MouseEvent):void {
+				Mouse.cursor = MouseCursor.HAND;
+			}
+			
+			protected function handleImageRollOut(event:MouseEvent):void {
+				Mouse.cursor = MouseCursor.ARROW;
+			}
+			
+			protected function toggleDetails():void {
+				if (_data) {
+					_data.viewExpanded = !_data.viewExpanded;
+					invalidateRendererState();
 				}
 			}
 		]]>
@@ -133,55 +147,77 @@
 	
 	<s:states>
 		<s:State name="normal" />
-		<s:State name="hovered" stateGroups="active" />
-		<s:State name="selected" stateGroups="active" />
+		<s:State name="expanded" />
 	</s:states>
 	
-	<s:Rect left="0" top="0" right="0" bottom="0">
-		<s:stroke>
-			<s:SolidColorStroke weight="1" color="#CCCCCC" />
-		</s:stroke>
-		<s:fill>
-			<s:SolidColor color="#F0F0F0" />
-		</s:fill>
-	</s:Rect>
+	<s:Image left="1" top="1" width="80" height="80"
+			 id="iconImage"
+			 toolTip="Drag this icon into your room to install a copy of the app."
+			 source="{_data.app.mediumIconURL}"
+			 rollOver="handleImageRollOver(event)"
+			 rollOut="handleImageRollOut(event)"
+			 mouseDown="handleMouseDown(event)" />
 	
-	<!--
-	<components:InWorldObjectThumbnailView left="1" top="1" dataProvider="{data}" />
-	-->
+	<s:VGroup gap="0" top="11" width="100%">
+		<s:VGroup paddingLeft="90" paddingRight="133" width="100%" gap="3">
+			<s:Label width="100%"
+					 fontFamily="PTSansNarrowBold" fontSize="18"
+					 maxDisplayedLines.normal="1"
+					 text="Shoutcast Player"/>
+			<s:Label width="100%" verticalAlign="top"
+					 maxDisplayedLines.normal="3"
+					 minHeight="50"
+					 text="Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat."/>
+		</s:VGroup>
+		
+		<s:VGroup includeIn="expanded" width="100%" horizontalAlign="center"
+				  paddingTop="20" paddingBottom="30">
+			<s:Panel title="Copies of {_data.app.name}" width="420">
+				<s:List includeIn="expanded" width="100%" borderVisible="false">
+					<s:layout>
+						<s:VerticalLayout gap="0" requestedMinRowCount="1" requestedMaxRowCount="6" />
+					</s:layout>
+					<s:dataProvider>
+						<s:ArrayList>
+							<fx:String>Foo Bar</fx:String>
+							<fx:String>Baz Bing</fx:String>
+							<fx:String>Foo Bar</fx:String>
+							<fx:String>Baz Bing</fx:String>
+							<fx:String>Foo Bar</fx:String>
+							<fx:String>Baz Bing</fx:String>
+							<fx:String>Foo Bar</fx:String>
+							<fx:String>Baz Bing</fx:String>
+							<fx:String>Foo Bar</fx:String>
+							<fx:String>Baz Bing</fx:String>
+							<fx:String>Foo Bar</fx:String>
+							<fx:String>Baz Bing</fx:String>
+							<fx:String>Foo Bar</fx:String>
+							<fx:String>Baz Bing</fx:String>
+							<fx:String>Foo Bar</fx:String>
+							<fx:String>Baz Bing</fx:String>
+							<fx:String>Foo Bar</fx:String>
+							<fx:String>Baz Bing</fx:String>
+						</s:ArrayList>
+					</s:dataProvider>
+				</s:List>			
+			</s:Panel>
+		</s:VGroup>
+	</s:VGroup>
 	
-	<s:Label text="App" horizontalCenter="0" verticalCenter="0" />
-	
-	<s:Label visible="{data.emptySlot}" horizontalCenter="0" verticalCenter="0" text="Empty" />
-	
-	<!-- Item in use... -->
-	<s:Rect left="0" top="0" right="0" bottom="0" visible="{data.room}">
-		<s:fill>
-			<s:SolidColor color="#CCCCCC" alpha="0.5" />
-		</s:fill>
-	</s:Rect>
-	
-	<s:Label visible="{data.room}"
-			 width="95%"  textAlign="center"
-			 fontFamily="PTSansNarrowBold" color="#000"
-			 horizontalCenter="0" verticalCenter="0"
-			 text="Used in: {data.room.name}" />
-	<!-- End: Item in use... -->
-	
-	<s:Rect left="0" top="0" right="0" bottom="0" includeIn="active">
-		<s:stroke>
-			<s:SolidColorStroke joints="miter"
-								weight.hovered="1" color.hovered="#ffe49b" alpha.hovered="0.3"
-								color="#f5b501" weight="5" />
-		</s:stroke>
-		<s:fill>
-			<s:SolidColor color="#ffe49b" alpha="0.3" alpha.selected="0.4" />
-		</s:fill>
-	</s:Rect>
-	
-	<mx:Image source="@Embed(source='../../../../assets/icons/icon_delete.png')"
-			  toolTip="Delete" useHandCursor="true"
-			  includeIn="active" bottom="4" right="4" mouseDown="stopPropagation(event)" click="handleDeleteClick(event)" />
+	<s:VGroup right="10" top="11" width="102"
+			  id="optionsContainer"
+			  verticalAlign="top" horizontalAlign="center">
+		<s:Label width="100%" color="#8C8C8C" fontFamily="Arial"
+				 text="{_data.instances.length} {_data.instances.length === 1 ? 'copy' : 'copies'}, {_data.instancesUsed} used"
+				 fontStyle="italic" fontWeight="normal"
+				 textAlign="center" verticalAlign="top"/>
+		<mx:PopUpMenuButton width="100%" label="Options" fontFamily="Arial"/>
+		<mx:LinkButton click="toggleDetails()"
+					   width="100%"
+					   label.normal="Show Details..."
+					   label.expanded="Hide Details..."
+					   color="#8C8C8C"/>
+	</s:VGroup>
 	
 	
 </s:ItemRenderer>

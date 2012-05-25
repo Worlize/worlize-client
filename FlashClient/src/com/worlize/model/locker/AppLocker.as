@@ -2,9 +2,8 @@ package com.worlize.model.locker
 {
 	import com.worlize.event.LockerEvent;
 	import com.worlize.event.NotificationCenter;
-	import com.worlize.model.CurrentUser;
 	import com.worlize.model.AppInstance;
-	import com.worlize.notification.AppNotification;
+	import com.worlize.model.CurrentUser;
 	import com.worlize.notification.AppNotification;
 	import com.worlize.rpc.HTTPMethod;
 	import com.worlize.rpc.WorlizeResultEvent;
@@ -18,6 +17,8 @@ package com.worlize.model.locker
 	import mx.logging.Log;
 	import mx.rpc.events.FaultEvent;
 	
+	import spark.collections.Sort;
+	
 	[Bindable]
 	public class AppLocker extends EventDispatcher
 	{
@@ -30,11 +31,11 @@ package com.worlize.model.locker
 		
 		public var currentUser:CurrentUser = CurrentUser.getInstance();
 		
-		public var count:int;
-		public var emptySlots:int;
-		
 		public var instances:ArrayCollection = new ArrayCollection();
 		private var instanceMap:Object = {};
+		
+		public var entries:ArrayCollection = new ArrayCollection();
+		protected var entriesByAppGuid:Object;
 		
 		public var state:String = STATE_INIT;
 		
@@ -45,42 +46,6 @@ package com.worlize.model.locker
 			NotificationCenter.addListener(AppNotification.APP_INSTANCE_DELETED, handleAppInstanceDeleted);
 			NotificationCenter.addListener(AppNotification.APP_INSTANCE_ADDED_TO_ROOM, handleAppInstanceAddedToRoom);
 			NotificationCenter.addListener(AppNotification.APP_INSTANCE_REMOVED_FROM_ROOM, handleAppInstanceRemovedFromRoom);
-			
-			currentUser.slots.addEventListener(LockerEvent.APP_LOCKER_CAPACITY_CHANGED, handleAppLockerCapacityChanged);
-		}
-		
-		private function handleAppLockerCapacityChanged(event:LockerEvent):void {
-//			var oldCapacity:int = event.oldCapacity;
-//			var newCapacity:int = event.newCapacity;
-//			var i:int;
-//			
-//			if (isNaN(oldCapacity)) { oldCapacity = 0 };
-//			instances.disableAutoUpdate();
-//			if (newCapacity - oldCapacity > 0) {
-//				var slotsToAdd:int = newCapacity - oldCapacity;
-//				// if there were previously fewer slots than the user had avatars...
-//				if (emptySlots < 0) {
-//					slotsToAdd += emptySlots;
-//				}
-//				for (i = 0; i < slotsToAdd; i++) {
-//					addEmptySlot();
-//				}
-//			}
-//			else if (newCapacity - oldCapacity < 0) {
-//				var slotsToRemove:int = oldCapacity - newCapacity;
-//				for (i = 0; i < slotsToRemove; i++) {
-//					try {
-//						removeEmptySlot();
-//					}
-//					catch(e:Error) {
-//						// bail out
-//						logger.warn("Tried to remove an empty slot but there are none left to remove.");
-//						break;
-//					}
-//				}
-//			}
-//			instances.enableAutoUpdate();
-			updateCount();
 		}
 		
 		private function handleAppInstanceAddedToRoom(notification:AppNotification):void {
@@ -103,8 +68,6 @@ package com.worlize.model.locker
 				if (instance.guid == notification.instanceGuid) {
 					instances.removeItemAt(i);
 					delete instanceMap[instance.guid];
-//					addEmptySlot();
-					updateCount();
 					return;
 				}
 			}
@@ -112,18 +75,33 @@ package com.worlize.model.locker
 		
 		private function handleAppInstanceAdded(notification:AppNotification):void {
 			instanceMap[notification.appInstance.guid] = notification.appInstance;
-//			for (var i:int = 0, len:int = instances.length; i < len; i++) {
-//				var instance:AppInstance = AppInstance(instances.getItemAt(i));
-//				if (instance.emptySlot) {
-//					instances.removeItemAt(i);
-//					delete instanceMap[instance.guid];
-//					instances.addItemAt(notification.appInstance, 0);
-//					updateCount();
-//					return;
-//				}
-//			}
+			addAppInstance(notification.appInstance);
 			instances.addItemAt(notification.appInstance, 0);
-			updateCount();
+		}
+		
+		private function addAppInstance(appInstance:AppInstance):void {
+			instances.addItemAt(appInstance, 0);
+			instanceMap[appInstance.guid] = appInstance;
+			
+			var entry:AppLockerEntry = entriesByAppGuid[appInstance.app.guid];
+			if (entry === null) {
+				entry = entriesByAppGuid[appInstance.app.guid] = new AppLockerEntry();
+				entries.addItem(entry);
+			}
+			entry.addInstance(appInstance);
+		}
+		
+		private function removeAppInstance(appInstance:AppInstance):void {
+			var index:int = instances.getItemIndex(appInstance);
+			if (index !== -1) {
+				instances.removeItemAt(index);
+			}
+			delete instanceMap[appInstance.guid];
+			
+			var entry:AppLockerEntry = entriesByAppGuid[appInstance.app.guid];
+			if (entry) {
+				entry.removeInstance(appInstance);
+			}
 		}
 		
 		public function load():void {
@@ -136,21 +114,19 @@ package com.worlize.model.locker
 		
 		private function handleLoadResult(event:WorlizeResultEvent):void {
 			var result:Object = event.resultJSON;
-			var instance:AppInstance;
 			if (result.success) {
 				logger.info("Success: Got " + result.count + " apps.");
 				instances.removeAll();
+				instanceMap = {};
+				entries.removeAll();
+				entriesByAppGuid = {};
+				instances.disableAutoUpdate();
+				entries.disableAutoUpdate();
 				for each (var rawData:Object in result.data) {
-					instance = AppInstance.fromLockerData(rawData);
-					instances.addItem(instance);
-					instanceMap[instance.guid] = instance;
+					addAppInstance(AppInstance.fromLockerData(rawData));
 				}
-				var capacity:int = currentUser.slots.appSlots = result.capacity;
-				count = result.count;
-				emptySlots = capacity - count;
-//				for (var i:int = 0; i < emptySlots; i++) {
-//					addEmptySlot();
-//				}
+				instances.enableAutoUpdate();
+				entries.enableAutoUpdate();
 				state = STATE_READY;
 			}
 			else {
@@ -158,35 +134,6 @@ package com.worlize.model.locker
 				state = STATE_ERROR;
 			}
 		}
-		
-		private function updateCount():void {
-//			var count:int = 0;
-//			for (var i:int = 0, len:int = instances.length; i < len; i++) {
-//				if (!AppInstance(instances.getItemAt(i)).emptySlot) {
-//					count ++;
-//				}
-//			}
-//			this.count = count;
-			this.count = instances.length;
-			emptySlots = currentUser.slots.appSlots - this.count;
-		}
-		
-//		private function addEmptySlot():void {
-//			var asset:AppInstance = new AppInstance();
-//			asset.emptySlot = true;
-//			instances.addItem(asset);
-//		}
-		
-//		private function removeEmptySlot():void {
-//			for (var i:int = instances.length-1; i > 0; i--) {
-//				var instance:AppInstance = AppInstance(instances.getItemAt(i));
-//				if (instance.emptySlot) {
-//					instances.removeItemAt(i);
-//					return;
-//				}
-//			}
-//			throw new Error("There are no empty slots to remove.");
-//		}
 		
 		private function handleFault(event:FaultEvent):void {
 			logger.error("Unable to load app locker. " + event);
