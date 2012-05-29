@@ -85,6 +85,14 @@ package com.worlize.interactivity.model
 			items.addItem(item);
 			itemsByGuid[item.guid] = item;
 			addRoomItemListeners(item);
+			
+			if (item is InWorldObjectInstance) {
+				var n:InWorldObjectNotification = new InWorldObjectNotification(InWorldObjectNotification.IN_WORLD_OBJECT_ADDED_TO_ROOM);
+				n.instanceGuid = item.guid;
+				n.room = InWorldObjectInstance(item).room;
+				NotificationCenter.postNotification(n);
+			}
+			
 			var event:RoomEvent = new RoomEvent(RoomEvent.ITEM_ADDED);
 			event.roomItem = item;
 			dispatchEvent(event);
@@ -103,6 +111,13 @@ package com.worlize.interactivity.model
 				}
 				delete itemsByGuid[guid];
 				removeRoomItemListeners(item);
+				
+				if (item is InWorldObjectInstance) {
+					var n:InWorldObjectNotification = new InWorldObjectNotification(InWorldObjectNotification.IN_WORLD_OBJECT_REMOVED_FROM_ROOM);
+					n.instanceGuid = item.guid;
+					NotificationCenter.postNotification(n);
+				}
+				
 				var event:RoomEvent = new RoomEvent(RoomEvent.ITEM_REMOVED);
 				event.roomItem = item;
 				dispatchEvent(event);
