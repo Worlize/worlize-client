@@ -17,7 +17,7 @@ package com.worlize.model.locker
 		[Bindable]
 		public var instances:ArrayCollection;
 		
-		protected var watchers:Vector.<ChangeWatcher>;
+		protected var watchers:Object;
 		
 		[Bindable]
 		public var app:App;
@@ -37,7 +37,7 @@ package com.worlize.model.locker
 		{
 			super(target);
 			instances = new ArrayCollection();
-			watchers = new Vector.<ChangeWatcher>();
+			watchers = {};
 			var sort:Sort = new Sort();
 			sort.compareFunction = function(a:Object, b:Object, fields:Array = null):int {
 				var appA:AppInstance = AppInstance(a);
@@ -52,8 +52,6 @@ package com.worlize.model.locker
 			};
 			instances.sort = sort;
 			instances.refresh();
-			
-			instanceRoomChangeWatcher = ChangeWatcher.watch(this, ['instances','room'], handleInstanceRoomChanged);
 		}
 		
 		private function handleInstanceRoomChanged(event:PropertyChangeEvent):void {
@@ -62,11 +60,13 @@ package com.worlize.model.locker
 		}
 		
 		private function updateCounts():void {
+			var used:int = 0;
 			for each (var instance:AppInstance in instances) {
 				if (instance.room) {
-					instancesUsed ++;
+					used ++;
 				}
 			}
+			instancesUsed = used;
 			instancesAvailable = instances.length - instancesUsed;
 		}
 		
@@ -75,6 +75,7 @@ package com.worlize.model.locker
 				app = appInstance.app;
 			}
 			instances.addItem(appInstance);
+			watchers[appInstance.guid] = ChangeWatcher.watch(appInstance, ['room'], handleInstanceRoomChanged);
 			updateCounts();
 		}
 		
@@ -83,7 +84,20 @@ package com.worlize.model.locker
 			if (index !== -1) {
 				instances.removeItemAt(index);
 			}
+			var watcher:ChangeWatcher = watchers[appInstance.guid];
+			if (watcher) {
+				watcher.unwatch();
+				delete watchers[appInstance.guid];
+			}
 			updateCounts();
+		}
+		
+		public function removeAll():void {
+			instances.removeAll();
+			for each (var watcher:ChangeWatcher in watchers) {
+				watcher.unwatch();
+			}
+			watchers = {};
 		}
 		
 		public function get unusedInstanceAvailable():Boolean {

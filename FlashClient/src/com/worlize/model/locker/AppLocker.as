@@ -65,9 +65,8 @@ package com.worlize.model.locker
 		private function handleAppInstanceDeleted(notification:AppNotification):void {
 			for (var i:int = 0, len:int = instances.length; i < len; i++) {
 				var instance:AppInstance = AppInstance(instances.getItemAt(i));
-				if (instance.guid == notification.instanceGuid) {
-					instances.removeItemAt(i);
-					delete instanceMap[instance.guid];
+				if (instance.guid === notification.instanceGuid) {
+					removeAppInstance(instance);
 					return;
 				}
 			}
@@ -83,11 +82,7 @@ package com.worlize.model.locker
 			instances.addItemAt(appInstance, 0);
 			instanceMap[appInstance.guid] = appInstance;
 			
-			var entry:AppLockerEntry = entriesByAppGuid[appInstance.app.guid];
-			if (entry === null) {
-				entry = entriesByAppGuid[appInstance.app.guid] = new AppLockerEntry();
-				entries.addItem(entry);
-			}
+			var entry:AppLockerEntry = getOrCreateAppLockerEntryByAppGuid(appInstance.app.guid);
 			entry.addInstance(appInstance);
 		}
 		
@@ -102,6 +97,31 @@ package com.worlize.model.locker
 			if (entry) {
 				entry.removeInstance(appInstance);
 			}
+			
+			if (entry.instances.length === 0) {
+				removeAppLockerEntryByAppGuid(appInstance.app.guid);
+			}
+		}
+		
+		private function getOrCreateAppLockerEntryByAppGuid(appGuid:String):AppLockerEntry {
+			var entry:AppLockerEntry = entriesByAppGuid[appGuid];
+			if (entry === null) {
+				entry = entriesByAppGuid[appGuid] = new AppLockerEntry();
+				entries.addItem(entry);
+			}
+			return entry;
+		}
+		
+		private function removeAppLockerEntryByAppGuid(appGuid:String):AppLockerEntry {
+			var entry:AppLockerEntry = entriesByAppGuid[appGuid];
+			if (entry) {
+				var index:int = entries.getItemIndex(entry);
+				if (index !== -1) {
+					entries.removeItemAt(index);
+				}
+				delete entriesByAppGuid[appGuid];
+			}
+			return entry;
 		}
 		
 		public function load():void {

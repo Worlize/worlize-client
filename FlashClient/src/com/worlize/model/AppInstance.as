@@ -114,15 +114,40 @@ package com.worlize.model
 			client.send("/locker/apps/" + guid + ".json", HTTPMethod.DELETE);
 		}
 		
+		public function requestRemoveFromRoom():void {
+			var client:WorlizeServiceClient = new WorlizeServiceClient();
+			client.addEventListener(WorlizeResultEvent.RESULT, handleRemoveFromRoomResult);
+			client.addEventListener(FaultEvent.FAULT, handleFault);
+			client.send("/locker/apps/" + guid + "/remove_from_room.json", HTTPMethod.POST);
+		}
+		
 		private function handleFault(event:FaultEvent):void {
 			logger.error("App Instance " + guid + " delete failed. " + event);
 		}
 		
 		private function handleDeleteResult(event:WorlizeResultEvent):void {
-			logger.info("App Instance " + guid + " deleted successfully.");
-			var notification:AppNotification = new AppNotification(AppNotification.APP_INSTANCE_DELETED);
-			notification.instanceGuid = guid;
-			NotificationCenter.postNotification(notification);
+			if (event.resultJSON.success) {
+				logger.info("App Instance " + guid + " deleted successfully.");
+				var notification:AppNotification = new AppNotification(AppNotification.APP_INSTANCE_DELETED);
+				notification.instanceGuid = guid;
+				NotificationCenter.postNotification(notification);
+			}
+			else {
+				logger.info("Unable to delete app instance " + guid + ".");
+			}
+		}
+		
+		private function handleRemoveFromRoomResult(event:WorlizeResultEvent):void {
+			if (event.resultJSON.success) {
+				logger.info("App Instance " + guid + " removed from room successfully.");
+				var notification:AppNotification = new AppNotification(AppNotification.APP_INSTANCE_REMOVED_FROM_ROOM);
+				notification.room = RoomListEntry.fromData(event.resultJSON.room);
+				notification.instanceGuid = guid;
+				NotificationCenter.postNotification(notification);
+			}
+			else {
+				logger.info("Unable to remove app instance " + guid + " from room.");
+			}
 		}
 		
 		public static function fromData(objectData:Object):AppInstance {

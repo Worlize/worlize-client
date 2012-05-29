@@ -5,7 +5,7 @@
 				xmlns:components="com.worlize.view.components.*"
 				autoDrawBackground="false"
 				currentState="normal"
-				
+				initialize="handleInitialize(event)"
 				width="100%" height.normal="82">
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
@@ -19,13 +19,18 @@
 			
 			import mx.binding.utils.ChangeWatcher;
 			import mx.controls.Alert;
+			import mx.controls.Menu;
 			import mx.core.DragSource;
 			import mx.events.CloseEvent;
 			import mx.events.FlexEvent;
+			import mx.events.MenuEvent;
 			import mx.managers.DragManager;
 			import mx.utils.StringUtil;
 			
 			import spark.filters.DropShadowFilter;
+
+			[Bindable]
+			private var menu:Menu;
 			
 			/**
 			 *  @private
@@ -58,6 +63,55 @@
 					return _data.viewExpanded ? "expanded" : "normal";
 				}
 				return "normal";
+			}
+			
+			protected function handleInitialize(event:FlexEvent):void {
+				updateMenu();
+			}
+			
+			private function updateMenu():void {
+				if (menu) {
+					menu.removeEventListener(MenuEvent.ITEM_CLICK, handleMenuItemClick);
+				}
+				
+				var menuData:Array = [];
+				
+				menuData.push({ type: 'normal', label: 'Get Another Copy', action: 'getAnotherCopy' });
+				menuData.push({ type: 'normal', label: 'Read App Instructions...', action: 'readInstructions' });
+				menuData.push({ type: 'normal', label: 'Delete All Copies', action: 'deleteAll' });
+				
+				menu = Menu.createMenu(null, menuData, true);
+				menu.addEventListener(MenuEvent.ITEM_CLICK, handleMenuItemClick);
+			}
+			
+			private function handleMenuItemClick(event:MenuEvent):void {
+				trace("Menu item clicked: " + event.item.action);
+				switch (event.item.action) {
+					case 'deleteAll':
+						deleteAllCopies();
+						break;
+					case 'readInstructions':
+						break;
+					case 'getAnotherCopy':
+						_data.app.requestAnotherCopy();
+						break;
+					default:
+						break;
+				}
+			}
+			
+			private function deleteAllCopies():void {
+				Alert.show(
+					"Are you sure you want to delete all copies of this app? " +
+					"Any copies in use will be immediately removed from their respective rooms.",
+					"Confirm",
+					Alert.YES | Alert.NO, null,
+					function(event:CloseEvent):void {
+						if (event.detail === Alert.YES && _data.app) {
+							_data.app.requestDelete();
+						}
+					}
+				);
 			}
 			
 			private function handleDeleteClick(event:MouseEvent):void {
@@ -142,6 +196,7 @@
 					invalidateRendererState();
 				}
 			}
+			
 		]]>
 	</fx:Script>
 	
@@ -163,42 +218,22 @@
 			<s:Label width="100%"
 					 fontFamily="PTSansNarrowBold" fontSize="18"
 					 maxDisplayedLines.normal="1"
-					 text="Shoutcast Player"/>
+					 text="{_data.app.name}"/>
 			<s:Label width="100%" verticalAlign="top"
 					 maxDisplayedLines.normal="3"
 					 minHeight="50"
-					 text="Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat."/>
+					 text="{_data.app.description}"/>
 		</s:VGroup>
 		
 		<s:VGroup includeIn="expanded" width="100%" horizontalAlign="center"
 				  paddingTop="20" paddingBottom="30">
 			<s:Panel title="Copies of {_data.app.name}" width="420">
-				<s:List includeIn="expanded" width="100%" borderVisible="false">
+				<s:List includeIn="expanded" width="100%" borderVisible="false" dataProvider="{_data.instances}"
+						itemRenderer="com.worlize.view.itemrenderers.AppInstanceItemRenderer">
 					<s:layout>
-						<s:VerticalLayout gap="0" requestedMinRowCount="1" requestedMaxRowCount="6" />
+						<s:VerticalLayout gap="3" requestedMinRowCount="1" requestedMaxRowCount="6"
+										  paddingTop="3" paddingBottom="3"/>
 					</s:layout>
-					<s:dataProvider>
-						<s:ArrayList>
-							<fx:String>Foo Bar</fx:String>
-							<fx:String>Baz Bing</fx:String>
-							<fx:String>Foo Bar</fx:String>
-							<fx:String>Baz Bing</fx:String>
-							<fx:String>Foo Bar</fx:String>
-							<fx:String>Baz Bing</fx:String>
-							<fx:String>Foo Bar</fx:String>
-							<fx:String>Baz Bing</fx:String>
-							<fx:String>Foo Bar</fx:String>
-							<fx:String>Baz Bing</fx:String>
-							<fx:String>Foo Bar</fx:String>
-							<fx:String>Baz Bing</fx:String>
-							<fx:String>Foo Bar</fx:String>
-							<fx:String>Baz Bing</fx:String>
-							<fx:String>Foo Bar</fx:String>
-							<fx:String>Baz Bing</fx:String>
-							<fx:String>Foo Bar</fx:String>
-							<fx:String>Baz Bing</fx:String>
-						</s:ArrayList>
-					</s:dataProvider>
 				</s:List>			
 			</s:Panel>
 		</s:VGroup>
@@ -211,7 +246,11 @@
 				 text="{_data.instances.length} {_data.instances.length === 1 ? 'copy' : 'copies'}, {_data.instancesUsed} used"
 				 fontStyle="italic" fontWeight="normal"
 				 textAlign="center" verticalAlign="top"/>
-		<mx:PopUpMenuButton width="100%" label="Options" fontFamily="Arial"/>
+		
+		<mx:PopUpButton width="100%" label="Options" fontFamily="Arial"
+						openAlways="true"
+						popUp="{menu}" />
+		
 		<mx:LinkButton click="toggleDetails()"
 					   width="100%"
 					   label.normal="Show Details..."
