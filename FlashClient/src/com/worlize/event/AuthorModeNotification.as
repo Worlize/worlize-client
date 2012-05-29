@@ -1,6 +1,7 @@
 package com.worlize.event
 {
 	import com.worlize.interactivity.model.Hotspot;
+	import com.worlize.interactivity.model.IRoomItem;
 	import com.worlize.model.InWorldObjectInstance;
 	
 	import flash.events.Event;
@@ -18,7 +19,7 @@ package com.worlize.event
 		public var newValue:Object;
 		public var oldValue:Object;
 		
-		public var inWorldObjectInstance:InWorldObjectInstance;
+		public var roomItem:IRoomItem;
 		
 		public function AuthorModeNotification(type:String, bubbles:Boolean=false, cancelable:Boolean=false)
 		{

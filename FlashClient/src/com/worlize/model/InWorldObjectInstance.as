@@ -21,16 +21,6 @@ package com.worlize.model
 	[Bindable]
 	public class InWorldObjectInstance extends EventDispatcher implements ILinkableRoomItem
 	{
-		public static const STATE_INIT:String = "init";
-		public static const STATE_LOADING:String = "loading";
-		public static const STATE_LOAD_ERROR:String = "loadError";
-		public static const STATE_READY:String = "ready";
-		public static const STATE_HANDSHAKING:String = "handshaking";
-		public static const STATE_UNLOADING:String = "unloading";
-		public static const STATE_UNLOADED:String = "unloaded";
-		public static const STATE_BOMBED:String = "bombed";
-		
-		private var _state:String = STATE_INIT;
 		public var inWorldObject:InWorldObject;
 		public var guid:String;
 		public var x:int;
@@ -40,40 +30,6 @@ package com.worlize.model
 		public var room:RoomListEntry;
 		public var dest:String;
 		public var emptySlot:Boolean = false;
-		
-		public var configData:Object;
-		public var syncedData:Object;
-		public var stateHistory:Array;
-		
-		public var editModeSupported:Boolean = false;
-		private var _editModeEnabled:Boolean = false;
-		
-		public var sizeUnknown:Boolean = true;
-		
-		[Bindable(event="stateChanged")]
-		public function get state():String {
-			return _state;
-		}
-		public function set state(newValue:String):void {
-			if (_state !== newValue) {
-				_state = newValue;
-				dispatchEvent(new FlexEvent('stateChanged'));
-				var event:RoomEvent = new RoomEvent(RoomEvent.APP_STATE_CHANGED);
-				event.roomObject = this;
-				dispatchEvent(event);
-			}
-		}
-		
-		[Bindable(event="editModeEnabledChanged")]
-		public function get editModeEnabled():Boolean {
-			return _editModeEnabled;
-		}
-		public function set editModeEnabled(newValue:Boolean):void {
-			if (_editModeEnabled !== newValue) {
-				_editModeEnabled = newValue;
-				dispatchEvent(new FlexEvent("editModeEnabledChanged"));
-			}
-		}
 		
 		public static function fromLockerData(data:Object):InWorldObjectInstance {
 			var object:InWorldObjectInstance = new InWorldObjectInstance();
@@ -91,8 +47,8 @@ package com.worlize.model
 		public function moveLocal(x:int, y:int):void {
 			this.x = x;
 			this.y = y;
-			var event:RoomEvent = new RoomEvent(RoomEvent.APP_MOVED);
-			event.roomObject = this;
+			var event:RoomEvent = new RoomEvent(RoomEvent.ITEM_MOVED);
+			event.roomItem = this;
 			dispatchEvent(event);
 		}
 		
@@ -100,8 +56,8 @@ package com.worlize.model
 			if (this.width !== width || this.height !== height) {
 				this.width = width;
 				this.height = height;
-				var event:RoomEvent = new RoomEvent(RoomEvent.APP_RESIZED);
-				event.roomObject = this;
+				var event:RoomEvent = new RoomEvent(RoomEvent.ITEM_RESIZED);
+				event.roomItem = this;
 				dispatchEvent(event);
 			}
 		}
@@ -135,22 +91,9 @@ package com.worlize.model
 			inWorldObjectInstance.inWorldObject.guid = objectData.object_guid;
 			inWorldObjectInstance.inWorldObject.width = objectData.width;
 			inWorldObjectInstance.inWorldObject.height = objectData.height;
-			
-			if (objectData.type === 'app') {
-				inWorldObjectInstance.inWorldObject.kind = InWorldObject.KIND_APP;
-				inWorldObjectInstance.inWorldObject.name = objectData.name;
-				inWorldObjectInstance.inWorldObject.appURL = objectData.app_url;
-				inWorldObjectInstance.inWorldObject.smallIconURL = objectData.small_icon;
-				inWorldObjectInstance.configData = objectData.config;
-				inWorldObjectInstance.syncedData = {};
-				inWorldObjectInstance.stateHistory = [];
-			}
-			else {
-				inWorldObjectInstance.inWorldObject.kind = InWorldObject.KIND_IMAGE;
-				inWorldObjectInstance.dest = objectData.dest;
-				inWorldObjectInstance.inWorldObject.thumbnailURL = objectData.thumbnail_url;
-				inWorldObjectInstance.inWorldObject.fullsizeURL = objectData.fullsize_url;
-			}
+			inWorldObjectInstance.dest = objectData.dest;
+			inWorldObjectInstance.inWorldObject.thumbnailURL = objectData.thumbnail_url;
+			inWorldObjectInstance.inWorldObject.fullsizeURL = objectData.fullsize_url;
 			
 			return inWorldObjectInstance;
 		}

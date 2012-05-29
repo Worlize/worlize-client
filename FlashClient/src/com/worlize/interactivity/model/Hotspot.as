@@ -1,6 +1,7 @@
 package com.worlize.interactivity.model
 {
 	import com.worlize.interactivity.event.HotspotEvent;
+	import com.worlize.interactivity.event.RoomEvent;
 	import com.worlize.interactivity.iptscrae.IptEventHandler;
 	import com.worlize.interactivity.iptscrae.WorlizeIptManager;
 	import com.worlize.interactivity.rpc.InteractivityClient;
@@ -79,6 +80,22 @@ package com.worlize.interactivity.model
 			InteractivityClient.getInstance().moveItem(guid, location.x, location.y, -1, -1, points);
 		}
 		
+		public function get width():Number {
+			return 0;
+		}
+		
+		public function set width(newValue:Number):void {
+			
+		}
+		
+		public function get height():Number {
+			return 0;
+		}
+		
+		public function set height(newValue:Number):void {
+			
+		}
+		
 		public function deleteHotspot():void {
 			var logger:ILogger = Log.getLogger('com.worlize.interactivity.model.Hotspot');
 			logger.info("Deleting hotspot " + this.guid);
@@ -102,7 +119,9 @@ package com.worlize.interactivity.model
 				}
 				requestRedraw();
 			}
-			var event:HotspotEvent = new HotspotEvent(HotspotEvent.MOVED);
+			
+			var event:RoomEvent = new RoomEvent(RoomEvent.ITEM_MOVED);
+			event.roomItem = this;
 			dispatchEvent(event);
 		}
 		

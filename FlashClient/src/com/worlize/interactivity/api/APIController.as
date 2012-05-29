@@ -71,11 +71,11 @@ package com.worlize.interactivity.api
 			room.addEventListener(RoomEvent.USER_LEFT, handleUserLeft);
 			room.addEventListener(RoomEvent.USER_MOVED, handleUserMoved);
 			room.addEventListener(RoomEvent.ROOM_CLEARED, handleRoomCleared);
-			room.addEventListener(RoomEvent.APP_ADDED, handleObjectAdded);
-			room.addEventListener(RoomEvent.APP_REMOVED, handleObjectRemoved);
-			room.addEventListener(RoomEvent.APP_MOVED, handleObjectMoved);
-			room.addEventListener(RoomEvent.APP_RESIZED, handleObjectResized);
-			room.addEventListener(RoomEvent.APP_STATE_CHANGED, handleObjectStateChanged);
+			room.addEventListener(RoomEvent.ITEM_ADDED, handleItemAdded);
+			room.addEventListener(RoomEvent.ITEM_REMOVED, handleItemRemoved);
+			room.addEventListener(RoomEvent.ITEM_MOVED, handleItemMoved);
+			room.addEventListener(RoomEvent.ITEM_RESIZED, handleItemResized);
+			room.addEventListener(RoomEvent.APP_STATE_CHANGED, handleAppStateChanged);
 			room.loosePropList.addEventListener(LoosePropEvent.PROP_ADDED, handleLoosePropAdded);
 			room.loosePropList.addEventListener(LoosePropEvent.PROP_REMOVED, handleLoosePropRemoved);
 			room.loosePropList.addEventListener(LoosePropEvent.PROP_MOVED, handleLoosePropMoved);
@@ -92,11 +92,11 @@ package com.worlize.interactivity.api
 			room.removeEventListener(RoomEvent.USER_LEFT, handleUserLeft);
 			room.removeEventListener(RoomEvent.USER_MOVED, handleUserMoved);
 			room.removeEventListener(RoomEvent.ROOM_CLEARED, handleRoomCleared);
-			room.removeEventListener(RoomEvent.APP_ADDED, handleObjectAdded);
-			room.removeEventListener(RoomEvent.APP_REMOVED, handleObjectRemoved);
-			room.removeEventListener(RoomEvent.APP_MOVED, handleObjectMoved);
-			room.removeEventListener(RoomEvent.APP_RESIZED, handleObjectResized);
-			room.removeEventListener(RoomEvent.APP_STATE_CHANGED, handleObjectStateChanged);
+			room.removeEventListener(RoomEvent.ITEM_ADDED, handleItemAdded);
+			room.removeEventListener(RoomEvent.ITEM_REMOVED, handleItemRemoved);
+			room.removeEventListener(RoomEvent.ITEM_MOVED, handleItemMoved);
+			room.removeEventListener(RoomEvent.ITEM_RESIZED, handleItemResized);
+			room.removeEventListener(RoomEvent.APP_STATE_CHANGED, handleAppStateChanged);
 			room.loosePropList.removeEventListener(LoosePropEvent.PROP_ADDED, handleLoosePropAdded);
 			room.loosePropList.removeEventListener(LoosePropEvent.PROP_REMOVED, handleLoosePropRemoved);
 			room.loosePropList.removeEventListener(LoosePropEvent.PROP_MOVED, handleLoosePropMoved);
@@ -104,6 +104,9 @@ package com.worlize.interactivity.api
 			room.loosePropList.removeEventListener(LoosePropEvent.PROP_BROUGHT_FORWARD, handleLoosePropBroughtForward);
 			room.loosePropList.removeEventListener(LoosePropEvent.PROP_SENT_BACKWARD, handleLoosePropSentBackward);
 			dimLevelChangeWatcher.unwatch();
+			dimLevelChangeWatcher = null;
+			roomNameChangeWatcher.unwatch();
+			roomNameChangeWatcher = null;
 		}
 		
 		protected function addNotificationListeners():void {
@@ -124,6 +127,10 @@ package com.worlize.interactivity.api
 			var adapter:IAPIClientAdapter = null;
 			switch (version) {
 				case 1:
+					adapter = new ClientAdapterV1();
+					break;
+				case 2:
+					// ClientAdapterV1 handles api versions 1 and 2.
 					adapter = new ClientAdapterV1();
 					break;
 				default:
@@ -189,8 +196,8 @@ package com.worlize.interactivity.api
 		}
 		
 		protected function handleEditModeEnabled(notification:AuthorModeNotification):void {
-			if (notification.inWorldObjectInstance) {
-				var client:IAPIClientAdapter = getClientByGuid(notification.inWorldObjectInstance.guid);
+			if (notification.roomItem) {
+				var client:IAPIClientAdapter = getClientByGuid(notification.roomItem.guid);
 				if (client) {
 					client.editModeChanged(true);
 				}
@@ -198,8 +205,8 @@ package com.worlize.interactivity.api
 		}
 		
 		protected function handleEditModeDisabled(notification:AuthorModeNotification):void {
-			if (notification.inWorldObjectInstance) {
-				var client:IAPIClientAdapter = getClientByGuid(notification.inWorldObjectInstance.guid);
+			if (notification.roomItem) {
+				var client:IAPIClientAdapter = getClientByGuid(notification.roomItem.guid);
 				if (client) {
 					client.editModeChanged(false);
 				}
@@ -232,33 +239,33 @@ package com.worlize.interactivity.api
 			}
 		}
 		
-		protected function handleObjectAdded(event:RoomEvent):void {
+		protected function handleItemAdded(event:RoomEvent):void {
 			for each (var client:IAPIClientAdapter in apiClientAdapters) {
-				client.objectAdded(event.roomObject);
+				client.itemAdded(event.roomItem);
 			}
 		}
 		
-		protected function handleObjectRemoved(event:RoomEvent):void {
+		protected function handleItemRemoved(event:RoomEvent):void {
 			for each (var client:IAPIClientAdapter in apiClientAdapters) {
-				client.objectRemoved(event.roomObject);
+				client.itemRemoved(event.roomItem);
 			}
 		}
 		
-		protected function handleObjectMoved(event:RoomEvent):void {
+		protected function handleItemMoved(event:RoomEvent):void {
 			for each (var client:IAPIClientAdapter in apiClientAdapters) {
-				client.objectMoved(event.roomObject);
+				client.itemMoved(event.roomItem);
 			}
 		}
 		
-		protected function handleObjectResized(event:RoomEvent):void {
+		protected function handleItemResized(event:RoomEvent):void {
 			for each (var client:IAPIClientAdapter in apiClientAdapters) {
-				client.objectResized(event.roomObject);
+				client.itemResized(event.roomItem);
 			}
 		}
 		
-		protected function handleObjectStateChanged(event:RoomEvent):void {
+		protected function handleAppStateChanged(event:RoomEvent):void {
 			for each (var client:IAPIClientAdapter in apiClientAdapters) {
-				client.objectStateChanged(event.roomObject);
+				client.appStateChanged(event.appInstance);
 			}
 		}
 		
@@ -404,17 +411,17 @@ package com.worlize.interactivity.api
 			interactivityClient.unlockRoom();
 		}
 		
-		public function moveObject(objectGuid:String, x:int, y:int):void {
-			thisRoom.moveObject(objectGuid, x, y);
+		public function moveItem(objectGuid:String, x:int, y:int):void {
+			thisRoom.moveItem(objectGuid, x, y);
 		}
 		
-		public function resizeObject(objectGuid:String, width:int, height:int):void {
-			thisRoom.resizeObject(objectGuid, width, height);
+		public function resizeItem(objectGuid:String, width:int, height:int):void {
+			thisRoom.resizeItem(objectGuid, width, height);
 		}
 		
 		// Broadcast a data message to the specified object via the server for
 		// event synchronization across clients.
-		public function sendObjectMessage(fromAppInstanceGuid:String, message:ByteArray, toAppInstanceGuid:String, toUserGuids:Array=null):void {
+		public function sendAppMessage(fromAppInstanceGuid:String, message:ByteArray, toAppInstanceGuid:String, toUserGuids:Array=null):void {
 			var specificUsersRequested:Boolean = false;
 			var fromAdapter:IAPIClientAdapter = apiClientAdaptersByGuid[fromAppInstanceGuid];
 			if (fromAdapter && message) {
@@ -422,7 +429,7 @@ package com.worlize.interactivity.api
 					specificUsersRequested = true;
 					for (var i:int = toUserGuids.length - 1; i >= 0; i--) {
 						var guidObj:* = toUserGuids[i];
-						if (!(guidObj is String) || thisRoom.getUserById(guidObj) == null) {
+						if (!(guidObj is String) || thisRoom.getUserById(guidObj) === null) {
 							toUserGuids.splice(i, 1);
 						}
 					}
@@ -430,20 +437,20 @@ package com.worlize.interactivity.api
 				if (specificUsersRequested && toUserGuids.length === 0) {
 					return;
 				}
-				interactivityClient.broadcastObjectMessage(fromAppInstanceGuid, message, toAppInstanceGuid, toUserGuids);
+				interactivityClient.broadcastAppMessage(fromAppInstanceGuid, message, toAppInstanceGuid, toUserGuids);
 			}
 		}
 		
 		// Broadcast a data message to the specified object on this computer
 		// only, without going through the server.
-		public function sendObjectMessageLocal(fromAppInstanceGuid:String, message:ByteArray, toAppInstanceGuid:String, fromUserGuid:String):void {
+		public function sendAppMessageLocal(fromAppInstanceGuid:String, message:ByteArray, toAppInstanceGuid:String, fromUserGuid:String):void {
 			var fromUser:InteractivityUser = thisRoom.getUserById(fromUserGuid);
 			var fromAdapter:IAPIClientAdapter = apiClientAdaptersByGuid[fromAppInstanceGuid];
 			if (fromAdapter) {
 				if (toAppInstanceGuid !== null) {
 					var toAdapter:IAPIClientAdapter = apiClientAdaptersByGuid[toAppInstanceGuid];
 					if (toAdapter) {
-						toAdapter.receiveMessage(message, fromAdapter.appInstanceGuid, fromUser? fromUserGuid : null);
+						toAdapter.receiveMessage(message, fromAdapter.appInstanceGuid, fromUser ? fromUserGuid : null);
 					}
 				}
 				else {

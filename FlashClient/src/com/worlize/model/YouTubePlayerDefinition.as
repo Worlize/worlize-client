@@ -31,8 +31,8 @@ package com.worlize.model
 		public var guid:String;
 		public var x:int;
 		public var y:int;
-		public var width:int;
-		public var height:int;
+		public var width:Number;
+		public var height:Number;
 		public var data:YouTubePlayerData;
 		
 		public var locked:Boolean = false;

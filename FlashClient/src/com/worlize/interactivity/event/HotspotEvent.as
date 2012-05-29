@@ -6,7 +6,6 @@ package com.worlize.interactivity.event
 
 	public class HotspotEvent extends Event
 	{
-		public static const MOVED:String = "moved";
 		public static const REDRAW_REQUESTED:String = "redrawRequested";
 		public static const SELECTED_FOR_AUTHOR:String = "selectedForAuthor";
 		

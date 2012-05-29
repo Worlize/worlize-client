@@ -92,8 +92,8 @@ package com.worlize.model
 		public function moveLocal(x:int, y:int):void {
 			this.x = x;
 			this.y = y;
-			var event:RoomEvent = new RoomEvent(RoomEvent.APP_MOVED);
-			event.appInstance = this;
+			var event:RoomEvent = new RoomEvent(RoomEvent.ITEM_MOVED);
+			event.roomItem = this;
 			dispatchEvent(event);
 		}
 		
@@ -101,8 +101,8 @@ package com.worlize.model
 			if (this.width !== width || this.height !== height) {
 				this.width = width;
 				this.height = height;
-				var event:RoomEvent = new RoomEvent(RoomEvent.APP_RESIZED);
-				event.appInstance = this;
+				var event:RoomEvent = new RoomEvent(RoomEvent.ITEM_RESIZED);
+				event.roomItem = this;
 				dispatchEvent(event);
 			}
 		}

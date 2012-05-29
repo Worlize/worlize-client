@@ -3,6 +3,8 @@ package com.worlize.state
 	import com.worlize.event.AuthorModeNotification;
 	import com.worlize.event.NotificationCenter;
 	import com.worlize.interactivity.model.Hotspot;
+	import com.worlize.interactivity.model.IRoomItem;
+	import com.worlize.model.AppInstance;
 	import com.worlize.model.InWorldObjectInstance;
 	
 	import flash.events.Event;
@@ -54,7 +56,7 @@ package com.worlize.state
 		public function disableEditMode():void {
 			if (editMode) {
 				var notification:AuthorModeNotification = new AuthorModeNotification(AuthorModeNotification.EDIT_MODE_DISABLED);
-				notification.inWorldObjectInstance = _selectedItem as InWorldObjectInstance;
+				notification.roomItem = _selectedItem as IRoomItem;
 				NotificationCenter.postNotification(notification);
 			}
 		}
@@ -62,10 +64,9 @@ package com.worlize.state
 		public function enableEditMode():void {
 			if (enabled) {
 				// You can only enable edit mode if author mode is enabled
-				if (_selectedItem && _selectedItem is InWorldObjectInstance) {
-					var obj:InWorldObjectInstance = _selectedItem as InWorldObjectInstance;
+				if (_selectedItem && _selectedItem is AppInstance) {
 					var notification:AuthorModeNotification = new AuthorModeNotification(AuthorModeNotification.EDIT_MODE_ENABLED);
-					notification.inWorldObjectInstance = obj;
+					notification.roomItem = _selectedItem as AppInstance;
 					NotificationCenter.postNotification(notification);
 				}
 			}
@@ -92,10 +93,10 @@ package com.worlize.state
 		
 		private function handleEditModeEnabled(notification:AuthorModeNotification):void {
 			if (enabled) {
-				if (_selectedItem && _selectedItem is InWorldObjectInstance) {
-					var obj:InWorldObjectInstance = _selectedItem as InWorldObjectInstance;
-					if (obj.editModeSupported) {
-						obj.editModeEnabled = true;
+				if (_selectedItem && _selectedItem is AppInstance) {
+					var app:AppInstance = _selectedItem as AppInstance;
+					if (app.editModeSupported) {
+						app.editModeEnabled = true;
 						editMode = true;
 						return;
 					}
@@ -106,8 +107,8 @@ package com.worlize.state
 		
 		private function handleEditModeDisabled(notification:AuthorModeNotification):void {
 			if (editMode) {
-				var obj:InWorldObjectInstance = _selectedItem as InWorldObjectInstance;
-				obj.editModeEnabled = false;
+				var app:AppInstance = _selectedItem as AppInstance;
+				app.editModeEnabled = false;
 				editMode = false;
 				return;
 			}

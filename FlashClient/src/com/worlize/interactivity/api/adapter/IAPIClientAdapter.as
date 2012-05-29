@@ -2,10 +2,11 @@ package com.worlize.interactivity.api.adapter
 {
 	import com.worlize.interactivity.api.APIController;
 	import com.worlize.interactivity.api.AppLoader;
+	import com.worlize.interactivity.model.IRoomItem;
 	import com.worlize.interactivity.model.InteractivityUser;
 	import com.worlize.interactivity.model.LooseProp;
 	import com.worlize.interactivity.record.ChatRecord;
-	import com.worlize.model.InWorldObjectInstance;
+	import com.worlize.model.AppInstance;
 	
 	import flash.events.MouseEvent;
 	import flash.events.UncaughtErrorEvent;
@@ -42,11 +43,11 @@ package com.worlize.interactivity.api.adapter
 		function userEntered(user:InteractivityUser):void;
 		function userLeft(user:InteractivityUser):void;
 		function allUsersLeft():void;
-		function objectAdded(roomObject:InWorldObjectInstance):void;
-		function objectRemoved(roomObject:InWorldObjectInstance):void;
-		function objectMoved(roomObject:InWorldObjectInstance):void;
-		function objectResized(roomObject:InWorldObjectInstance):void;
-		function objectStateChanged(roomObject:InWorldObjectInstance):void;
+		function itemAdded(item:IRoomItem):void;
+		function itemRemoved(item:IRoomItem):void;
+		function itemMoved(item:IRoomItem):void;
+		function itemResized(item:IRoomItem):void;
+		function appStateChanged(appInstance:AppInstance):void;
 		function userMoved(user:InteractivityUser):void;
 		function userColorChanged(user:InteractivityUser):void;
 		function userBalloonColorChanged(user:InteractivityUser):void;

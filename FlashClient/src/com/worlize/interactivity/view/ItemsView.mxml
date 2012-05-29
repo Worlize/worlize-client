@@ -175,7 +175,9 @@
 					return imageView;
 				}
 				else if (item is AppInstance) {
-					return null;
+					var appView:EmbeddedAppView = new EmbeddedAppView();
+					appView.appInstance = AppInstance(item);
+					return appView;
 				}
 				else if (item is YouTubePlayerDefinition) {
 					var youtubeView:YouTubePlayerView = new YouTubePlayerView();

@@ -4,8 +4,9 @@ package com.worlize.interactivity.api
 	import com.worlize.interactivity.api.event.AppLoaderEvent;
 	import com.worlize.interactivity.api.event.ClientValidationErrorEvent;
 	import com.worlize.interactivity.rpc.InteractivityClient;
+	import com.worlize.model.AppInstance;
 	import com.worlize.model.InWorldObject;
-	import com.worlize.model.InWorldObjectInstance;
+	import com.worlize.model.AppInstance;
 	
 	import flash.display.Loader;
 	import flash.events.ErrorEvent;
@@ -28,7 +29,7 @@ package com.worlize.interactivity.api
 		use namespace mx_internal;
 		
 		private var interactivityClient:InteractivityClient = InteractivityClient.getInstance();
-		protected var _objInstance:InWorldObjectInstance;
+		protected var _appInstance:AppInstance;
 		protected var _adapter:IAPIClientAdapter;
 		
 		private var _hasError:Boolean = false;
@@ -40,12 +41,12 @@ package com.worlize.interactivity.api
 		
 		private var logger:ILogger = Log.getLogger("com.worlize.interactivity.api.AppLoader");
 		
-		public function get inWorldObjectInstance():InWorldObjectInstance {
-			return _objInstance;
+		public function get appInstance():AppInstance {
+			return _appInstance;
 		}
 		
 		public function get appGuid():String {
-			return _objInstance.guid;
+			return _appInstance.guid;
 		}
 		
 		public function get clientAdapter():IAPIClientAdapter {
@@ -77,18 +78,15 @@ package com.worlize.interactivity.api
 				return;
 			}
 			
-			if (!(url is InWorldObjectInstance)) {
-				throw new Error("A AppLoader instance can only attempt load instances of InWorldObjectInstance");
+			if (!(url is AppInstance)) {
+				throw new Error("A AppLoader instance can only attempt to load instances of AppInstance");
 			}
-			if ((url as InWorldObjectInstance).inWorldObject.kind !== InWorldObject.KIND_APP) {
-				throw new Error("A AppLoader can only load InWorldObjectInstances that represent an API Application.");
-			}
-			_objInstance = url as InWorldObjectInstance;
+			_appInstance = url as AppInstance;
 			
-			_objInstance.state = InWorldObjectInstance.STATE_LOADING;
+			_appInstance.state = AppInstance.STATE_LOADING;
 			
-			logger.info("Loading object \"" + _objInstance.inWorldObject.name + "\"");
-			super.load(_objInstance.inWorldObject.appURL + "?cb=" + Math.round((Math.random()*99999)));
+			logger.info("Loading app \"" + _appInstance.app.name + "\"");
+			super.load(_appInstance.app.appURL + "?cb=" + Math.round((Math.random()*0xFFFFFFFF)).toString(16));
 			addClientInitListeners();
 		}
 		
@@ -102,7 +100,7 @@ package com.worlize.interactivity.api
 				loader.contentLoaderInfo.sharedEvents.addEventListener('client_handshake', handleClientHandshake);
 			}
 			else {
-				_objInstance.state = InWorldObjectInstance.STATE_LOAD_ERROR;
+				_appInstance.state = AppInstance.STATE_LOAD_ERROR;
 				throw new Error("AppLoader must load a SWF file as an API client.");
 			}
 		}
@@ -122,7 +120,6 @@ package com.worlize.interactivity.api
 						_adapter.attachClient(this);
 						_adapter.attachHost(interactivityClient.apiController);
 						_adapter.handshakeClient(e.data);
-						dispatchEvent(new AppLoaderEvent(AppLoaderEvent.HANDSHAKE_COMPLETE));
 					}
 					catch(error:Error) {
 						interactivityClient.apiController.logMessage(
@@ -130,7 +127,9 @@ package com.worlize.interactivity.api
 							error.toString() + "\n" + error.getStackTrace()
 						);
 						bombApp();
+						return;
 					}
+					dispatchEvent(new AppLoaderEvent(AppLoaderEvent.HANDSHAKE_COMPLETE));
 					return;
 				}
 			}
@@ -150,8 +149,8 @@ package com.worlize.interactivity.api
 			var validationError:Boolean = false;
 			var validationMessage:String;
 			
-			if (inWorldObjectInstance.sizeUnknown) {
-				inWorldObjectInstance.resizeLocal(loader.contentLoaderInfo.width, loader.contentLoaderInfo.height);
+			if (appInstance.sizeUnknown) {
+				appInstance.resizeLocal(loader.contentLoaderInfo.width, loader.contentLoaderInfo.height);
 			}
 			
 			if (loader.contentLoaderInfo.contentType !== "application/x-shockwave-flash") {
@@ -162,7 +161,7 @@ package com.worlize.interactivity.api
 				validationError = true;
 				validationMessage = "Worlize API client applications must be written in ActionScript 3";
 			}
-//			else if (_adapter === null || _adapter.state !== InWorldObjectInstance.STATE_READY) {
+//			else if (_adapter === null || _adapter.state !== AppInstance.STATE_READY) {
 //				validationError = true;
 //				validationMessage = "Client SWF must initialize the Worlize API in the main constructor function";
 //			}
@@ -188,10 +187,10 @@ package com.worlize.interactivity.api
 				logger.info("Setting _adapter to null.");
 				_adapter = null;
 			}
-			if (_objInstance) {
-				logger.info("_objInstance set to null.  App \"" + _objInstance.inWorldObject.name + "\" unloaded.");
-				_objInstance.state = InWorldObjectInstance.STATE_UNLOADED;
-				_objInstance = null;
+			if (_appInstance) {
+				logger.info("_appInstance set to null.  App \"" + _appInstance.app.name + "\" unloaded.");
+				_appInstance.state = AppInstance.STATE_UNLOADED;
+				_appInstance = null;
 			}
 			else {
 				logger.info("Unknown app unloaded.");
@@ -203,25 +202,25 @@ package com.worlize.interactivity.api
 				logger.error("Uncaught error in embedded SWF, passing to the adapter to handle it.");
 				_adapter.handleUncaughtError(event);
 			}
-			else if (inWorldObjectInstance) {
+			else if (appInstance) {
 				logger.error("Uncaught error in embedded SWF, but no clientAdapter available to handle it!");
 				if (event.error is Error) {
 					var error:Error = event.error as Error;
 					logger.error(
-						"Uncaught error from app " + inWorldObjectInstance.inWorldObject.guid + ": " +
+						"Uncaught error from app " + appInstance.app.guid + ": " +
 						"ErrorID: " + error.errorID + " " + error.name + " " + error.message + " " + error.getStackTrace()
 					);
 				}
 				else if (event.error is ErrorEvent) {
 					var errorEvent:ErrorEvent = event.error as ErrorEvent;
 					logger.error(
-						"Unhandled error event from app " + inWorldObjectInstance.inWorldObject.guid + ": " +
+						"Unhandled error event from app " + appInstance.app.guid + ": " +
 						"ErrorID: " + errorEvent.errorID + " Type: " + errorEvent.type + " Text: " + errorEvent.text
 					);
 				}
 			}
 			else {
-				logger.error("We don't even have an inWorldObjectInstance when receiving this error event!  How is this possible??!");
+				logger.error("We don't even have an appInstance when receiving this error event!  How is this possible??!");
 			}
 			event.preventDefault();
 			event.stopPropagation();
@@ -232,12 +231,12 @@ package com.worlize.interactivity.api
 		public function bombApp():void {
 			logger.error("Bombing app: Unloading child SWF file.");
 			_hasError = true;
-			_objInstance.state = InWorldObjectInstance.STATE_BOMBED;
-			if (inWorldObjectInstance.width < 64) {
-				inWorldObjectInstance.width = 64;
+			_appInstance.state = AppInstance.STATE_BOMBED;
+			if (appInstance.width < 64) {
+				appInstance.width = 64;
 			}
-			if (inWorldObjectInstance.height < 64) {
-				inWorldObjectInstance.height = 64;
+			if (appInstance.height < 64) {
+				appInstance.height = 64;
 			}
 			dispatchEvent(new FlexEvent('hasErrorChanged'));
 			var bombEvent:AppLoaderEvent = new AppLoaderEvent(AppLoaderEvent.APP_BOMBED);

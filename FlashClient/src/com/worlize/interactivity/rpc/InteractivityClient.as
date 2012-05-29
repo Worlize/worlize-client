@@ -823,20 +823,21 @@ package com.worlize.interactivity.rpc
 			var msg:AppBroadcastMessage = new AppBroadcastMessage();
 			msg.deserialize(data);
 			
-			apiController.sendObjectMessageLocal(msg.fromAppInstanceGuid, msg.message, msg.toAppInstanceGuid, msg.fromUserGuid);
+			apiController.sendAppMessageLocal(msg.fromAppInstanceGuid, msg.message, msg.toAppInstanceGuid, msg.fromUserGuid);
 		}
 		
 		private function handleStateHistoryPushMessage(data:ByteArray):void {
 			var msg:StateHistoryPushMessage = new StateHistoryPushMessage();
 			msg.deserialize(data);
 			
-			var inWorldObjectInstance:InWorldObjectInstance = currentRoom.getInWorldObjectInstanceById(msg.appInstanceGuid);
-			if (inWorldObjectInstance) {
-				if (!inWorldObjectInstance.stateHistory) {
-					inWorldObjectInstance.stateHistory = [];
-				}
-				inWorldObjectInstance.stateHistory.push(msg.data);
+			var roomItem:IRoomItem = currentRoom.getItemByGuid(msg.appInstanceGuid);
+			if (!(roomItem is AppInstance)) { return; }
+			
+			var appInstance:AppInstance = AppInstance(roomItem);
+			if (!appInstance.stateHistory) {
+				appInstance.stateHistory = [];
 			}
+			appInstance.stateHistory.push(msg.data);
 			
 			apiController.receiveStateHistoryPush(msg.appInstanceGuid, msg.data);
 		}
@@ -845,14 +846,16 @@ package com.worlize.interactivity.rpc
 			var msg:StateHistoryShiftMessage = new StateHistoryShiftMessage();
 			msg.deserialize(data);
 			
-			var inWorldObjectInstance:InWorldObjectInstance = currentRoom.getInWorldObjectInstanceById(msg.appInstanceGuid);
-			if (inWorldObjectInstance) {
-				if (!inWorldObjectInstance.stateHistory) {
-					inWorldObjectInstance.stateHistory = [];
-				}
-				if (inWorldObjectInstance.stateHistory.length > 0) {
-					inWorldObjectInstance.stateHistory.shift();
-				}
+			var roomItem:IRoomItem = currentRoom.getItemByGuid(msg.appInstanceGuid);
+			if (!(roomItem is AppInstance)) { return; }
+			
+			var appInstance:AppInstance = AppInstance(roomItem);
+			
+			if (!appInstance.stateHistory) {
+				appInstance.stateHistory = [];
+			}
+			if (appInstance.stateHistory.length > 0) {
+				appInstance.stateHistory.shift();
 			}
 			
 			apiController.receiveStateHistoryShift(msg.appInstanceGuid);
@@ -862,14 +865,16 @@ package com.worlize.interactivity.rpc
 			var msg:StateHistoryClearMessage = new StateHistoryClearMessage();
 			msg.deserialize(data);
 			
-			var inWorldObjectInstance:InWorldObjectInstance = currentRoom.getInWorldObjectInstanceById(msg.appInstanceGuid);
-			if (inWorldObjectInstance) {
-				if (msg.data) {
-					inWorldObjectInstance.stateHistory = [msg.data];
-				}
-				else {
-					inWorldObjectInstance.stateHistory = [];
-				}
+			var roomItem:IRoomItem = currentRoom.getItemByGuid(msg.appInstanceGuid);
+			if (!(roomItem is AppInstance)) { return; }
+			
+			var appInstance:AppInstance = AppInstance(roomItem);
+			
+			if (msg.data) {
+				appInstance.stateHistory = [msg.data];
+			}
+			else {
+				appInstance.stateHistory = [];
 			}
 			
 			apiController.receiveStateHistoryClear(msg.appInstanceGuid);
@@ -882,23 +887,23 @@ package com.worlize.interactivity.rpc
 			var msg:StateHistoryDumpMessage = new StateHistoryDumpMessage();
 			msg.deserialize(data);
 			
-			var inWorldObjectInstance:InWorldObjectInstance = currentRoom.getInWorldObjectInstanceById(msg.appInstanceGuid);
-			if (inWorldObjectInstance) {
-				inWorldObjectInstance.stateHistory = msg.stateEntries;
-			}
+			var roomItem:IRoomItem = currentRoom.getItemByGuid(msg.appInstanceGuid);
+			if (!(roomItem is AppInstance)) { return; }
+			AppInstance(roomItem).stateHistory = msg.stateEntries;
 		}
 		
 		private function handleSyncedDataSetMessage(data:ByteArray):void {
 			var msg:SyncedDataSetMessage = new SyncedDataSetMessage();
 			msg.deserialize(data);
 			
-			var inWorldObjectInstance:InWorldObjectInstance = currentRoom.getInWorldObjectInstanceById(msg.appInstanceGuid);
-			if (inWorldObjectInstance) {
-				if (!inWorldObjectInstance.syncedData) {
-					inWorldObjectInstance.syncedData = {};
-				}
-				inWorldObjectInstance.syncedData[msg.key] = msg.value;
+			var roomItem:IRoomItem = currentRoom.getItemByGuid(msg.appInstanceGuid);
+			if (!(roomItem is AppInstance)) { return; }
+			var appInstance:AppInstance = AppInstance(roomItem);
+			
+			if (!appInstance.syncedData) {
+				appInstance.syncedData = {};
 			}
+			appInstance.syncedData[msg.key] = msg.value;
 			
 			apiController.receiveSyncedDataSet(msg.appInstanceGuid, msg.key, msg.value);
 		}
@@ -907,13 +912,14 @@ package com.worlize.interactivity.rpc
 			var msg:SyncedDataDeleteMessage = new SyncedDataDeleteMessage();
 			msg.deserialize(data);
 			
-			var inWorldObjectInstance:InWorldObjectInstance = currentRoom.getInWorldObjectInstanceById(msg.appInstanceGuid);
-			if (inWorldObjectInstance) {
-				if (!inWorldObjectInstance.syncedData) {
-					inWorldObjectInstance.syncedData = {};
-				}
-				delete inWorldObjectInstance.syncedData[msg.key];
+			var roomItem:IRoomItem = currentRoom.getItemByGuid(msg.appInstanceGuid);
+			if (!(roomItem is AppInstance)) { return; }
+			var appInstance:AppInstance = AppInstance(roomItem);
+			
+			if (!appInstance.syncedData) {
+				appInstance.syncedData = {};
 			}
+			delete appInstance.syncedData[msg.key];
 			
 			apiController.receiveSyncedDataDelete(msg.appInstanceGuid, msg.key);
 		}
@@ -922,10 +928,10 @@ package com.worlize.interactivity.rpc
 			var msg:SyncedDataDumpMessage = new SyncedDataDumpMessage();
 			msg.deserialize(data);
 			
-			var inWorldObjectInstance:InWorldObjectInstance = currentRoom.getInWorldObjectInstanceById(msg.appInstanceGuid);
-			if (inWorldObjectInstance) {
-				inWorldObjectInstance.syncedData = msg.data;
-			}
+			var roomItem:IRoomItem = currentRoom.getItemByGuid(msg.appInstanceGuid);
+			if (!(roomItem is AppInstance)) { return; }
+			var appInstance:AppInstance = AppInstance(roomItem);
+			appInstance.syncedData = msg.data;
 		}
 		
 		// END Binary Message Handler Functions
@@ -1012,7 +1018,7 @@ package com.worlize.interactivity.rpc
 					return;
 				}
 				if (item is InWorldObjectInstance) {
-					currentRoom.moveObject(data.guid, data.x, data.y);
+					currentRoom.moveItem(data.guid, data.x, data.y);
 					return;
 				}
 				if (item is YouTubePlayerDefinition) {
@@ -1076,20 +1082,21 @@ package com.worlize.interactivity.rpc
 				roomHistoryManager.addItem(currentRoom.id, currentRoom.name, currentWorld.name);
 			}
 			
+			verifyUserCanAuthor();
+			
 			// clear room items state
 			currentRoom.resetItems();
+			
+			// Remove any existing loose props
+			currentRoom.loosePropList.reset();
 			
 			for each (var item:IRoomItem in room.items) {
 				currentRoom.addItem(item);
 			}
 			
-			currentRoom.loosePropList.reset();
 			for each (var loosePropData:Object in data.props) {
 				currentRoom.loosePropList.add(loosePropData);
 			}
-			
-			
-			verifyUserCanAuthor();
 			
 			// Update room properties, resetting to defaults for all values if
 			// no value is supplied for a given property in the room definition.
@@ -1354,7 +1361,7 @@ package com.worlize.interactivity.rpc
 			}, true);
 		}
 		
-		public function broadcastObjectMessage(fromAppInstanceGuid:String, message:ByteArray, toAppInstanceGuid:String=null, toUserGuids:Array=null):void {
+		public function broadcastAppMessage(fromAppInstanceGuid:String, message:ByteArray, toAppInstanceGuid:String=null, toUserGuids:Array=null):void {
 			var msg:AppBroadcastMessage = new AppBroadcastMessage();
 			msg.fromAppInstanceGuid = fromAppInstanceGuid;
 			msg.toAppInstanceGuid = toAppInstanceGuid;

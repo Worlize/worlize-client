@@ -216,11 +216,8 @@
 				if (_authorMode || inWorldObjectInstance.dest) {
 					mouseEnabled = true;
 				}
-				else if (inWorldObjectInstance.inWorldObject.kind !== InWorldObject.KIND_APP) {
-					mouseEnabled = true;
-				}
 				else {
-					mouseEnabled = false;
+					mouseEnabled = true;
 				}
 			}
 			

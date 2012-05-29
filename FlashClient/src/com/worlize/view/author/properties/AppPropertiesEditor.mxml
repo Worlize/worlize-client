@@ -11,6 +11,7 @@
 		<![CDATA[
 			import com.worlize.interactivity.model.Hotspot;
 			import com.worlize.interactivity.rpc.InteractivityClient;
+			import com.worlize.model.AppInstance;
 			import com.worlize.model.InWorldObject;
 			import com.worlize.model.InWorldObjectInstance;
 			import com.worlize.model.RoomDefinition;
@@ -25,7 +26,7 @@
 			
 			import spark.events.IndexChangeEvent;
 			
-			private var _inWorldObjectInstance:InWorldObjectInstance;
+			private var _appInstance:AppInstance;
 			
 			[Bindable]
 			private var roomList:ArrayCollection;
@@ -34,21 +35,21 @@
 			private var client:InteractivityClient = InteractivityClient.getInstance();
 			
 			
-			[Bindable(event='inWorldObjectInstanceChanged')]
-			public function set inWorldObjectInstance(newValue:InWorldObjectInstance):void {
-				if (_inWorldObjectInstance !== newValue) {
-					_inWorldObjectInstance = newValue;
+			[Bindable(event='appInstanceChanged')]
+			public function set appInstance(newValue:AppInstance):void {
+				if (_appInstance !== newValue) {
+					_appInstance = newValue;
 					
 					if (newValue !== null) {
 						updateRoomList();
 						setTimeout(updateSelectedItem, 10);
 					}
 					
-					dispatchEvent(new Event('inWorldObjectInstanceChanged'));
+					dispatchEvent(new Event('appInstanceChanged'));
 				}
 			}
-			public function get inWorldObjectInstance():InWorldObjectInstance {
-				return _inWorldObjectInstance;
+			public function get appInstance():AppInstance {
+				return _appInstance;
 			}
 			
 			private function updateRoomList():void {
@@ -68,7 +69,7 @@
 				var length:int = roomList.length;
 				for (var i:int = 0; i < length; i++) {
 					var room:RoomListEntry = roomList.getItemAt(i) as RoomListEntry;
-					if (room.guid == inWorldObjectInstance.dest) {
+					if (room.guid == appInstance.dest) {
 						destinationComboBox.selectedIndex = i;
 						return;
 					}
@@ -77,7 +78,7 @@
 			}
 			
 			private function handleDeleteClick():void {
-				client.removeItem(inWorldObjectInstance.guid);
+				client.removeItem(appInstance.guid);
 				var authorModeState:AuthorModeState = AuthorModeState.getInstance();
 				authorModeState.selectedItem = null;
 			}
@@ -85,8 +86,8 @@
 			protected function handleDestinationChange(event:IndexChangeEvent):void
 			{
 				var destRoom:RoomListEntry = roomList.getItemAt(event.newIndex) as RoomListEntry;
-				inWorldObjectInstance.dest = destRoom.guid;
-				client.setDest(inWorldObjectInstance.guid, destRoom.guid);
+				appInstance.dest = destRoom.guid;
+				client.setDest(appInstance.guid, destRoom.guid);
 			}
 			
 			private function handleCloseClick():void {
@@ -96,6 +97,15 @@
 				}
 			}
 			
+			private function handleEditSettingsChange(event:Event):void {
+				var authorModeState:AuthorModeState = AuthorModeState.getInstance();
+				if (authorModeState.editMode) {
+					authorModeState.disableEditMode();
+				}
+				if (editSettingsButton.selected) {
+					authorModeState.enableEditMode();
+				}
+			}
 		]]>
 	</fx:Script>
 	
@@ -112,6 +122,14 @@
 					change="handleDestinationChange(event)"
 					labelField="name" width="100%"
 					dataProvider="{roomList}" />
+	
+	<mx:Spacer height="10" />
+	
+	<s:ToggleButton label="Edit Settings..." width="100%"
+					id="editSettingsButton"
+					change="handleEditSettingsChange(event)"
+					selected="{appInstance.editModeEnabled}"
+					enabled="{appInstance.editModeSupported}" />
 	
 	<s:HGroup width="100%">
 		<s:Button

@@ -8,8 +8,7 @@ package com.worlize.interactivity.api.adapter
 	import com.worlize.interactivity.model.InteractivityUser;
 	import com.worlize.interactivity.model.LooseProp;
 	import com.worlize.interactivity.record.ChatRecord;
-	import com.worlize.model.InWorldObject;
-	import com.worlize.model.InWorldObjectInstance;
+	import com.worlize.model.AppInstance;
 	import com.worlize.model.Prop;
 	import com.worlize.model.WorldDefinition;
 	import com.worlize.state.AuthorModeState;
@@ -50,9 +49,9 @@ package com.worlize.interactivity.api.adapter
 		
 		public function get state():String {
 			if (client) {
-				return client.inWorldObjectInstance.state;
+				return client.appInstance.state;
 			}
-			return InWorldObjectInstance.STATE_INIT;
+			return AppInstance.STATE_INIT;
 		}
 		
 		public function get appInstanceGuid():String {
@@ -74,13 +73,13 @@ package com.worlize.interactivity.api.adapter
 		
 		public function handshakeClient(data:Object):void {
 			data.success = false;
-			if (!(data.APIVersion <= 2)) {
+			if (data.APIVersion !== 1 && data.APIVersion !== 2) {
 				var errorMessage:String = "ClientAdapterV1 unable to handshake with version " + data.APIVersion + " API client.";
 				logger.error(errorMessage);
 				if (host) {
 					host.addErrorToLog(errorMessage);
 				}
-				client.inWorldObjectInstance.state = InWorldObjectInstance.STATE_LOAD_ERROR;
+				client.appInstance.state = AppInstance.STATE_LOAD_ERROR;
 				throw new Error(errorMessage);
 			}
 			
@@ -89,7 +88,7 @@ package com.worlize.interactivity.api.adapter
 			var thisUser:InteractivityUser = host.thisUser;
 			var thisRoom:CurrentRoom = host.thisRoom;
 			var thisWorld:WorldDefinition = host.thisWorld;
-			var thisObject:InWorldObjectInstance = client.inWorldObjectInstance;
+			var thisObject:AppInstance = client.appInstance;
 			
 			var options:Object = data.appOptions;
 			
@@ -100,13 +99,13 @@ package com.worlize.interactivity.api.adapter
 			thisObject.editModeEnabled = false;
 						
 			if (thisUser === null) {
-				thisObject.state = InWorldObjectInstance.STATE_LOAD_ERROR;
+				thisObject.state = AppInstance.STATE_LOAD_ERROR;
 				removeSharedEventListeners();
 				throw new Error("Unable to initialize client without a current user");
 				return;
 			}
 			
-			thisObject.state = InWorldObjectInstance.STATE_HANDSHAKING;
+			thisObject.state = AppInstance.STATE_HANDSHAKING;
 			
 			data.thisUser = userToObject(thisUser);
 			if (thisUser.id === thisRoom.ownerGuid) {
@@ -114,7 +113,7 @@ package com.worlize.interactivity.api.adapter
 			}
 			data.thisRoom = currentRoomToObject(thisRoom);
 			data.thisWorld = worldDefinitionToObject(thisWorld);
-			data.thisObject = inWorldObjectInstanceToObject(thisObject);
+			data.thisObject = appInstanceToObject(thisObject);
 			data.stateHistory = thisObject.stateHistory;
 			data.syncedData = thisObject.syncedData;
 			data.config = thisObject.configData;
@@ -125,12 +124,12 @@ package com.worlize.interactivity.api.adapter
 		}
 		
 		protected function handleClientFinishHandshake(event:Event):void {
-			if (state === InWorldObjectInstance.STATE_HANDSHAKING) {
-				client.inWorldObjectInstance.state = InWorldObjectInstance.STATE_READY;
+			if (state === AppInstance.STATE_HANDSHAKING) {
+				client.appInstance.state = AppInstance.STATE_READY;
 			}
 			else {
 				logger.error("Received client_finishHandshake event from app " +
-							 client.inWorldObjectInstance.guid + " outside the handshake process.");
+							 client.appInstance.guid + " outside the handshake process.");
 				client.bombApp();
 			}
 		}
@@ -141,7 +140,7 @@ package com.worlize.interactivity.api.adapter
 				sharedEvents = null;
 			}
 			if (client) {
-				client.inWorldObjectInstance.state = InWorldObjectInstance.STATE_UNLOADED;
+				client.appInstance.state = AppInstance.STATE_UNLOADED;
 				client = null;
 			}
 			if (host) {
@@ -154,7 +153,7 @@ package com.worlize.interactivity.api.adapter
 		public function unload():void {
 			if (client) {
 				client.unloadAndStop();
-				client.inWorldObjectInstance.state = InWorldObjectInstance.STATE_UNLOADING;
+				client.appInstance.state = AppInstance.STATE_UNLOADING;
 			}
 		}
 		
@@ -231,8 +230,8 @@ package com.worlize.interactivity.api.adapter
 		
 		private function handleClientRequestBomb(event:Event):void {
 			var clientName:String = "unknown";
-			if (client && client.inWorldObjectInstance) {
-				clientName = client.inWorldObjectInstance.inWorldObject.guid;
+			if (client && client.appInstance) {
+				clientName = client.appInstance.app.guid;
 			}
 			logger.info("Client app " + clientName + " requested to be bombed.");
 			client.bombApp();
@@ -305,15 +304,15 @@ package com.worlize.interactivity.api.adapter
 		private function handleClientMoveRoomObject(event:Event):void {
 			var eo:Object = event;
 			if (eo.data && eo.data.x is Number && eo.data.y is Number) {
-				client.inWorldObjectInstance.moveLocal(eo.data.x, eo.data.y);
+				client.appInstance.moveLocal(eo.data.x, eo.data.y);
 			}
 		}
 		
 		private function handleClientResizeRoomObject(event:Event):void {
 			var eo:Object = event;
 			if (eo.data && eo.data.width is Number && eo.data.height is Number) {
-				client.inWorldObjectInstance.sizeUnknown = false;
-				client.inWorldObjectInstance.resizeLocal(eo.data.width, eo.data.height);
+				client.appInstance.sizeUnknown = false;
+				client.appInstance.resizeLocal(eo.data.width, eo.data.height);
 			}
 		}
 		
@@ -343,16 +342,16 @@ package com.worlize.interactivity.api.adapter
 			var eo:Object = event;
 			if (eo.data && eo.data.message is ByteArray) {
 				if (eo.data.toUserGuids is Array) {
-					host.sendObjectMessage(
-						client.inWorldObjectInstance.guid,
+					host.sendAppMessage(
+						client.appInstance.guid,
 						eo.data.message,
 						eo.data.toAppInstanceGuid,
 						eo.data.toUserGuids
 					);
 					return;
 				}
-				host.sendObjectMessage(
-					client.inWorldObjectInstance.guid,
+				host.sendAppMessage(
+					client.appInstance.guid,
 					eo.data.message,
 					eo.data.toAppInstanceGuid
 				);
@@ -363,7 +362,7 @@ package com.worlize.interactivity.api.adapter
 			if (client === null) { return; }
 			var eo:Object = event;
 			if (eo.data && eo.data.message is ByteArray) {
-				host.sendObjectMessageLocal(client.inWorldObjectInstance.guid, eo.data.message, eo.data.toAppInstanceGuid, host.thisUser.id);
+				host.sendAppMessageLocal(client.appInstance.guid, eo.data.message, eo.data.toAppInstanceGuid, host.thisUser.id);
 			}
 		}
 		
@@ -473,7 +472,7 @@ package com.worlize.interactivity.api.adapter
 		
 		public function processChat(record:ChatRecord):void {
 			if (sharedEvents === null) { return; }
-			if (state !== InWorldObjectInstance.STATE_READY) { return; }
+			if (state !== AppInstance.STATE_READY) { return; }
 			
 			var type:String = (record.direction === ChatRecord.INCHAT) ? "incomingChat" : "outgoingChat";
 			
@@ -513,55 +512,55 @@ package com.worlize.interactivity.api.adapter
 			sharedEvents.dispatchEvent(event);
 		}
 		
-		public function objectAdded(roomObject:InWorldObjectInstance):void {
+		public function itemAdded(item:IRoomItem):void {
 			if (sharedEvents === null) { return; }
-			if (roomObject.inWorldObject.kind !== InWorldObject.KIND_APP) { return; }
+			if (!(item is AppInstance)) { return; }
 			var event:APIBridgeEvent = new APIBridgeEvent("host_roomObjectAdded");
-			event.data = { roomObject: inWorldObjectInstanceToObject(roomObject) };
+			event.data = { roomObject: appInstanceToObject(item as AppInstance) };
 			sharedEvents.dispatchEvent(event);
 		}
 		
-		public function objectRemoved(roomObject:InWorldObjectInstance):void {
+		public function itemRemoved(item:IRoomItem):void {
 			if (sharedEvents === null) { return; }
-			if (roomObject.inWorldObject.kind !== InWorldObject.KIND_APP) { return; }			
+			if (!(item is AppInstance)) { return; }
 			var event:APIBridgeEvent = new APIBridgeEvent("host_roomObjectRemoved");
 			event.data = {
-				guid: roomObject.guid
+				guid: item.guid
 			};
 			sharedEvents.dispatchEvent(event);
 		}
 		
-		public function objectMoved(roomObject:InWorldObjectInstance):void {
+		public function itemMoved(item:IRoomItem):void {
 			if (sharedEvents === null) { return; }
-			if (roomObject.inWorldObject.kind !== InWorldObject.KIND_APP) { return; }
+			if (!(item is AppInstance)) { return; }
 			var event:APIBridgeEvent = new APIBridgeEvent("host_roomObjectMoved");
 			event.data = {
-				guid: roomObject.guid,
-				x: roomObject.x,
-				y: roomObject.y
+				guid: item.guid,
+				x: item.x,
+				y: item.y
 			};
 			sharedEvents.dispatchEvent(event);
 		}
 		
-		public function objectResized(roomObject:InWorldObjectInstance):void {
+		public function itemResized(item:IRoomItem):void {
 			if (sharedEvents === null) { return; }
-			if (roomObject.inWorldObject.kind !== InWorldObject.KIND_APP) { return; }
+			if (!(item is AppInstance)) { return; }
+			var appInstance:AppInstance = item as AppInstance;
 			var event:APIBridgeEvent = new APIBridgeEvent("host_roomObjectResized");
 			event.data = {
-				guid: roomObject.guid,
-				width: roomObject.width,
-				height: roomObject.height
+				guid: item.guid,
+				width: appInstance.width,
+				height: appInstance.height
 			};
 			sharedEvents.dispatchEvent(event);
 		}
 		
-		public function objectStateChanged(roomObject:InWorldObjectInstance):void {
+		public function appStateChanged(appInstance:AppInstance):void {
 			if (sharedEvents === null) { return; }
-			if (roomObject.inWorldObject.kind !== InWorldObject.KIND_APP) { return; }
 			var event:APIBridgeEvent = new APIBridgeEvent("host_roomObjectStateChanged");
 			event.data = {
-				guid: roomObject.guid,
-				state: roomObject.state
+				guid: appInstance.guid,
+				state: appInstance.state
 			};
 			sharedEvents.dispatchEvent(event);
 		}
@@ -793,7 +792,7 @@ package com.worlize.interactivity.api.adapter
 				var error:Error = event.error as Error;
 				message =
 					"***************************" +
-					"\nAn error has occurred in app \"" + client.inWorldObjectInstance.inWorldObject.name + "\":" +
+					"\nAn error has occurred in app \"" + client.appInstance.app.name + "\":" +
 					"\nErrorID: " + error.errorID +
 					"\nName: " + error.name +
 					"\nMessage: " + error.message;
@@ -811,7 +810,7 @@ package com.worlize.interactivity.api.adapter
 				var errorEvent:ErrorEvent = event.error as ErrorEvent;
 				message =
 					"***************************" +
-					"\nAn error event has occurred in app \"" + client.inWorldObjectInstance.inWorldObject.name + "\":" +
+					"\nAn error event has occurred in app \"" + client.appInstance.app.name + "\":" +
 					"\nErrorID: " + errorEvent.errorID +
 					"\nType: " + errorEvent.type +
 					"\nText: " + errorEvent.text +
@@ -837,11 +836,9 @@ package com.worlize.interactivity.api.adapter
 			};
 			
 			for each (var item:IRoomItem in room.items) {
-				if (!(item is InWorldObjectInstance)) { continue; }
-				var objInst:InWorldObjectInstance = InWorldObjectInstance(item);
-				if (objInst.inWorldObject.kind === InWorldObject.KIND_APP) {
-					obj.objects.push(inWorldObjectInstanceToObject(objInst));
-				}
+				if (!(item is AppInstance)) { continue; }
+				var appInstance:AppInstance = AppInstance(item);
+				obj.objects.push(appInstanceToObject(appInstance));
 			}
 			for each (var user:InteractivityUser in room.users) {
 				obj.users.push(userToObject(user));
@@ -878,19 +875,19 @@ package com.worlize.interactivity.api.adapter
 			};
 		}
 		
-		protected function inWorldObjectInstanceToObject(instance:InWorldObjectInstance):Object {
+		protected function appInstanceToObject(instance:AppInstance):Object {
 			var obj:Object = {
 				state: instance.state,
 				instanceGuid: instance.guid,
-				guid: instance.inWorldObject.guid,
-				name: instance.inWorldObject.name,
-				creatorGuid: instance.inWorldObject.creatorGuid,
+				guid: instance.app.guid,
+				name: instance.app.name,
+				creatorGuid: instance.app.creatorGuid,
 				identifier: "",
 				x: instance.x,
 				y: instance.y,
 				width: instance.width ? instance.width : 0,
 				height: instance.height ? instance.height : 0,
-				icon: instance.inWorldObject.iconURL
+				icon: instance.app.iconURL
 			};
 			return obj;
 		}

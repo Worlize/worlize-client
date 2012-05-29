@@ -4,6 +4,7 @@ package com.worlize.interactivity.view
 	import com.worlize.event.NotificationCenter;
 	import com.worlize.interactivity.event.DragHandleEvent;
 	import com.worlize.interactivity.event.HotspotEvent;
+	import com.worlize.interactivity.event.RoomEvent;
 	import com.worlize.interactivity.iptscrae.IptEventHandler;
 	import com.worlize.interactivity.model.Hotspot;
 	import com.worlize.interactivity.model.InteractivityConfig;
@@ -55,7 +56,7 @@ package com.worlize.interactivity.view
 			super();
 			this.hotSpot = hotSpot;
 			this.highlightOnMouseOver = highlightOnMouseOver;
-			hotSpot.addEventListener(HotspotEvent.MOVED, handleHotspotMoved);
+			hotSpot.addEventListener(RoomEvent.ITEM_MOVED, handleHotspotMoved);
 			hotSpot.addEventListener(HotspotEvent.REDRAW_REQUESTED, handleRedrawRequested);
 			x = hotSpot.location.x;
 			y = hotSpot.location.y;
@@ -355,7 +356,7 @@ package com.worlize.interactivity.view
 			client.iptInteractivityController.triggerHotspotEvent(hotSpot, IptEventHandler.TYPE_MOUSEMOVE);
 		}
 		
-		private function handleHotspotMoved(event:HotspotEvent):void {
+		private function handleHotspotMoved(event:RoomEvent):void {
 			x = hotSpot.location.x;
 			y = hotSpot.location.y;
 		}

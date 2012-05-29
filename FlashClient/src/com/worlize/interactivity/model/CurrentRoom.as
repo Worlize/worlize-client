@@ -36,10 +36,10 @@ package com.worlize.interactivity.model
 	[Event(name="userLeft",type="com.worlize.interactivity.event.RoomEvent")]
 	[Event(name="roomCleared",type="com.worlize.interactivity.event.RoomEvent")]
 	[Event(name="userMoved",type="com.worlize.interactivity.event.RoomEvent")]
-	[Event(name="objectAdded",type="com.worlize.interactivity.event.RoomEvent")]
-	[Event(name="objectRemoved",type="com.worlize.interactivity.event.RoomEvent")]
-	[Event(name="objectMoved",type="com.worlize.interactivity.event.RoomEvent")]
-	[Event(name="objectResized",type="com.worlize.interactivity.event.RoomEvent")]
+	[Event(name="itemAdded",type="com.worlize.interactivity.event.RoomEvent")]
+	[Event(name="itemRemoved",type="com.worlize.interactivity.event.RoomEvent")]
+	[Event(name="itemMoved",type="com.worlize.interactivity.event.RoomEvent")]
+	[Event(name="itemResized",type="com.worlize.interactivity.event.RoomEvent")]
 	[Bindable]
 	public class CurrentRoom extends EventDispatcher
 	{
@@ -84,13 +84,10 @@ package com.worlize.interactivity.model
 		public function addItem(item:IRoomItem):void {
 			items.addItem(item);
 			itemsByGuid[item.guid] = item;
-			
-			if (item is InWorldObjectInstance) {
-				registerInWorldObjectAdded(item as InWorldObjectInstance);
-			}
-			else if (item is AppInstance) {
-				registerAppAdded(item as AppInstance);
-			}
+			addRoomItemListeners(item);
+			var event:RoomEvent = new RoomEvent(RoomEvent.ITEM_ADDED);
+			event.roomItem = item;
+			dispatchEvent(event);
 		}
 		
 		public function getItemByGuid(guid:String):IRoomItem {
@@ -105,13 +102,10 @@ package com.worlize.interactivity.model
 					items.removeItemAt(index);
 				}
 				delete itemsByGuid[guid];
-				
-				if (item is InWorldObjectInstance) {
-					registerInWorldObjectRemoved(item as InWorldObjectInstance);
-				}
-				if (item is AppInstance) {
-					registerAppRemoved(item as AppInstance);
-				}
+				removeRoomItemListeners(item);
+				var event:RoomEvent = new RoomEvent(RoomEvent.ITEM_REMOVED);
+				event.roomItem = item;
+				dispatchEvent(event);
 			}
 			return item;
 		}
@@ -119,36 +113,6 @@ package com.worlize.interactivity.model
 		public function resetItems():void {
 			items.removeAll();
 			itemsByGuid = {};
-		}
-		
-		public function registerInWorldObjectAdded(inWorldObjectInstance:InWorldObjectInstance):void {
-			addInWorldObjectInstanceListeners(inWorldObjectInstance);
-			var notification:InWorldObjectNotification =
-				new InWorldObjectNotification(InWorldObjectNotification.IN_WORLD_OBJECT_ADDED_TO_ROOM);
-			notification.instanceGuid = inWorldObjectInstance.guid;
-			notification.room = inWorldObjectInstance.room;
-			NotificationCenter.postNotification(notification);
-		}
-		
-		public function registerInWorldObjectRemoved(inWorldObjectInstance:InWorldObjectInstance):void {
-			removeInWorldObjectInstanceListeners(inWorldObjectInstance);
-			
-			var notification:InWorldObjectNotification =
-				new InWorldObjectNotification(InWorldObjectNotification.IN_WORLD_OBJECT_REMOVED_FROM_ROOM);
-			notification.instanceGuid = inWorldObjectInstance.guid;
-			NotificationCenter.postNotification(notification);
-		}
-		
-		public function registerAppAdded(appInstance:AppInstance):void {
-			var event:RoomEvent = new RoomEvent(RoomEvent.APP_ADDED);
-			event.appInstance = appInstance;
-			dispatchEvent(event);
-		}
-		
-		public function registerAppRemoved(appInstance:AppInstance):void {
-			var event:RoomEvent = new RoomEvent(RoomEvent.APP_REMOVED);
-			event.appInstance = appInstance;
-			dispatchEvent(event);
 		}
 		
 		public function resetProperties():void {
@@ -189,47 +153,51 @@ package com.worlize.interactivity.model
 			}
 		}
 		
-		private function addInWorldObjectInstanceListeners(inWorldObjectInstance:InWorldObjectInstance):void {
-			inWorldObjectInstance.addEventListener(RoomEvent.APP_MOVED, redispatchObjectEvent);
-			inWorldObjectInstance.addEventListener(RoomEvent.APP_RESIZED, redispatchObjectEvent);
-			inWorldObjectInstance.addEventListener(RoomEvent.APP_STATE_CHANGED, redispatchObjectEvent);
+		private function addRoomItemListeners(item:IRoomItem):void {
+			item.addEventListener(RoomEvent.ITEM_MOVED, redispatchItemEvent);
+			item.addEventListener(RoomEvent.ITEM_RESIZED, redispatchItemEvent);
+			if (item is AppInstance) {
+				item.addEventListener(RoomEvent.APP_STATE_CHANGED, redispatchItemEvent);
+			}
 		}
 		
-		private function removeInWorldObjectInstanceListeners(inWorldObjectInstance:InWorldObjectInstance):void {
-			inWorldObjectInstance.removeEventListener(RoomEvent.APP_MOVED, redispatchObjectEvent);
-			inWorldObjectInstance.removeEventListener(RoomEvent.APP_RESIZED, redispatchObjectEvent);
-			inWorldObjectInstance.removeEventListener(RoomEvent.APP_STATE_CHANGED, redispatchObjectEvent);
+		private function removeRoomItemListeners(item:IRoomItem):void {
+			item.removeEventListener(RoomEvent.ITEM_MOVED, redispatchItemEvent);
+			item.removeEventListener(RoomEvent.ITEM_RESIZED, redispatchItemEvent);
+			if (item is AppInstance) {
+				item.removeEventListener(RoomEvent.APP_STATE_CHANGED, redispatchItemEvent);
+			}
 		}
 
-		public function redispatchObjectEvent(event:RoomEvent):void {
+		public function redispatchItemEvent(event:RoomEvent):void {
 			dispatchEvent(event);
 		}
 		
-		public function moveObject(guid:String, x:int, y:int):void {
-			var inWorldObjectInstance:InWorldObjectInstance = itemsByGuid[guid];
-			if (inWorldObjectInstance) {
-				inWorldObjectInstance.x = x;
-				inWorldObjectInstance.y = y;
+		public function moveItem(guid:String, x:int, y:int):void {
+			var roomItem:IRoomItem = itemsByGuid[guid];
+			if (roomItem) {
+				roomItem.x = x;
+				roomItem.y = y;
 				
-				var event:RoomEvent = new RoomEvent(RoomEvent.APP_MOVED);
-				event.roomObject = inWorldObjectInstance;
+				var event:RoomEvent = new RoomEvent(RoomEvent.ITEM_MOVED);
+				event.roomItem = roomItem;
 				dispatchEvent(event);
 			}
 		}
 		
-		public function resizeObject(guid:String, width:int, height:int):void {
-			var inWorldObjectInstance:InWorldObjectInstance = itemsByGuid[guid];
-			if (inWorldObjectInstance) {
-				inWorldObjectInstance.width = width;
-				inWorldObjectInstance.height = height;
+		public function resizeItem(guid:String, width:int, height:int):void {
+			var roomItem:IRoomItem = itemsByGuid[guid];
+			if (roomItem) {
+				roomItem.width = width;
+				roomItem.height = height;
 				
-				var event:RoomEvent = new RoomEvent(RoomEvent.APP_RESIZED);
-				event.roomObject = inWorldObjectInstance;
+				var event:RoomEvent = new RoomEvent(RoomEvent.ITEM_RESIZED);
+				event.roomItem = roomItem;
 				dispatchEvent(event);
 			}
 		}
 		
-		public function setObjectDest(guid:String, dest:String):void {
+		public function setItemDest(guid:String, dest:String):void {
 			var inWorldObjectInstance:InWorldObjectInstance = itemsByGuid[guid];
 			if (inWorldObjectInstance) {
 				inWorldObjectInstance.dest = dest;
@@ -309,14 +277,6 @@ package com.worlize.interactivity.model
 				if (user.name == name) {
 					return user;
 				}
-			}
-			return null;
-		}
-		
-		public function getInWorldObjectInstanceById(id:String):InWorldObjectInstance {
-			var item:IRoomItem = itemsByGuid[id];
-			if (item is InWorldObjectInstance) {
-				return item as InWorldObjectInstance;
 			}
 			return null;
 		}

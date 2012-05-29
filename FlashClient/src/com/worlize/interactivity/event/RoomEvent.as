@@ -1,5 +1,6 @@
 package com.worlize.interactivity.event
 {
+	import com.worlize.interactivity.model.IRoomItem;
 	import com.worlize.interactivity.model.InteractivityUser;
 	import com.worlize.model.AppInstance;
 	import com.worlize.model.InWorldObjectInstance;
@@ -14,14 +15,16 @@ package com.worlize.interactivity.event
 		public static const USER_MOVED:String = "userMoved";
 		public static const SELECTED_USER_CHANGED:String = "selectedUserChanged";
 		
-		public static const APP_ADDED:String = "appAdded";
-		public static const APP_REMOVED:String = "appRemoved";
-		public static const APP_MOVED:String = "appMoved";
-		public static const APP_RESIZED:String = "appResized";
 		public static const APP_STATE_CHANGED:String = "appStateChanged";
 		
+		public static const ITEM_ADDED:String = "itemAdded";
+		public static const ITEM_REMOVED:String = "itemRemoved";
+		public static const ITEM_MOVED:String = "itemMoved";
+		public static const ITEM_RESIZED:String = "itemResized";
+		
 		public var user:InteractivityUser;
-		public var roomObject:InWorldObjectInstance;
+		
+		public var roomItem:IRoomItem;
 		public var appInstance:AppInstance;
 		
 		public function RoomEvent(type:String, user:InteractivityUser = null)
@@ -32,7 +35,9 @@ package com.worlize.interactivity.event
 		
 		override public function clone():Event {
 			var event:RoomEvent = new RoomEvent(type, user);
-			event.roomObject = roomObject;
+			event.roomItem = roomItem;
+			event.appInstance = appInstance;
+			event.user = user;
 			return event;
 		}
 		

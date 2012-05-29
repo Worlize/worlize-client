@@ -31,6 +31,8 @@
 			import mx.logging.ILogger;
 			import mx.logging.Log;
 			import mx.managers.DragManager;
+			
+			import spark.components.Image;
 			[Bindable]
 			private var _looseProp:LooseProp;
 			
@@ -126,7 +128,19 @@
 					startMouseY: event.stageY,
 					looseProp: looseProp
 				}, 'propInRoom');
-				DragManager.doDrag(this, dragSource, event);
+				
+				var proxy:Image = new Image();
+				if (gifPlayer) {
+					proxy.source = gifPlayer.bitmapData;
+				}
+				else if (normalImage) {
+					proxy.source = normalImage.bitmapData;
+				}
+				
+				proxy.width = loadedWidth;
+				proxy.height = loadedHeight;
+				
+				DragManager.doDrag(this, dragSource, event, proxy);
 			}
 			
 			protected function loadImage():void {

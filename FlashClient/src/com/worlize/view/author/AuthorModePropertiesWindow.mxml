@@ -7,6 +7,7 @@
 								 title="Properties"
 								 title.hotspot="Door Properties"
 								 title.inWorldObject="Object Properties"
+								 title.app="App Properties"
 								 title.youTubePlayer="YouTube Properties"
 								 showTitle="true"
 								 currentState="noItemSelected"
@@ -20,6 +21,7 @@
 		<s:State name="noItemSelected" />
 		<s:State name="hotspot" />
 		<s:State name="inWorldObject" />
+		<s:State name="app" />
 		<s:State name="youTubePlayer" />
 	</components:states>
 	
@@ -28,6 +30,7 @@
 			import com.worlize.event.AuthorModeNotification;
 			import com.worlize.event.NotificationCenter;
 			import com.worlize.interactivity.model.Hotspot;
+			import com.worlize.model.AppInstance;
 			import com.worlize.model.InWorldObjectInstance;
 			import com.worlize.model.YouTubePlayerDefinition;
 			import com.worlize.state.AuthorModeState;
@@ -53,6 +56,10 @@
 					currentState = "inWorldObject";
 					inWorldObjectPropertiesEditor.inWorldObjectInstance = InWorldObjectInstance(authorModeState.selectedItem);
 				}
+				else if (authorModeState.selectedItem is AppInstance) {
+					currentState = "app";
+					appPropertiesEditor.appInstance = AppInstance(authorModeState.selectedItem);
+				}
 				else if (authorModeState.selectedItem is YouTubePlayerDefinition) {
 					currentState = "youTubePlayer";
 					youTubePlayerPropertiesEditor.youTubePlayerDefinition = YouTubePlayerDefinition(authorModeState.selectedItem);
@@ -75,6 +82,9 @@
 	
 	<properties:InWorldObjectPropertiesEditor id="inWorldObjectPropertiesEditor"
 											  includeIn="inWorldObject" width="100%" />
+	
+	<properties:AppPropertiesEditor id="appPropertiesEditor"
+									includeIn="app" width="100%" />
 	
 	<properties:YouTubePlayerProperties id="youTubePlayerPropertiesEditor"
 										includeIn="youTubePlayer" width="100%" />

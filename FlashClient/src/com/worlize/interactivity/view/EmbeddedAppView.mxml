@@ -12,8 +12,8 @@
 		  mouseOut="handleMouseOut(event)"
 		  mouseEnabled="false"
 		  currentState="normal"
-		  x="{inWorldObjectInstance.x}"
-		  y="{inWorldObjectInstance.y}" >
+		  x="{appInstance.x}"
+		  y="{appInstance.y}" >
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
@@ -41,6 +41,7 @@
 			import com.worlize.interactivity.api.event.AppLoaderEvent;
 			import com.worlize.interactivity.api.event.ClientValidationErrorEvent;
 			import com.worlize.interactivity.rpc.InteractivityClient;
+			import com.worlize.model.AppInstance;
 			import com.worlize.model.InWorldObject;
 			import com.worlize.model.InWorldObjectInstance;
 			import com.worlize.model.RoomDefinition;
@@ -51,18 +52,19 @@
 			import mx.core.ByteArrayAsset;
 			import mx.events.FlexEvent;
 	
-			private var _objInst:InWorldObjectInstance;
+			private var _appInst:AppInstance;
 			
-			[Bindable(event="inWorldObjectInstanceChange")]
-			public function set inWorldObjectInstance(newValue:InWorldObjectInstance):void {
-				if (_objInst !== newValue) {
-					_objInst = newValue;
-					loadObject();
-					dispatchEvent(new FlexEvent("inWorldObjectInstanceChange"));
+			[Bindable(event="appInstanceChange")]
+			public function set appInstance(newValue:AppInstance):void {
+				if (_appInst !== newValue) {
+					_appInst = newValue;
+					loadApp();
+					updateSelected();
+					dispatchEvent(new FlexEvent("appInstanceChange"));
 				}
 			}
-			public function get inWorldObjectInstance():InWorldObjectInstance {
-				return _objInst;
+			public function get appInstance():AppInstance {
+				return _appInst;
 			}
 			
 			[Bindable]
@@ -85,6 +87,7 @@
 				if (_authorMode != newValue) {
 					_authorMode = newValue;
 					updateState();
+					updateSelected();
 					dispatchEvent(new FlexEvent('authorModeChanged'));
 				}
 			}
@@ -116,16 +119,18 @@
 				return _selected;
 			}
 			
-			protected function loadObject():void {
+			private function updateSelected():void {
+				selected = (AuthorModeState.getInstance().selectedItem === appInstance);
+			}
+			
+			protected function loadApp():void {
 				if (appLoader.source !== null) {
 					appLoader.unloadAndStop(true);
 				}
 				
 				showLoadingSpinner();
 				
-				if (_objInst.inWorldObject.kind === InWorldObject.KIND_APP) {
-					appLoader.load(_objInst);
-				}
+				appLoader.load(_appInst);
 			}
 			
 			private function updateState():void {
@@ -154,9 +159,6 @@
 					mouseEnabled = false;
 				}
 				else if (_authorMode) {
-					mouseEnabled = true;
-				}
-				else if (inWorldObjectInstance.inWorldObject.kind !== InWorldObject.KIND_APP) {
 					mouseEnabled = true;
 				}
 				else {
@@ -196,7 +198,7 @@
 			}
 			
 			private function handleEditModeEnabled(notification:AuthorModeNotification):void {
-				if (notification.inWorldObjectInstance === inWorldObjectInstance) {
+				if (notification.roomItem === appInstance) {
 					editMode = true;
 				}
 			}
@@ -206,7 +208,7 @@
 			}
 			
 			private function handleSelectedItemChanged(notification:AuthorModeNotification):void {
-				selected = (notification.newValue === inWorldObjectInstance);
+				selected = (notification.newValue === appInstance);
 			}
 			
 			private function handleMouseOver(event:MouseEvent):void {
@@ -216,13 +218,13 @@
 				else if (_authorMode) {
 					Mouse.cursor = MouseCursor.HAND;
 				}
-				else if (inWorldObjectInstance.dest) {
+				else if (appInstance.dest) {
 					Mouse.cursor = MouseCursor.BUTTON;
 				}
 			}
 			
 			private function handleMouseOut(event:MouseEvent):void {
-				if ((_authorMode || inWorldObjectInstance.dest) && !_editMode) {
+				if ((_authorMode || appInstance.dest) && !_editMode) {
 					Mouse.cursor = MouseCursor.ARROW;
 				}
 			}
@@ -236,13 +238,13 @@
 					systemManager.getSandboxRoot().addEventListener(MouseEvent.MOUSE_UP, handleStageMouseUp);
 					systemManager.getSandboxRoot().addEventListener(MouseEvent.MOUSE_MOVE, handleStageMouseMove);
 					event.stopImmediatePropagation();
-					AuthorModeState.getInstance().selectedItem = this.inWorldObjectInstance;
-					startPoint = new Point(inWorldObjectInstance.x, inWorldObjectInstance.y);
+					AuthorModeState.getInstance().selectedItem = this.appInstance;
+					startPoint = new Point(appInstance.x, appInstance.y);
 					startMousePos = new Point(parent.mouseX, parent.mouseY);
 					mousePos = startMousePos.clone();
 				}
-				else if (inWorldObjectInstance.dest) {
-					InteractivityClient.getInstance().gotoRoom(inWorldObjectInstance.dest);
+				else if (appInstance.dest) {
+					InteractivityClient.getInstance().gotoRoom(appInstance.dest);
 				}
 			}
 			
@@ -251,12 +253,11 @@
 				systemManager.getSandboxRoot().removeEventListener(MouseEvent.MOUSE_UP, handleStageMouseUp);
 				systemManager.getSandboxRoot().removeEventListener(MouseEvent.MOUSE_MOVE, handleStageMouseMove);
 				
-				if (startPoint.x != inWorldObjectInstance.x ||
-					startPoint.y != inWorldObjectInstance.y)
+				if (startPoint.x != appInstance.x ||
+					startPoint.y != appInstance.y)
 				{
-					var roomDefinition:RoomDefinition = new RoomDefinition();
-					roomDefinition.guid = inWorldObjectInstance.room.guid 
-					roomDefinition.moveObjectInstance(inWorldObjectInstance.guid, inWorldObjectInstance.x, inWorldObjectInstance.y);
+					var client:InteractivityClient = InteractivityClient.getInstance();
+					client.moveItem(appInstance.guid, appInstance.x, appInstance.y);
 				}
 			}
 			
@@ -272,8 +273,8 @@
 					var destx:int = startPoint.x + (mousePos.x - startMousePos.x);
 					var desty:int = startPoint.y + (mousePos.y - startMousePos.y);
 					
-					var halfWidth:int = inWorldObjectInstance.width >> 1;
-					var halfHeight:int = inWorldObjectInstance.height >> 1;
+					var halfWidth:int = appInstance.width >> 1;
+					var halfHeight:int = appInstance.height >> 1;
 					
 					if (destx < 0 - halfWidth) {
 						destx = 0 - halfWidth;
@@ -288,7 +289,7 @@
 						desty = 570 - 26 - halfHeight;
 					}
 					
-					inWorldObjectInstance.moveLocal(destx,desty);
+					appInstance.moveLocal(destx,desty);
 				}
 			}
 			
@@ -349,8 +350,8 @@
 	</s:Group>
 	
 	<api:AppLoader top="0" left="0" id="appLoader"
-				   width="{inWorldObjectInstance.width}"
-				   height="{inWorldObjectInstance.height}"
+				   width="{appInstance.width}"
+				   height="{appInstance.height}"
 				   validationError="handleValidationError(event)"
 				   appBombed="handleAppBombed(event)"
 				   handshakeComplete="handleHandshakeComplete(event)"
