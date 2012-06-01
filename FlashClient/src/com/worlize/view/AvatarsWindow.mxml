@@ -6,9 +6,9 @@
 						  title="My Avatars"
 						  titleBarColor="#f5b501" titleTextColor="#d59d00" 
 						  windowIcon="@Embed('assets/icons/large/w_icon_myavatars.png')"
-						  minWidth="580" minHeight="200"
+						  minWidth="393" minHeight="200"
 						  creationComplete="handleCreationComplete()"
-						  width="580" height="430" xmlns:locker="com.worlize.view.locker.*">
+						  width="393" height="430" xmlns:locker="com.worlize.view.locker.*">
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>

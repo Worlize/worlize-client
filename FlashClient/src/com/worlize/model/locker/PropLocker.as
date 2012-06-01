@@ -74,38 +74,38 @@ package com.worlize.model.locker
 		}
 		
 		private function handlePropsLockerCapacityChanged(event:LockerEvent):void {
-			var oldCapacity:int = event.oldCapacity;
-			var newCapacity:int = event.newCapacity;
-			var i:int;
-			
-			if (isNaN(oldCapacity)) { oldCapacity = 0 };
-			
-			
-			propInstances.disableAutoUpdate();
-			if (newCapacity - oldCapacity > 0) {
-				var slotsToAdd:int = newCapacity - oldCapacity;
-				// if there were previously fewer slots than the user had avatars...
-				if (emptySlots < 0) {
-					slotsToAdd += emptySlots;
-				}
-				for (i = 0; i < slotsToAdd; i++) {
-					addEmptySlot();
-				}
-			}
-			else if (newCapacity - oldCapacity < 0) {
-				var slotsToRemove:int = oldCapacity - newCapacity;
-				for (i = 0; i < slotsToRemove; i++) {
-					try {
-						removeEmptySlot();
-					}
-					catch(e:Error) {
-						// bail out
-						logger.warn("Tried to remove an empty slot but there are none left to remove.");
-						break;
-					}
-				}
-			}
-			propInstances.enableAutoUpdate();
+//			var oldCapacity:int = event.oldCapacity;
+//			var newCapacity:int = event.newCapacity;
+//			var i:int;
+//			
+//			if (isNaN(oldCapacity)) { oldCapacity = 0 };
+//			
+//			
+//			propInstances.disableAutoUpdate();
+//			if (newCapacity - oldCapacity > 0) {
+//				var slotsToAdd:int = newCapacity - oldCapacity;
+//				// if there were previously fewer slots than the user had avatars...
+//				if (emptySlots < 0) {
+//					slotsToAdd += emptySlots;
+//				}
+//				for (i = 0; i < slotsToAdd; i++) {
+//					addEmptySlot();
+//				}
+//			}
+//			else if (newCapacity - oldCapacity < 0) {
+//				var slotsToRemove:int = oldCapacity - newCapacity;
+//				for (i = 0; i < slotsToRemove; i++) {
+//					try {
+//						removeEmptySlot();
+//					}
+//					catch(e:Error) {
+//						// bail out
+//						logger.warn("Tried to remove an empty slot but there are none left to remove.");
+//						break;
+//					}
+//				}
+//			}
+//			propInstances.enableAutoUpdate();
 			
 			updateCount();
 		}
@@ -126,7 +126,7 @@ package com.worlize.model.locker
 				if (instance.guid == notification.deletedInstanceGuid) {
 					propInstances.removeItemAt(i);
 					delete propInstanceMap[instance.guid];
-					addEmptySlot();
+//					addEmptySlot();
 					updateCount();
 					return;
 				}
@@ -135,36 +135,36 @@ package com.worlize.model.locker
 		
 		private function handlePropInstanceAdded(notification:PropNotification):void {
 			propInstanceMap[notification.propInstance.guid] = notification.propInstance;
-			for (var i:int = 0, len:int = propInstances.length; i < len; i++) {
-				var instance:PropInstance = PropInstance(propInstances.getItemAt(i));
-				if (instance.emptySlot) {
-					propInstances.removeItemAt(i);
-					delete propInstanceMap[instance.guid];
-					propInstances.addItemAt(notification.propInstance, 0);
-					updateCount();
-					return;
-				}
-			}
+//			for (var i:int = 0, len:int = propInstances.length; i < len; i++) {
+//				var instance:PropInstance = PropInstance(propInstances.getItemAt(i));
+//				if (instance.emptySlot) {
+//					propInstances.removeItemAt(i);
+//					delete propInstanceMap[instance.guid];
+//					propInstances.addItemAt(notification.propInstance, 0);
+//					updateCount();
+//					return;
+//				}
+//			}
 			propInstances.addItemAt(notification.propInstance, 0);
 			updateCount();
 		}
 		
-		private function addEmptySlot():void {
-			var instance:PropInstance = new PropInstance();
-			instance.emptySlot = true;
-			propInstances.addItem(instance);
-		}
-		
-		private function removeEmptySlot():void {
-			for (var i:int = propInstances.length-1; i > 0; i--) {
-				var instance:PropInstance = PropInstance(propInstances.getItemAt(i));
-				if (instance.emptySlot) {
-					propInstances.removeItemAt(i);
-					return;
-				}
-			}
-			throw new Error("There are no empty slots to remove.");
-		}
+//		private function addEmptySlot():void {
+//			var instance:PropInstance = new PropInstance();
+//			instance.emptySlot = true;
+//			propInstances.addItem(instance);
+//		}
+//		
+//		private function removeEmptySlot():void {
+//			for (var i:int = propInstances.length-1; i > 0; i--) {
+//				var instance:PropInstance = PropInstance(propInstances.getItemAt(i));
+//				if (instance.emptySlot) {
+//					propInstances.removeItemAt(i);
+//					return;
+//				}
+//			}
+//			throw new Error("There are no empty slots to remove.");
+//		}
 		
 		private function updateCount():void {
 			var count:int = 0;
@@ -195,9 +195,9 @@ package com.worlize.model.locker
 				var capacity:int = currentUser.slots.propSlots = event.resultJSON.capacity;
 				count = event.resultJSON.count;
 				emptySlots = capacity - count;
-				for (var i:int = 0; i < emptySlots; i++) {
-					addEmptySlot();
-				}
+//				for (var i:int = 0; i < emptySlots; i++) {
+//					addEmptySlot();
+//				}
 				state = STATE_READY;
 			}
 			else {

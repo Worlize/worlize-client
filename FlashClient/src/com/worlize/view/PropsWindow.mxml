@@ -6,12 +6,12 @@
 						  title="My Props"
 						  titleBarColor="#e7b957" titleTextColor="#e0a72e" 
 						  windowIcon="@Embed('assets/icons/large/w_icon_myprops.png')"
-						  minWidth="600" minHeight="200"
+						  minWidth="393" minHeight="200"
 						  creationComplete="handleCreationComplete()"
 						  dragEnter="handleDragEnter(event)"
 						  dragOver="handleDragOver(event)"
 						  dragDrop="handleDragDrop(event)"
-						  width="600" height="430" xmlns:locker="com.worlize.view.locker.*">
+						  width="393" height="430" xmlns:locker="com.worlize.view.locker.*">
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
@@ -193,6 +193,7 @@
 	
 	
 	<components:controlBarContent>
+		<!--
 		<components:UploadProgressIndicator
 			uploader="{propUploader}" />
 		
@@ -209,7 +210,7 @@
 			line1="Capacity: {CurrentUser.getInstance().slots.propSlots}"
 			line2="Used: {propLocker.count}"
 			toolTip="Click to buy more locker space"/>
-		
+		-->
 		<!--
 		<mx:Spacer width="20" />
 		<mx:LinkButton
@@ -221,25 +222,54 @@
 		-->
 	</components:controlBarContent>
 	
+	<components:layout>
+		<s:VerticalLayout paddingTop="10" gap="0" />
+	</components:layout>
 	
-	<s:VGroup top="10" left="10" right="10" bottom="10" gap="10">
-		<s:Group id="props" width="100%" height="100%">
-			<!--
-			<s:Rect top="0" right="0" left="0" bottom="0">
-			<s:stroke>
-			<s:SolidColorStroke color="#DDDDDD" weight="1" />
-			</s:stroke>
-			</s:Rect>
-			-->
-			<s:List top="1" right="1" left="1" bottom="1"
-					id="propsList" dataProvider="{propLocker.propInstances}"
-					borderVisible="false"
-					itemRenderer="com.worlize.view.itemrenderers.PropLockerItemRenderer">
-				<s:layout>
-					<s:TileLayout verticalGap="10" horizontalGap="10" />
-				</s:layout>
-			</s:List>			
-		</s:Group>
-	</s:VGroup>
+	<s:Rect width="100%" height="1">
+		<s:fill>
+			<s:SolidColor color="#DDDDDD" />
+		</s:fill>
+	</s:Rect>
+	
+	<s:List width="100%" height="100%"
+			id="propsList" dataProvider="{propLocker.propInstances}"
+			borderVisible="false"
+			itemRenderer="com.worlize.view.itemrenderers.PropLockerItemRenderer">
+		<s:layout>
+			<s:TileLayout paddingTop="10" paddingLeft="10"
+						  paddingRight="10" paddingBottom="10"
+						  verticalGap="10" horizontalGap="10" />
+		</s:layout>
+	</s:List>
+
+	<s:Group width="100%">
+		<s:Rect bottom="0" right="0" top="0" left="0">
+			<s:fill>
+				<s:SolidColor color="#EEEEEE" />
+			</s:fill>
+		</s:Rect>
+		<s:Rect top="0" width="100%" height="1">
+			<s:fill>
+				<s:SolidColor color="#BBBBBB" />
+			</s:fill>
+		</s:Rect>
+		<s:HGroup horizontalAlign="right" verticalAlign="middle"
+				  width="100%"
+				  paddingTop="6" paddingRight="15" paddingBottom="5">
+			<components:UploadProgressIndicator
+				uploader="{propUploader}" />
+			
+			<mx:LinkButton
+				id="uploadButton"
+				click="uploadProp()"
+				enabled="{propUploader.state === Uploader.STATE_READY &amp;&amp; propLocker.state === PropLocker.STATE_READY}"
+				styleName="lockerNavButton"
+				color="#2b9610"
+				icon="@Embed(source='src/assets/icons/icon_upload.png')"
+				toolTip="Click to upload a new Prop"
+				label="Upload" />
+		</s:HGroup>
+	</s:Group>
 	
 </components:WorlizeWindow>
