@@ -149,7 +149,7 @@
 				 fontFamily="PTSansNarrowBold"
 				 verticalCenter="0" horizontalCenter="0"
 				 paddingTop="8" paddingBottom="5"
-				 text="Get More Apps in the App Marketplace!" />
+				 text="Click Here to Get Apps in the App Marketplace!" />
 	</s:Group>
 	
 	<s:Group width="100%"
