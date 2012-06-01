@@ -14,5 +14,7 @@ package com.worlize.control
 		
 		[Bindable]
 		public static var marketplaceEnabled:Boolean = true;
+		
+		public static var config:Object;
 	}
 }

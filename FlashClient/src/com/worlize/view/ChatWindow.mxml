@@ -371,16 +371,16 @@
 						  source="@Embed(source='src/assets/icons/icon_new_room.png')"
 						  visible="{client.currentWorld.canCreateNewRoom}"
 						  includeInLayout="{client.currentWorld.canCreateNewRoom}" />
-				<mx:Spacer width="10" />
 				<mx:Image useHandCursor="true" buttonMode="true"
 						  toolTip="Create new Door" source="@Embed(source='src/assets/icons/icon_author_door.png')"
 						  click="createHotspot()" />
 				<mx:Image useHandCursor="true" buttonMode="true"
-						  toolTip="My Locker" source="@Embed(source='src/assets/icons/icon_author_object.png')"
-						  click="handleObjectsClick()" />
-				<mx:Image useHandCursor="true" buttonMode="true"
 						  toolTip="Add YouTube Player" source="@Embed(source='src/assets/icons/YouTubeIcon.png')"
 						  click="createYoutubePlayer()" />
+				<mx:Spacer width="10" />
+				<mx:Image useHandCursor="true" buttonMode="true"
+						  toolTip="My Locker" source="@Embed(source='src/assets/icons/icon_author_bkg.png')"
+						  click="handleObjectsClick()" />
 				<s:Image  toolTip="World Settings"
 						  click="handleWorldSettingsClick()"
 						  useHandCursor="true" buttonMode="true"

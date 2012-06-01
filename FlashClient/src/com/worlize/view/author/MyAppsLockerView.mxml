@@ -14,6 +14,7 @@
 	<fx:Script>
 		<![CDATA[
 			import com.worlize.control.AppUploader;
+			import com.worlize.control.Marketplace;
 			import com.worlize.control.Uploader;
 			import com.worlize.event.NotificationCenter;
 			import com.worlize.model.CurrentUser;
@@ -67,6 +68,10 @@
 			
 			private function uploadApp():void {
 				uploader.browse();
+			}
+			
+			private function launchAppMarketplace():void {
+				ExternalInterface.call("openMarketplace", Marketplace.config['apps_category_id']);
 			}
 		]]>
 	</fx:Script>
@@ -129,7 +134,27 @@
 		</s:VGroup>
 	</s:Group>
 	
-	<s:Group width="100%">
+	<s:Group width="100%" buttonMode="true" click="launchAppMarketplace()">
+		<s:Rect top="0" left="0" right="0" height="1">
+			<s:fill>
+				<s:SolidColor color="#9fb883" />
+			</s:fill>
+		</s:Rect>
+		<s:Rect top="1" left="0" right="0" bottom="0">
+			<s:fill>
+				<s:SolidColor color="#c7deac" />
+			</s:fill>
+		</s:Rect>
+		<s:Label color="#376600" fontSize="20"
+				 fontFamily="PTSansNarrowBold"
+				 verticalCenter="0" horizontalCenter="0"
+				 paddingTop="8" paddingBottom="5"
+				 text="Get More Apps in the App Marketplace!" />
+	</s:Group>
+	
+	<s:Group width="100%"
+			 visible="{CurrentUser.getInstance().developer}"
+			 includeInLayout="{CurrentUser.getInstance().developer}">
 		<s:Rect bottom="0" right="0" top="0" left="0">
 			<s:fill>
 				<s:SolidColor color="#EEEEEE" />

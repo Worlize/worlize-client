@@ -54,6 +54,7 @@ package com.worlize.model
 				WorlizeServiceClient.cookies = config.cookies;
 				currentUser.updateFromData(config.current_user);
 				Marketplace.marketplaceEnabled = config.marketplace_enabled;
+				Marketplace.config = config.marketplace;
 			}
 			logger.info("User Guid: " + interactivitySession.userGuid);
 			logger.info("Interactivity Session Guid: " + interactivitySession.sessionGuid);
