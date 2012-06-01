@@ -43,9 +43,11 @@
 			private var uploader:Uploader = new AppUploader();
 			
 			private var stateWatcher:ChangeWatcher;
+			private var countWatcher:ChangeWatcher;
 			
 			private function handleCreationComplete():void {
 				stateWatcher = ChangeWatcher.watch(appLocker, ['state'], handleLockerStateChange);
+				countWatcher = ChangeWatcher.watch(appLocker, ['entries','length'], handleLockerStateChange);
 				appLocker.load();
 			}
 			
@@ -61,7 +63,12 @@
 						currentState = "loading";
 						break;
 					case AppLocker.STATE_READY:
-						currentState = "ready";
+						if (appLocker.entries.length > 0) {
+							currentState = "ready";
+						}
+						else {
+							currentState = "empty";
+						}
 						break;
 				}
 			}
@@ -99,7 +106,8 @@
 		<s:State name="init" />
 		<s:State name="loading" />
 		<s:State name="loadError" />
-		<s:State name="ready" />
+		<s:State name="ready" stateGroups="readyToGo" />
+		<s:State name="empty" stateGroups="readyToGo" />
 	</s:states>
 	
 	<s:Group width="100%" height="100%">
@@ -113,6 +121,15 @@
 				<s:VerticalLayout paddingTop="5" paddingBottom="5" gap="10" />
 			</s:layout>
 		</s:List>
+		
+		<s:Group width="100%" height="100%"
+				 includeIn="empty">
+			<s:Label color="#666666" fontFamily="PTSansNarrowBold"
+					 fontSize="24" verticalCenter="0"
+					 width="100%" textAlign="center"
+					 paddingRight="75" paddingLeft="75"
+					 text="You don't have any Apps.  Click the link below to get some from the marketplace!" />
+		</s:Group>
 		
 		<s:Group width="100%" height="100%" includeIn="loading">
 			<controls:Spinner id="loadingSpinner"

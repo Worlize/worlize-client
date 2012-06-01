@@ -8,6 +8,7 @@
 						  windowIcon="@Embed('assets/icons/large/w_icon_myavatars.png')"
 						  minWidth="393" minHeight="200"
 						  creationComplete="handleCreationComplete()"
+						  currentState="{avatarLocker.count > 0 ? 'normal' : 'empty'}"
 						  width="393" height="430" xmlns:locker="com.worlize.view.locker.*">
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
@@ -173,7 +174,10 @@
 		]]>
 	</fx:Script>
 	
-	
+	<components:states>
+		<s:State name="normal" />
+		<s:State name="empty" />
+	</components:states>
 	
 	<components:controlBarContent>
 		<!--
@@ -198,13 +202,14 @@
 		<s:VerticalLayout paddingTop="10" gap="0" />
 	</components:layout>
 
-	<s:Rect width="100%" height="1">
+	<s:Rect width="100%" height="1" includeIn="normal">
 		<s:fill>
 			<s:SolidColor color="#DDDDDD" />
 		</s:fill>
 	</s:Rect>
 
 	<s:List width="100%" height="100%"
+			includeIn="normal"
 			id="avatarsList" dataProvider="{avatarLocker.avatarInstances}"
 			borderVisible="false" change="handleAvatarSelectionChanged(event)"
 			itemRenderer="com.worlize.view.itemrenderers.LockerItemRenderer">
@@ -213,7 +218,15 @@
 						  paddingRight="10" paddingBottom="10"
 						  verticalGap="10" horizontalGap="10" />
 		</s:layout>
-	</s:List>			
+	</s:List>
+	
+	<s:Group width="100%" height="100%" includeIn="empty">
+		<s:Label color="#666666" fontFamily="PTSansNarrowBold"
+				 fontSize="24" verticalCenter="0"
+				 width="100%" textAlign="center"
+				 paddingRight="50" paddingLeft="50"
+				 text="You don't have any Avatars.  Click 'Upload' below to create your first Avatar!" />
+	</s:Group>
 
 	<s:Group width="100%">
 		<s:Rect bottom="0" right="0" top="0" left="0">
