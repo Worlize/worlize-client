@@ -12,6 +12,7 @@ package com.worlize.interactivity.model
 	import com.worlize.model.InWorldObjectInstance;
 	import com.worlize.model.RoomListEntry;
 	import com.worlize.model.YouTubePlayerDefinition;
+	import com.worlize.notification.AppNotification;
 	import com.worlize.notification.InWorldObjectNotification;
 	import com.worlize.rpc.HTTPMethod;
 	import com.worlize.rpc.WorlizeResultEvent;
@@ -87,11 +88,22 @@ package com.worlize.interactivity.model
 			addRoomItemListeners(item);
 			
 			if (item is InWorldObjectInstance) {
-				var n:InWorldObjectNotification = new InWorldObjectNotification(InWorldObjectNotification.IN_WORLD_OBJECT_ADDED_TO_ROOM);
-				n.instanceGuid = item.guid;
-				n.room = InWorldObjectInstance(item).room;
-				NotificationCenter.postNotification(n);
+				var objectNotification:InWorldObjectNotification =
+					new InWorldObjectNotification(InWorldObjectNotification.IN_WORLD_OBJECT_ADDED_TO_ROOM);
+				objectNotification.instanceGuid = item.guid;
+				objectNotification.room = InWorldObjectInstance(item).room;
+				NotificationCenter.postNotification(objectNotification);
 			}
+			
+			else if (item is AppInstance) {
+				var appNotification:AppNotification =
+					new AppNotification(AppNotification.APP_INSTANCE_ADDED_TO_ROOM);
+				appNotification.instanceGuid = item.guid;
+				appNotification.room = AppInstance(item).room;
+				NotificationCenter.postNotification(appNotification);
+			}
+			
+			
 			
 			var event:RoomEvent = new RoomEvent(RoomEvent.ITEM_ADDED);
 			event.roomItem = item;
@@ -113,9 +125,15 @@ package com.worlize.interactivity.model
 				removeRoomItemListeners(item);
 				
 				if (item is InWorldObjectInstance) {
-					var n:InWorldObjectNotification = new InWorldObjectNotification(InWorldObjectNotification.IN_WORLD_OBJECT_REMOVED_FROM_ROOM);
-					n.instanceGuid = item.guid;
-					NotificationCenter.postNotification(n);
+					var on:InWorldObjectNotification = new InWorldObjectNotification(InWorldObjectNotification.IN_WORLD_OBJECT_REMOVED_FROM_ROOM);
+					on.instanceGuid = item.guid;
+					NotificationCenter.postNotification(on);
+				}
+				
+				if (item is AppInstance) {
+					var an:AppNotification = new AppNotification(AppNotification.APP_INSTANCE_REMOVED_FROM_ROOM);
+					an.instanceGuid = item.guid;
+					NotificationCenter.postNotification(an);
 				}
 				
 				var event:RoomEvent = new RoomEvent(RoomEvent.ITEM_REMOVED);
@@ -213,9 +231,14 @@ package com.worlize.interactivity.model
 		}
 		
 		public function setItemDest(guid:String, dest:String):void {
-			var inWorldObjectInstance:InWorldObjectInstance = itemsByGuid[guid];
-			if (inWorldObjectInstance) {
-				inWorldObjectInstance.dest = dest;
+			var item:IRoomItem = itemsByGuid[guid];
+			if (!(item is ILinkableRoomItem)) { return; }
+			var linkableItem:ILinkableRoomItem = ILinkableRoomItem(IRoomItem);
+			if (item) {
+				linkableItem.dest = dest;
+				var event:RoomEvent = new RoomEvent(RoomEvent.ITEM_DEST_CHANGED);
+				event.roomItem = linkableItem;
+				dispatchEvent(event);
 			}
 		}
 		

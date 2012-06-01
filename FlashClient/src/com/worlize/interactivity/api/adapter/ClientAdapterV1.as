@@ -4,6 +4,7 @@ package com.worlize.interactivity.api.adapter
 	import com.worlize.interactivity.api.AppLoader;
 	import com.worlize.interactivity.api.event.APIBridgeEvent;
 	import com.worlize.interactivity.model.CurrentRoom;
+	import com.worlize.interactivity.model.ILinkableRoomItem;
 	import com.worlize.interactivity.model.IRoomItem;
 	import com.worlize.interactivity.model.InteractivityUser;
 	import com.worlize.interactivity.model.LooseProp;
@@ -553,6 +554,10 @@ package com.worlize.interactivity.api.adapter
 				height: appInstance.height
 			};
 			sharedEvents.dispatchEvent(event);
+		}
+		
+		public function itemDestChanged(item:ILinkableRoomItem):void {
+			// do nothing
 		}
 		
 		public function appStateChanged(appInstance:AppInstance):void {

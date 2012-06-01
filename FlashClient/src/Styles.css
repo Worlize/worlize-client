@@ -223,6 +223,13 @@ mx|Menu.accountMenu {
 	paddingRight: 10px;
 }
 
+mx|Menu.appLockerItemMenu {
+	paddingTop: 5px;
+	paddingBottom: 5px;
+	paddingLeft: 10px;
+	paddingRight: 10px;
+}
+
 s|Label.friendListFullName {
 	fontFamily: "Lucida Grande", "Arial";
 	fontSize: 11px;

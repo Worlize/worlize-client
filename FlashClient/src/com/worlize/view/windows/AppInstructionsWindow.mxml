@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<components:WorlizeFloatingPanel xmlns:fx="http://ns.adobe.com/mxml/2009" 
+								 xmlns:s="library://ns.adobe.com/flex/spark" 
+								 xmlns:mx="library://ns.adobe.com/flex/mx"
+								 xmlns:components="com.worlize.view.components.*"
+								 title="{app.name} Help"
+								 titleBarColor="#007bc5"
+								 titleTextColor="#007bc5"
+								 showTitle="true"
+								 width="400" minHeight="100">
+
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.model.App;
+			
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			[Bindable]
+			public var app:App;
+			
+			private static var _open:Boolean = false;
+			private static var _instance:AppInstructionsWindow;
+
+			public static function get isOpen():Boolean {
+				return _open;
+			}
+			
+			public static function open(parent:DisplayObject, app:App=null):void {
+				if (_open) {
+					PopUpManager.bringToFront(_instance);
+					_instance.app = app;
+					_instance.setFocus();
+				}
+				else {
+					if (_instance === null) {
+						_instance = new AppInstructionsWindow();
+						_instance.addEventListener(CloseEvent.CLOSE, function(event:CloseEvent):void {
+							close();
+						});
+					}
+					_instance.app = app;
+					PopUpManager.addPopUp(_instance, parent);
+					_open = true;
+				}
+				PopUpManager.centerPopUp(_instance);
+			}
+			
+			public static function close():void {
+				if (_open && _instance) {
+					PopUpManager.removePopUp(_instance);
+					_open = false;
+				}
+			}
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<components:controlBarContent>
+		<s:Button label="Close" click="close()" />
+	</components:controlBarContent>
+	
+	<components:layout>
+		<s:VerticalLayout gap="0" />
+	</components:layout>
+	<s:Rect width="100%" height="1">
+		<s:fill>
+			<s:SolidColor color="#CCCCCC" />
+		</s:fill>
+	</s:Rect>
+	<s:Scroller width="100%" top="1" maxHeight="400" minHeight="100">
+		<s:VGroup paddingTop="10" paddingLeft="10"
+				  paddingRight="10" paddingBottom="10">
+			<s:Label text="{app.help}" width="100%" />
+		</s:VGroup>
+	</s:Scroller>
+	<s:Rect width="100%" height="1">
+		<s:fill>
+			<s:SolidColor color="#CCCCCC" />
+		</s:fill>
+	</s:Rect>
+	
+</components:WorlizeFloatingPanel>

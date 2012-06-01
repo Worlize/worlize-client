@@ -10,5 +10,14 @@ package
 		
 		[Embed(source="src/assets/icons/silk/comments.png")]
 		public static const comments:Class;
+		
+		[Embed(source="src/assets/icons/silk/brick_add.png")]
+		public static const addAppIcon:Class;
+		
+		[Embed(source="src/assets/icons/silk/brick_delete.png")]
+		public static const deleteAppIcon:Class;
+		
+		[Embed(source="src/assets/icons/silk/help.png")]
+		public static const helpIcon:Class;
 	}
 }

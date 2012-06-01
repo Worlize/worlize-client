@@ -29,6 +29,7 @@
 	<fx:Script>
 		<![CDATA[
 			import com.flashandmath.dg.display.SnowDisplay;
+			import com.worlize.command.GetAnotherAppCopyCommand;
 			import com.worlize.components.visualnotification.VisualNotification;
 			import com.worlize.event.NotificationCenter;
 			import com.worlize.interactivity.event.AvatarSelectEvent;
@@ -45,11 +46,14 @@
 			import com.worlize.interactivity.model.LooseProp;
 			import com.worlize.interactivity.model.WebcamBroadcastManager;
 			import com.worlize.interactivity.rpc.InteractivityClient;
+			import com.worlize.model.App;
+			import com.worlize.model.AppInstance;
 			import com.worlize.model.RoomDefinition;
 			import com.worlize.model.friends.FriendsList;
 			import com.worlize.model.friends.FriendsListEntry;
 			import com.worlize.model.userSearch.UserSearchResultLineItem;
 			import com.worlize.notification.WorlizeNotification;
+			import com.worlize.rpc.WorlizeResultEvent;
 			import com.worlize.state.AuthorModeState;
 			import com.worlize.video.control.NetConnectionManager;
 			
@@ -262,6 +266,8 @@
 			private function handleDragEnter(event:DragEvent):void {
 				if (event.dragSource.hasFormat('objectFromLocker') ||
 					event.dragSource.hasFormat('propFromLocker') ||
+					event.dragSource.hasFormat('appFromLocker') ||
+					event.dragSource.hasFormat('appFromLockerRequiresDuplicate') ||
 					event.dragSource.hasFormat('objectInRoom') ||
 					event.dragSource.hasFormat('propInRoom'))
 				{
@@ -271,13 +277,32 @@
 			
 			private function handleDragDrop(event:DragEvent):void {
 				var data:Object;
+				var client:InteractivityClient = InteractivityClient.getInstance();
+				var x:Number = mouseX;
+				var y:Number = mouseY;
+				
 				if (event.dragSource.hasFormat('objectFromLocker')) {
 					data = event.dragSource.dataForFormat('objectFromLocker');
-					InteractivityClient.getInstance().addObjectInstance(data.guid, mouseX, mouseY);
+					client.addObjectInstance(data.guid, x, y);
+				}
+				else if (event.dragSource.hasFormat('appFromLocker')) {
+					data = event.dragSource.dataForFormat('appFromLocker');
+					var appInstance:AppInstance = AppInstance(data.appInstance);
+					client.addAppInstance(appInstance.guid, x, y);
+				}
+				else if (event.dragSource.hasFormat('appFromLockerRequiresDuplicate')) {
+					data = event.dragSource.dataForFormat('appFromLockerRequiresDuplicate');
+					var command:GetAnotherAppCopyCommand = new GetAnotherAppCopyCommand();
+					command.addEventListener(WorlizeResultEvent.RESULT, function(resultEvent:Event):void {
+						if (command.state === GetAnotherAppCopyCommand.STATE_COMPLETE) {
+							client.addAppInstance(command.appInstance.guid, x, y);
+						}
+					});
+					command.execute(App(data.app));
 				}
 				else if (event.dragSource.hasFormat('propFromLocker')) {
 					data = event.dragSource.dataForFormat('propFromLocker');
-					InteractivityClient.getInstance().addLooseProp(data.guid, mouseX, mouseY);
+					InteractivityClient.getInstance().addLooseProp(data.guid, x, y);
 				}
 				else if (event.dragSource.hasFormat('propInRoom')) {
 					data = event.dragSource.dataForFormat('propInRoom');

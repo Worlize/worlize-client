@@ -21,6 +21,7 @@ package com.worlize.interactivity.event
 		public static const ITEM_REMOVED:String = "itemRemoved";
 		public static const ITEM_MOVED:String = "itemMoved";
 		public static const ITEM_RESIZED:String = "itemResized";
+		public static const ITEM_DEST_CHANGED:String = "itemDestChanged";
 		
 		public var user:InteractivityUser;
 		

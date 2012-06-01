@@ -1,5 +1,6 @@
 package com.worlize.model
 {
+	import com.worlize.command.GetAnotherAppCopyCommand;
 	import com.worlize.event.NotificationCenter;
 	import com.worlize.notification.AppNotification;
 	import com.worlize.rpc.HTTPMethod;
@@ -50,20 +51,7 @@ package com.worlize.model
 		}
 		
 		public function requestAnotherCopy():void {
-			var client:WorlizeServiceClient = new WorlizeServiceClient();
-			client.addEventListener(WorlizeResultEvent.RESULT, handleRequestAnotherCopyResult);
-			client.addEventListener(FaultEvent.FAULT, handleRequestAnotherCopyFault);
-			client.send("/locker/apps/" + guid + "/get_another_copy.json", HTTPMethod.POST);
-		}
-		
-		private function handleRequestAnotherCopyResult(event:WorlizeResultEvent):void {
-			if (event.resultJSON.success) {
-				// Notification should come in via websockets.
-			}
-		}
-		
-		private function handleRequestAnotherCopyFault(event:FaultEvent):void {
-			logger.error("Fault encountered while requesting another app copy: " + event.toString());
+			(new GetAnotherAppCopyCommand()).execute(this);
 		}
 		
 		public static function fromData(data:Object):App {

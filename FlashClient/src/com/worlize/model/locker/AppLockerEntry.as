@@ -11,11 +11,14 @@ package com.worlize.model.locker
 	import mx.events.PropertyChangeEvent;
 	
 	import spark.collections.Sort;
+	import spark.collections.SortField;
 	
 	public class AppLockerEntry extends EventDispatcher
 	{
 		[Bindable]
 		public var instances:ArrayCollection;
+		
+		private var orderIndexCounter:int = 0;
 		
 		protected var watchers:Object;
 		
@@ -39,17 +42,9 @@ package com.worlize.model.locker
 			instances = new ArrayCollection();
 			watchers = {};
 			var sort:Sort = new Sort();
-			sort.compareFunction = function(a:Object, b:Object, fields:Array = null):int {
-				var appA:AppInstance = AppInstance(a);
-				var appB:AppInstance = AppInstance(b);
-				if (appA.room !== null && appB.room === null) {
-					return 1;
-				}
-				if (appA.room === null && appB.room !== null) {
-					return -1;
-				}
-				return 0;
-			};
+			sort.fields = [
+				new SortField('manualOrderIndex', false, true)
+			];
 			instances.sort = sort;
 			instances.refresh();
 		}
@@ -74,6 +69,7 @@ package com.worlize.model.locker
 			if (app === null) {
 				app = appInstance.app;
 			}
+			appInstance.manualOrderIndex = orderIndexCounter++;
 			instances.addItem(appInstance);
 			watchers[appInstance.guid] = ChangeWatcher.watch(appInstance, ['room'], handleInstanceRoomChanged);
 			updateCounts();
@@ -84,6 +80,7 @@ package com.worlize.model.locker
 			if (index !== -1) {
 				instances.removeItemAt(index);
 			}
+			appInstance.manualOrderIndex = 0;
 			var watcher:ChangeWatcher = watchers[appInstance.guid];
 			if (watcher) {
 				watcher.unwatch();

@@ -195,10 +195,11 @@ package com.worlize.interactivity.rpc
 		// Incoming Message Handlers
 		private var incomingMessageHandlers:Object = {
 			"add_hotspot": handleAddHotspot,
-			"app_instance_added": handleAppInstanceAdded,
 			"add_loose_prop": handleAddLooseProp,
+			"add_app_instance": handleAddAppInstance,
 			"add_object_instance": handleAddObjectInstance,
 			"add_youtube_player": handleAddYouTubePlayer,
+			"app_instance_added": handleAppInstanceAdded,
 			"avatar_instance_added": handleAvatarInstanceAdded,
 			"avatar_instance_deleted": handleAvatarInstanceDeleted,
 			"background_instance_added": handleBackgroundInstanceAdded,
@@ -493,6 +494,7 @@ package com.worlize.interactivity.rpc
 			NotificationCenter.postNotification(notification);
 		}
 		
+		// added to LOCKER, not room.
 		private function handleInWorldObjectInstanceAdded(data:Object):void {
 			var inWorldObjectInstance:InWorldObjectInstance = InWorldObjectInstance.fromLockerData(data);
 			
@@ -501,12 +503,14 @@ package com.worlize.interactivity.rpc
 			NotificationCenter.postNotification(notification);
 		}
 		
+		// added to LOCKER, not room.
 		private function handleAppInstanceAdded(data:Object):void {
 			var notification:AppNotification = new AppNotification(AppNotification.APP_INSTANCE_ADDED);
 			notification.appInstance = AppInstance.fromLockerData(data);
 			NotificationCenter.postNotification(notification);
 		}
 		
+		// added to LOCKER
 		private function handleAvatarInstanceAdded(data:Object):void {
 			var avatarInstance:AvatarInstance = AvatarInstance.fromData(data);
 			
@@ -789,6 +793,20 @@ package com.worlize.interactivity.rpc
 			}
 		}
 		
+		private function handleAddAppInstance(data:Object):void {
+			if (data.room === currentRoom.id && data.app) {
+				var appInstance:AppInstance = AppInstance.fromData(data.app);
+				
+				var room:RoomListEntry = new RoomListEntry();
+				room.name = currentRoom.name;
+				room.guid = currentRoom.id;
+				
+				appInstance.room = room;
+				
+				currentRoom.addItem(appInstance);
+			}
+		}
+		
 		private function handleSetBackgroundInstance(data:Object):void {
 			if (data.room === currentRoom.id && data.background) {
 				var notification:BackgroundImageNotification;
@@ -1018,6 +1036,10 @@ package com.worlize.interactivity.rpc
 					return;
 				}
 				if (item is InWorldObjectInstance) {
+					currentRoom.moveItem(data.guid, data.x, data.y);
+					return;
+				}
+				if (item is AppInstance) {
 					currentRoom.moveItem(data.guid, data.x, data.y);
 					return;
 				}
@@ -1713,6 +1735,17 @@ package com.worlize.interactivity.rpc
 		public function addObjectInstance(instanceGuid:String, x:int, y:int):void {
 			connection.send({
 				msg: 'add_object_instance',
+				data: {
+					guid: instanceGuid,
+					x: x,
+					y: y
+				}
+			});
+		}
+		
+		public function addAppInstance(instanceGuid:String, x:int, y:int):void {
+			connection.send({
+				msg: 'add_app_instance',
 				data: {
 					guid: instanceGuid,
 					x: x,

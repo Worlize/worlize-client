@@ -46,6 +46,29 @@ package com.worlize.model.locker
 			NotificationCenter.addListener(AppNotification.APP_INSTANCE_DELETED, handleAppInstanceDeleted);
 			NotificationCenter.addListener(AppNotification.APP_INSTANCE_ADDED_TO_ROOM, handleAppInstanceAddedToRoom);
 			NotificationCenter.addListener(AppNotification.APP_INSTANCE_REMOVED_FROM_ROOM, handleAppInstanceRemovedFromRoom);
+			
+			var sort:Sort = new Sort();
+			sort.compareFunction = function(a:Object, b:Object, items:Array=null):int {
+				var entryA:AppLockerEntry = AppLockerEntry(a);
+				var entryB:AppLockerEntry = AppLockerEntry(b);
+				var nameA:String = (entryA.app && entryA.app.name) ? entryA.app.name.toLowerCase() : '';
+				var nameB:String = (entryB.app && entryB.app.name) ? entryB.app.name.toLowerCase() : '';
+				if (nameA < nameB) {
+					return -1;
+				}
+				if (nameA > nameB) {
+					return 1;
+				}
+				if (entryA.app.guid < entryB.app.guid) {
+					return -1;
+				}
+				if (entryA.app.guid > entryB.app.guid) {
+					return 1;
+				}
+				return 0;
+			};
+			entries.sort = sort;
+			entries.refresh();
 		}
 		
 		private function handleAppInstanceAddedToRoom(notification:AppNotification):void {

@@ -16,6 +16,7 @@
 			import com.worlize.model.App;
 			import com.worlize.model.AppInstance;
 			import com.worlize.model.locker.AppLockerEntry;
+			import com.worlize.view.windows.AppInstructionsWindow;
 			
 			import mx.binding.utils.ChangeWatcher;
 			import mx.controls.Alert;
@@ -54,6 +55,7 @@
 				if (value is AppLockerEntry) {
 					_data = AppLockerEntry(value);
 					invalidateRendererState();
+					updateMenu();
 					dispatchEvent(new FlexEvent(FlexEvent.DATA_CHANGE));
 				}
 			}
@@ -76,11 +78,29 @@
 				
 				var menuData:Array = [];
 				
-				menuData.push({ type: 'normal', label: 'Get Another Copy', action: 'getAnotherCopy' });
-				menuData.push({ type: 'normal', label: 'Read App Instructions...', action: 'readInstructions' });
-				menuData.push({ type: 'normal', label: 'Delete All Copies', action: 'deleteAll' });
+				if (_data && _data.app.help !== null) {
+					menuData.push({
+						type: 'normal',
+						label: 'Read App Instructions...',
+						icon: IconLibrary.helpIcon,
+						action: 'readInstructions'
+					});
+				}
+				menuData.push({
+					type: 'normal',
+					label: 'Get Another Copy',
+					icon: IconLibrary.addAppIcon,
+					action: 'getAnotherCopy'
+				});
+				menuData.push({
+					type: 'normal',
+					label: 'Delete All Copies',
+					icon: IconLibrary.deleteAppIcon,
+					action: 'deleteAll'
+				});
 				
 				menu = Menu.createMenu(null, menuData, true);
+				menu.styleName = "appLockerItemMenu";
 				menu.addEventListener(MenuEvent.ITEM_CLICK, handleMenuItemClick);
 			}
 			
@@ -91,6 +111,7 @@
 						deleteAllCopies();
 						break;
 					case 'readInstructions':
+						AppInstructionsWindow.open(systemManager.getSandboxRoot(), _data.app);
 						break;
 					case 'getAnotherCopy':
 						_data.app.requestAnotherCopy();
@@ -103,14 +124,17 @@
 			private function deleteAllCopies():void {
 				Alert.show(
 					"Are you sure you want to delete all copies of this app? " +
-					"Any copies in use will be immediately removed from their respective rooms.",
+					"Any copies in use will be immediately removed from their respective rooms " +
+					"and all settings will be lost.",
 					"Confirm",
 					Alert.YES | Alert.NO, null,
 					function(event:CloseEvent):void {
 						if (event.detail === Alert.YES && _data.app) {
 							_data.app.requestDelete();
 						}
-					}
+					},
+					null,
+					Alert.NO
 				);
 			}
 			
@@ -121,15 +145,13 @@
 					"Delete App",
 					Alert.YES | Alert.NO,
 					null,
-					handleAlertClose,
+					function(event:CloseEvent):void {
+						if (event.detail === Alert.YES) {
+							requestDelete();
+						}
+					},
 					null,
 					Alert.NO);
-			}
-			
-			private function handleAlertClose(event:CloseEvent):void {
-				if (event.detail === Alert.YES) {
-					requestDelete();
-				}
 			}
 			
 			private function requestDelete():void {
@@ -159,14 +181,14 @@
 						dragSource.addData({
 							startMouseX: event.stageX,
 							startMouseY: event.stageY,
-							guid: instance.guid
+							appInstance: instance
 						}, 'appFromLocker');
 					}
 					else {
 						dragSource.addData({
 							startMouseX: event.stageX,
 							startMouseY: event.stageY,
-							appGuid: AppLockerEntry(data).app.guid
+							app: AppLockerEntry(data).app
 						}, 'appFromLockerRequiresDuplicate');
 					}
 						
@@ -205,7 +227,7 @@
 		<s:State name="expanded" />
 	</s:states>
 	
-	<s:Image left="1" top="1" width="80" height="80"
+	<s:Image left="5" top="1" width="80" height="80"
 			 id="iconImage"
 			 toolTip="Drag this icon into your room to install a copy of the app."
 			 source="{_data.app.mediumIconURL}"

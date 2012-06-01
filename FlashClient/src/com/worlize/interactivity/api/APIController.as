@@ -8,6 +8,7 @@ package com.worlize.interactivity.api
 	import com.worlize.interactivity.event.LoosePropEvent;
 	import com.worlize.interactivity.event.RoomEvent;
 	import com.worlize.interactivity.model.CurrentRoom;
+	import com.worlize.interactivity.model.ILinkableRoomItem;
 	import com.worlize.interactivity.model.InteractivityUser;
 	import com.worlize.interactivity.model.LooseProp;
 	import com.worlize.interactivity.record.ChatRecord;
@@ -75,6 +76,7 @@ package com.worlize.interactivity.api
 			room.addEventListener(RoomEvent.ITEM_REMOVED, handleItemRemoved);
 			room.addEventListener(RoomEvent.ITEM_MOVED, handleItemMoved);
 			room.addEventListener(RoomEvent.ITEM_RESIZED, handleItemResized);
+			room.addEventListener(RoomEvent.ITEM_DEST_CHANGED, handleItemDestChanged);
 			room.addEventListener(RoomEvent.APP_STATE_CHANGED, handleAppStateChanged);
 			room.loosePropList.addEventListener(LoosePropEvent.PROP_ADDED, handleLoosePropAdded);
 			room.loosePropList.addEventListener(LoosePropEvent.PROP_REMOVED, handleLoosePropRemoved);
@@ -260,6 +262,13 @@ package com.worlize.interactivity.api
 		protected function handleItemResized(event:RoomEvent):void {
 			for each (var client:IAPIClientAdapter in apiClientAdapters) {
 				client.itemResized(event.roomItem);
+			}
+		}
+		
+		protected function handleItemDestChanged(event:RoomEvent):void {
+			if (!(event.roomItem is ILinkableRoomItem)) { return; }
+			for each (var client:IAPIClientAdapter in apiClientAdapters) {
+				client.itemDestChanged(ILinkableRoomItem(event.roomItem));
 			}
 		}
 		

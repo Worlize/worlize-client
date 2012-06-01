@@ -2,6 +2,7 @@ package com.worlize.interactivity.api.adapter
 {
 	import com.worlize.interactivity.api.APIController;
 	import com.worlize.interactivity.api.AppLoader;
+	import com.worlize.interactivity.model.ILinkableRoomItem;
 	import com.worlize.interactivity.model.IRoomItem;
 	import com.worlize.interactivity.model.InteractivityUser;
 	import com.worlize.interactivity.model.LooseProp;
@@ -47,6 +48,7 @@ package com.worlize.interactivity.api.adapter
 		function itemRemoved(item:IRoomItem):void;
 		function itemMoved(item:IRoomItem):void;
 		function itemResized(item:IRoomItem):void;
+		function itemDestChanged(item:ILinkableRoomItem):void;
 		function appStateChanged(appInstance:AppInstance):void;
 		function userMoved(user:InteractivityUser):void;
 		function userColorChanged(user:InteractivityUser):void;

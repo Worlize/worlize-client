@@ -52,6 +52,8 @@ package com.worlize.model
 		
 		public var sizeUnknown:Boolean = true;
 		
+		public var manualOrderIndex:int = 0;
+		
 		[Bindable(event="stateChanged")]
 		public function get state():String {
 			return _state;
@@ -141,7 +143,9 @@ package com.worlize.model
 			if (event.resultJSON.success) {
 				logger.info("App Instance " + guid + " removed from room successfully.");
 				var notification:AppNotification = new AppNotification(AppNotification.APP_INSTANCE_REMOVED_FROM_ROOM);
-				notification.room = RoomListEntry.fromData(event.resultJSON.room);
+				if (event.resultJSON.room) {
+					notification.room = RoomListEntry.fromData(event.resultJSON.room);
+				}
 				notification.instanceGuid = guid;
 				NotificationCenter.postNotification(notification);
 			}
@@ -165,6 +169,7 @@ package com.worlize.model
 			appInstance.app.name = objectData.app_name;
 			appInstance.app.appURL = objectData.app_url;
 			appInstance.app.iconURL = objectData.icon;
+			appInstance.app.mediumIconURL = objectData.medium_icon;
 			appInstance.app.smallIconURL = objectData.small_icon;
 			appInstance.configData = objectData.config;
 			appInstance.syncedData = {};

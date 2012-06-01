@@ -12,6 +12,7 @@
 	
 	<fx:Script>
 		<![CDATA[
+			import com.worlize.interactivity.rpc.InteractivityClient;
 			import com.worlize.model.AppInstance;
 			
 			import mx.controls.Alert;
@@ -45,30 +46,66 @@
 			}
 			
 			protected function requestDelete():void {
-				Alert.show("Are you sure you want to delete this app instance?",
-						   "Confirm", Alert.YES | Alert.NO, null,
-						   function(event:CloseEvent):void {
-							   if (event.detail === Alert.YES) {
-								   _data.requestDelete();
-							   }
-						   });
+				var text:String = "Are you sure you want to delete this copy?";
+				if (_data.room) {
+					text += " It will be immediately deleted from the room \"" +
+						_data.room.name + "\" and all settings will be lost.";
+				}
+				Alert.show(text, "Confirm",
+					Alert.YES | Alert.NO, null,
+				    function(event:CloseEvent):void {
+					    if (event.detail === Alert.YES) {
+				 		    _data.requestDelete();
+					    }
+				    },
+					null,
+					Alert.NO
+				);
 			}
 			
 			protected function requestRemoveFromRoom():void {
-				Alert.show("Are you sure you want to remove this app from the room \"" + _data.room.name + "\"?",
-					"Confirm", Alert.YES | Alert.NO, null,
+				var text:String = "Are you sure you want to remove this app from the room \"" +
+									_data.room.name + "\"?  All settings will be lost.";
+				Alert.show(text, "Confirm",
+					Alert.YES | Alert.NO, null,
 					function(event:CloseEvent):void {
 						if (event.detail === Alert.YES) {
 							_data.requestRemoveFromRoom();
 						}
-					});
+					},
+					null,
+					Alert.NO
+				);
 			}
 			
+			protected function handleRoomNameClick():void {
+				if (_data.room) {
+					InteractivityClient.getInstance().gotoRoom(_data.room.guid);
+				}
+			}
 		]]>
 	</fx:Script>
 	
-	<s:Label text="{_data.room ? 'Used in: ' + _data.room.name : '(Not in use)'}" maxDisplayedLines="1"
-			 width="100%" paddingRight="3" />
+	<fx:Style>
+		@namespace s "library://ns.adobe.com/flex/spark";
+		@namespace mx "library://ns.adobe.com/flex/mx";
+		
+		.link {
+			color: #0000DD;
+			text-decoration: underline;
+		}
+		
+		.normal {
+			fontStyle: italic;
+			color: #666666;
+		}
+	</fx:Style>
+	
+	<s:Label text="{_data.room ? _data.room.name : '(Not in use)'}" maxDisplayedLines="1"
+			 styleName="{_data.room ? 'link' : 'normal'}"
+			 width="100%" paddingRight="3"
+			 buttonMode="{Boolean(_data.room)}"
+			 click="handleRoomNameClick()"/>
 	<s:Button label="Remove from Room" enabled="{Boolean(_data.room)}"
 			  click="requestRemoveFromRoom()" />
 	<s:Button label="Delete" click="requestDelete()" />
