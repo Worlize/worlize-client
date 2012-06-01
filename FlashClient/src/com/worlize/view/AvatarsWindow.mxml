@@ -6,9 +6,9 @@
 						  title="My Avatars"
 						  titleBarColor="#f5b501" titleTextColor="#d59d00" 
 						  windowIcon="@Embed('assets/icons/large/w_icon_myavatars.png')"
-						  minWidth="600" minHeight="200"
+						  minWidth="580" minHeight="200"
 						  creationComplete="handleCreationComplete()"
-						  width="600" height="430" xmlns:locker="com.worlize.view.locker.*">
+						  width="580" height="430" xmlns:locker="com.worlize.view.locker.*">
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
@@ -176,23 +176,13 @@
 	
 	
 	<components:controlBarContent>
-		<components:UploadProgressIndicator
-			uploader="{avatarUploader}" />
-		
-		<mx:LinkButton
-			id="uploadButton"
-			click="uploadAvatar()"
-			styleName="lockerNavButton"
-			color="#2b9610"
-			icon="@Embed(source='src/assets/icons/icon_upload.png')"
-			label="Upload" />
-		
+		<!--
 		<components:CapacityButton
 			click="showBuySlotsWindow()"
 			line1="Capacity: {CurrentUser.getInstance().slots.avatarSlots}"
 			line2="Used: {avatarLocker.count}"
 			toolTip="Click to buy more locker space"/>
-		
+		-->
 		<!--
 		<mx:Spacer width="20" />
 		<mx:LinkButton
@@ -204,25 +194,54 @@
 		-->
 	</components:controlBarContent>
 	
-	
-	<s:VGroup top="10" left="10" right="10" bottom="10" gap="10">
-		<s:Group id="avatars" width="100%" height="100%">
-			<!--
-			<s:Rect top="0" right="0" left="0" bottom="0">
-				<s:stroke>
-					<s:SolidColorStroke color="#DDDDDD" weight="1" />
-				</s:stroke>
-			</s:Rect>
-			-->
-			<s:List top="1" right="1" left="1" bottom="1"
-					id="avatarsList" dataProvider="{avatarLocker.avatarInstances}"
-					borderVisible="false" change="handleAvatarSelectionChanged(event)"
-					itemRenderer="com.worlize.view.itemrenderers.LockerItemRenderer">
-				<s:layout>
-					<s:TileLayout verticalGap="10" horizontalGap="10" />
-				</s:layout>
-			</s:List>			
-		</s:Group>
-	</s:VGroup>
+	<components:layout>
+		<s:VerticalLayout paddingTop="10" gap="0" />
+	</components:layout>
+
+	<s:Rect width="100%" height="1">
+		<s:fill>
+			<s:SolidColor color="#DDDDDD" />
+		</s:fill>
+	</s:Rect>
+
+	<s:List width="100%" height="100%"
+			id="avatarsList" dataProvider="{avatarLocker.avatarInstances}"
+			borderVisible="false" change="handleAvatarSelectionChanged(event)"
+			itemRenderer="com.worlize.view.itemrenderers.LockerItemRenderer">
+		<s:layout>
+			<s:TileLayout paddingTop="10" paddingLeft="10"
+						  paddingRight="10" paddingBottom="10"
+						  verticalGap="10" horizontalGap="10" />
+		</s:layout>
+	</s:List>			
+
+	<s:Group width="100%">
+		<s:Rect bottom="0" right="0" top="0" left="0">
+			<s:fill>
+				<s:SolidColor color="#EEEEEE" />
+			</s:fill>
+		</s:Rect>
+		<s:Rect top="0" width="100%" height="1">
+			<s:fill>
+				<s:SolidColor color="#BBBBBB" />
+			</s:fill>
+		</s:Rect>
+		<s:HGroup horizontalAlign="right" verticalAlign="middle"
+				  width="100%"
+				  paddingTop="6" paddingRight="15" paddingBottom="5">
+			<components:UploadProgressIndicator
+				uploader="{avatarUploader}" />
+			
+			<mx:LinkButton
+				id="uploadButton"
+				click="uploadAvatar()"
+				enabled="{avatarUploader.state === Uploader.STATE_READY &amp;&amp; avatarLocker.state === AvatarLocker.STATE_READY}"
+				styleName="lockerNavButton"
+				color="#2b9610"
+				icon="@Embed(source='src/assets/icons/icon_upload.png')"
+				toolTip="Click to upload a new Avatar"
+				label="Upload" />
+		</s:HGroup>
+	</s:Group>
 
 </components:WorlizeWindow>
