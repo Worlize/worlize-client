@@ -637,6 +637,7 @@
 			tabChildren="false"
 			gap="12">
 			
+			<!--
 			<components:CapacityButton
 				line1="Coins: {worlizeUser.coins}"
 				line2="Bucks: {worlizeUser.bucks}"
@@ -644,7 +645,7 @@
 				click="showVirtualCurrencyProducts();"
 				height="32"
 				/>
-			
+			-->
 			<components:SocialShareWidget
 				  click="focusChatBox()"
 				  tabChildren="false"
