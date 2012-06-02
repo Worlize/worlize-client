@@ -129,10 +129,9 @@ package com.worlize.interactivity.api
 			var adapter:IAPIClientAdapter = null;
 			switch (version) {
 				case 1:
-					adapter = new ClientAdapterV1();
-					break;
 				case 2:
-					// ClientAdapterV1 handles api versions 1 and 2.
+				case 3:
+					// ClientAdapterV1 handles api versions 1, 2 and 3.
 					adapter = new ClientAdapterV1();
 					break;
 				default:

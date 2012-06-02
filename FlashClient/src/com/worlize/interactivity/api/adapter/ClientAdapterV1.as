@@ -74,7 +74,7 @@ package com.worlize.interactivity.api.adapter
 		
 		public function handshakeClient(data:Object):void {
 			data.success = false;
-			if (data.APIVersion !== 1 && data.APIVersion !== 2) {
+			if (data.APIVersion !== 1 && data.APIVersion !== 2 && data.APIVersion !== 3) {
 				var errorMessage:String = "ClientAdapterV1 unable to handshake with version " + data.APIVersion + " API client.";
 				logger.error(errorMessage);
 				if (host) {
