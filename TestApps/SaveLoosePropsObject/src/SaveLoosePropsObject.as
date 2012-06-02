@@ -1,41 +1,66 @@
 package
 {
 	import com.worlize.api.WorlizeAPI;
+	import com.worlize.api.event.AuthorEvent;
 	import com.worlize.api.event.ChatEvent;
 	import com.worlize.api.event.LoosePropEvent;
 	import com.worlize.api.model.LooseProp;
 	
+	import flash.display.Bitmap;
+	import flash.display.BitmapData;
 	import flash.display.Sprite;
+	
+	import mx.core.BitmapAsset;
 	
 	public class SaveLoosePropsObject extends Sprite
 	{
+		[Embed(source="blockdevice.png")]
+		public var iconImage:Class;
+		public var iconBitmap:Bitmap;
+		
 		public static var api:WorlizeAPI;
 		
 		public function SaveLoosePropsObject() {
-			WorlizeAPI.options.defaultWidth = 50;
-			WorlizeAPI.options.defaultHeight = 50;
-			WorlizeAPI.options.editModeSupported = true;
-			WorlizeAPI.options.name = "Prop Saver";
+			WorlizeAPI.options.defaultWidth = 64;
+			WorlizeAPI.options.defaultHeight = 64;
+			WorlizeAPI.options.name = "Room Prop";
 			
 			api = WorlizeAPI.init(this);
 			
 			api.thisRoom.addEventListener(ChatEvent.OUTGOING_CHAT, handleOutgoingChat);
+			api.addEventListener(AuthorEvent.AUTHOR_MODE_ENABLED, updateIconVisibility);
+			api.addEventListener(AuthorEvent.AUTHOR_MODE_DISABLED, updateIconVisibility);
 			
 //			api.thisRoom.addEventListener(LoosePropEvent.PROP_ADDED, handlePropAdded);
 //			api.thisRoom.addEventListener(LoosePropEvent.PROP_MOVED, handlePropMoved);
 //			api.thisRoom.addEventListener(LoosePropEvent.PROP_REMOVED, handlePropRemoved);
 //			api.thisRoom.addEventListener(LoosePropEvent.PROP_LAYER_CHANGED, handlePropLayerChanged);
 //			api.thisRoom.addEventListener(LoosePropEvent.PROPS_CLEARED, handlePropsCleared);
-			
+
 			// Restore previously saved props
-			if (api.thisRoom.users.length === 1 &&
-				api.config.data.savedProps)
-			{
-				api.thisRoom.clearLooseProps();
-				for each (var obj:Array in api.config.data.savedProps) {
-					api.thisRoom.addLooseProp(obj[0], obj[1], obj[2]);
-				}
+			if (api.syncedDataStore['initialized'] !== true && api.thisRoom.looseProps.length === 0) {
+				restoreProps();
 			}
+						
+			// Add the icon for author mode
+			iconBitmap = new Bitmap(BitmapAsset(new iconImage()).bitmapData);
+			iconBitmap.x = 0;
+			iconBitmap.y = 0;
+			addChild(iconBitmap);
+			
+			updateIconVisibility();
+		}
+		
+		private function updateIconVisibility(event:AuthorEvent=null):void {
+			iconBitmap.visible = api.authorMode;
+		}
+		
+		private function restoreProps():void {
+			api.thisRoom.clearLooseProps();
+			for each (var obj:Array in api.config.data.savedProps) {
+				api.thisRoom.addLooseProp(obj[0], obj[1], obj[2]);
+			}
+			api.syncedDataStore.set("initialized", true);
 		}
 		
 		public function saveLooseProps():void {
@@ -59,6 +84,10 @@ package
 			if (event.originalText === 'saveprops') {
 				event.preventDefault();
 				saveLooseProps();
+			}
+			else if (event.originalText === 'resetprops') {
+				event.preventDefault();
+				restoreProps();
 			}
 //			else if (event.originalText === 'scramble') {
 //				event.preventDefault();

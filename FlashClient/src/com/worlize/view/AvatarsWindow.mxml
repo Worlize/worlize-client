@@ -20,6 +20,7 @@
 			import com.worlize.control.AvatarUploader;
 			import com.worlize.control.Uploader;
 			import com.worlize.event.NotificationCenter;
+			import com.worlize.interactivity.model.InteractivityUser;
 			import com.worlize.interactivity.rpc.InteractivityClient;
 			import com.worlize.model.AvatarInstance;
 			import com.worlize.model.CurrentUser;
@@ -29,6 +30,9 @@
 			import com.worlize.model.locker.PropLocker;
 			import com.worlize.model.locker.Slots;
 			import com.worlize.notification.AvatarNotification;
+			import com.worlize.rpc.HTTPMethod;
+			import com.worlize.rpc.WorlizeResultEvent;
+			import com.worlize.rpc.WorlizeServiceClient;
 			import com.worlize.view.windows.BuyStorageSpaceWindow;
 			
 			import flex.utils.spark.resize.ResizeManager;
@@ -45,12 +49,16 @@
 			import mx.graphics.SolidColor;
 			import mx.managers.PopUpManager;
 			import mx.managers.SystemManager;
+			import mx.rpc.events.FaultEvent;
 			
 			import spark.events.IndexChangeEvent;
 			import spark.events.TitleWindowBoundsEvent;
 			import spark.primitives.Rect;
 			private static var _open:Boolean = false;
 			private static var _instance:WorlizeWindow;
+			
+			[Bindable]
+			private var client:InteractivityClient = InteractivityClient.getInstance();
 			
 			[Bindable]
 			private var avatarLocker:AvatarLocker = AvatarLocker.getInstance();
@@ -60,6 +68,9 @@
 			
 			[Bindable]
 			private var avatarUploader:AvatarUploader = new AvatarUploader();
+			
+			[Bindable]
+			private var savingAvatar:Boolean = false;
 			
 			public static function toggleOpen(parent:DisplayObject):void {
 				if (_open) {
@@ -170,7 +181,49 @@
 			private function showBuySlotsWindow():void {
 				BuyStorageSpaceWindow.open('avatar', systemManager.getSandboxRoot());
 			}
+			
+			private function saveCurrentAvatar():void {
+				var currentUser:InteractivityUser = client.currentUser;
+				if (currentUser === null || currentUser.simpleAvatar === null) {
+					Alert.show(
+						"You must be wearing an avatar to save.",
+						"Information"
+					);
+					return;
+				}
+				var currentAvatarGuid:String = currentUser.simpleAvatar.guid;
+				
+				for each (var avatarInstance:AvatarInstance in avatarLocker.avatarInstances) {
+					if (avatarInstance.avatar.guid === currentAvatarGuid) {
+						Alert.show(
+							"You already have this avatar in your locker.",
+							"Information"
+						);
+						return;
+					}
+				}
+				
+				savingAvatar = true;
+				var serviceClient:WorlizeServiceClient = new WorlizeServiceClient();
+				serviceClient.addEventListener(WorlizeResultEvent.RESULT, handleSaveCurrentAvatarResult);
+				serviceClient.addEventListener(FaultEvent.FAULT, handleSaveCurrentAvatarFault);
+				serviceClient.send("/locker/avatars/" + currentAvatarGuid + "/save_instance", HTTPMethod.POST);
+			}
 
+			private function handleSaveCurrentAvatarResult(event:WorlizeResultEvent):void {
+				savingAvatar = false;
+				if (!event.resultJSON.success) {
+					Alert.show(
+						event.resultJSON.description,
+						"Error"
+					);
+				}
+			}
+			
+			private function handleSaveCurrentAvatarFault(event:FaultEvent):void {
+				savingAvatar = false;
+				Alert.show("An unknown error occurred while trying to save your current avatar.", "Error");
+			}
 		]]>
 	</fx:Script>
 	
@@ -244,6 +297,16 @@
 				  paddingTop="6" paddingRight="15" paddingBottom="5">
 			<components:UploadProgressIndicator
 				uploader="{avatarUploader}" />
+			
+			<mx:LinkButton
+				id="saveButton"
+				click="saveCurrentAvatar()"
+				styleName="lockerNavButton"
+				color="#2b9610"
+				icon="@Embed(source='src/assets/icons/icon_add.png')"
+				toolTip="Click to save the Avatar you're currently wearing."
+				enabled="{!savingAvatar}"
+				label="Save" />
 			
 			<mx:LinkButton
 				id="uploadButton"
