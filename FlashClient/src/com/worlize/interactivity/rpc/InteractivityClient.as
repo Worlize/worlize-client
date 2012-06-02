@@ -1309,12 +1309,12 @@ package com.worlize.interactivity.rpc
 			// make sure to unload all the objects before removing
 			// the users so that we don't fire a userLeft event for everyone
 			// in the room in each object.
+			currentRoom.resetItems();
+			currentRoom.loosePropList.reset();
 			currentRoom.name = "";
 			currentRoom.backgroundFile = null;
 			currentRoom.selectedUser = null;
 			currentRoom.removeAllUsers();
-			currentRoom.resetItems();
-			currentRoom.loosePropList.reset();
 			currentRoom.showAvatars = true;
 		}
 		
