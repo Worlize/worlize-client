@@ -150,6 +150,14 @@ package com.worlize.control
 			if (checkAnimatedGifs) {
 				params.animated_gif = isAnimatedGif;
 			}
+			
+			var additionalParams:Object = getAdditionalParams();
+			if (additionalParams) {
+				for (var key:String in additionalParams) {
+					params[key] = additionalParams[key];
+				}
+			}
+			
 			request.data = params;
 			
 			fileRef.addEventListener(DataEvent.UPLOAD_COMPLETE_DATA, handleFileUploadComplete);
@@ -157,6 +165,10 @@ package com.worlize.control
 			fileRef.addEventListener(Event.OPEN, handleUploadBegin);
 			fileRef.addEventListener(ProgressEvent.PROGRESS, handleUploadProgress);
 			fileRef.upload(request, 'filedata');
+		}
+		
+		protected function getAdditionalParams():Object {
+			return null;
 		}
 		
 		protected function handleFileBrowseCancel(event:Event):void {

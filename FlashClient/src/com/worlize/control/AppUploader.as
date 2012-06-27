@@ -22,6 +22,18 @@ package com.worlize.control
 			fileTypeFilters = filters;
 		}
 		
+		override protected function getAdditionalParams():Object {
+			var name:String = fileRef.name;
+			var lcName:String = name.toLowerCase();
+			var extIndex:int = lcName.lastIndexOf('.swf');
+			if (extIndex !== -1) {
+				name = name.slice(0, extIndex);
+			}
+			return {
+				name: name
+			};
+		}
+		
 		override protected function handleFileUploadComplete(event:DataEvent):void {
 			super.handleFileUploadComplete(event);
 			try {
