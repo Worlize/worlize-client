@@ -9,6 +9,8 @@ package com.worlize.state
 	
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
+	
+	import mx.events.FlexEvent;
 
 	public class AuthorModeState extends EventDispatcher
 	{

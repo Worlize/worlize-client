@@ -33,6 +33,7 @@
 	
 	<fx:Script>
 		<![CDATA[
+			import com.worlize.components.visualnotification.VisualNotification;
 			import com.worlize.event.AuthorModeNotification;
 			import com.worlize.event.NotificationCenter;
 			import com.worlize.interactivity.api.AppLoader;
@@ -44,17 +45,18 @@
 			import com.worlize.model.WorldDefinition;
 			import com.worlize.notification.WorlizeNotification;
 			import com.worlize.state.AuthorModeState;
-			import com.worlize.view.windows.AuthorLockerWindow;
 			import com.worlize.view.author.MyBackgroundsLockerView;
 			import com.worlize.view.author.MyObjectsLockerView;
 			import com.worlize.view.components.RoomListDataGrid;
 			import com.worlize.view.components.UserListDataGrid;
+			import com.worlize.view.windows.AuthorLockerWindow;
 			import com.worlize.view.windows.LogWindow;
 			import com.worlize.view.windows.WorldPropertiesWindow;
 			
 			import flash.filters.BitmapFilterQuality;
 			
 			import mx.binding.utils.ChangeWatcher;
+			import mx.controls.Alert;
 			import mx.core.Application;
 			import mx.core.ITextInput;
 			import mx.events.FlexEvent;
@@ -223,11 +225,20 @@
 			}
 			
 			private function toggleAuthorMode():void {
-				if (authorModeState.enabled || !client.connected) {
-					authorModeState.disableAuthorMode();
+				if (client.canAuthor) {
+					if (authorModeState.enabled || !client.connected) {
+						authorModeState.disableAuthorMode();
+					}
+					else {
+						authorModeState.enableAuthorMode();
+					}
 				}
 				else {
-					authorModeState.enableAuthorMode();
+					Alert.show(
+						"You may only author your own world.  Click the \"Home\" button at the top to go to your home world and get started building!",
+						"Author Mode"
+					);
+					authorModeButton.selected = false;
 				}
 			}
 			
@@ -362,7 +373,7 @@
 		</s:Group>
 		
 		<s:HGroup
-			verticalCenter="0" right="3">
+			verticalCenter="0" right="3" verticalAlign="middle">
 			<s:HGroup id="authorIcons" visible="false" visible.authormode="true"
 					  verticalAlign="middle">
 				<mx:Image useHandCursor="true" buttonMode="true"
@@ -379,21 +390,26 @@
 						  click="createYoutubePlayer()" />
 				<mx:Spacer width="10" />
 				<mx:Image useHandCursor="true" buttonMode="true"
-						  toolTip="My Locker" source="@Embed(source='src/assets/icons/icon_author_bkg.png')"
+						  toolTip="My Locker" source="@Embed(source='src/assets/icons/icon_mylocker.png')"
 						  click="handleObjectsClick()" />
 				<s:Image  toolTip="World Settings"
 						  click="handleWorldSettingsClick()"
 						  useHandCursor="true" buttonMode="true"
-						  source="@Embed(source='src/assets/icons/icon_room_settings.png')" />
+						  source="@Embed(source='src/assets/icons/icon_room_settings.png')" />	
 			</s:HGroup>
 			
-			<s:Image toolTip="Author Mode"
-					 visible="{client.canAuthor}"
-					 includeInLayout="{client.canAuthor}"
-					 useHandCursor="true" buttonMode="true"
-					 source="@Embed(source='src/assets/icons/icon_authormode_grey.png')"
-					 source.authormode="@Embed(source='src/assets/icons/icon_authormode_red.png')"
-					 click="toggleAuthorMode();"/>
+			<s:ToggleButton id="authorModeButton"
+							styleName="enableAuthorModeButton"
+							width="90"
+							label="Author Mode"
+							label.authormode="Author Mode"
+							selected="{authorModeState.enabled}"
+							toolTip="Turn Author Mode On"
+							toolTip.authormode="Turn Author Mode Off"
+							tabEnabled="false"
+							focusEnabled="false"
+							change="toggleAuthorMode()"
+							/>
 		</s:HGroup>
 	</s:BorderContainer>
 	

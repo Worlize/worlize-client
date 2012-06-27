@@ -4,8 +4,8 @@
 						  xmlns:mx="library://ns.adobe.com/flex/mx"
 						  xmlns:components="com.worlize.view.components.*"
 						  title="My Locker"
-						  titleBarColor="#962626" titleTextColor="#962626" 
-						  windowIcon="@Embed('assets/icons/large/w_icon_backgrounds.png')"
+						  titleBarColor="#81734b" titleTextColor="#81734b" 
+						  windowIcon="@Embed('assets/icons/large/w_icon_mylocker.png')"
 						  minWidth="485" minHeight="385"
 						  creationComplete="handleCreationComplete()"
 						  width="485" height="422" xmlns:author="com.worlize.view.author.*">

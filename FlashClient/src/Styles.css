@@ -147,6 +147,17 @@ s|Label.socialCallout {
 	color: #FFFFFF;
 }
 
+.enableAuthorModeButton {
+	cornerRadius: 10px;
+	skinClass: ClassReference("com.worlize.view.skins.AuthorModeButtonSkin");
+}
+
+.enableAuthorModeButton s|Label {
+	fontFamily: PTSansNarrowBold;
+	fontSize: 14pt;
+	color: #FFFFFF;
+}
+
 .logWindowButton {
 	cornerRadius: 10px;
 	skinClass: ClassReference("com.worlize.view.skins.ChatLogButtonSkin");
