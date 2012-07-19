@@ -127,16 +127,12 @@ package com.worlize.interactivity.api
 
 		public function getClientAdapterForVersion(version:int):IAPIClientAdapter {
 			var adapter:IAPIClientAdapter = null;
-			switch (version) {
-				case 1:
-				case 2:
-				case 3:
-					// ClientAdapterV1 handles api versions 1, 2 and 3.
-					adapter = new ClientAdapterV1();
-					break;
-				default:
-					logger.error("Unable to provide API Client Adapter for requested API version: " + version);
-					break;
+			if (version >= 1 && version <= 4) {
+				// ClientAdapterV1 handles api versions 1-4.
+				adapter = new ClientAdapterV1();
+			}
+			else {
+				logger.error("Unable to provide API Client Adapter for requested API version: " + version);
 			}
 			return adapter;
 		}
@@ -539,13 +535,19 @@ package com.worlize.interactivity.api
 			}
 		}
 		
-		public function userFaceChanged(user:InteractivityUser):void {
+		public function userPermissionsChanged(user:InteractivityUser):void {
+			for each (var client:IAPIClientAdapter in apiClientAdapters) {
+				client.userPermissionsChanged(user);
+			}
+		}
+		
+		public function userColorChanged(user:InteractivityUser):void {
 			for each (var client:IAPIClientAdapter in apiClientAdapters) {
 				client.userColorChanged(user);
 			}
 		}
 		
-		public function userColorChanged(user:InteractivityUser):void {
+		public function userBalloonColorChanged(user:InteractivityUser):void {
 			for each (var client:IAPIClientAdapter in apiClientAdapters) {
 				client.userBalloonColorChanged(user);
 			}

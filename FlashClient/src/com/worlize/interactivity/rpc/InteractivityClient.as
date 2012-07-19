@@ -261,6 +261,7 @@ package com.worlize.interactivity.rpc
 			"update_youtube_player_data": handleUpdateYouTubePlayerData,
 			"user_enter": handleUserNew,
 			"user_leave": handleUserLeaving,
+			"user_permissions_changed": handleUserPermissionsChanged,
 			"user_updated": handleUserUpdated,
 			"whisper": handleReceiveWhisper,
 			"world_definition": handleWorldDefinition,
@@ -1636,7 +1637,7 @@ package com.worlize.interactivity.rpc
 				data: face
 			});
 			
-			apiController.userFaceChanged(currentUser);
+			apiController.userColorChanged(currentUser);
 		}
 		
 		public function setColor(color:int):void {
@@ -1654,7 +1655,7 @@ package com.worlize.interactivity.rpc
 				data: color
 			});
 			
-			apiController.userColorChanged(currentUser);
+			apiController.userBalloonColorChanged(currentUser);
 		}
 		
 		public function addLooseProp(guid:String, x:int, y:int):void {
@@ -1958,6 +1959,7 @@ package com.worlize.interactivity.rpc
 			user.face = data.face;
 			user.color = data.color;
 			user.facebookId = data.facebookId;
+			user.permissions = data.permissions;
 			
 			if (data.avatar) {
 				if (data.avatar.type == "simple") {
@@ -2155,12 +2157,26 @@ package com.worlize.interactivity.rpc
 		
 		private function handleUserFace(data:Object):void {
 			var user:InteractivityUser = currentRoom.getUserById(data.user);
-			user.face = data.face;
+			if (user) {
+				user.face = data.face;
+				apiController.userColorChanged(user);
+			}
 		}
 		
 		private function handleUserColor(data:Object):void {
 			var user:InteractivityUser = currentRoom.getUserById(data.user);
-			user.color = data.color;
+			if (user) {
+				user.color = data.color;
+				apiController.userBalloonColorChanged(user);
+			}
+		}
+		
+		private function handleUserPermissionsChanged(data:Object):void {
+			var user:InteractivityUser = currentRoom.getUserById(data.user);
+			if (user) {
+				user.permissions = data.permissions;
+				apiController.userPermissionsChanged(user);
+			}
 		}
 				
 		private function handleUserLeaving(data:Object):void {

@@ -10,6 +10,7 @@ package com.worlize.interactivity.api.adapter
 	import com.worlize.interactivity.model.LooseProp;
 	import com.worlize.interactivity.record.ChatRecord;
 	import com.worlize.model.AppInstance;
+	import com.worlize.model.Permission;
 	import com.worlize.model.Prop;
 	import com.worlize.model.WorldDefinition;
 	import com.worlize.state.AuthorModeState;
@@ -44,6 +45,12 @@ package com.worlize.interactivity.api.adapter
 		
 		private var _appGuid:String;
 		
+		private var _connectedClientVersion:uint;
+		
+		public function get connectedClientVersion():uint {
+			return _connectedClientVersion;
+		}
+		
 		public function ClientAdapterV1() {
 			
 		}
@@ -74,7 +81,7 @@ package com.worlize.interactivity.api.adapter
 		
 		public function handshakeClient(data:Object):void {
 			data.success = false;
-			if (data.APIVersion !== 1 && data.APIVersion !== 2 && data.APIVersion !== 3) {
+			if (data.APIVersion < 1 || data.APIVersion > 4) {
 				var errorMessage:String = "ClientAdapterV1 unable to handshake with version " + data.APIVersion + " API client.";
 				logger.error(errorMessage);
 				if (host) {
@@ -83,6 +90,8 @@ package com.worlize.interactivity.api.adapter
 				client.appInstance.state = AppInstance.STATE_LOAD_ERROR;
 				throw new Error(errorMessage);
 			}
+			
+			_connectedClientVersion = data.APIVersion;
 			
 			addSharedEventListeners();
 			
@@ -109,9 +118,6 @@ package com.worlize.interactivity.api.adapter
 			thisObject.state = AppInstance.STATE_HANDSHAKING;
 			
 			data.thisUser = userToObject(thisUser);
-			if (thisUser.id === thisRoom.ownerGuid) {
-				data.thisUser.privileges.push('canAuthor');
-			}
 			data.thisRoom = currentRoomToObject(thisRoom);
 			data.thisWorld = worldDefinitionToObject(thisWorld);
 			data.thisObject = appInstanceToObject(thisObject);
@@ -605,12 +611,30 @@ package com.worlize.interactivity.api.adapter
 			if (sharedEvents === null) { return; }
 			var event:APIBridgeEvent = new APIBridgeEvent("host_userAvatarChanged");
 			
-			var obj:Object = userToObject(user);
-			
 			event.data = {
 				userGuid: user.id,
 				avatar: userToAvatarObject(user)
 			};
+			sharedEvents.dispatchEvent(event);
+		}
+		
+		public function userPermissionsChanged(user:InteractivityUser):void {
+			if (sharedEvents === null) { return; }
+			
+			// The userPrivilegesChanged event handler in client adapter
+			// versions 3 and earlier is broken, so they can't use this event.
+			// In any case, we are renaming privileges to permissions for
+			// consistency across the board.
+			if (_connectedClientVersion < 4) { return; }
+			
+			var event:APIBridgeEvent = new APIBridgeEvent("host_userPermissionsChanged");
+			var permissions:Array = user.permissions.slice();
+						
+			event.data = {
+				userGuid: user.id,
+				permissions: permissions.slice() 
+			};
+			
 			sharedEvents.dispatchEvent(event);
 		}
 		
@@ -899,7 +923,6 @@ package com.worlize.interactivity.api.adapter
 		
 		protected function userToObject(user:InteractivityUser):Object {
 			var data:Object = {
-				privileges: [],
 				guid: user.id,
 				name: user.name,
 				x: user.x,
@@ -908,6 +931,17 @@ package com.worlize.interactivity.api.adapter
 				color: user.color,
 				avatar: userToAvatarObject(user)
 			};
+			
+			// For backward compatibility
+			if (_connectedClientVersion < 4) {
+				data.privileges = [];
+				if (user.permissions.indexOf(Permission.CAN_EDIT_ROOMS) !== -1) {
+					data.privileges.push('canAuthor');
+				}
+			}
+			else {
+				data.permissions = user.permissions.slice();
+			}
 			
 			return data;
 		}

@@ -106,11 +106,29 @@
 			}
 			
 			private function scrollToBottom(event:TimerEvent = null):void {
-				logViewer.verticalScrollPosition = logViewer.maxVerticalScrollPosition;
+				if (logViewer.verticalScrollPosition > logViewer.maxVerticalScrollPosition - 100) {
+					logViewer.verticalScrollPosition = logViewer.maxVerticalScrollPosition;
+				}
+			}
+			
+			private function copyToClipboard():void {
+				
+			}
+			
+			private function save():void {
+				
 			}
 		]]>
 	</fx:Script>
 
+	<s:VGroup>
+		<s:HGroup>
+			<s:CheckBox label="Auto-Scroll" selected="true" />
+			<s:Button label="Copy to Clipboard" />
+			<s:Button label="Save..." />
+		</s:HGroup>
+	</s:VGroup>
+	
 	<mx:TextArea left="10" top="0" bottom="10" right="10"
 				 paddingLeft="5" paddingRight="5" paddingBottom="5" paddingTop="5"
 				 

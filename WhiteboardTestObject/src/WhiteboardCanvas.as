@@ -12,7 +12,7 @@ package
 	{
 		private var api:WorlizeAPI;
 		
-		public var color:uint = 0xFFFFFF;
+		public var color:uint = 0x000000;
 		public var weight:uint = 3;
 		
 		private var lastX:Number;
@@ -37,8 +37,8 @@ package
 		
 		private function clear():void {
 			graphics.clear();
-			graphics.lineStyle(1, 0x000000, 0.0);
-			graphics.beginFill(0xFFFFFF, 0.0);
+			graphics.lineStyle(1, 0x000000, 1.0);
+			graphics.beginFill(0xFFFFFF, 1.0);
 			graphics.drawRect(0, 0, api.thisObject.width-1, api.thisObject.height-1);
 			graphics.endFill();
 		}

@@ -33,6 +33,7 @@ package com.worlize.interactivity.model
 		public var videoAvatarStreamName:String;
 		public var showFace:Boolean = true;
 		public var facebookId:String;
+		public var permissions:Array;
 		
 		public function clone():InteractivityUser {
 			var u:InteractivityUser = new InteractivityUser();

@@ -28,8 +28,8 @@ package
 		
 		public function WhiteboardTestObject()
 		{
-			WorlizeAPI.options.defaultWidth = 405;
-			WorlizeAPI.options.defaultHeight = 335;
+			WorlizeAPI.options.defaultWidth = 700;
+			WorlizeAPI.options.defaultHeight = 450;
 			WorlizeAPI.options.resizableByUser = false;
 			WorlizeAPI.options.name = "Whiteboard Test App";
 			
@@ -57,14 +57,14 @@ package
 			var currentX:int = 1;
 			for each (var color:uint in colors) {
 				var swatch:ColorSwatch = new ColorSwatch(color);
-//				addChild(swatch);
+				addChild(swatch);
 				swatch.x = currentX;
 				swatch.y = 1;
 				currentX += 25;
 			}
 			
 			currentSwatch = new ColorSwatch(0x000000);
-//			addChild(currentSwatch);
+			addChild(currentSwatch);
 			currentSwatch.x = api.thisObject.width-26;
 			currentSwatch.y = 1;
 			
@@ -72,7 +72,7 @@ package
 			
 			var eraserSprite:Sprite = new Sprite();
 			var eraserBitmap:Bitmap = new Bitmap(eraserBitmapData);
-			eraserBitmap.x = api.thisObject.width / 2 - eraserBitmap.width / 2;
+			eraserBitmap.x = 0;
 			eraserBitmap.y = api.thisObject.height - eraserBitmap.height;
 			eraserSprite.addChild(eraserBitmap);
 			addChild(eraserSprite);
