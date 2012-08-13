@@ -2,8 +2,8 @@
 <components:WorlizeFloatingPanel xmlns:fx="http://ns.adobe.com/mxml/2009" 
 								 xmlns:s="library://ns.adobe.com/flex/spark" 
 								 xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:components="com.worlize.view.components.*"
-								 width="600" height="250"
-								 minWidth="200" minHeight="150"
+								 width="290" height="550"
+								 minWidth="290" minHeight="250"
 								 title="Chat Log"
 								 showTitle="true"
 								 titleBarColor="#888888"
@@ -14,17 +14,24 @@
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
 	
+	<components:layout>
+		<s:VerticalLayout gap="0" />
+	</components:layout>
+	
 	<fx:Script>
 		<![CDATA[
+			import com.worlize.interactivity.rpc.InteractivityClient;
 			import com.worlize.model.PreferencesManager;
+			
+			import flash.desktop.Clipboard;
+			import flash.desktop.ClipboardFormats;
 			
 			import flex.utils.spark.resize.ResizeManager;
 			
 			import mx.events.CloseEvent;
 			import mx.events.ResizeEvent;
+			import mx.formatters.DateFormatter;
 			import mx.managers.PopUpManager;
-			
-			import com.worlize.interactivity.rpc.InteractivityClient;
 			
 			import spark.events.TitleWindowBoundsEvent;
 			
@@ -83,6 +90,7 @@
 							PopUpManager.centerPopUp(_instance);
 						}
 					}
+					LogWindow(_instance).scrollToBottom();
 					_open = true;
 				}
 			}
@@ -105,36 +113,54 @@
 				timer.start();
 			}
 			
-			private function scrollToBottom(event:TimerEvent = null):void {
-				if (logViewer.verticalScrollPosition > logViewer.maxVerticalScrollPosition - 100) {
+			protected function scrollToBottom(event:TimerEvent = null):void {
+				if (logViewer.verticalScrollPosition > logViewer.maxVerticalScrollPosition - 10) {
 					logViewer.verticalScrollPosition = logViewer.maxVerticalScrollPosition;
 				}
 			}
 			
+			private function clearLog():void {
+				interactivityClient.currentRoom.clearLog();
+			}
+			
 			private function copyToClipboard():void {
+				Clipboard.generalClipboard.setData(
+					ClipboardFormats.HTML_FORMAT,
+					interactivityClient.currentRoom.htmlLogData
+				);
 				
+				Clipboard.generalClipboard.setData(
+					ClipboardFormats.TEXT_FORMAT,
+					interactivityClient.currentRoom.plainTextChatLog
+				);
 			}
 			
 			private function save():void {
-				
+				var ref:FileReference = new FileReference();
+				var date:Date = new Date();
+				var formatter:DateFormatter = new DateFormatter();
+				formatter.formatString = "YYYY-MM-DD at L.NN.SS A";
+				var fileName:String = (
+					"Worlize Chat Log " +
+					formatter.format(date) +
+					".html"
+				);
+				ref.save(interactivityClient.currentRoom.htmlLogData, fileName);
 			}
 		]]>
 	</fx:Script>
 
-	<s:VGroup>
-		<s:HGroup>
-			<s:CheckBox label="Auto-Scroll" selected="true" />
-			<s:Button label="Copy to Clipboard" />
-			<s:Button label="Save..." />
-		</s:HGroup>
-	</s:VGroup>
-	
-	<mx:TextArea left="10" top="0" bottom="10" right="10"
+	<mx:TextArea width="100%" height="100%"
 				 paddingLeft="5" paddingRight="5" paddingBottom="5" paddingTop="5"
-				 
 				 borderStyle="solid"
 				 borderColor="#DDDDDD"
 				 editable="false" id="logViewer"
 				 htmlText="{interactivityClient.currentRoom.chatLog}"/>
 	
+	<components:controlBarContent>
+		<s:Button label="Clear" click="clearLog()" />
+		<s:Button label="Copy to Clipboard" click="copyToClipboard()" />
+		<s:Button label="Save As…" click="save()" />
+	</components:controlBarContent>
+		
 </components:WorlizeFloatingPanel>

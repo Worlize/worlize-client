@@ -29,6 +29,7 @@ package com.worlize.interactivity.model
 	
 	import mx.collections.ArrayCollection;
 	import mx.controls.Alert;
+	import mx.formatters.DateFormatter;
 	import mx.rpc.events.FaultEvent;
 
 	[Event(name="chatLogUpdated")]
@@ -63,6 +64,7 @@ package com.worlize.interactivity.model
 		public var showAvatars:Boolean = true;
 		public var locked:Boolean = false;
 		
+		public var plainTextChatLog:String = "Welcome to Worlize\nChat log ready.\n\n";
 		public var chatLog:String = "Welcome to Worlize<br>Chat log ready.<br>\n";
 		
 		public var lastMessage:String;
@@ -80,6 +82,12 @@ package com.worlize.interactivity.model
 		{
 			lastMessageTimer.addEventListener(TimerEvent.TIMER, handleLastMessageTimer);
 			statusDisappearTimer.addEventListener(TimerEvent.TIMER, handleStatusDisappearTimer);
+		}
+		
+		public function get htmlLogData():String {
+			return "<html><head><title>Worlize Chat Log</title></head><body>\n" +
+				   chatLog.replace(/\n/g, "<br>\n") +
+				   "</body></html>";
 		}
 		
 		public function addItem(item:IRoomItem):void {
@@ -279,6 +287,7 @@ package com.worlize.interactivity.model
 			}
 			else {
 				lastMessageCount = 1;
+				lastMessageTimer.stop();
 			}
 			lastMessage = message;
 			lastMessageReceived = (new Date()).valueOf();
@@ -355,6 +364,7 @@ package com.worlize.interactivity.model
 				logMessage = message;
 			}
 			if (logMessage.length > 0) {
+				recordPlainChat(user.name + ": " + logMessage);
 				recordChat("<b>", WorlizeTextUtil.htmlEscape(user.name), ":</b> ", WorlizeTextUtil.htmlEscape(logMessage), "\n");
 				dispatchEvent(new Event('chatLogUpdated'));
 			}
@@ -370,6 +380,7 @@ package com.worlize.interactivity.model
 				logMessage = message;
 			}
 			if (logMessage.length > 0) {
+				recordPlainChat(user.name + " (whisper): " + logMessage);
 				recordChat("<em><b>", WorlizeTextUtil.htmlEscape(user.name), " (whisper):</b> ", WorlizeTextUtil.htmlEscape(logMessage), "</em>\n");
 				dispatchEvent(new Event('chatLogUpdated'));
 			}
@@ -385,6 +396,7 @@ package com.worlize.interactivity.model
 		
 		public function roomMessage(message:String):void {
 			if (shouldDisplayMessage(message) && message.length > 0) {
+				recordPlainChat("*** " + message);
 				recordChat("<b>*** " + WorlizeTextUtil.htmlEscape(message), "</b>\n");
 				dispatchEvent(new Event('chatLogUpdated'));
 				var event:ChatEvent = new ChatEvent(ChatEvent.ROOM_MESSAGE, message);
@@ -401,6 +413,7 @@ package com.worlize.interactivity.model
 		}
 		
 		public function statusMessage(message:String):void {
+			recordPlainChat(" --- " + message);
 			recordChat("<i>" + message + "</i>\n");
 			statusMessageString = message;
 			statusDisappearTimer.reset();
@@ -409,22 +422,33 @@ package com.worlize.interactivity.model
 		}
 		
 		public function logMessage(message:String):void {
+			recordPlainChat(" --- " + message);
 			recordChat("<i>" + message + "</i>\n");
 			dispatchEvent(new Event('chatLogUpdated'));
 		}
 		
 		public function logScript(message:String):void {
+			recordPlainChat(" --- " + message);
 			recordChat("<font face=\"Courier New\">" + WorlizeTextUtil.htmlEscape(message) + "</font>\n")
 			dispatchEvent(new Event('chatLogUpdated'));
 		}
 		
 		public function roomWhisper(message:String):void {
 			if (shouldDisplayMessage(message) && message.length > 0) {
+				recordPlainChat("(ESP) - " + message);
 				recordChat("<b><i>*** " + WorlizeTextUtil.htmlEscape(message), "</i></b>\n");
 				dispatchEvent(new Event('chatLogUpdated'));
 				var event:ChatEvent = new ChatEvent(ChatEvent.ROOM_MESSAGE, message);
 				dispatchEvent(event);
 			}
+		}
+		
+		private function recordPlainChat(... args):void {
+			var newString:String = "";
+			for (var i:int = 0; i < args.length; i ++) {
+				newString += (args[i] + "\n");
+			}
+			plainTextChatLog += newString;
 		}
 		
 		private function recordChat(... args):void {
@@ -436,6 +460,14 @@ package com.worlize.interactivity.model
 				temp += args[i];
 			}
 			chatLog = temp + "\n";
+		}
+		
+		public function clearLog():void {
+			var date:Date = new Date();
+			var formatter:DateFormatter = new DateFormatter();
+			formatter.formatString = "YYYY-MM-DD at L:NN:SS A";
+			chatLog = "Worlize Chat log cleared at " + formatter.format(date) + "\n\n";
+			plainTextChatLog = "Worlize Chat log cleared at " + formatter.format(date) + "\n\n";
 		}
 		
 		public function moveUser(userId:String, x:int, y:int):void {

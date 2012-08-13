@@ -126,7 +126,7 @@
 				var ref:FileReference = new FileReference();
 				var date:Date = new Date();
 				var formatter:DateFormatter = new DateFormatter();
-				formatter.formatString = "YYYY-MM-DD at KK.NN.SS A";
+				formatter.formatString = "YYYY-MM-DD at L.NN.SS A";
 				var fileName:String = (
 					"Worlize Screenshot " +
 					formatter.format(date) +
