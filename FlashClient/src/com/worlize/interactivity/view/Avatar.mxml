@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Group xmlns:mx="library://ns.adobe.com/flex/halo"
 	xmlns:s="library://ns.adobe.com/flex/spark" xmlns:fx="http://ns.adobe.com/mxml/2009"
-	x="{user.x-25}" y="{user.y-25}"
+	x="{user.x-25}" y="{user.y-33}"
 	height="50"
 	width="50"
 	mouseEnabled="false"
@@ -320,7 +320,7 @@
 		<s:BasicLayout />
 	</s:layout>
 	
-	<s:Image x="0" y="5" width="50" height="40"
+	<s:Image x="0" y="13" width="50" height="40"
 			 visible="{user.showFace}"
 			 mouseEnabled="false"
 			 mouseChildren="false"
