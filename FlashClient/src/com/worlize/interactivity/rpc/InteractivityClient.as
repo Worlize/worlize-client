@@ -981,6 +981,9 @@ package com.worlize.interactivity.rpc
 			var user:InteractivityUser = currentRoom.getUserById(data.user);
 			if (user) {
 				user.simpleAvatar = null;
+				if (user === currentUser) {
+					webcamBroadcastManager.stopBroadcast();
+				}
 				user.videoAvatarStreamName = null;
 				apiController.userAvatarChanged(user);
 			}

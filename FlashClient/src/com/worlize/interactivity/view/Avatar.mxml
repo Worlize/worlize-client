@@ -6,6 +6,8 @@
 	width="50"
 	mouseEnabled="false"
 	creationComplete="handleCreationComplete()"
+	addedToStage="handleAddedToStage(event)"
+	removedFromStage="handleRemovedFromStage(event)"
 	xmlns:view="com.worlize.interactivity.view.*"
 	xmlns:mx1="library://ns.adobe.com/flex/mx">
 	
@@ -98,11 +100,10 @@
 				0xFF86B1  // 15 Rose
 			]; 
 			
+			private var simpleAvatarWatcher:ChangeWatcher;
+			private var videoAvatarWatcher:ChangeWatcher;
+			
 			private function handleCreationComplete():void {
-				ChangeWatcher.watch(this, ['user','simpleAvatar'], handleAvatarChanged);
-				ChangeWatcher.watch(this, ['user','videoAvatarStreamName'], handleAvatarChanged);
-				checkAvatar();
-				
 				hitSprite.width = 50;
 				hitSprite.height = 50;
 				hitSprite.graphics.beginFill(0xFFFFFF, 0.0);
@@ -112,7 +113,24 @@
 				hitSprite.y = 5;
 			}
 			
-			private function handleAvatarChanged(event:PropertyChangeEvent):void {
+			protected function handleAddedToStage(event:Event):void {
+				simpleAvatarWatcher = ChangeWatcher.watch(this, ['user','simpleAvatar'], handleAvatarChanged);
+				videoAvatarWatcher = ChangeWatcher.watch(this, ['user','videoAvatarStreamName'], handleAvatarChanged);
+				handleAvatarChanged();
+			}
+			
+			protected function handleRemovedFromStage(event:Event):void {
+				if (simpleAvatarWatcher) {
+					simpleAvatarWatcher.unwatch();
+					simpleAvatarWatcher = null;
+				}
+				if (videoAvatarWatcher) {
+					videoAvatarWatcher.unwatch();
+					videoAvatarWatcher = null;
+				}
+			}
+			
+			private function handleAvatarChanged(event:PropertyChangeEvent=null):void {
 				removeSimpleAvatarListeners();
 				checkAvatar();
 			}
@@ -127,26 +145,28 @@
 			}
 
 			private function checkAvatar():void {
+				// If the metadata for a previous avatar is loading,
+				// ignore the result events now that we're wearing something
+				// else.
+				removeSimpleAvatarListeners();
+				
+				// If a previous avatar image is loading, cancel it.
+				cancelLoadingAvatarImage();
+				
+				// Remove old avatar
+				imageContainer.removeChildren();
+				if (gifPlayer) {
+					gifPlayer.dispose();
+				}
+
 				if (user && user.videoAvatarStreamName !== null) {
 					// Video avatar
 					user.showFace = false;
-					imageContainer.removeChildren();
 					// Actual video playback is driven by data bindings
 				}
-				if (user && user.simpleAvatar && !user.simpleAvatar.error) {
-					if (currentSimpleAvatar) {
-						currentSimpleAvatar.removeEventListener(AvatarEvent.AVATAR_LOADED, handleSimpleAvatarLoaded);
-						currentSimpleAvatar.removeEventListener(AvatarEvent.AVATAR_ERROR, handleSimpleAvatarError);
-					}
-					
+				else if (user && user.simpleAvatar && !user.simpleAvatar.error) {
 					// Simple avatar
 					currentSimpleAvatar = user.simpleAvatar;
-					
-					// Remove old avatar
-					imageContainer.removeChildren();
-					if (gifPlayer) {
-						gifPlayer.dispose();
-					}
 					
 					user.showFace = false;
 					if (currentSimpleAvatar.ready) {
@@ -163,14 +183,14 @@
 				}
 				else {
 					// No avatar.  Show default jelly.
-					
 					user.showFace = true;
-					imageContainer.removeChildren();
 					simpleAvatarProgressBar.visible = false;
 				}
 			}
 			
 			private function handleSimpleAvatarLoaded(event:AvatarEvent):void {
+				EventDispatcher(event.target).removeEventListener(AvatarEvent.AVATAR_LOADED, handleSimpleAvatarLoaded);
+				EventDispatcher(event.target).removeEventListener(AvatarEvent.AVATAR_ERROR, handleSimpleAvatarError);
 				loadAvatarImage();
 				SimpleAvatar(event.target).removeEventListener(AvatarEvent.AVATAR_LOADED, handleSimpleAvatarLoaded);
 			}
@@ -180,22 +200,7 @@
 				simpleAvatarProgressBar.visible = false;
 			}
 			
-			private function loadAvatarImage():void {
-				// Show the progress bar.
-				simpleAvatarProgressBar.setProgress(10, 100);
-				simpleAvatarProgressBar.visible = true;
-
-				var url:String = user.simpleAvatar.mediumURL;
-				var gifRegex:RegExp = /^.*\.gif$/i;
-				var urlRequest:URLRequest = new URLRequest(url);
-				
-				var context:LoaderContext = new LoaderContext(true);
-				context.allowCodeImport = false;
-				
-				// If changing avatars quickly, the loader might be changed out
-				// from underneath the app before the image finishes loading,
-				// and then the event handler would try to refer to a null
-				// object and blow up.
+			private function cancelLoadingAvatarImage():void {
 				if (urlLoader) {
 					urlLoader.removeEventListener(ProgressEvent.PROGRESS, handleLoaderProgress);
 					urlLoader.removeEventListener(Event.COMPLETE, handleAnimatedGifComplete);
@@ -209,26 +214,53 @@
 					loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR, handleAvatarIOError);
 					try { loader.close(); } catch(e:Error) { /* do nothing */ }
 				}
+				if (gifPlayer) {
+					gifPlayer.removeEventListener(GIFPlayerEvent.COMPLETE, handleGifDecoded);
+					gifPlayer.removeEventListener(AsyncDecodeErrorEvent.ASYNC_DECODE_ERROR, handleGifDecodeError);
+					gifPlayer = null;
+				}
+			}
+			
+			private function loadAvatarImage():void {
+				// Show the progress bar.
+				simpleAvatarProgressBar.setProgress(10, 100);
+				simpleAvatarProgressBar.visible = true;
+
+				var url:String = user.simpleAvatar.mediumURL;
+				var gifRegex:RegExp = /^.*\.gif$/i;
 				
 				// Start loading avatar
 				if (url.match(gifRegex)) {
 					// Load animated gif
-					urlLoader = new URLLoader();
-					urlLoader.dataFormat = URLLoaderDataFormat.BINARY;
-					urlLoader.addEventListener(ProgressEvent.PROGRESS, handleLoaderProgress);
-					urlLoader.addEventListener(Event.COMPLETE, handleAnimatedGifComplete);
-					urlLoader.addEventListener(IOErrorEvent.IO_ERROR, handleAvatarIOError);
-					urlLoader.addEventListener(SecurityErrorEvent.SECURITY_ERROR, handleAvatarSecurityError);
-					urlLoader.load(urlRequest);
+					loadAnimatedGifAvatarImage();
 				}
 				else {
 					// Load normal image
-					loader = new Loader();
-					loader.contentLoaderInfo.addEventListener(ProgressEvent.PROGRESS, handleLoaderProgress);
-					loader.contentLoaderInfo.addEventListener(Event.COMPLETE, handleNormalImageComplete);
-					loader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, handleAvatarIOError);
-					loader.load(urlRequest, context);
+					loadNormalAvatarImage();
 				}
+			}
+			
+			private function loadAnimatedGifAvatarImage():void {
+				var urlRequest:URLRequest = new URLRequest(user.simpleAvatar.mediumURL);
+				urlLoader = new URLLoader();
+				urlLoader.dataFormat = URLLoaderDataFormat.BINARY;
+				urlLoader.addEventListener(ProgressEvent.PROGRESS, handleLoaderProgress);
+				urlLoader.addEventListener(Event.COMPLETE, handleAnimatedGifComplete);
+				urlLoader.addEventListener(IOErrorEvent.IO_ERROR, handleAvatarIOError);
+				urlLoader.addEventListener(SecurityErrorEvent.SECURITY_ERROR, handleAvatarSecurityError);
+				urlLoader.load(urlRequest);
+			}
+			
+			private function loadNormalAvatarImage():void {
+				var urlRequest:URLRequest = new URLRequest(user.simpleAvatar.mediumURL);
+				var context:LoaderContext = new LoaderContext(true);
+				context.allowCodeImport = false;
+				
+				loader = new Loader();
+				loader.contentLoaderInfo.addEventListener(ProgressEvent.PROGRESS, handleLoaderProgress);
+				loader.contentLoaderInfo.addEventListener(Event.COMPLETE, handleNormalImageComplete);
+				loader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, handleAvatarIOError);
+				loader.load(urlRequest, context);
 			}
 			
 			private function handleAvatarIOError(event:IOErrorEvent):void {
@@ -312,7 +344,6 @@
 					dispatchEvent(contextEvent);
 				}
 			}
-
 		]]>
 	</fx:Script>
 	
