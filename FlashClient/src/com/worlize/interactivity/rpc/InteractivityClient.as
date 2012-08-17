@@ -208,6 +208,7 @@ package com.worlize.interactivity.rpc
 			"bring_loose_prop_forward": handleBringLoosePropForward,
 			"clear_loose_props": handleClearLooseProps,
 			"disconnect": handleDisconnectMessage,
+			"display_dialog": handleDisplayDialogMessage,
 			"friend_added": handleFriendAdded,
 			"friend_data_updated": handleFriendDataUpdated,
 			"friend_removed": handleFriendRemoved,
@@ -479,6 +480,10 @@ package com.worlize.interactivity.rpc
 		private function handleDisconnectMessage(data:Object):void {
 			logger.info("Server sent disconnect message.");
 //			Alert.show(data.error_code + " - " + data.error_message, "Disconnect");
+		}
+		
+		private function handleDisplayDialogMessage(data:Object):void {
+			Alert.show(data.message, data.title, Alert.OK);
 		}
 		
 		private function handlePaymentCompleted(data:Object):void {
