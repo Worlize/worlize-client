@@ -29,6 +29,7 @@
 	<fx:Script>
 		<![CDATA[
 			import com.flashandmath.dg.display.SnowDisplay;
+			import com.worlize.command.ApplyModerationRestrictionCommand;
 			import com.worlize.command.GetAnotherAppCopyCommand;
 			import com.worlize.components.visualnotification.VisualNotification;
 			import com.worlize.event.NotificationCenter;
@@ -44,6 +45,8 @@
 			import com.worlize.interactivity.model.InteractivityConfig;
 			import com.worlize.interactivity.model.InteractivityUser;
 			import com.worlize.interactivity.model.LooseProp;
+			import com.worlize.interactivity.model.UserPermission;
+			import com.worlize.interactivity.model.UserRestriction;
 			import com.worlize.interactivity.model.WebcamBroadcastManager;
 			import com.worlize.interactivity.rpc.InteractivityClient;
 			import com.worlize.model.App;
@@ -71,6 +74,7 @@
 			import mx.events.FlexEvent;
 			import mx.events.MenuEvent;
 			import mx.events.PropertyChangeEvent;
+			import mx.formatters.DateFormatter;
 			import mx.graphics.codec.JPEGEncoder;
 			import mx.logging.ILogger;
 			import mx.logging.Log;
@@ -354,6 +358,11 @@
 					var user:InteractivityUser = Avatar(event.currentTarget).user;
 					if (!user.isSelf) { return; }
 				}
+				
+				if (user.hasActiveRestriction(UserRestriction.PIN)) {
+					return;
+				}
+				
 				if (event.shiftKey) {
 					liveDraggingTimer.reset();
 					liveDraggingTimer.start();
@@ -386,6 +395,12 @@
 				if (authorModeState.enabled) {
 					authorModeState.selectedItem = null;
 				}
+				
+				var self:InteractivityUser = room.getSelfUser();
+				if (self && self.hasActiveRestriction(UserRestriction.PIN)) {
+					return;
+				}
+				
 				updateSelfPosition();
 				sendCurrentPositionToServer();
 			}
@@ -429,6 +444,148 @@
 				sendCurrentPositionToServer();
 			}
 			
+			private function buildModerationMenuItems(targetUser:InteractivityUser):Array {
+				var self:InteractivityUser = room.getSelfUser();
+				if (!self) { return []; }
+				if (!self.hasPermission(UserPermission.CAN_ACCESS_MODERATION_DIALOG)) {
+					return [];
+				}
+				
+				var menu:Array = [
+					{ type: "separator" }
+				];
+				
+				var canModerateGlobally:Boolean = self.hasGlobalPermission(UserPermission.CAN_MODERATE_GLOBALLY);
+				
+				menu.push({
+					type: 'normal',
+					label: "World Moderation",
+					action: 'none',
+					children: buildModerationSubmenuItems(targetUser)
+				});
+				menu.push({
+					type: 'normal',
+					label: "Global Moderation",
+					action: 'none',
+					children: buildGlobalModerationSubmenuItems(targetUser, canModerateGlobally)
+				});
+				
+				return menu;
+			}
+			
+			private function buildModerationSubmenuItems(targetUser:InteractivityUser, allowChange:Boolean = true):Array {
+				var self:InteractivityUser = room.getSelfUser();
+				var menu:Array = [];
+				menu.push(buildModerationMenuItem("Gag", "gag", targetUser, false, 5, allowChange && self.hasPermission(UserPermission.CAN_GAG)));
+				menu.push(buildModerationMenuItem("Pin", "pin", targetUser, false, 5, allowChange && self.hasPermission(UserPermission.CAN_PIN)));
+				menu.push(buildModerationMenuItem("Block Avatars", "block_avatars", targetUser, false, 15, allowChange && self.hasPermission(UserPermission.CAN_BLOCK_AVATARS)));
+				menu.push(buildModerationMenuItem("Block Webcam", "block_webcams", targetUser, false, 60, allowChange && self.hasPermission(UserPermission.CAN_BLOCK_WEBCAMS)));
+				menu.push(buildModerationMenuItem("Block Props", "block_props", targetUser, false, 15, allowChange && self.hasPermission(UserPermission.CAN_BLOCK_PROPS)));
+				menu.push(buildModerationMenuItem("Ban User", "ban", targetUser, false, 1440, allowChange && self.hasPermission(UserPermission.CAN_BAN)));
+				return menu;
+			}
+			
+			private function buildGlobalModerationSubmenuItems(targetUser:InteractivityUser, allowChange:Boolean = true):Array {
+				var self:InteractivityUser = room.getSelfUser();
+				var menu:Array = [];
+				menu.push(buildModerationMenuItem("Gag", "gag", targetUser, true, 5, allowChange && self.hasGlobalPermission(UserPermission.CAN_GAG)));
+				menu.push(buildModerationMenuItem("Pin", "pin", targetUser, true, 5, allowChange && self.hasGlobalPermission(UserPermission.CAN_PIN)));
+				menu.push(buildModerationMenuItem("Block Avatars", "block_avatars", targetUser, true, 15, allowChange && self.hasGlobalPermission(UserPermission.CAN_BLOCK_AVATARS)));
+				menu.push(buildModerationMenuItem("Block Webcam", "block_webcams", targetUser, true, 60, allowChange && self.hasGlobalPermission(UserPermission.CAN_BLOCK_WEBCAMS)));
+				menu.push(buildModerationMenuItem("Block Props", "block_props", targetUser, true, 15, allowChange && self.hasGlobalPermission(UserPermission.CAN_BLOCK_PROPS)));
+				menu.push(buildModerationMenuItem("Ban User", "ban", targetUser, true, 1440, allowChange && self.hasGlobalPermission(UserPermission.CAN_BAN)));
+				return menu;
+			}
+			
+			private function buildModerationMenuItem(
+				displayName:String,
+				name:String,
+				targetUser:InteractivityUser,
+				global:Boolean,
+				defaultMinutes:int = 5,
+				allowChange:Boolean = true):Object
+			{
+				function durationItem(displayName:String, minutes:int):Object {
+					return {
+						type: 'normal',
+						label: displayName,
+						action: 'moderation',
+						user: targetUser,
+						data: {
+							name: name,
+							global: global,
+							duration: minutes
+						}
+					};
+				};
+				
+				var restrictionActive:Boolean;
+				if (global) {
+					restrictionActive = targetUser.hasGlobalRestriction(name);
+				}
+				else {
+					restrictionActive = targetUser.hasWorldRestriction(name);
+				}
+				
+				var timeOptions:Array;
+				if (allowChange) {
+					timeOptions = [
+						durationItem("1 Minute", 1),
+						durationItem("5 Minutes", 5),
+						durationItem("15 Minutes", 15),
+						durationItem("30 Minutes", 30),
+						durationItem("1 Hour", 60),
+						durationItem("6 Hours", 360),
+						durationItem("1 Day", 1440),
+						durationItem("7 Days", 10080),
+						durationItem("30 Days", 43200),
+						durationItem("1 Year", 525600),
+						durationItem("5 Years", 2628000)
+					];
+				
+					if (restrictionActive) {
+						var cancelItem:Object = (durationItem("Cancel Restriction", 0));
+	//					var self:InteractivityUser = room.getSelfUser();
+	//					if (!self.hasPermission(UserPermission.CAN_REDUCE_RESTRICTION_TIME)) {
+	//						cancelItem.enabled = false;
+	//					}
+						timeOptions.unshift(cancelItem);
+					}
+					
+					timeOptions.unshift({ type: "separator" });
+					timeOptions.unshift({ type: "normal", label: displayName, enabled: false });
+				}
+				
+				if (restrictionActive) {
+					var restriction:UserRestriction;
+					if (global) {
+						restriction = targetUser.getGlobalRestriction(name);
+					}
+					else {
+						restriction = targetUser.getWorldRestriction(name);
+					}
+					if (restriction) {
+						var formatter:DateFormatter = new DateFormatter();
+						formatter.formatString = "MMM D, YYYY, L:NN A";
+						displayName += " (expires " + formatter.format(restriction.expires) + ")";
+					}
+				}
+				
+				return {
+					type: 'check',
+					toggled: restrictionActive,
+					enabled: allowChange,
+					label: displayName,
+					action: 'moderation',
+					user: targetUser,
+					data: {
+						name: name,
+						global: global,
+						duration: defaultMinutes
+					},
+					children: timeOptions
+				};
+			}
 
 			private function handleAvatarShowContextMenu(event:AvatarSelectEvent):void {
 				trace("Context menu requested!");
@@ -453,15 +610,47 @@
 					menuData.push({ type: 'normal', label: 'Unfriend ' + user.name, action: 'removeFriend', user: user}); 
 				}
 				
+				menuData = menuData.concat(buildModerationMenuItems(user));
+				
 				currentMenu = Menu.createMenu(null, menuData, true);
+				currentMenu.show(0,0);
+				currentMenu.hide();
+				
+				var showY:Number = stage.mouseY;
+				var showX:Number = stage.mouseX;
+				
+				var screen:Rectangle = systemManager.getVisibleApplicationRect(null, true);
+				var menuHeight:Number = currentMenu.getExplicitOrMeasuredHeight();
+				var menuWidth:Number = currentMenu.getExplicitOrMeasuredWidth();
+				
+				// Check for vertical clipping
+				var shift:Number = stage.mouseY + menuHeight - screen.bottom;
+				if (shift > 0 || stage.mouseY < screen.y) {
+					showY = Math.max(showY - shift, 0);
+				}
+				
+				// Check for horizontal clipping
+				if (menuWidth + showX > screen.right) {
+					showX -= menuWidth;
+				}
+				
 				currentMenu.addEventListener(MenuEvent.ITEM_CLICK, handleUserContextMenuItemClick, false, 0, true);
-				currentMenu.show(stage.mouseX, stage.mouseY);
+				currentMenu.show(showX, showY);
 			}
 			
 			private function handleUserContextMenuItemClick(event:MenuEvent):void {
 				var interactivityUser:InteractivityUser;
 				var worlizeNotification:WorlizeNotification;
 				switch (event.item.action) {
+					case "moderation":
+						(new ApplyModerationRestrictionCommand()).execute(
+							event.item.user.id,
+							event.item.data.name,
+							event.item.data.duration,
+							event.item.data.global,
+							InteractivityClient.getInstance().currentWorld.guid
+						);
+						break;
 					case "whisper":
 						interactivityUser = InteractivityUser(event.item.user);
 						room.selectedUser = interactivityUser;

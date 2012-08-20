@@ -628,7 +628,7 @@ package com.worlize.interactivity.api.adapter
 			if (_connectedClientVersion < 4) { return; }
 			
 			var event:APIBridgeEvent = new APIBridgeEvent("host_userPermissionsChanged");
-			var permissions:Array = user.permissions.slice();
+			var permissions:Array = user.appliedPermissions.slice();
 						
 			event.data = {
 				userGuid: user.id,
@@ -636,6 +636,13 @@ package com.worlize.interactivity.api.adapter
 			};
 			
 			sharedEvents.dispatchEvent(event);
+		}
+		
+		public function userRestrictionsChanged(user:InteractivityUser):void {
+			if (sharedEvents === null) { return; }
+			
+			var event:APIBridgeEvent = new APIBridgeEvent("host_userRestrictionsChanged");
+			trace("TODO: Implement restrictions in Worlize SDK");
 		}
 		
 		public function roomDimLevelChanged(dimLevel:int):void {
@@ -935,12 +942,12 @@ package com.worlize.interactivity.api.adapter
 			// For backward compatibility
 			if (_connectedClientVersion < 4) {
 				data.privileges = [];
-				if (user.permissions.indexOf(Permission.CAN_EDIT_ROOMS) !== -1) {
+				if (user.appliedPermissions.indexOf(Permission.CAN_EDIT_ROOMS) !== -1) {
 					data.privileges.push('canAuthor');
 				}
 			}
 			else {
-				data.permissions = user.permissions.slice();
+				data.permissions = user.appliedPermissions.slice();
 			}
 			
 			return data;

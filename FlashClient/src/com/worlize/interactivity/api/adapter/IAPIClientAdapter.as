@@ -55,6 +55,7 @@ package com.worlize.interactivity.api.adapter
 		function userBalloonColorChanged(user:InteractivityUser):void;
 		function userAvatarChanged(user:InteractivityUser):void;
 		function userPermissionsChanged(user:InteractivityUser):void;
+		function userRestrictionsChanged(user:InteractivityUser):void;
 		function roomDimLevelChanged(dimLevel:int):void;
 		function roomNameChanged(guid:String, name:String):void;
 		function roomLocked(lockedByUserGuid:String):void;

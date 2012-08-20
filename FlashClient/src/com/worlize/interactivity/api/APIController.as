@@ -541,6 +541,12 @@ package com.worlize.interactivity.api
 			}
 		}
 		
+		public function userRestrictionsChanged(user:InteractivityUser):void {
+			for each (var client:IAPIClientAdapter in apiClientAdapters) {
+				client.userRestrictionsChanged(user);
+			}
+		}
+		
 		public function userColorChanged(user:InteractivityUser):void {
 			for each (var client:IAPIClientAdapter in apiClientAdapters) {
 				client.userColorChanged(user);

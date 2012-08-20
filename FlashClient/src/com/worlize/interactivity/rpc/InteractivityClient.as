@@ -22,6 +22,7 @@ package com.worlize.interactivity.rpc
 	import com.worlize.interactivity.model.InteractivityConfig;
 	import com.worlize.interactivity.model.InteractivityUser;
 	import com.worlize.interactivity.model.RoomHistoryManager;
+	import com.worlize.interactivity.model.UserRestriction;
 	import com.worlize.interactivity.model.WebcamBroadcastManager;
 	import com.worlize.interactivity.record.ChatRecord;
 	import com.worlize.interactivity.rpc.messages.AppBroadcastMessage;
@@ -260,9 +261,10 @@ package com.worlize.interactivity.rpc
 			"unlock_room": handleUnlockRoom,
 			"update_room_property": handleUpdateRoomProperty,
 			"update_youtube_player_data": handleUpdateYouTubePlayerData,
-			"user_enter": handleUserNew,
+			"user_enter": handleUserEnter,
 			"user_leave": handleUserLeaving,
 			"user_permissions_changed": handleUserPermissionsChanged,
+			"user_restrictions_changed": handleUserRestrictionsChanged,
 			"user_updated": handleUserUpdated,
 			"whisper": handleReceiveWhisper,
 			"world_definition": handleWorldDefinition,
@@ -1325,6 +1327,8 @@ package com.worlize.interactivity.rpc
 			currentRoom.selectedUser = null;
 			currentRoom.removeAllUsers();
 			currentRoom.showAvatars = true;
+			
+			dispatchEvent(new FlexEvent('currentUserChanged'));
 		}
 		
 		// ***************************************************************
@@ -1613,6 +1617,10 @@ package com.worlize.interactivity.rpc
 		
 		public function move(x:int, y:int):void {
 			if (!connected || !currentUser) {
+				return;
+			}
+			
+			if (currentUser.hasActiveRestriction(UserRestriction.PIN)) {
 				return;
 			}
 			
@@ -1957,7 +1965,7 @@ package com.worlize.interactivity.rpc
 		// Begin private functions to messages from the server
 		// ***************************************************************
 		
-		private function handleUserNew(data:Object):void {
+		private function handleUserEnter(data:Object):void {
 			var user:InteractivityUser = new InteractivityUser();
 			user.isSelf = Boolean(data.guid == id);
 			user.id = data.guid;
@@ -1967,7 +1975,10 @@ package com.worlize.interactivity.rpc
 			user.face = data.face;
 			user.color = data.color;
 			user.facebookId = data.facebookId;
-			user.permissions = data.permissions;
+			user.worldPermissions = data.permissions.world;
+			user.globalPermissions = data.permissions.global;
+			user.appliedPermissions = data.permissions.applied;
+			user.updateRestrictionsFromObject(data.restrictions);
 			
 			if (data.avatar) {
 				if (data.avatar.type == "simple") {
@@ -1994,6 +2005,7 @@ package com.worlize.interactivity.rpc
 			}
 			
 			if (user.id == id) {
+				dispatchEvent(new FlexEvent('currentUserChanged'));
 				// Self entered
 				
 				// When we receive our own user_enter message, we know we're
@@ -2182,8 +2194,18 @@ package com.worlize.interactivity.rpc
 		private function handleUserPermissionsChanged(data:Object):void {
 			var user:InteractivityUser = currentRoom.getUserById(data.user);
 			if (user) {
-				user.permissions = data.permissions;
+				user.worldPermissions = data.permissions.world;
+				user.globalPermissions = data.permissions.global;
+				user.appliedPermissions = data.permissions.applied;
 				apiController.userPermissionsChanged(user);
+			}
+		}
+		
+		private function handleUserRestrictionsChanged(data:Object):void {
+			var user:InteractivityUser = currentRoom.getUserById(data.user);
+			if (user) {
+				user.updateRestrictionsFromObject(data.restrictions);
+				apiController.userRestrictionsChanged(user);
 			}
 		}
 				

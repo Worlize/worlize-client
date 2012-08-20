@@ -1,5 +1,6 @@
 package com.worlize.interactivity.model
 {
+	import com.adobe.utils.ArrayUtil;
 	import com.worlize.interactivity.rpc.InteractivityClient;
 	import com.worlize.interactivity.view.JellyImages;
 	import com.worlize.model.SimpleAvatar;
@@ -33,7 +34,14 @@ package com.worlize.interactivity.model
 		public var videoAvatarStreamName:String;
 		public var showFace:Boolean = true;
 		public var facebookId:String;
-		public var permissions:Array;
+		private var _worldPermissions:Array = [];
+		private var _worldPermissionMap:Object = {};
+		private var _globalPermissions:Array = [];
+		private var _globalPermissionMap:Object = {};
+		private var _appliedPermissions:Array = [];
+		private var _appliedPermissionMap:Object = {};
+		private var _worldRestrictions:Object = {};
+		private var _globalRestrictions:Object = {};
 		
 		public function clone():InteractivityUser {
 			var u:InteractivityUser = new InteractivityUser();
@@ -50,6 +58,121 @@ package com.worlize.interactivity.model
 			u.showFace = showFace;
 			u.facebookId = facebookId;
 			return u;
+		}
+		
+		[Bindable(event="permissionsChanged")]
+		public function set worldPermissions(newValue:Array):void {
+			if (newValue === null) { newValue = []; }
+			if (_worldPermissions !== newValue) {
+				var sortedNew:Array = newValue.sort();
+				if (!ArrayUtil.arraysAreEqual(_worldPermissions, sortedNew)) {
+					_worldPermissions = sortedNew;
+					_worldPermissionMap = buildPermissionMap(_worldPermissions);
+					dispatchEvent(new FlexEvent('worldPermissionsChanged'));
+				}
+			}
+		}
+		public function get worldPermissions():Array {
+			return _worldPermissions;
+		}
+		
+		[Bindable(event="globalPermissionsChanged")]
+		public function set globalPermissions(newValue:Array):void {
+			if (newValue === null) { newValue = []; }
+			if (_globalPermissions !== newValue) {
+				var sortedNew:Array = newValue.sort();
+				if (!ArrayUtil.arraysAreEqual(_globalPermissions, sortedNew)) {
+					_globalPermissions = sortedNew;
+					_globalPermissionMap = buildPermissionMap(_globalPermissions);
+					dispatchEvent(new FlexEvent('globalPermissionsChanged'));
+				}
+			}
+		}
+		public function get globalPermissions():Array {
+			return _globalPermissions;
+		}
+		
+		[Bindable(event="appliedPermissionsChanged")]
+		public function set appliedPermissions(newValue:Array):void {
+			if (newValue === null) { newValue = []; }
+			if (_appliedPermissions !== newValue) {
+				var sortedNew:Array = newValue.sort();
+				if (!ArrayUtil.arraysAreEqual(_appliedPermissions, sortedNew)) {
+					_appliedPermissions = sortedNew;
+					_appliedPermissionMap = buildPermissionMap(_appliedPermissions);
+					dispatchEvent(new FlexEvent('appliedPermissionsChanged'));
+				}
+			}
+		}
+		public function get appliedPermissions():Array {
+			return _appliedPermissions;
+		}
+		
+		private function buildPermissionMap(permissions:Array):Object {
+			var map:Object = {};
+			for each (var permission:String in permissions) {
+				map[permission] = true;
+			}
+			return map;
+		}
+		
+		public function updateRestrictionsFromObject(data:Object):void {
+			function buildRestrictionMap(data:Object):Object {
+				var obj:Object = {};
+				for each (var restrictionData:Object in data) {
+					var restriction:UserRestriction = UserRestriction.fromData(restrictionData);
+					obj[restriction.name] = restriction;
+				}
+				return obj;
+			}
+			
+			_worldRestrictions = buildRestrictionMap(data.world);
+			_globalRestrictions = buildRestrictionMap(data.global);
+			
+			dispatchEvent(new FlexEvent('restrictionsChanged'));
+		}
+		
+		[Bindable(event="restrictionsChanged")]
+		public function hasActiveRestriction(name:String):Boolean {
+			if (_worldRestrictions[name] || _globalRestrictions[name]) {
+				return true;
+			}
+			return false;
+		}
+		
+		[Bindable(event="restrictionsChanged")]
+		public function hasWorldRestriction(name:String):Boolean {
+			return Boolean(_worldRestrictions[name]);
+		}
+		
+		[Bindable(event="restrictionsChanged")]
+		public function hasGlobalRestriction(name:String):Boolean {
+			return Boolean(_globalRestrictions[name]);
+		}
+		
+		[Bindable(event="restrictionsChanged")]
+		public function getWorldRestriction(name:String):UserRestriction {
+			return _worldRestrictions[name] as UserRestriction;
+		}
+		
+		[Bindable(event="restrictionsChanged")]
+		public function getGlobalRestriction(name:String):UserRestriction {
+			return _globalRestrictions[name] as UserRestriction;
+		}
+		
+		[Bindable(event="appliedPermissionsChanged")]
+		public function hasPermission(name:String):Boolean {
+			return _appliedPermissionMap[name] ? true : false;
+		}
+		
+		[Bindable(event="worldPermissionsChanged")]
+		public function hasWorldPermission(name:String):Boolean {
+			return _worldPermissionMap[name] ? true : false;
+		}
+		
+		[Bindable(event="globalPermissionsChanged")]
+		public function hasGlobalPermission(name:String):Boolean {
+			return _globalPermissionMap[name] ? true : false;
 		}
 		
 		[Bindable(event="faceChanged")]
