@@ -10,6 +10,7 @@ package com.worlize.model
 	
 	import flash.events.EventDispatcher;
 	
+	import mx.collections.ArrayCollection;
 	import mx.controls.Alert;
 	import mx.core.FlexGlobals;
 	import mx.events.FlexEvent;
@@ -39,6 +40,10 @@ package com.worlize.model
 		public var userList:UserList = new UserList();
 		
 		public var ownerGuid:String;
+		
+		// moderators and restrictions are only used for the moderation dialog
+		public var moderators:ArrayCollection;
+		public var restrictions:ArrayCollection;
 		
 		public function WorldDefinition() {
 			

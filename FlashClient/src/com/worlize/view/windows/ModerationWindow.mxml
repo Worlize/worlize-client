@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<components:WorlizeWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+						  xmlns:s="library://ns.adobe.com/flex/spark" 
+						  xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:components="com.worlize.view.components.*"
+						  title="World Moderation"
+						  titleBarColor="#c9c9c9"
+						  titleTextColor="#7d8487"
+						  windowIcon="@Embed('assets/icons/large/w_icon_room_settings.png')"
+						  resizable="false"
+						  creationComplete="handleCreationComplete()"
+						  currentState="normal"
+						  width="600" height="450" xmlns:moderation="com.worlize.view.moderation.*">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.interactivity.rpc.InteractivityClient;
+			import com.worlize.model.PreferencesManager;
+			import com.worlize.model.WorldDefinition;
+			
+			import mx.events.CloseEvent;
+			import mx.logging.ILogger;
+			import mx.logging.Log;
+			import mx.managers.PopUpManager;
+			
+			import spark.events.TitleWindowBoundsEvent;
+			private var logger:ILogger = Log.getLogger("com.worlize.view.author.properties.ModerationWindow");
+			
+			private static var _instance:ModerationWindow;
+			private static var _open:Boolean = false;
+			
+			[Bindable]
+			private var world:WorldDefinition;
+			
+			[Bindable]
+			private var client:InteractivityClient = InteractivityClient.getInstance();
+			
+			public static function toggleOpen(parent:DisplayObject, roomGuid:String = null):void {
+				if (_open) {
+					close();
+				}
+				else {
+					open(parent);
+				}
+			}
+			
+			public static function open(parent:DisplayObject):void {
+				var preferences:PreferencesManager = PreferencesManager.getInstance();
+				if (_open) {
+					PopUpManager.bringToFront(_instance);
+					_instance.setFocus();
+				}
+				else {
+					var needsPosition:Boolean = false;
+					if (!_instance) {
+						needsPosition = true;
+						_instance = new ModerationWindow();
+						_instance.addEventListener(CloseEvent.CLOSE, function(event:CloseEvent):void {
+							close();
+						});
+						_instance.addEventListener(TitleWindowBoundsEvent.WINDOW_MOVE_END, function(event:TitleWindowBoundsEvent):void {
+							preferences.setPreference('moderationWindowPosition', [_instance.x, _instance.y]);
+						});
+					}
+					PopUpManager.addPopUp(_instance, parent);
+					if (needsPosition) {
+						var coordinates:Array = preferences.getPreference('moderationWindowPosition') as Array;
+						if (coordinates &&
+							_instance.boundsAreValid(coordinates[0], coordinates[1], _instance.width, _instance.height))
+						{
+							_instance.x = coordinates[0];
+							_instance.y = coordinates[1];
+						}
+						else {
+							PopUpManager.centerPopUp(_instance);
+						}
+					}
+					_open = true;
+				}
+				_instance.initData();
+			}
+			
+			public function initData():void {
+				world = client.currentWorld.clone();
+				world.addRoomChangeListeners();
+				moderatorsTab.loadData();
+				activeRestrictionsTab.loadData();
+			}
+			
+			public static function close():void {
+				if (_open && _instance) {
+					PopUpManager.removePopUp(_instance);
+					_open = false;
+					_instance.world.removeRoomChangeListeners();
+					_instance = null;
+				}
+			}
+			
+			private function handleCreationComplete():void {
+				
+			}
+			
+			private function handleCancelClick():void {
+				close();
+			}
+			
+			private function handleSaveClick():void {
+				saveChanges();
+			}
+			
+			public function saveChanges():void {
+				
+			}
+
+		]]>
+	</fx:Script>
+	
+	<components:states>
+		<s:State name="saving" />
+		<s:State name="normal" />
+	</components:states>
+	
+	<moderation:ModeratorsTab id="moderatorsTab" world="{world}" />
+	<moderation:ActiveRestrictionsTab id="activeRestrictionsTab" world="{world}" />
+	
+</components:WorlizeWindow>

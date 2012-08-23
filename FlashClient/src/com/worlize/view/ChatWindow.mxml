@@ -51,6 +51,7 @@
 			import com.worlize.view.components.UserListDataGrid;
 			import com.worlize.view.windows.AuthorLockerWindow;
 			import com.worlize.view.windows.LogWindow;
+			import com.worlize.view.windows.ModerationWindow;
 			import com.worlize.view.windows.WorldPropertiesWindow;
 			
 			import flash.filters.BitmapFilterQuality;
@@ -297,6 +298,10 @@
 				event.stopImmediatePropagation();
 			}
 			
+			protected function openModerationWindow():void {
+				ModerationWindow.open(systemManager.getSandboxRoot());
+			}
+			
 		]]>
 	</fx:Script>
 	
@@ -374,6 +379,17 @@
 		
 		<s:HGroup
 			verticalCenter="0" right="3" verticalAlign="middle">
+			
+			<s:ToggleButton id="moderationButton"
+							styleName="enableAuthorModeButton"
+							width="90"
+							label="Moderation"
+							toolTip="Open World Moderation Dialog"
+							tabEnabled="false"
+							focusEnabled="false"
+							change="openModerationWindow()"
+							/>
+			
 			<s:HGroup id="authorIcons" visible="false" visible.authormode="true"
 					  verticalAlign="middle">
 				<mx:Image useHandCursor="true" buttonMode="true"
