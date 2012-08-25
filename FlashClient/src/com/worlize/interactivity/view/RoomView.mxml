@@ -30,7 +30,9 @@
 		<![CDATA[
 			import com.flashandmath.dg.display.SnowDisplay;
 			import com.worlize.command.ApplyModerationRestrictionCommand;
+			import com.worlize.command.BlessUserAsModeratorCommand;
 			import com.worlize.command.GetAnotherAppCopyCommand;
+			import com.worlize.command.UnblessUserAsModeratorCommand;
 			import com.worlize.components.visualnotification.VisualNotification;
 			import com.worlize.event.NotificationCenter;
 			import com.worlize.interactivity.event.AvatarSelectEvent;
@@ -455,6 +457,20 @@
 					{ type: "separator" }
 				];
 				
+				if (self.hasWorldPermission(UserPermission.CAN_GRANT_PERMISSIONS)) {
+					if (targetUser.id !== InteractivityClient.getInstance().currentWorld.ownerGuid) {
+						var isModerator:Boolean = targetUser.hasWorldPermission(UserPermission.CAN_ACCESS_MODERATION_DIALOG);
+						menu.push({
+							type: "check",
+							toggled: isModerator,
+							label: "Bless as Moderator",
+							user: targetUser,
+							action: isModerator ? "unblessModerator": "blessModerator"
+						});
+						menu.push({ type: "separator" });
+					}
+				}
+				
 				var canModerateGlobally:Boolean = self.hasGlobalPermission(UserPermission.CAN_MODERATE_GLOBALLY);
 				
 				menu.push({
@@ -476,12 +492,12 @@
 			private function buildModerationSubmenuItems(targetUser:InteractivityUser, allowChange:Boolean = true):Array {
 				var self:InteractivityUser = room.getSelfUser();
 				var menu:Array = [];
-				menu.push(buildModerationMenuItem("Gag", "gag", targetUser, false, 5, allowChange && self.hasPermission(UserPermission.CAN_GAG)));
-				menu.push(buildModerationMenuItem("Pin", "pin", targetUser, false, 5, allowChange && self.hasPermission(UserPermission.CAN_PIN)));
-				menu.push(buildModerationMenuItem("Block Avatars", "block_avatars", targetUser, false, 15, allowChange && self.hasPermission(UserPermission.CAN_BLOCK_AVATARS)));
-				menu.push(buildModerationMenuItem("Block Webcam", "block_webcams", targetUser, false, 60, allowChange && self.hasPermission(UserPermission.CAN_BLOCK_WEBCAMS)));
-				menu.push(buildModerationMenuItem("Block Props", "block_props", targetUser, false, 15, allowChange && self.hasPermission(UserPermission.CAN_BLOCK_PROPS)));
-				menu.push(buildModerationMenuItem("Ban User", "ban", targetUser, false, 1440, allowChange && self.hasPermission(UserPermission.CAN_BAN)));
+				menu.push(buildModerationMenuItem("Gag", "gag", targetUser, false, 5, allowChange && self.hasWorldPermission(UserPermission.CAN_GAG)));
+				menu.push(buildModerationMenuItem("Pin", "pin", targetUser, false, 5, allowChange && self.hasWorldPermission(UserPermission.CAN_PIN)));
+				menu.push(buildModerationMenuItem("Block Avatars", "block_avatars", targetUser, false, 15, allowChange && self.hasWorldPermission(UserPermission.CAN_BLOCK_AVATARS)));
+				menu.push(buildModerationMenuItem("Block Webcam", "block_webcams", targetUser, false, 60, allowChange && self.hasWorldPermission(UserPermission.CAN_BLOCK_WEBCAMS)));
+				menu.push(buildModerationMenuItem("Block Props", "block_props", targetUser, false, 15, allowChange && self.hasWorldPermission(UserPermission.CAN_BLOCK_PROPS)));
+				menu.push(buildModerationMenuItem("Ban User", "ban", targetUser, false, 1440, allowChange && self.hasWorldPermission(UserPermission.CAN_BAN)));
 				return menu;
 			}
 			
@@ -588,7 +604,6 @@
 			}
 
 			private function handleAvatarShowContextMenu(event:AvatarSelectEvent):void {
-				trace("Context menu requested!");
 				if (currentMenu) {
 					currentMenu.hide();
 				}
@@ -649,6 +664,34 @@
 							event.item.data.duration,
 							event.item.data.global,
 							InteractivityClient.getInstance().currentWorld.guid
+						);
+						break;
+					case "blessModerator":
+						Alert.show(
+							"Are you sure you want to grant moderation privileges to " + event.item.user.name + "?",
+							"Confirmation",
+							Alert.YES | Alert.NO,
+							null,
+							function(closeEvent:CloseEvent):void {
+								if (closeEvent.detail === Alert.YES) {
+									var command:BlessUserAsModeratorCommand = new BlessUserAsModeratorCommand();
+									command.execute(event.item.user.id, InteractivityClient.getInstance().currentWorld.guid);
+								}
+							}
+						);
+						break;
+					case "unblessModerator":
+						Alert.show(
+							"Are you sure you want to revoke moderation privileges from " + event.item.user.name + "?",
+							"Confirmation",
+							Alert.YES | Alert.NO,
+							null,
+							function(closeEvent:CloseEvent):void {
+								if (closeEvent.detail === Alert.YES) {
+									var command:UnblessUserAsModeratorCommand = new UnblessUserAsModeratorCommand();
+									command.execute(event.item.user.id, InteractivityClient.getInstance().currentWorld.guid);
+								}
+							}
 						);
 						break;
 					case "whisper":

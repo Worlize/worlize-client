@@ -40,6 +40,7 @@
 			import com.worlize.interactivity.event.InteractivitySecurityErrorEvent;
 			import com.worlize.interactivity.event.RoomSelectedEvent;
 			import com.worlize.interactivity.iptscrae.command.CLIENTTYPECommand;
+			import com.worlize.interactivity.model.UserPermission;
 			import com.worlize.interactivity.model.WebcamBroadcastManager;
 			import com.worlize.interactivity.rpc.InteractivityClient;
 			import com.worlize.model.WorldDefinition;
@@ -298,8 +299,10 @@
 				event.stopImmediatePropagation();
 			}
 			
-			protected function openModerationWindow():void {
-				ModerationWindow.open(systemManager.getSandboxRoot());
+			protected function toggleModerationWindow():void {
+				if (client.currentWorld.state === WorldDefinition.STATE_READY) {
+					ModerationWindow.toggleOpen(systemManager.getSandboxRoot());
+				}
 			}
 			
 		]]>
@@ -380,16 +383,6 @@
 		<s:HGroup
 			verticalCenter="0" right="3" verticalAlign="middle">
 			
-			<s:ToggleButton id="moderationButton"
-							styleName="enableAuthorModeButton"
-							width="90"
-							label="Moderation"
-							toolTip="Open World Moderation Dialog"
-							tabEnabled="false"
-							focusEnabled="false"
-							change="openModerationWindow()"
-							/>
-			
 			<s:HGroup id="authorIcons" visible="false" visible.authormode="true"
 					  verticalAlign="middle">
 				<mx:Image useHandCursor="true" buttonMode="true"
@@ -413,6 +406,18 @@
 						  useHandCursor="true" buttonMode="true"
 						  source="@Embed(source='src/assets/icons/icon_room_settings.png')" />	
 			</s:HGroup>
+			
+			<s:Button id="moderationButton"
+					  visible="{client.currentUser &amp;&amp; client.currentUser.hasPermission(UserPermission.CAN_ACCESS_MODERATION_DIALOG)}"
+					  includeInLayout="{client.currentUser &amp;&amp; client.currentUser.hasPermission(UserPermission.CAN_ACCESS_MODERATION_DIALOG)}"
+					  styleName="enableAuthorModeButton"
+					  width="90"
+					  label="Moderation"
+					  toolTip="Open World Moderation Dialog"
+					  tabEnabled="false"
+					  focusEnabled="false"
+					  click="toggleModerationWindow()"
+					  />
 			
 			<s:ToggleButton id="authorModeButton"
 							styleName="enableAuthorModeButton"

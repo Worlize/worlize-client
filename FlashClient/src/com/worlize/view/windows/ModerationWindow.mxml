@@ -16,17 +16,24 @@
 	
 	<fx:Script>
 		<![CDATA[
+			import com.worlize.interactivity.model.InteractivityUser;
+			import com.worlize.interactivity.model.UserPermission;
 			import com.worlize.interactivity.rpc.InteractivityClient;
 			import com.worlize.model.PreferencesManager;
 			import com.worlize.model.WorldDefinition;
+			import com.worlize.rpc.HTTPMethod;
+			import com.worlize.rpc.WorlizeResultEvent;
+			import com.worlize.rpc.WorlizeServiceClient;
 			
+			import mx.controls.Alert;
 			import mx.events.CloseEvent;
 			import mx.logging.ILogger;
 			import mx.logging.Log;
 			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
 			
 			import spark.events.TitleWindowBoundsEvent;
-			private var logger:ILogger = Log.getLogger("com.worlize.view.author.properties.ModerationWindow");
+			private var logger:ILogger = Log.getLogger("com.worlize.view.windows.ModerationWindow");
 			
 			private static var _instance:ModerationWindow;
 			private static var _open:Boolean = false;
@@ -37,7 +44,7 @@
 			[Bindable]
 			private var client:InteractivityClient = InteractivityClient.getInstance();
 			
-			public static function toggleOpen(parent:DisplayObject, roomGuid:String = null):void {
+			public static function toggleOpen(parent:DisplayObject):void {
 				if (_open) {
 					close();
 				}
@@ -85,8 +92,6 @@
 			public function initData():void {
 				world = client.currentWorld.clone();
 				world.addRoomChangeListeners();
-				moderatorsTab.loadData();
-				activeRestrictionsTab.loadData();
 			}
 			
 			public static function close():void {
@@ -111,9 +116,46 @@
 			}
 			
 			public function saveChanges():void {
+				currentState = "saving";
 				
+				var ic:InteractivityClient = InteractivityClient.getInstance();
+				
+				var data:Object = {};
+				
+				if (ic.currentUser && ic.currentUser.hasPermission(UserPermission.CAN_GRANT_PERMISSIONS)) {
+					var moderators:Array = data['moderators'] = [];
+					for each (var moderator:InteractivityUser in world.moderators) {
+						moderators.push({
+							guid: moderator.id,
+							permissions: {
+								world: moderator.worldPermissions
+							}
+						});
+					}
+				}
+				
+				var client:WorlizeServiceClient = new WorlizeServiceClient();
+				client.addEventListener(WorlizeResultEvent.RESULT, handleSaveResult);
+				client.addEventListener(FaultEvent.FAULT, handleSaveFault);
+				client.send(
+					'/worlds/' + world.guid + '/moderators/update_moderation_data',
+					HTTPMethod.POST,
+					{ data: JSON.stringify(data) }
+				);
 			}
-
+			
+			private function handleSaveResult(event:WorlizeResultEvent):void {
+				currentState = "normal";
+				if (event.resultJSON.success) {
+					close();
+				}
+			}
+			
+			private function handleSaveFault(event:FaultEvent):void {
+				Alert.show("Unable to save changes. HTTP Status " + event.statusCode);
+				logger.error("Unable to save changes. HTTP Status " + event.statusCode + " Message: " + event.message);
+				currentState = "normal";
+			}
 		]]>
 	</fx:Script>
 	
@@ -121,8 +163,59 @@
 		<s:State name="saving" />
 		<s:State name="normal" />
 	</components:states>
-	
-	<moderation:ModeratorsTab id="moderatorsTab" world="{world}" />
-	<moderation:ActiveRestrictionsTab id="activeRestrictionsTab" world="{world}" />
+
+	<s:VGroup gap="0" paddingTop="10" width="100%" height="100%">
+		<s:Group width="100%">
+			<s:TabBar left="10" id="tabBar"
+					  dataProvider="{moderationWindowViewStack}" />
+			<s:Rect width="100%" height="1" bottom="0">
+				<s:fill>
+					<s:SolidColor color="#777777" />
+				</s:fill>
+			</s:Rect>
+		</s:Group>
+		
+		<mx:ViewStack id="moderationWindowViewStack" width="100%" height="100%">
+			<s:NavigatorContent id="moderators" label="Moderators">
+				<s:VGroup width="100%" height="100%"
+						  paddingTop="10" paddingLeft="10" paddingRight="10" paddingBottom="10">
+					
+					<moderation:ModeratorsTab id="moderatorsTab"
+											  width="100%" height="100%"
+											  world="{world}" />
+					
+				</s:VGroup>
+			</s:NavigatorContent>
+			
+			<s:NavigatorContent id="activeRestrictions" label="Active Restrictions">
+				
+				<moderation:ActiveRestrictionsTab id="activeRestrictionsTab"
+												  width="100%" height="100%"
+												  world="{world}" />
+
+			</s:NavigatorContent>
+		</mx:ViewStack>
+		
+		<s:Group width="100%">
+			<s:Rect bottom="0" right="0" top="0" left="0">
+				<s:fill>
+					<s:SolidColor color="#EEEEEE" />
+				</s:fill>
+			</s:Rect>
+			<s:Rect top="0" width="100%" height="1">
+				<s:fill>
+					<s:SolidColor color="#BBBBBB" />
+				</s:fill>
+			</s:Rect>
+			<s:HGroup horizontalAlign="right" verticalAlign="baseline"
+					  width="100%"
+					  paddingTop="6" paddingRight="5" paddingBottom="5">
+				<s:Button label="Cancel" click="handleCancelClick()" enabled.saving="false" />
+				<s:Button label="Save" emphasized="true"
+						  click="handleSaveClick()"
+						  enabled.saving="false" />
+			</s:HGroup>
+		</s:Group>
+	</s:VGroup>	
 	
 </components:WorlizeWindow>

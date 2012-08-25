@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
 		 xmlns:s="library://ns.adobe.com/flex/spark" 
-		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%">
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 creationComplete="handleCreationComplete()"
+		 width="100%" height="100%">
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
@@ -12,8 +14,26 @@
 			import com.worlize.model.WorldDefinition;
 			import com.worlize.rpc.WorlizeResultEvent;
 			
+			import mx.events.FlexEvent;
+			
 			[Bindable]
-			public var world:WorldDefinition;
+			private var _world:WorldDefinition;
+			
+			[Bindable(event="worldChanged")]
+			public function set world(newValue:WorldDefinition):void {
+				if (_world !== newValue) {
+					_world = newValue;
+					dispatchEvent(new FlexEvent('worldChanged'));
+					loadData();
+				}
+			}
+			public function get world():WorldDefinition {
+				return _world;
+			}
+			
+			private function handleCreationComplete():void {
+
+			}
 			
 			public function loadData():void {
 				var cmd:LoadActiveRestrictionsCommand = new LoadActiveRestrictionsCommand();

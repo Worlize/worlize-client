@@ -5,6 +5,7 @@ package com.worlize.interactivity.model
 	import com.worlize.interactivity.view.JellyImages;
 	import com.worlize.model.SimpleAvatar;
 	import com.worlize.model.VideoAvatar;
+	import com.worlize.rpc.WorlizeServiceClient;
 	import com.worlize.video.control.NetConnectionManager;
 	import com.worlize.video.events.NetConnectionManagerEvent;
 	
@@ -74,6 +75,34 @@ package com.worlize.interactivity.model
 		}
 		public function get worldPermissions():Array {
 			return _worldPermissions;
+		}
+		
+		public function toggleWorldPermission(permissionName:String):void {
+			if (_worldPermissions.indexOf(permissionName) !== -1) {
+				removeWorldPermission(permissionName);
+			}
+			else {
+				addWorldPermission(permissionName);
+			}
+		}
+		
+		public function addWorldPermission(permissionName:String):void {
+			var index:int = _worldPermissions.indexOf(permissionName);
+			if (index === -1) {
+				_worldPermissions.push(permissionName);
+				_worldPermissions = _worldPermissions.sort();
+				_worldPermissionMap = buildPermissionMap(_worldPermissions);
+				dispatchEvent(new FlexEvent('worldPermissionsChanged'));
+			}
+		}
+		
+		public function removeWorldPermission(permissionName:String):void {
+			var index:int = _worldPermissions.indexOf(permissionName);
+			if (index !== -1) {
+				_worldPermissions.splice(index, 1);
+				_worldPermissionMap = buildPermissionMap(_worldPermissions);
+				dispatchEvent(new FlexEvent('worldPermissionsChanged'));
+			}
 		}
 		
 		[Bindable(event="globalPermissionsChanged")]
