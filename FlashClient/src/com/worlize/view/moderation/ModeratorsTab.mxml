@@ -26,6 +26,7 @@
 			import com.worlize.rpc.WorlizeServiceClient;
 			
 			import mx.controls.Alert;
+			import mx.events.CloseEvent;
 			import mx.events.FlexEvent;
 			import mx.logging.ILogger;
 			import mx.logging.Log;
@@ -57,6 +58,7 @@
 						
 			public function loadData():void {
 				if (world === null) { return; }
+				currentState = "loading";
 				var cmd:LoadModeratorListCommand = new LoadModeratorListCommand();
 				cmd.addEventListener(WorlizeResultEvent.RESULT, handleLoadComplete);
 				cmd.execute(world);
@@ -72,11 +74,27 @@
 			}
 			
 			private function removeSelectedUser():void {
+				var userToRemove:InteractivityUser = moderatorList.selectedItem as InteractivityUser;
+				Alert.show(
+					"Are you sure you wish to revoke moderation privileges from " +
+					userToRemove.name + "?",
+					"Confirmation",
+					Alert.YES | Alert.NO,
+					null,
+					function(event:CloseEvent):void {
+						if (event.detail === Alert.YES) {
+							actuallyRemoveSelectedUser(userToRemove);
+						}
+					}
+				);
+			}
+			
+			private function actuallyRemoveSelectedUser(userToRemove:InteractivityUser):void {
 				var serviceClient:WorlizeServiceClient = new WorlizeServiceClient();
 				serviceClient.addEventListener(WorlizeResultEvent.RESULT, handleRemoveSelectedUserResult);
 				serviceClient.addEventListener(FaultEvent.FAULT, handleRemoveSelectedUserFault);
 				serviceClient.send(
-					"/worlds/" + world.guid + "/moderators/" + moderatorList.selectedItem.id,
+					"/worlds/" + world.guid + "/moderators/" + userToRemove.id,
 					HTTPMethod.DELETE
 				);
 			}

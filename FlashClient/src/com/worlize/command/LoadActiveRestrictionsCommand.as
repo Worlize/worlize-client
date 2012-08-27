@@ -47,11 +47,13 @@ package com.worlize.command
 				Alert.show("Unable to load active restriction list: " + event.resultJSON.message, "Error");
 				return;
 			}
-			world.restrictions = new ArrayCollection();
+			world.restrictions.disableAutoUpdate();
+			world.restrictions.removeAll();
 			for each (var restrictionData:Object in event.resultJSON.restrictions) {
 				var restriction:UserRestriction = UserRestriction.fromData(restrictionData);
 				world.restrictions.addItem(restriction);
 			}
+			world.restrictions.enableAutoUpdate();
 			dispatchEvent(event);
 		}
 		

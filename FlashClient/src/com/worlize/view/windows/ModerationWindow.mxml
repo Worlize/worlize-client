@@ -199,6 +199,11 @@
 				logger.error("Unable to save changes. HTTP Status " + event.statusCode + " Message: " + event.message);
 				currentState = "normal";
 			}
+			
+			private function refresh():void {
+				activeRestrictionsTab.loadData();
+				moderatorsTab.loadData();
+			}
 		]]>
 	</fx:Script>
 	
@@ -218,7 +223,15 @@
 			</s:Rect>
 		</s:Group>
 		
-		<mx:ViewStack id="moderationWindowViewStack" width="100%" height="100%">
+		<mx:ViewStack id="moderationWindowViewStack" width="100%" height="100%"
+					  creationPolicy="all">
+			<s:NavigatorContent id="activeRestrictions" label="Active Restrictions">
+				
+				<moderation:ActiveRestrictionsTab id="activeRestrictionsTab"
+												  width="100%" height="100%"
+												  world="{world}" />
+				
+			</s:NavigatorContent>
 			<s:NavigatorContent id="moderators" label="Moderators">
 				<s:VGroup width="100%" height="100%"
 						  paddingTop="10" paddingLeft="10" paddingRight="10" paddingBottom="10">
@@ -228,14 +241,6 @@
 											  world="{world}" />
 					
 				</s:VGroup>
-			</s:NavigatorContent>
-			
-			<s:NavigatorContent id="activeRestrictions" label="Active Restrictions">
-				
-				<moderation:ActiveRestrictionsTab id="activeRestrictionsTab"
-												  width="100%" height="100%"
-												  world="{world}" />
-
 			</s:NavigatorContent>
 		</mx:ViewStack>
 		
@@ -252,7 +257,10 @@
 			</s:Rect>
 			<s:HGroup horizontalAlign="right" verticalAlign="baseline"
 					  width="100%"
-					  paddingTop="6" paddingRight="5" paddingBottom="5">
+					  paddingTop="6" paddingRight="5"
+					  paddingLeft="5" paddingBottom="5">
+				<s:Button label="Refresh" click="refresh()" enabled.saving="false" />
+				<s:Spacer width="100%" />
 				<s:Button label="Cancel" click="handleCancelClick()" enabled.saving="false" />
 				<s:Button label="Save" emphasized="true"
 						  click="handleSaveClick()"

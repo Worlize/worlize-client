@@ -75,6 +75,9 @@
 			<s:CheckBox label="Can Lengthen Restriction Time"
 						click="toggleWorldPermission(UserPermission.CAN_LENGTHEN_RESTRICTION_TIME)"
 						selected="{user.hasWorldPermission(UserPermission.CAN_LENGTHEN_RESTRICTION_TIME)}" />
+			<s:CheckBox label="Can Bless Moderators"
+						click="toggleWorldPermission(UserPermission.CAN_BLESS_MODERATORS)"
+						selected="{user.hasWorldPermission(UserPermission.CAN_BLESS_MODERATORS)}" />
 			<s:CheckBox label="Can Grant Permissions"
 						click="toggleWorldPermission(UserPermission.CAN_GRANT_PERMISSIONS)"
 						selected="{user.hasWorldPermission(UserPermission.CAN_GRANT_PERMISSIONS)}" />

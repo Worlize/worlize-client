@@ -17,6 +17,9 @@ package com.worlize.model
 	import mx.logging.ILogger;
 	import mx.logging.Log;
 	import mx.rpc.events.FaultEvent;
+	
+	import spark.collections.Sort;
+	import spark.collections.SortField;
 
 	[Bindable]
 	public class WorldDefinition extends EventDispatcher
@@ -42,11 +45,16 @@ package com.worlize.model
 		public var ownerGuid:String;
 		
 		// moderators and restrictions are only used for the moderation dialog
-		public var moderators:ArrayCollection;
-		public var restrictions:ArrayCollection;
+		public var moderators:ArrayCollection = new ArrayCollection();
+		public var restrictions:ArrayCollection = new ArrayCollection();
 		
 		public function WorldDefinition() {
-			
+			var sort:Sort = new Sort();
+			sort.fields = [
+				new SortField("expires", false)
+			];
+			restrictions.sort = sort;
+			restrictions.refresh();
 		}
 		
 		[Bindable(event="permalinkChanged")]

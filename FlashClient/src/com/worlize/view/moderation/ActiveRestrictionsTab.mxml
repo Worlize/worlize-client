@@ -3,18 +3,24 @@
 		 xmlns:s="library://ns.adobe.com/flex/spark" 
 		 xmlns:mx="library://ns.adobe.com/flex/mx"
 		 creationComplete="handleCreationComplete()"
+		 currentState="loading"
 		 width="100%" height="100%">
-	<fx:Declarations>
-		<!-- Place non-visual elements (e.g., services, value objects) here -->
-	</fx:Declarations>
+	<s:states>
+		<s:State name="loading" />
+		<s:State name="normal" />
+		<s:State name="noRestrictions" />
+	</s:states>
 	
 	<fx:Script>
 		<![CDATA[
 			import com.worlize.command.LoadActiveRestrictionsCommand;
+			import com.worlize.interactivity.model.UserRestriction;
 			import com.worlize.model.WorldDefinition;
 			import com.worlize.rpc.WorlizeResultEvent;
 			
 			import mx.events.FlexEvent;
+			
+			import spark.globalization.SortingCollator;
 			
 			[Bindable]
 			private var _world:WorldDefinition;
@@ -32,18 +38,157 @@
 			}
 			
 			private function handleCreationComplete():void {
-
+				
 			}
 			
 			public function loadData():void {
+				currentState = "loading";
 				var cmd:LoadActiveRestrictionsCommand = new LoadActiveRestrictionsCommand();
 				cmd.addEventListener(WorlizeResultEvent.RESULT, handleLoadComplete);
 				cmd.execute(world);
 			}
 			
 			private function handleLoadComplete(event:WorlizeResultEvent):void {
-				trace("Active Restrictions Load Complete");
+				if (world.restrictions.length === 0) {
+					currentState = "noRestrictions";
+				}
+				else {
+					currentState = "normal";
+				}
+			}
+			
+			private function formatRestrictionName(item:Object, column:GridColumn):String {
+				var restriction:UserRestriction = item as UserRestriction;
+				switch(restriction.name) {
+					case "pin":
+						return "Pin";
+					case "gag":
+						return "Gag";
+					case "block_avatars":
+						return "Block Avatars";
+					case "block_webcams":
+						return "Block Webcam";
+					case "block_props":
+						return "Block Props";
+					case "ban":
+						return "Ban User";
+					default:
+						return restriction.name;
+				}
+			}
+			
+			public function removeRestriction(restriction:UserRestriction):void {
+				if (world) {
+					var index:int = world.restrictions.getItemIndex(restriction);
+					if (index !== -1) {
+						world.restrictions.removeItemAt(index);
+					}
+					if (world.restrictions.length === 0) {
+						currentState = "noRestrictions";
+					}
+					else {
+						currentState = "normal";
+					}
+				}
+			}
+			
+			private function sortNameFunction(a:Object, b:Object, gc:GridColumn):int {
+				var n1:String = (a as UserRestriction).user.name.toLocaleLowerCase();
+				var n2:String = (b as UserRestriction).user.name.toLocaleLowerCase();
+				if (n1 > n2) {
+					return 1;
+				}
+				if (n2 > n1) {
+					return -1;
+				}
+				return 0;
 			}
 		]]>
 	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<s:DateTimeFormatter dateStyle="short" timeStyle="short" id="dateFormatter" />
+	</fx:Declarations>
+	
+	<s:Label includeIn="loading"
+			 color="#666666" fontFamily="PTSansNarrowBold"
+			 fontSize="24" verticalCenter="0"
+			 width="100%" textAlign="center"
+			 paddingRight="50" paddingLeft="50"
+			 text="Loading..." />
+	
+	<s:VGroup includeIn="noRestrictions" width="100%"
+			  verticalCenter="0">
+		<s:Label color="#666666" fontFamily="PTSansNarrowBold"
+				 fontSize="24" width="100%" textAlign="center"
+				 paddingRight="50" paddingLeft="50"
+				 text="There are currently no active restrictions." />
+	</s:VGroup>
+	
+	<s:DataGrid width="100%" height="100%" dataProvider="{world.restrictions}"
+				visible="false" caretColor="#EEEEEE"
+				visible.normal="true"
+				selectionChanging="event.preventDefault()">
+		<s:columns>
+			<s:ArrayList>
+				<s:GridColumn dataField="user.name" headerText="Username"
+							  sortCompareFunction="{sortNameFunction}" />
+				<s:GridColumn dataField="name" labelFunction="{formatRestrictionName}" headerText="Type" />
+				<s:GridColumn dataField="expires" headerText="Expires" formatter="{dateFormatter}" />
+				<s:GridColumn dataField="id" width="85" headerText="" sortable="false">
+					<s:itemRenderer>
+						<fx:Component>
+							<s:GridItemRenderer>
+								<fx:Script>
+									<![CDATA[
+										import com.worlize.command.ApplyModerationRestrictionCommand;
+										import com.worlize.interactivity.model.UserRestriction;
+										import com.worlize.model.WorldDefinition;
+										import com.worlize.rpc.WorlizeResultEvent;
+										
+										import mx.controls.Alert;
+										import mx.events.CloseEvent;
+										private function deleteRestriction():void {
+											var restriction:UserRestriction = data as UserRestriction;
+											Alert.show(
+												"Are you sure you want to cancel this restriction?",
+												"Confirmation",
+												Alert.YES | Alert.NO,
+												null,
+												function(event:CloseEvent):void {
+													if (event.detail === Alert.YES) {
+														actuallyDeleteRestriction(restriction);
+													}
+												}
+											);
+										}
+										
+										private function actuallyDeleteRestriction(restriction:UserRestriction):void {
+											var cmd:ApplyModerationRestrictionCommand = new ApplyModerationRestrictionCommand();
+											cmd.addEventListener(WorlizeResultEvent.RESULT, function(event:WorlizeResultEvent):void {
+												if (event.resultJSON && event.resultJSON.success) {
+													outerDocument.removeRestriction(restriction);
+												}
+											});
+											cmd.execute(
+												restriction.user.id,
+												restriction.name,
+												0,
+												false,
+												outerDocument.world.guid
+											);
+										}
+									]]>
+								</fx:Script>
+								<s:Button label="Cancel" toolTip="Cancel Restriction"
+										  verticalCenter="0" horizontalCenter="0"
+										  click="deleteRestriction()" />
+							</s:GridItemRenderer>
+						</fx:Component>
+					</s:itemRenderer>
+				</s:GridColumn>
+			</s:ArrayList>
+		</s:columns>
+	</s:DataGrid>
 </s:Group>

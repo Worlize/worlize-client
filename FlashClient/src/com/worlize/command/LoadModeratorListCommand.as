@@ -46,7 +46,8 @@ package com.worlize.command
 				Alert.show("Unable to load moderator list: " + event.resultJSON.message, "Error");
 				return;
 			}
-			world.moderators = new ArrayCollection();
+			world.moderators.disableAutoUpdate();
+			world.moderators.removeAll();
 			for each (var moderatorData:Object in event.resultJSON.moderators) {
 				var moderator:InteractivityUser = new InteractivityUser();
 				moderator.name = moderatorData.username;
@@ -56,6 +57,7 @@ package com.worlize.command
 				moderator.appliedPermissions = moderatorData.permissions.applied;
 				world.moderators.addItem(moderator);
 			}
+			world.moderators.enableAutoUpdate();
 			dispatchEvent(event);
 		}
 		

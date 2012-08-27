@@ -58,6 +58,7 @@ package com.worlize.command
 			if (!event.resultJSON.success) {
 				Alert.show(event.resultJSON.errors.join('\n'), "Moderation");
 			}
+			dispatchEvent(event);
 		}
 		
 		private function handleFault(event:FaultEvent):void {

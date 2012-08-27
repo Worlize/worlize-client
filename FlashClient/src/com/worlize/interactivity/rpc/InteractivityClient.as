@@ -484,7 +484,16 @@ package com.worlize.interactivity.rpc
 		}
 		
 		private function handleDisplayDialogMessage(data:Object):void {
-			Alert.show(data.message, data.title, Alert.OK);
+			if (data.redirect_to_homepage) {
+				disconnect();
+			}
+			Alert.show(data.message, data.title, Alert.OK, null,
+				function(event:CloseEvent):void {
+					if (data.redirect_to_homepage) {
+						ExternalInterface.call('redirectToHomepage');
+					}
+				}
+			);
 		}
 		
 		private function handlePaymentCompleted(data:Object):void {

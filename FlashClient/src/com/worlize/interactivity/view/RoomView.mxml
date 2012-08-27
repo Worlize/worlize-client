@@ -457,7 +457,7 @@
 					{ type: "separator" }
 				];
 				
-				if (self.hasWorldPermission(UserPermission.CAN_GRANT_PERMISSIONS)) {
+				if (self.hasPermission(UserPermission.CAN_BLESS_MODERATORS) && self.hasPermission(UserPermission.CAN_GRANT_PERMISSIONS)) {
 					if (targetUser.id !== InteractivityClient.getInstance().currentWorld.ownerGuid) {
 						var isModerator:Boolean = targetUser.hasWorldPermission(UserPermission.CAN_ACCESS_MODERATION_DIALOG);
 						menu.push({
@@ -492,12 +492,12 @@
 			private function buildModerationSubmenuItems(targetUser:InteractivityUser, allowChange:Boolean = true):Array {
 				var self:InteractivityUser = room.getSelfUser();
 				var menu:Array = [];
-				menu.push(buildModerationMenuItem("Gag", "gag", targetUser, false, 5, allowChange && self.hasWorldPermission(UserPermission.CAN_GAG)));
-				menu.push(buildModerationMenuItem("Pin", "pin", targetUser, false, 5, allowChange && self.hasWorldPermission(UserPermission.CAN_PIN)));
-				menu.push(buildModerationMenuItem("Block Avatars", "block_avatars", targetUser, false, 15, allowChange && self.hasWorldPermission(UserPermission.CAN_BLOCK_AVATARS)));
-				menu.push(buildModerationMenuItem("Block Webcam", "block_webcams", targetUser, false, 60, allowChange && self.hasWorldPermission(UserPermission.CAN_BLOCK_WEBCAMS)));
-				menu.push(buildModerationMenuItem("Block Props", "block_props", targetUser, false, 15, allowChange && self.hasWorldPermission(UserPermission.CAN_BLOCK_PROPS)));
-				menu.push(buildModerationMenuItem("Ban User", "ban", targetUser, false, 1440, allowChange && self.hasWorldPermission(UserPermission.CAN_BAN)));
+				menu.push(buildModerationMenuItem("Gag", "gag", targetUser, false, 5, allowChange && self.hasPermission(UserPermission.CAN_GAG)));
+				menu.push(buildModerationMenuItem("Pin", "pin", targetUser, false, 5, allowChange && self.hasPermission(UserPermission.CAN_PIN)));
+				menu.push(buildModerationMenuItem("Block Avatars", "block_avatars", targetUser, false, 15, allowChange && self.hasPermission(UserPermission.CAN_BLOCK_AVATARS)));
+				menu.push(buildModerationMenuItem("Block Webcam", "block_webcams", targetUser, false, 60, allowChange && self.hasPermission(UserPermission.CAN_BLOCK_WEBCAMS)));
+				menu.push(buildModerationMenuItem("Block Props", "block_props", targetUser, false, 15, allowChange && self.hasPermission(UserPermission.CAN_BLOCK_PROPS)));
+				menu.push(buildModerationMenuItem("Ban User", "ban", targetUser, false, 1440, allowChange && self.hasPermission(UserPermission.CAN_BAN)));
 				return menu;
 			}
 			
