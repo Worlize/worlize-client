@@ -99,7 +99,6 @@ package com.worlize.interactivity.rpc
 	import flash.utils.Timer;
 	import flash.utils.setTimeout;
 	
-	import mx.binding.utils.ChangeWatcher;
 	import mx.collections.ArrayCollection;
 	import mx.collections.ArrayList;
 	import mx.controls.Alert;

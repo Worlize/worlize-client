@@ -77,13 +77,18 @@ package com.worlize.model
 			return appURI.scheme + "://" + appURI.authority + "/";
 		}
 		
+		private var roomChangeListenersAdded:Boolean = false;
+		
 		public function addRoomChangeListeners():void {
+			if (roomChangeListenersAdded) { return; }
+			roomChangeListenersAdded = true;
 			NotificationCenter.addListener(RoomChangeNotification.ROOM_DELETED, handleRoomRemoved);
 			NotificationCenter.addListener(RoomChangeNotification.ROOM_ADDED, handleRoomAdded);
 			NotificationCenter.addListener(RoomChangeNotification.ROOM_UPDATED, handleRoomUpdated);
 		}
 		
 		public function removeRoomChangeListeners():void {
+			if (!roomChangeListenersAdded) { return; }
 			NotificationCenter.removeListener(RoomChangeNotification.ROOM_DELETED, handleRoomRemoved);
 			NotificationCenter.removeListener(RoomChangeNotification.ROOM_ADDED, handleRoomAdded);
 			NotificationCenter.removeListener(RoomChangeNotification.ROOM_UPDATED, handleRoomUpdated);

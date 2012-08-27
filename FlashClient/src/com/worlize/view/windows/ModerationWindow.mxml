@@ -25,8 +25,12 @@
 			import com.worlize.rpc.WorlizeResultEvent;
 			import com.worlize.rpc.WorlizeServiceClient;
 			
+			import flash.utils.setInterval;
+			
+			import mx.binding.utils.ChangeWatcher;
 			import mx.controls.Alert;
 			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
 			import mx.logging.ILogger;
 			import mx.logging.Log;
 			import mx.managers.PopUpManager;
@@ -38,8 +42,20 @@
 			private static var _instance:ModerationWindow;
 			private static var _open:Boolean = false;
 			
-			[Bindable]
-			private var world:WorldDefinition;
+			private var _world:WorldDefinition;
+			
+			[Bindable(event="worldChanged")]
+			public function set world(newValue:WorldDefinition):void {
+				if (_world !== newValue) {
+					_world = newValue;
+					dispatchEvent(new FlexEvent('worldChanged'));
+				}
+			}
+			public function get world():WorldDefinition {
+				return _world;
+			}
+			
+			private var worldStateChangeWatcher:ChangeWatcher;
 			
 			[Bindable]
 			private var client:InteractivityClient = InteractivityClient.getInstance();
@@ -91,20 +107,37 @@
 			
 			public function initData():void {
 				world = client.currentWorld.clone();
-				world.addRoomChangeListeners();
+				addWorldEventListeners();
 			}
 			
 			public static function close():void {
 				if (_open && _instance) {
 					PopUpManager.removePopUp(_instance);
 					_open = false;
-					_instance.world.removeRoomChangeListeners();
+					_instance.removeWorldEventListeners();
 					_instance = null;
 				}
 			}
 			
 			private function handleCreationComplete():void {
 				
+			}
+			
+			protected function addWorldEventListeners():void {
+				worldStateChangeWatcher = ChangeWatcher.watch(client, ['currentWorld','state'], handleWorldStateChange);
+			}
+			
+			protected function removeWorldEventListeners():void {
+				if (worldStateChangeWatcher) {
+					worldStateChangeWatcher.unwatch();
+					worldStateChangeWatcher = null;
+				}
+			}
+			
+			private function handleWorldStateChange(event:Event):void {
+				if (client.currentWorld.state === WorldDefinition.STATE_LOADING) {
+					close();
+				}
 			}
 			
 			private function handleCancelClick():void {
@@ -116,6 +149,16 @@
 			}
 			
 			public function saveChanges():void {
+				if (world.state !== WorldDefinition.STATE_READY) {
+					return;
+				}
+				if (moderatorsTab && moderatorsTab.currentState === 'loading') {
+					return;
+				}
+				if (activeRestrictionsTab && activeRestrictionsTab.currentState === 'loading') {
+					return;
+				}
+				
 				currentState = "saving";
 				
 				var ic:InteractivityClient = InteractivityClient.getInstance();

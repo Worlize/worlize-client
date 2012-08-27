@@ -114,12 +114,19 @@
 			 paddingRight="50" paddingLeft="50"
 			 text="Loading..." />
 	
-	<s:Label includeIn="noModerators"
-			 color="#666666" fontFamily="PTSansNarrowBold"
-			 fontSize="24" verticalCenter="0"
-			 width="100%" textAlign="center"
-			 paddingRight="50" paddingLeft="50"
-			 text="There are no moderators.  Click a friend's avatar to make them a moderator." />
+	<s:VGroup includeIn="noModerators" width="100%"
+			 verticalCenter="0">
+		<s:Label color="#666666" fontFamily="PTSansNarrowBold"
+				 fontSize="24" width="100%" textAlign="center"
+				 paddingRight="50" paddingLeft="50"
+				 text="There are no moderators." />
+		<s:Label color="#666666" fontFamily="PTSansNarrowBold"
+				 fontSize="24" width="100%" textAlign="center"
+				 paddingRight="50" paddingLeft="50"
+				 text="Click a friend's avatar to make them a moderator." />
+	</s:VGroup>
+	
+		
 	
 	<s:HGroup width="100%" height="100%" includeIn="normal">
 		<s:VGroup height="100%">

@@ -44,39 +44,40 @@
 	</s:states>
 	
 	<s:Label includeIn="noItemLoaded"
-			 fontSize="18" color="#999999" text="Select a user."
+			 fontSize="18" color="#999999" text="Select a user to view or edit permissions."
 			 verticalCenter="0" horizontalCenter="0" />
 	
 	<s:VGroup width="100%" height="100%" includeIn="normal" enabled="{allowEditing}">
 		<s:Label fontSize="16" fontWeight="bold"
 				 text="Permissions for {user.name}" />
-		<s:Spacer height="15" />
-		<s:CheckBox label="Can Ban"
-					click="toggleWorldPermission(UserPermission.CAN_BAN)"
-					selected="{user.hasWorldPermission(UserPermission.CAN_BAN)}" />
-		<s:CheckBox label="Can Pin"
-					click="toggleWorldPermission(UserPermission.CAN_PIN)"
-					selected="{user.hasWorldPermission(UserPermission.CAN_PIN)}" />
-		<s:CheckBox label="Can Gag"
-					click="toggleWorldPermission(UserPermission.CAN_GAG)"
-					selected="{user.hasWorldPermission(UserPermission.CAN_GAG)}" />
-		<s:CheckBox label="Can Block Avatars"
-					click="toggleWorldPermission(UserPermission.CAN_BLOCK_AVATARS)"
-					selected="{user.hasWorldPermission(UserPermission.CAN_BLOCK_AVATARS)}" />
-		<s:CheckBox label="Can Block Webcams"
-					click="toggleWorldPermission(UserPermission.CAN_BLOCK_WEBCAMS)"
-					selected="{user.hasWorldPermission(UserPermission.CAN_BLOCK_WEBCAMS)}" />
-		<s:CheckBox label="Can Block Props"
-					click="toggleWorldPermission(UserPermission.CAN_BLOCK_PROPS)"
-					selected="{user.hasWorldPermission(UserPermission.CAN_BLOCK_PROPS)}" />
-		<s:CheckBox label="Can Reduce Restriction Time"
-					click="toggleWorldPermission(UserPermission.CAN_REDUCE_RESTRICTION_TIME)"
-					selected="{user.hasWorldPermission(UserPermission.CAN_REDUCE_RESTRICTION_TIME)}" />
-		<s:CheckBox label="Can Lengthen Restriction Time"
-					click="toggleWorldPermission(UserPermission.CAN_LENGTHEN_RESTRICTION_TIME)"
-					selected="{user.hasWorldPermission(UserPermission.CAN_LENGTHEN_RESTRICTION_TIME)}" />
-		<s:CheckBox label="Can Grant Permissions"
-					click="toggleWorldPermission(UserPermission.CAN_GRANT_PERMISSIONS)"
-					selected="{user.hasWorldPermission(UserPermission.CAN_GRANT_PERMISSIONS)}" />
+		<s:VGroup width="100%" paddingLeft="10">
+			<s:CheckBox label="Can Ban"
+						click="toggleWorldPermission(UserPermission.CAN_BAN)"
+						selected="{user.hasWorldPermission(UserPermission.CAN_BAN)}" />
+			<s:CheckBox label="Can Pin"
+						click="toggleWorldPermission(UserPermission.CAN_PIN)"
+						selected="{user.hasWorldPermission(UserPermission.CAN_PIN)}" />
+			<s:CheckBox label="Can Gag"
+						click="toggleWorldPermission(UserPermission.CAN_GAG)"
+						selected="{user.hasWorldPermission(UserPermission.CAN_GAG)}" />
+			<s:CheckBox label="Can Block Avatars"
+						click="toggleWorldPermission(UserPermission.CAN_BLOCK_AVATARS)"
+						selected="{user.hasWorldPermission(UserPermission.CAN_BLOCK_AVATARS)}" />
+			<s:CheckBox label="Can Block Webcams"
+						click="toggleWorldPermission(UserPermission.CAN_BLOCK_WEBCAMS)"
+						selected="{user.hasWorldPermission(UserPermission.CAN_BLOCK_WEBCAMS)}" />
+			<s:CheckBox label="Can Block Props"
+						click="toggleWorldPermission(UserPermission.CAN_BLOCK_PROPS)"
+						selected="{user.hasWorldPermission(UserPermission.CAN_BLOCK_PROPS)}" />
+			<s:CheckBox label="Can Reduce Restriction Time"
+						click="toggleWorldPermission(UserPermission.CAN_REDUCE_RESTRICTION_TIME)"
+						selected="{user.hasWorldPermission(UserPermission.CAN_REDUCE_RESTRICTION_TIME)}" />
+			<s:CheckBox label="Can Lengthen Restriction Time"
+						click="toggleWorldPermission(UserPermission.CAN_LENGTHEN_RESTRICTION_TIME)"
+						selected="{user.hasWorldPermission(UserPermission.CAN_LENGTHEN_RESTRICTION_TIME)}" />
+			<s:CheckBox label="Can Grant Permissions"
+						click="toggleWorldPermission(UserPermission.CAN_GRANT_PERMISSIONS)"
+						selected="{user.hasWorldPermission(UserPermission.CAN_GRANT_PERMISSIONS)}" />
+		</s:VGroup>
 	</s:VGroup>
 </s:Group>
