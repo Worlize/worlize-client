@@ -165,6 +165,10 @@
 				hideLoadingSpinner();
 				
 				var image:Bitmap = loader.content as Bitmap;
+				if (!image) {
+					logger.error("Unable to load normal non-animated image.");
+					return;
+				}
 				loadedWidth = imageContainer.width = image.width;
 				loadedHeight = imageContainer.height = image.height;
 				imageContainer.addChild(image);
