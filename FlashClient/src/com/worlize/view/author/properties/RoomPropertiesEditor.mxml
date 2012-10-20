@@ -57,6 +57,9 @@
 			<s:CheckBox label="Hidden"
 						selected="@{room.hidden}"
 						toolTip="Other users will not see hidden rooms in the room list, and they will not appear in the directory."/>
+			<s:CheckBox label="No Direct Access"
+						selected="@{room.noDirectEntry}"
+						toolTip="Users may enter this room only by clicking on a hotspot, and will not be allowed to enter by clicking on the room in the room list or any other means including via invitations from friends." />						
 		</s:FormItem>
 		
 		<s:FormItem label="Extras">

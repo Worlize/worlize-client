@@ -984,7 +984,7 @@ package com.worlize.interactivity.rpc
 		private function handleRoomRedirect(data:Object):void {
 			logger.info("Room Redirect for room " + data.room);
 			expectingDisconnect = true
-			actuallyGotoRoom(data.room as String);
+			actuallyGotoRoom(data.room as String, true);
 		}
 		
 		private function handleNaked(data:Object):void {
@@ -1881,14 +1881,16 @@ package com.worlize.interactivity.rpc
 		private var leaveEventHandlers:Vector.<IptTokenList>;
 		private var requestedRoomId:String = null;
 		private var shouldInsertHistory:Boolean = true;
+		private var leavingUsingHotSpot:Boolean = false;
 
-		public function gotoRoom(roomId:String, insertHistory:Boolean = true):void {
+		public function gotoRoom(roomId:String, insertHistory:Boolean = true, usingHotSpot:Boolean = false):void {
 			if (currentRoom.id == roomId) {
 				return;
 			}
 
 			shouldInsertHistory = insertHistory;
 			needToRunSignonHandlers = false;
+			leavingUsingHotSpot = usingHotSpot;
 			
 			requestedRoomId = roomId;
 			
@@ -1900,13 +1902,13 @@ package com.worlize.interactivity.rpc
 				iptInteractivityController.triggerHotspotEvents(IptEventHandler.TYPE_LEAVE);
 			}
 			else {
-				actuallyGotoRoom(roomId);
+				actuallyGotoRoom(roomId, usingHotSpot);
 			}
 		}
 		
 		private function handleLeaveEventHandlersFinish(event:IptEngineEvent):void {
 			if (leaveEventHandlers == null) {
-				actuallyGotoRoom(requestedRoomId);
+				actuallyGotoRoom(requestedRoomId, leavingUsingHotSpot);
 			}
 			
 			// Make sure each ON LEAVE handler has finished before actually
@@ -1916,15 +1918,15 @@ package com.worlize.interactivity.rpc
 				leaveEventHandlers.splice(index, 1);
 			}
 			if (leaveEventHandlers.length < 1) {
-				actuallyGotoRoom(requestedRoomId);
+				actuallyGotoRoom(requestedRoomId, leavingUsingHotSpot);
 				leaveEventHandlers = null;
 				requestedRoomId = null;
 			}
 		}
 		
-		private function actuallyGotoRoom(roomGuid:String):void {
+		private function actuallyGotoRoom(roomGuid:String, usingHotSpot:Boolean):void {
 			logger.info("Actually going to room " + roomGuid);
-			connection.gotoRoom(roomGuid);
+			connection.gotoRoom(roomGuid, usingHotSpot);
 		}
 		
 		public function lockDoor(roomId:String, spotGuid:String):void {

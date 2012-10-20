@@ -175,7 +175,7 @@ package com.worlize.rpc
 		    That means that we may have to queue up outgoing messages while
 			we're in the process of connecting to a new server.
 		*/
-		public function gotoRoom(roomGuid:String):void {
+		public function gotoRoom(roomGuid:String, usingHotSpot:Boolean):void {
 			if (gotoRoomCommand && !gotoRoomCommand.complete) {
 				gotoRoomCommand.cancel();
 			}
@@ -183,15 +183,29 @@ package com.worlize.rpc
 			gotoRoomCommand.addEventListener(GotoRoomResultEvent.GOTO_ROOM_RESULT, function(event:GotoRoomResultEvent):void {
 				var commEvent:WorlizeCommEvent;
 				
-				if (event.roomLocked) {
+				if (!event.success) {
 					connectingToNewRoom = false;
+					
+					var message:String;
+					
+					switch (event.failureReason) {
+						case "room_locked":
+							message = "Sorry, the room is locked."
+							break;
+						case "no_direct_entry":
+							message = "Sorry, you can only get into that room by going through a door.";
+							break;
+						default:
+							message = "Unable to enter room: " + event.failureReason;
+							break;
+					}
 					
 					// Notify client that the room is locked
 					commEvent = new WorlizeCommEvent(WorlizeCommEvent.MESSAGE);
 					commEvent.message = {
 						msg: 'room_entry_denied',
 						data: {
-							message: "Sorry, the room is locked."
+							message: message
 						}
 					};
 					dispatchEvent(commEvent);
@@ -234,7 +248,7 @@ package com.worlize.rpc
 				};
 				dispatchEvent(commEvent);
 			});
-			gotoRoomCommand.execute(roomGuid);
+			gotoRoomCommand.execute(roomGuid, usingHotSpot);
 		}
 		
 		// Throws an error if we are not connected.

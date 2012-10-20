@@ -11,6 +11,7 @@ package com.worlize.model
 		public var thumbnail:String;
 		public var worldGuid:String;
 		public var hidden:Boolean;
+		public var noDirectEntry:Boolean;
 		public var locked:Boolean;
 		public var properties:ObjectProxy;
 		
@@ -21,6 +22,7 @@ package com.worlize.model
 			obj.guid = data.guid;
 			obj.worldGuid = data.world_guid;
 			obj.hidden = data.hidden;
+			obj.noDirectEntry = data.no_direct_entry;
 			obj.locked = data.locked;
 			obj.properties = new ObjectProxy(data.properties);
 			if (data.thumbnail) {
@@ -37,6 +39,7 @@ package com.worlize.model
 			e.thumbnail = thumbnail;
 			e.worldGuid = worldGuid;
 			e.hidden = hidden;
+			e.noDirectEntry = noDirectEntry;
 			e.locked = locked;
 			e.properties = new ObjectProxy();
 			for (var key:String in properties) {
@@ -56,6 +59,7 @@ package com.worlize.model
 				guid: guid,
 				thumbnail: thumbnail,
 				hidden: hidden,
+				no_direct_entry: noDirectEntry,
 				locked: locked,
 				properties: props
 			};

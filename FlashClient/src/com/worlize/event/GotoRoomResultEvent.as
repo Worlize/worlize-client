@@ -9,7 +9,7 @@ package com.worlize.event
 		public static const GOTO_ROOM_RESULT:String = "gotoRoomResult";
 		
 		public var success:Boolean;
-		public var roomLocked:Boolean;
+		public var failureReason:String;
 		public var interactivitySession:InteractivitySession;
 		
 		public function GotoRoomResultEvent(type:String, bubbles:Boolean=false, cancelable:Boolean=false)

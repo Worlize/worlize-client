@@ -293,7 +293,7 @@
 					mousePos = startMousePos.clone();
 				}
 				else if (inWorldObjectInstance.dest) {
-					InteractivityClient.getInstance().gotoRoom(inWorldObjectInstance.dest);
+					InteractivityClient.getInstance().gotoRoom(inWorldObjectInstance.dest, true, true);
 				}
 			}
 			

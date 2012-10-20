@@ -487,7 +487,7 @@ package com.worlize.interactivity.view
 			
 			
 			if (hotSpot.dest != null) {
-				client.gotoRoom(hotSpot.dest);
+				client.gotoRoom(hotSpot.dest, true, true);
 			}
 		}
 		

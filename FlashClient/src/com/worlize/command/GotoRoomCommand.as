@@ -26,11 +26,13 @@ package com.worlize.command
 			canceled = true;
 		}
 		
-		public function execute(roomGuid:String):void {
+		public function execute(roomGuid:String, usingHotSpot:Boolean):void {
 			var client:WorlizeServiceClient = new WorlizeServiceClient();
 			client.addEventListener(WorlizeResultEvent.RESULT, handleResult);
 			client.addEventListener(FaultEvent.FAULT, handleFault);
-			client.send('/rooms/' + roomGuid + '/enter.json', HTTPMethod.POST);
+			client.send('/rooms/' + roomGuid + '/enter.json', HTTPMethod.POST, {
+				using_hotspot: usingHotSpot
+			});
 		}
 		
 		private function handleResult(event:WorlizeResultEvent):void {
@@ -40,16 +42,13 @@ package com.worlize.command
 			if (event.resultJSON.success) {
 				resultEvent = new GotoRoomResultEvent(GotoRoomResultEvent.GOTO_ROOM_RESULT);
 				resultEvent.success = true;
-				resultEvent.roomLocked = false;
 				resultEvent.interactivitySession = InteractivitySession.fromData(event.resultJSON.interactivity_session);
 				dispatchEvent(resultEvent);
 			}
 			else {
 				resultEvent = new GotoRoomResultEvent(GotoRoomResultEvent.GOTO_ROOM_RESULT);
 				resultEvent.success = false;
-				if (event.resultJSON.room_locked) {
-					resultEvent.roomLocked = true;
-				}
+				resultEvent.failureReason = event.resultJSON.failure_reason;
 				dispatchEvent(resultEvent);
 			}
 		}
