@@ -114,13 +114,6 @@
 				SendGiftWindow.launch(systemManager.getSandboxRoot(), avatar);
 			}
 			
-			private function handleEditClick(event:MouseEvent):void {
-				if (data.editable) {
-					var urlRequest:URLRequest = new URLRequest(AvatarInstance(data).aviaryEditUrl);
-					navigateToURL(urlRequest, '_aviary');
-				}
-			}
-			
 			private function nullFunction():void { }
 		]]>
 	</fx:Script>
@@ -155,13 +148,6 @@
 			<s:SolidColor color="#ffe49b" alpha="0.3" alpha.selected="0.4" />
 		</s:fill>
 	</s:Rect>
-	
-	<mx:Image source="@Embed(source='src/assets/icons/icon_authormode_red.png')"
-			  toolTip="Edit with Aviary Image Editor" useHandCursor="true"
-			  includeIn="active" bottom="4" right="56"
-			  alpha="{data.editable ? 1.0 : 0.0}"
-			  mouseDown="{data.editable ? stopPropagation(event) : nullFunction()}"
-			  click="handleEditClick(event)" />
 	
 	<mx:Image source="@Embed(source='../../../../assets/icons/icon_gifts.png')"
 			  toolTip="Send as Gift" useHandCursor="true"
