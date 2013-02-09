@@ -11,6 +11,9 @@ package com.worlize.model
 		public var thumbnail:String;
 		public var worldGuid:String;
 		public var hidden:Boolean;
+		public var maxOccupancy:uint;
+		public var allowCascadeWhenFull:Boolean;
+		public var moderatorsOnly:Boolean;
 		public var noDirectEntry:Boolean;
 		public var locked:Boolean;
 		public var properties:ObjectProxy;
@@ -22,6 +25,9 @@ package com.worlize.model
 			obj.guid = data.guid;
 			obj.worldGuid = data.world_guid;
 			obj.hidden = data.hidden;
+			obj.maxOccupancy = data.max_occupancy;
+			obj.allowCascadeWhenFull = data.allow_cascade_when_full;
+			obj.moderatorsOnly = data.moderators_only;
 			obj.noDirectEntry = data.no_direct_entry;
 			obj.locked = data.locked;
 			obj.properties = new ObjectProxy(data.properties);
@@ -29,6 +35,10 @@ package com.worlize.model
 				obj.thumbnail = data.thumbnail;				
 			}
 			return obj;
+		}
+		
+		public function get full():Boolean {
+			return userCount >= maxOccupancy;
 		}
 		
 		public function clone():RoomListEntry {
@@ -39,6 +49,9 @@ package com.worlize.model
 			e.thumbnail = thumbnail;
 			e.worldGuid = worldGuid;
 			e.hidden = hidden;
+			e.maxOccupancy = maxOccupancy;
+			e.allowCascadeWhenFull = allowCascadeWhenFull;
+			e.moderatorsOnly = moderatorsOnly;
 			e.noDirectEntry = noDirectEntry;
 			e.locked = locked;
 			e.properties = new ObjectProxy();
@@ -59,6 +72,9 @@ package com.worlize.model
 				guid: guid,
 				thumbnail: thumbnail,
 				hidden: hidden,
+				max_occupancy: maxOccupancy,
+				allow_cascade_when_full: allowCascadeWhenFull,
+				moderators_only: moderatorsOnly,
 				no_direct_entry: noDirectEntry,
 				locked: locked,
 				properties: props

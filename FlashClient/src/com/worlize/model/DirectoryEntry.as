@@ -41,7 +41,7 @@ package com.worlize.model
 		
 		[Bindable(event="roomChanged")]
 		public function get roomFull():Boolean {
-			return room.userCount >= 20;
+			return room.userCount >= room.maxOccupancy;
 		}
 		
 		public static function fromData(data:Object):DirectoryEntry {

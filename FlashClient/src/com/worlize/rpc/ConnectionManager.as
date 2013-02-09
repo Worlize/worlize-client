@@ -8,7 +8,6 @@ package com.worlize.rpc
 	import flash.events.EventDispatcher;
 	import flash.events.IEventDispatcher;
 	
-	import mx.events.FlexEvent;
 	import mx.logging.ILogger;
 	import mx.logging.Log;
 	import mx.rpc.events.FaultEvent;
@@ -194,6 +193,12 @@ package com.worlize.rpc
 							break;
 						case "no_direct_entry":
 							message = "Sorry, you can only get into that room by going through a door.";
+							break;
+						case "moderators_only":
+							message = "Sorry, only moderators can enter that room.";
+							break;
+						case "room_full":
+							message = "Sorry, the room is full.";
 							break;
 						default:
 							message = "Unable to enter room: " + event.failureReason;

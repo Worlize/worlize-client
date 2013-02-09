@@ -53,13 +53,33 @@
 			</s:helpContent>
 		</s:FormItem>
 		
+		<s:FormItem label="Max Occupancy" required="true" toolTip="The number of users allowed in the room before it's considered full.  Moderators and owners may always enter a room, even when full.">
+			<s:NumericStepper minimum="1" maximum="75" snapInterval="1"
+					   		  id="maxOccupancyField"
+					   		  value="@{room.maxOccupancy}" />
+		</s:FormItem>
+		
 		<s:FormItem label="Options">
+			<s:CheckBox label="Moderators Only"
+						selected="@{room.moderatorsOnly}"
+						toolTip="Only moderators will be allowed into the room." />
+			<s:CheckBox label="Redirect When Full"
+						selected="@{room.allowCascadeWhenFull}"
+						toolTip="If enabled and the room is full, users will be sent instead to the next available room.  Moderators and owners may always enter a room, even when full." />
 			<s:CheckBox label="Hidden"
 						selected="@{room.hidden}"
-						toolTip="Other users will not see hidden rooms in the room list, and they will not appear in the directory."/>
+						toolTip="Other users will not see hidden rooms in the room list, and they will not appear in the directory.  Moderators and owners can always see hidden rooms in the room list."/>
 			<s:CheckBox label="No Direct Access"
 						selected="@{room.noDirectEntry}"
-						toolTip="Users may enter this room only by clicking on a hotspot, and will not be allowed to enter by clicking on the room in the room list or any other means including via invitations from friends." />						
+						toolTip="Users may enter this room only by clicking on a hotspot, and will not be allowed to enter by clicking on the room in the room list or any other means including via invitations from friends.  Moderators and owners may always access a room directly." />
+<!--
+			<s:CheckBox label="No Webcams"
+						selected="@{room.properties.noWebcams}"
+						toolTip="Users will not be allowed to use webcams in the room." />
+			<s:CheckBox label="No Props"
+						selected="@{room.properties.noProps}"
+						toolTip="Users will not be allowed to drop props into the room." />
+-->
 		</s:FormItem>
 		
 		<s:FormItem label="Extras">
