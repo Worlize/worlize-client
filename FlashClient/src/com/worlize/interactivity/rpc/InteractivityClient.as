@@ -209,6 +209,7 @@ package com.worlize.interactivity.rpc
 			"clear_loose_props": handleClearLooseProps,
 			"disconnect": handleDisconnectMessage,
 			"display_dialog": handleDisplayDialogMessage,
+			"force_reload_app": handleForceReloadApp,
 			"friend_added": handleFriendAdded,
 			"friend_data_updated": handleFriendDataUpdated,
 			"friend_removed": handleFriendRemoved,
@@ -494,6 +495,16 @@ package com.worlize.interactivity.rpc
 					}
 				}
 			);
+		}
+		
+		private function handleForceReloadApp(data:Object):void {
+			disconnect();
+			Alert.show('A new version of Worlize has been released.  Your browser will now reload.',
+				       'Update', Alert.OK, null,
+					   function(event:CloseEvent):void {
+						 ExternalInterface.call('forcePageReload');
+					   }
+					  );
 		}
 		
 		private function handlePaymentCompleted(data:Object):void {
