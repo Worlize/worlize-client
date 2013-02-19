@@ -134,6 +134,10 @@ package com.worlize.model
 			client.send('/worlds/' + worldGuid + ".json", HTTPMethod.GET);
 		}
 		
+		public function reload():void {
+			load(guid);
+		}
+		
 		private function handleResult(event:WorlizeResultEvent):void {
 			if (event.resultJSON.success) {
 				name = event.resultJSON.data.name;
@@ -188,7 +192,7 @@ package com.worlize.model
 			guid = data.guid;
 			ownerGuid = data.owner.guid;
 			permalink = data.permalink;
-			state = STATE_READY;
+//			state = STATE_READY;
 		}
 	}
 }

@@ -38,56 +38,61 @@
 		<s:State name="noRoom" />
 		<s:State name="normal" />
 	</s:states>
-
-	<s:Form includeIn="normal" top="-20" left="-20" right="0">
-		<s:layout>
-			<s:FormLayout gap="0" />
-		</s:layout>
-		<s:FormHeading label="Room Options" />
-		<s:FormItem label="Name" required="true">
-			<s:TextInput width="100%"
-						 id="nameField"
-						 text="@{room.name}" />
-			<s:helpContent>
-				<s:Label text="e.g. &quot;Living Room&quot;" />
-			</s:helpContent>
-		</s:FormItem>
-		
-		<s:FormItem label="Max Occupancy" required="true" toolTip="The number of users allowed in the room before it's considered full.  Moderators and owners may always enter a room, even when full.">
-			<s:NumericStepper minimum="1" maximum="75" snapInterval="1"
-					   		  id="maxOccupancyField"
-					   		  value="@{room.maxOccupancy}" />
-		</s:FormItem>
-		
-		<s:FormItem label="Options">
-			<s:CheckBox label="Moderators Only"
-						selected="@{room.moderatorsOnly}"
-						toolTip="Only moderators will be allowed into the room." />
-			<s:CheckBox label="Redirect When Full"
-						selected="@{room.allowCascadeWhenFull}"
-						toolTip="If enabled and the room is full, users will be sent instead to the next available room.  Moderators and owners may always enter a room, even when full." />
-			<s:CheckBox label="Hidden"
-						selected="@{room.hidden}"
-						toolTip="Other users will not see hidden rooms in the room list, and they will not appear in the directory.  Moderators and owners can always see hidden rooms in the room list."/>
-			<s:CheckBox label="No Direct Access"
-						selected="@{room.noDirectEntry}"
-						toolTip="Users may enter this room only by clicking on a hotspot, and will not be allowed to enter by clicking on the room in the room list or any other means including via invitations from friends.  Moderators and owners may always access a room directly." />
-<!--
-			<s:CheckBox label="No Webcams"
-						selected="@{room.properties.noWebcams}"
-						toolTip="Users will not be allowed to use webcams in the room." />
-			<s:CheckBox label="No Props"
-						selected="@{room.properties.noProps}"
-						toolTip="Users will not be allowed to drop props into the room." />
--->
-		</s:FormItem>
-		
-		<s:FormItem label="Extras">
-			<s:CheckBox label="Falling Snow"
-						selected="@{room.properties.snowEnabled}"
-						toolTip="Add some holiday cheer to your room with a falling snow animation." />
-		</s:FormItem>
-	</s:Form>
+	
+	<s:Scroller includeIn="normal" width="100%" height="100%">
+		<s:Group width="100%">
+			<s:Form width="100%">
+				<s:layout>
+					<s:FormLayout gap="0" paddingTop="-20" paddingLeft="-20" />
+				</s:layout>
+				<s:FormHeading label="Room Options" />
+				<s:FormItem label="Name" required="true">
+					<s:TextInput width="100%"
+								 id="nameField"
+								 text="@{room.name}" />
+					<s:helpContent>
+						<s:Label text="e.g. &quot;Living Room&quot;" />
+					</s:helpContent>
+				</s:FormItem>
+				
+				<s:FormItem label="Max Occupancy" required="true" toolTip="The number of users allowed in the room before it's considered full.  Moderators and owners may always enter a room, even when full.">
+					<s:NumericStepper minimum="1" maximum="75" snapInterval="1"
+									  id="maxOccupancyField"
+									  value="@{room.maxOccupancy}" />
+				</s:FormItem>
+				
+				<s:FormItem label="Options">
+					<s:CheckBox label="Moderators Only"
+								selected="@{room.moderatorsOnly}"
+								toolTip="Only moderators will be allowed into the room." />
+					<s:CheckBox label="Redirect When Full"
+								selected="@{room.allowCascadeWhenFull}"
+								toolTip="If enabled and the room is full, users will be sent instead to the next available room.  Moderators and owners may always enter a room, even when full." />
+					<s:CheckBox label="Hidden"
+								selected="@{room.hidden}"
+								toolTip="Other users will not see hidden rooms in the room list, and they will not appear in the directory.  Moderators and owners can always see hidden rooms in the room list."/>
+					<s:CheckBox label="No Direct Access"
+								selected="@{room.noDirectEntry}"
+								toolTip="Users may enter this room only by clicking on a hotspot, and will not be allowed to enter by clicking on the room in the room list or any other means including via invitations from friends.  Moderators and owners may always access a room directly." />
+					<s:CheckBox label="No Webcams"
+								selected="@{room.properties.noWebcams}"
+								toolTip="Users will not be allowed to use webcams in the room." />
+					<s:CheckBox label="No Avatars"
+								selected="@{room.properties.noAvatars}"
+								toolTip="Users will not be allowed to wear avatars in the room." />
+					<s:CheckBox label="No Props"
+								selected="@{room.properties.noProps}"
+								toolTip="Users will not be allowed to drop props into the room." />
+				</s:FormItem>
+				
+				<s:FormItem label="Extras">
+					<s:CheckBox label="Falling Snow"
+								selected="@{room.properties.snowEnabled}"
+								toolTip="Add some holiday cheer to your room with a falling snow animation." />
+				</s:FormItem>
+			</s:Form>
+		</s:Group>
+	</s:Scroller>
 		
 	<s:Label includeIn="noRoom"
 			 fontSize="18" color="#999999" text="Select a room."

@@ -7,30 +7,17 @@ package com.worlize.interactivity.model
 	import com.worlize.interactivity.util.WorlizeTextUtil;
 	import com.worlize.interactivity.view.RoomView;
 	import com.worlize.model.AppInstance;
-	import com.worlize.model.BackgroundImageInstance;
-	import com.worlize.model.InWorldObject;
 	import com.worlize.model.InWorldObjectInstance;
-	import com.worlize.model.RoomListEntry;
-	import com.worlize.model.YouTubePlayerDefinition;
 	import com.worlize.notification.AppNotification;
 	import com.worlize.notification.InWorldObjectNotification;
-	import com.worlize.rpc.HTTPMethod;
-	import com.worlize.rpc.WorlizeResultEvent;
-	import com.worlize.rpc.WorlizeServiceClient;
 	
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
-	import flash.events.NetStatusEvent;
-	import flash.events.SecurityErrorEvent;
 	import flash.events.TimerEvent;
-	import flash.net.NetConnection;
-	import flash.utils.Dictionary;
 	import flash.utils.Timer;
 	
 	import mx.collections.ArrayCollection;
-	import mx.controls.Alert;
 	import mx.formatters.DateFormatter;
-	import mx.rpc.events.FaultEvent;
 
 	[Event(name="chatLogUpdated")]
 	[Event(name="chat",type="com.worlize.interactivity.event.ChatEvent")]
@@ -50,6 +37,9 @@ package com.worlize.interactivity.model
 		public var ownerGuid:String = null;
 		public var backgroundFile:String;
 		public var snowEnabled:Boolean = false;
+		public var noProps:Boolean = false;
+		public var noAvatars:Boolean = false;
+		public var noWebcams:Boolean = false;
 		public var users:ArrayCollection = new ArrayCollection();
 		public var usersHash:Object = {};
 		public var roomFlags:int;
@@ -166,7 +156,10 @@ package com.worlize.interactivity.model
 			if (shouldReset) {
 				// set room defaults here
 				mergedProperties = {
-					snowEnabled: false
+					snowEnabled: false,
+					noAvatars: false,
+					noProps: false,
+					noWebcams: false
 				};
 			}
 			else {
@@ -188,6 +181,15 @@ package com.worlize.interactivity.model
 			switch(name) {
 				case 'snowEnabled':
 					snowEnabled = Boolean(value);
+					break;
+				case 'noWebcams':
+					noWebcams = Boolean(value);
+					break;
+				case 'noAvatars':
+					noAvatars = Boolean(value);
+					break;
+				case 'noProps':
+					noProps = Boolean(value);
 					break;
 				default:
 					break;

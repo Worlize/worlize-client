@@ -21,6 +21,9 @@ package com.worlize.model
 		[Bindable]
 		public var state:String = STATE_INIT;
 		
+		[Bindable]
+		public var population:int = 0;
+		
 		private var _showFullRooms:Boolean = true;
 		
 		public function Directory(source:Array = null) {
@@ -84,6 +87,7 @@ package com.worlize.model
 			if (event.resultJSON.success) {
 				disableAutoUpdate();
 				removeAll();
+				population = event.resultJSON.data.population;
 				for each (var entryData:Object in event.resultJSON.data.rooms) {
 					addItem(DirectoryEntry.fromData(entryData));
 				}

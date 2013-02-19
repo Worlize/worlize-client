@@ -468,8 +468,8 @@
 				  focusEnabled="false" />
 	
 		<s:ToggleButton id="enableWebcamButton"
-						visible="{client.webcamBroadcastManager.isCameraAvailable()}"
-						includeInLayout="{client.webcamBroadcastManager.isCameraAvailable()}"
+						visible="{client.webcamBroadcastManager.isCameraAvailable() &amp;&amp; !client.currentRoom.noWebcams}"
+						includeInLayout="{client.webcamBroadcastManager.isCameraAvailable() &amp;&amp; !client.currentRoom.noWebcams}"
 						styleName="enableWebcamButton"
 						label="{client.webcamBroadcastManager.broadcasting ? 'On' : 'Off'}"
 						selected="{client.webcamBroadcastManager.broadcasting}"

@@ -16,7 +16,7 @@ package com.worlize.model
 		public var moderatorsOnly:Boolean;
 		public var noDirectEntry:Boolean;
 		public var locked:Boolean;
-		public var properties:ObjectProxy;
+		public var properties:RoomProperties;
 		
 		public static function fromData(data:Object):RoomListEntry {
 			var obj:RoomListEntry = new RoomListEntry();
@@ -30,7 +30,7 @@ package com.worlize.model
 			obj.moderatorsOnly = data.moderators_only;
 			obj.noDirectEntry = data.no_direct_entry;
 			obj.locked = data.locked;
-			obj.properties = new ObjectProxy(data.properties);
+			obj.properties = RoomProperties.fromData(data.properties);
 			if (data.thumbnail) {
 				obj.thumbnail = data.thumbnail;				
 			}
@@ -54,18 +54,11 @@ package com.worlize.model
 			e.moderatorsOnly = moderatorsOnly;
 			e.noDirectEntry = noDirectEntry;
 			e.locked = locked;
-			e.properties = new ObjectProxy();
-			for (var key:String in properties) {
-				e.properties[key] = properties[key];
-			}
+			e.properties = properties.clone();
 			return e;
 		}
 		
 		public function toJSON(k:String):* {
-			var props:Object = {};
-			for (var key:String in properties) {
-				props[key] = properties[key];
-			}
 			return {
 				name: name,
 				userCount: userCount,
@@ -77,7 +70,7 @@ package com.worlize.model
 				moderators_only: moderatorsOnly,
 				no_direct_entry: noDirectEntry,
 				locked: locked,
-				properties: props
+				properties: properties
 			};
 		}
 	}

@@ -10,7 +10,7 @@
 						  resizable="false"
 						  creationComplete="handleCreationComplete()"
 						  currentState="normal"
-						  width="600" height="450" xmlns:properties="com.worlize.view.author.properties.*">
+						  width="600" height="500" xmlns:properties="com.worlize.view.author.properties.*">
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
@@ -34,9 +34,6 @@
 			import mx.managers.PopUpManager;
 			import mx.rpc.events.FaultEvent;
 			
-			import spark.components.ButtonBarButton;
-			import spark.events.IndexChangeEvent;
-			import spark.events.ListEvent;
 			import spark.events.TitleWindowBoundsEvent;
 			private static var _instance:WorldPropertiesWindow;
 			private static var _open:Boolean = false;
@@ -157,10 +154,8 @@
 			private function handleSaveResult(event:WorlizeResultEvent):void {
 				currentState = "normal";
 				if (event.resultJSON.success) {
+					client.currentWorld.reload();
 					close();
-				}
-				else {
-					
 				}
 			}
 			

@@ -22,9 +22,8 @@
 			import com.worlize.model.Directory;
 			import com.worlize.model.DirectoryEntry;
 			import com.worlize.model.PreferencesManager;
+			import com.worlize.view.components.WorlizeWindow;
 			import com.worlize.view.itemrenderers.DirectoryEntryItemRenderer;
-			
-			import flex.utils.spark.resize.ResizeManager;
 			
 			import mx.binding.utils.ChangeWatcher;
 			import mx.events.CloseEvent;
@@ -34,6 +33,8 @@
 			import spark.events.IndexChangeEvent;
 			import spark.events.TitleWindowBoundsEvent;
 			import spark.skins.spark.DefaultItemRenderer;
+			
+			import flex.utils.spark.resize.ResizeManager;
 			private static var _open:Boolean = false;
 			private static var _instance:WorlizeWindow;
 			
@@ -185,7 +186,7 @@
 	<components:controlBarContent>
 		<s:Label height="80%" verticalAlign="bottom"
 				 visible="{directory.state === Directory.STATE_READY}"
-				 textAlign="right" text="There are {directory.length} rooms operating" />
+				 textAlign="right" text="There {directory.population == 1 ? 'is' : 'are'} {directory.population} {directory.population == 1 ? 'user' : 'users'} online." />
 	</components:controlBarContent>
 	
 	<s:Group top="10" left="10" right="10" bottom="10">
