@@ -134,6 +134,7 @@
 				var locker:PropLocker = PropLocker.getInstance();
 				
 				var menuData:Array = [];
+				menuData.push({ type: 'normal', enabled: false, label: "Added by " + view.looseProp.addedByUserName });
 				menuData.push({ type: 'normal', label: 'Remove Prop', action: 'removeProp', looseProp: view.looseProp });
 				menuData.push({ type: 'normal',
 								label: 'Save to Locker',

@@ -70,6 +70,10 @@ package com.worlize.interactivity.model
 			looseProp.x = data.x;
 			looseProp.y = data.y;
 			looseProp.prop = getOrInstantiateProp(data.prop);
+			if (data.user) {
+				looseProp.addedByUserGuid = data.user.guid;
+				looseProp.addedByUserName = data.user.name;
+			}
 			loosePropsById[data.id] = looseProp;
 			props.push(looseProp);
 			retainProp(looseProp.prop.guid);

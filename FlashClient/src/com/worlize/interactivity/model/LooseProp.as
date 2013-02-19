@@ -10,5 +10,7 @@ package com.worlize.interactivity.model
 		public var x:int = 0;
 		public var y:int = 0;
 		public var refCount:int = 0;
+		public var addedByUserName:String;
+		public var addedByUserGuid:String;
 	}
 }
