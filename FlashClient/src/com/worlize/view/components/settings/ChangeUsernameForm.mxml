@@ -46,6 +46,14 @@
 				return usernameValid && checkAvailabilityCommand.state === CheckUsernameAvailabilityCommand.STATE_AVAILABLE;
 			}
 			
+			[Bindable(event="validChanged")]
+			public function get changed():Boolean {
+				if (usernameField && usernameField.text === initialUsername) {
+					return false;
+				}
+				return true;
+			}
+			
 			private var usernameValid:Boolean = true;
 			
 			private var checkAvailabilityTimer:Timer = new Timer(250, 1);
@@ -110,7 +118,7 @@
 			<s:FormLayout paddingRight="10"  />
 		</s:layout>
 		
-		<s:FormItem label="Username" required="true">
+		<s:FormItem label="Screen Name" required="true">
 			<s:TextInput id="usernameField" text="@{user.username}"
 						 change="handleUsernameFieldChange()"
 						 restrict="a-zA-Z0-9_\-\ " width="200" />

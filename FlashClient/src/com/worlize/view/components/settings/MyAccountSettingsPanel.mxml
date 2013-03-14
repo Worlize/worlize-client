@@ -21,11 +21,17 @@
 			[Bindable]
 			public var valid:Boolean = true;
 			
+			[Bindable]
+			public var changed:Boolean = false;
+			
 			private var validWatcher:ChangeWatcher;
+			private var changedWatcher:ChangeWatcher;
 			
 			protected function handleAddedToStage(event:Event):void {
 				validWatcher = ChangeWatcher.watch(this, ['changeUsernameForm', 'valid'], handleValidityChange);
+				changedWatcher = ChangeWatcher.watch(this, ['changeUsernameForm', 'changed'], handleChangedChange);
 				handleValidityChange();
+				handleChangedChange();
 			}
 			
 			protected function handleRemovedFromStage(event:Event):void {
@@ -33,10 +39,18 @@
 					validWatcher.unwatch();
 					validWatcher = null;
 				}
+				if (changedWatcher) {
+					changedWatcher.unwatch();
+					changedWatcher = null;
+				}
 			}
 			
 			protected function handleValidityChange(event:Event=null):void {
 				valid = changeUsernameForm.valid;
+			}
+			
+			protected function handleChangedChange(event:Event=null):void {
+				changed = changeUsernameForm.changed;
 			}
 			
 		]]>

@@ -88,7 +88,8 @@
 				var capitalized:String = provider.charAt(0).toUpperCase() + provider.slice(1);
 				Alert.show("Are you sure you want to unlink your " + capitalized +
 							" account?  You will no longer be able to use " + capitalized +
-							" to log into Worlize!",
+							" to log into Worlize!  Please make sure you have set your" +
+							" password before unlinking your " + capitalized + " account.",
 						   "Unlink " + capitalized + " account",
 						   Alert.YES | Alert.NO,
 						   null,
