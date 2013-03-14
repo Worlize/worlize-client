@@ -192,6 +192,8 @@ package com.worlize.interactivity.rpc
 		
 		public var expectingDisconnect:Boolean = false;
 		
+		private var invitationToJoinTimestamp:Object = {};
+		
 		// Incoming Message Handlers
 		private var incomingMessageHandlers:Object = {
 			"add_hotspot": handleAddHotspot,
@@ -690,6 +692,14 @@ package com.worlize.interactivity.rpc
 		
 		private function handleInvitationToJoinFriend(data:Object):void {
 			if (data.room_guid === currentRoom.id) { return; }
+			
+			var lastInvite:Date = invitationToJoinTimestamp[data.room_guid];
+			if (lastInvite && (new Date()).valueOf() - lastInvite.valueOf() < 60*1000) {
+				// Only show one invitation per sender per minute
+				return;
+			}
+			invitationToJoinTimestamp[data.room_guid] = new Date();
+			
 			Alert.show(data.user.username + " has invited you to come to \"" + data.room_name + "\" at " + data.world_name + ".  Would you like to teleport to " + data.user.username + "'s current location?",
 				"Invitation from " + data.user.username,
 				Alert.YES | Alert.NO | Alert.NONMODAL,
@@ -700,7 +710,7 @@ package com.worlize.interactivity.rpc
 					}
 				},
 				null,
-				Alert.YES
+				Alert.NO
 			);
 			SoundPlayer.getInstance().playRequestReceivedSound();
 			
