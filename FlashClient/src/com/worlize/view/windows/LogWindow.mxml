@@ -22,11 +22,10 @@
 		<![CDATA[
 			import com.worlize.interactivity.rpc.InteractivityClient;
 			import com.worlize.model.PreferencesManager;
+			import com.worlize.view.components.WorlizeFloatingPanel;
 			
 			import flash.desktop.Clipboard;
 			import flash.desktop.ClipboardFormats;
-			
-			import flex.utils.spark.resize.ResizeManager;
 			
 			import mx.events.CloseEvent;
 			import mx.events.ResizeEvent;
@@ -34,6 +33,8 @@
 			import mx.managers.PopUpManager;
 			
 			import spark.events.TitleWindowBoundsEvent;
+			
+			import flex.utils.spark.resize.ResizeManager;
 			
 			private static var _open:Boolean = false;
 			private static var _instance:WorlizeFloatingPanel;

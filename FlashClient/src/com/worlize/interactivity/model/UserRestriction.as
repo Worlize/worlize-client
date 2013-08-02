@@ -16,6 +16,7 @@ package com.worlize.interactivity.model
 		public var name:String;
 		public var expires:Date;
 		public var user:InteractivityUser;
+		public var reason:String;
 		public var createdBy:InteractivityUser;
 		public var updatedBy:InteractivityUser;
 		
@@ -23,6 +24,7 @@ package com.worlize.interactivity.model
 			var r:UserRestriction = new UserRestriction();
 			r.name = data.name;
 			r.expires = DateUtil.parseW3CDTF(data.expires);
+			r.reason = data.reason;
 			if (data.user) {
 				r.user = new InteractivityUser();
 				r.user.name = data.user.username;

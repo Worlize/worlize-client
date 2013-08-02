@@ -40,6 +40,7 @@
 			import com.worlize.interactivity.event.InteractivitySecurityErrorEvent;
 			import com.worlize.interactivity.event.RoomEvent;
 			import com.worlize.interactivity.iptscrae.command.CLIENTTYPECommand;
+			import com.worlize.interactivity.model.IgnoredUserManager;
 			import com.worlize.interactivity.model.ChatBubbleStyle;
 			import com.worlize.interactivity.model.ChatMessage;
 			import com.worlize.interactivity.model.CurrentRoom;
@@ -53,6 +54,7 @@
 			import com.worlize.interactivity.rpc.InteractivityClient;
 			import com.worlize.model.App;
 			import com.worlize.model.AppInstance;
+			import com.worlize.model.Permission;
 			import com.worlize.model.RoomDefinition;
 			import com.worlize.model.friends.FriendsList;
 			import com.worlize.model.friends.FriendsListEntry;
@@ -105,6 +107,8 @@
 			
 			private var _webcamBroadcastManager:WebcamBroadcastManager;
 			private var _netConnectionManager:NetConnectionManager;
+			
+			private var ignoredUserManager:IgnoredUserManager = IgnoredUserManager.getInstance();
 			
 			[Bindable(event="webcamBroadcastManagerChanged")]
 			public function set webcamBroadcastManager(newValue:WebcamBroadcastManager):void {
@@ -625,6 +629,13 @@
 					menuData.push({ type: 'normal', label: 'Unfriend ' + user.name, action: 'removeFriend', user: user}); 
 				}
 				
+				if (!ignoredUserManager.isIgnored(user.id)) {
+					menuData.push({ type: 'normal', label: 'Ignore ' + user.name, action: 'ignoreUser', user: user, enabled: !user.hasGlobalPermission(Permission.CAN_MODERATE_GLOBALLY) });
+				}
+				else {
+					menuData.push({ type: 'normal', label: 'Stop ignoring ' + user.name, action: 'unignoreUser', user: user });
+				}
+				
 				menuData = menuData.concat(buildModerationMenuItems(user));
 				
 				currentMenu = Menu.createMenu(null, menuData, true);
@@ -704,6 +715,12 @@
 						room.selectedUser = null;
 						worlizeNotification = new WorlizeNotification(WorlizeNotification.FOCUS_CHAT_BOX_NOTIFICATION);
 						NotificationCenter.postNotification(worlizeNotification);
+						break;
+					case 'ignoreUser':
+						ignoredUserManager.ignoreUser(InteractivityUser(event.item.user).id);
+						break;
+					case 'unignoreUser':
+						ignoredUserManager.unignoreUser(InteractivityUser(event.item.user).id);
 						break;
 					case "removeFriend":
 						interactivityUser = InteractivityUser(event.item.user);

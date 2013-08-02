@@ -16,5 +16,6 @@ package com.worlize.model
 		public static const CAN_EDIT_ROOMS:String = "can_edit_rooms";
 		public static const CAN_CREATE_ROOMS:String = "can_create_rooms";
 		public static const CAN_DELETE_ROOMS:String = "can_delete_rooms";
+		public static const CAN_MODERATE_GLOBALLY:String = "can_moderate_globally";
 	}
 }

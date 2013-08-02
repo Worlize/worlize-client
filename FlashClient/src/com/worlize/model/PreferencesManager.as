@@ -11,9 +11,16 @@ package com.worlize.model
 	import flash.net.SharedObject;
 	import flash.utils.Timer;
 	
+	import mx.logging.ILogger;
+	import mx.logging.Log;
 	import mx.rpc.events.FaultEvent;
 	
 	import org.osmf.events.TimeEvent;
+	import org.osmf.logging.Logger;
+	
+	[Event(name="preferencesLoaded",type="com.worlize.event.PreferencesEvent")]
+	[Event(name="preferencesSaved",type="com.worlize.event.PreferencesEvent")]
+	[Event(name="preferencesInitialized",type="com.worlize.event.PreferencesEvent")]
 	
 	public class PreferencesManager extends EventDispatcher
 	{
@@ -21,12 +28,22 @@ package com.worlize.model
 		private var _initialized:Boolean = false;
 		private var prefs:Object = {};
 		private var timer:Timer = new Timer(100, 1);
+		private var logger:ILogger = Log.getLogger("com.worlize.model.PreferencesManager");
+		private var service:WorlizeServiceClient = new WorlizeServiceClient();
 		
 		public function PreferencesManager()
 		{
 			if (_instance) {
 				throw new Error("You may only create one instance of PreferencesManager");
 			}
+			service.addEventListener(WorlizeResultEvent.RESULT, function(event:WorlizeResultEvent):void {
+				var saveEvent:PreferencesEvent = new PreferencesEvent(PreferencesEvent.PREFERENCES_SAVED);
+				dispatchEvent(saveEvent);
+			});
+			service.addEventListener(FaultEvent.FAULT, function(event:FaultEvent):void {
+				// do nothing
+			});
+			
 			timer.addEventListener(TimerEvent.TIMER, handleTimer);
 			load();
 		}
@@ -55,10 +72,12 @@ package com.worlize.model
 		}
 		
 		public function load():void {
-			var service:WorlizeServiceClient = new WorlizeServiceClient();
-			service.addEventListener(WorlizeResultEvent.RESULT, handleLoadResult);
-			service.addEventListener(FaultEvent.FAULT, function(event:FaultEvent):void { });
-			service.send('/preferences', HTTPMethod.GET);
+			var loadService:WorlizeServiceClient = new WorlizeServiceClient();
+			loadService.addEventListener(WorlizeResultEvent.RESULT, handleLoadResult);
+			loadService.addEventListener(FaultEvent.FAULT, function(event:FaultEvent):void {
+				logger.error("Unable to load preferences. " + event.message);
+			});
+			loadService.send('/preferences', HTTPMethod.GET);
 		}
 		
 		public function save():void {
@@ -72,14 +91,9 @@ package com.worlize.model
 		}
 		
 		public function actuallySave():void {
-			var service:WorlizeServiceClient = new WorlizeServiceClient();
-			service.addEventListener(WorlizeResultEvent.RESULT, function(event:WorlizeResultEvent):void {
-				var saveEvent:PreferencesEvent = new PreferencesEvent(PreferencesEvent.PREFERENCES_SAVED);
-				dispatchEvent(saveEvent);
-			});
-			service.addEventListener(FaultEvent.FAULT, function(event:FaultEvent):void {
-				// do nothing
-			});
+			if (service.loading) {
+				service.cancel();
+			}
 			service.send('/preferences', HTTPMethod.PUT, { data: JSON.stringify(prefs) } );
 		}
 		

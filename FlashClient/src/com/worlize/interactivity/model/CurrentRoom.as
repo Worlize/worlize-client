@@ -1,6 +1,7 @@
 package com.worlize.interactivity.model
 {
 	import com.worlize.event.NotificationCenter;
+	import com.worlize.interactivity.event.IgnoredUserEvent;
 	import com.worlize.interactivity.event.ChatEvent;
 	import com.worlize.interactivity.event.RoomEvent;
 	import com.worlize.interactivity.rpc.InteractivityClient;
@@ -68,10 +69,15 @@ package com.worlize.interactivity.model
 		
 		public var loosePropList:LoosePropList = new LoosePropList(); 
 		
+		private var blockedUserManager:IgnoredUserManager;
+		
 		public function CurrentRoom()
 		{
 			lastMessageTimer.addEventListener(TimerEvent.TIMER, handleLastMessageTimer);
 			statusDisappearTimer.addEventListener(TimerEvent.TIMER, handleStatusDisappearTimer);
+			blockedUserManager = IgnoredUserManager.getInstance();
+			blockedUserManager.addEventListener(IgnoredUserEvent.USER_IGNORED, handleUserBlocked);
+			blockedUserManager.addEventListener(IgnoredUserEvent.USER_UNIGNORED, handleUserUnblocked);
 		}
 		
 		public function get htmlLogData():String {
@@ -315,6 +321,20 @@ package com.worlize.interactivity.model
 			users.addItem(user);
 			var event:RoomEvent = new RoomEvent(RoomEvent.USER_ENTERED, user);
 			dispatchEvent(event);
+		}
+		
+		public function handleUserBlocked(event:IgnoredUserEvent):void {
+			var user:InteractivityUser = getUserById(event.userGuid);
+			if (user) {
+				user.blocked = true;
+			}
+		}
+		
+		public function handleUserUnblocked(event:IgnoredUserEvent):void {
+			var user:InteractivityUser = getUserById(event.userGuid);
+			if (user) {
+				user.blocked = false;
+			}
 		}
 		
 		public function getUserById(id:String):InteractivityUser {

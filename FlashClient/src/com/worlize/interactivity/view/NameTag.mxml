@@ -3,7 +3,8 @@
 	x="{user.x + 1 - (width*scaleX)/2}" textAlign="center" y="{Math.min(user.y + 20, 530)}"
 	text="{user.name}" 
 	cacheAsBitmap="true"
-	fontFamily="Arial" fontSize="12" fontWeight="bold" color="0xFFFFFF">
+	fontStyle="{user.blocked ? 'italic' : 'normal'}"
+	fontFamily="Arial" fontSize="12" fontWeight="bold" color="{user.blocked ? 0xDD6666 : 0xFFFFFF}">
 	<fx:Script>
 		<![CDATA[
 			import com.worlize.interactivity.model.InteractivityUser;

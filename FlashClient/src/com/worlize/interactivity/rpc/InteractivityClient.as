@@ -9,12 +9,14 @@ package com.worlize.interactivity.rpc
 	import com.worlize.event.GotoRoomResultEvent;
 	import com.worlize.event.NotificationCenter;
 	import com.worlize.interactivity.api.APIController;
+	import com.worlize.interactivity.event.IgnoredUserEvent;
 	import com.worlize.interactivity.event.InteractivityEvent;
 	import com.worlize.interactivity.event.InteractivitySecurityErrorEvent;
 	import com.worlize.interactivity.event.WebcamBroadcastEvent;
 	import com.worlize.interactivity.event.WorlizeCommEvent;
 	import com.worlize.interactivity.iptscrae.IptEventHandler;
 	import com.worlize.interactivity.iptscrae.IptInteractivityController;
+	import com.worlize.interactivity.model.IgnoredUserManager;
 	import com.worlize.interactivity.model.CurrentRoom;
 	import com.worlize.interactivity.model.Hotspot;
 	import com.worlize.interactivity.model.ILinkableRoomItem;
@@ -194,6 +196,8 @@ package com.worlize.interactivity.rpc
 		
 		private var invitationToJoinTimestamp:Object = {};
 		
+		private var blockedUserManager:IgnoredUserManager = IgnoredUserManager.getInstance();
+		
 		// Incoming Message Handlers
 		private var incomingMessageHandlers:Object = {
 			"add_hotspot": handleAddHotspot,
@@ -320,6 +324,8 @@ package com.worlize.interactivity.rpc
 			connection.addEventListener(WorlizeCommEvent.DISCONNECTED, handleDisconnected);
 			connection.addEventListener(WorlizeCommEvent.CONNECTION_FAIL, handleConnectionFail);
 			connection.addEventListener(WorlizeCommEvent.MESSAGE, handleIncomingMessage);
+			
+			blockedUserManager.addEventListener(IgnoredUserEvent.USER_IGNORED, handleUserBlocked);
 		}
 		
 		[Bindable(event="connectedChange")]
@@ -692,6 +698,7 @@ package com.worlize.interactivity.rpc
 		
 		private function handleInvitationToJoinFriend(data:Object):void {
 			if (data.room_guid === currentRoom.id) { return; }
+			if (blockedUserManager.isIgnored(data.user.guid)) { return; }
 			
 			var lastInvite:Date = invitationToJoinTimestamp[data.room_guid];
 			if (lastInvite && (new Date()).valueOf() - lastInvite.valueOf() < 60*1000) {
@@ -802,6 +809,8 @@ package com.worlize.interactivity.rpc
 		}
 		
 		private function handleNewFriendRequest(data:Object):void {
+			if (blockedUserManager.isIgnored(data.user.guid)) { return; }
+			
 			var notification:VisualNotification = new VisualNotification();
 			notification.text =
 				"You have received a friend request from " + data.user.username +".  " +
@@ -1008,6 +1017,12 @@ package com.worlize.interactivity.rpc
 			actuallyGotoRoom(data.room as String, true);
 		}
 		
+		private function handleUserBlocked(event:IgnoredUserEvent):void {
+			handleNaked({
+				user: event.userGuid
+			});
+		}
+		
 		private function handleNaked(data:Object):void {
 			var user:InteractivityUser = currentRoom.getUserById(data.user);
 			if (user) {
@@ -1023,6 +1038,7 @@ package com.worlize.interactivity.rpc
 		private function handleSetSimpleAvatar(data:Object):void {
 			var user:InteractivityUser = currentRoom.getUserById(data.user);
 			if (user) {
+				if (blockedUserManager.isIgnored(user.id)) { return; }
 				user.videoAvatarStreamName = null;
 				user.simpleAvatar = SimpleAvatarStore.getInstance().getAvatar(data.avatar.guid);
 				apiController.userAvatarChanged(user);
@@ -1032,6 +1048,7 @@ package com.worlize.interactivity.rpc
 		private function handleSetVideoAvatar(data:Object):void {
 			var user:InteractivityUser = currentRoom.getUserById(data.user);
 			if (user) {
+				if (blockedUserManager.isIgnored(user.id)) { return; }
 				user.simpleAvatar = null;
 				if (user.isSelf) {
 					user.videoAvatarStreamName = '_local';
@@ -1257,6 +1274,7 @@ package com.worlize.interactivity.rpc
 		}
 		
 		private function handleRoomMsg(data:Object):void {
+			if (blockedUserManager.isIgnored(data.user)) { return; }
 			currentRoom.roomMessage(data.text);
 		}
 		
@@ -2010,8 +2028,11 @@ package com.worlize.interactivity.rpc
 			user.globalPermissions = data.permissions.global;
 			user.appliedPermissions = data.permissions.applied;
 			user.updateRestrictionsFromObject(data.restrictions);
+			if (blockedUserManager.isIgnored(user.id)) {
+				user.blocked = true;
+			}
 			
-			if (data.avatar) {
+			if (data.avatar && !user.blocked) {
 				if (data.avatar.type == "simple") {
 					user.simpleAvatar = SimpleAvatarStore.getInstance().getAvatar(data.avatar.guid);
 				}
@@ -2167,6 +2188,7 @@ package com.worlize.interactivity.rpc
 		private function handleReceiveWhisper(data:Object):void {
 			var message:String = data.text;
 			var whochat:String = data.user;
+			if (blockedUserManager.isIgnored(whochat)) { return; }
 			if (message.length > 0) {
 				var chatRecord:ChatRecord = new ChatRecord(
 					ChatRecord.INCHAT,
@@ -2184,6 +2206,7 @@ package com.worlize.interactivity.rpc
 		private function handleReceiveTalk(data:Object):void {
 			var message:String = data.text;
 			var whochat:String = data.user;
+			if (blockedUserManager.isIgnored(whochat)) { return; }
 			var chatRecord:ChatRecord = new ChatRecord(
 				ChatRecord.INCHAT,
 				whochat,

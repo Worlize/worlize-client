@@ -35,6 +35,7 @@ package com.worlize.interactivity.model
 		public var videoAvatarStreamName:String;
 		public var showFace:Boolean = true;
 		public var facebookId:String;
+		public var blocked:Boolean = false;
 		private var _worldPermissions:Array = [];
 		private var _worldPermissionMap:Object = {};
 		private var _globalPermissions:Array = [];
@@ -58,6 +59,7 @@ package com.worlize.interactivity.model
 			u.videoAvatarStreamName = videoAvatarStreamName;
 			u.showFace = showFace;
 			u.facebookId = facebookId;
+			u.blocked = blocked;
 			return u;
 		}
 		

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<components:WorlizeFloatingPanel xmlns:fx="http://ns.adobe.com/mxml/2009" 
+								 xmlns:s="library://ns.adobe.com/flex/spark" 
+								 xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:components="com.worlize.view.components.*"
+								 width="400" height="300"
+								 title="Chat Log"
+								 showTitle="true"
+								 titleBarColor="#FF8888"
+								 resizable="false"
+								 showCloseButton="true"
+								 creationComplete="handleCreationComplete()">
+	
+	<fx:Script>
+		<![CDATA[
+			import com.worlize.interactivity.model.UserRestriction;
+			
+			[Bindable]
+			public var userRestriction:UserRestriction;
+			
+			protected function handleClick():void {
+				
+			}
+		]]>
+	</fx:Script>
+	
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<s:TextInput id="reasonTextInput"
+				 prompt="Why did this restriction need to be applied?"
+				 text="@{userRestriction.reason}" />
+	
+	<components:controlBarContent>
+		<s:Button label="Skip This" />
+		<s:Button label="Save" click="handleClick()" />
+	</components:controlBarContent>
+	
+</components:WorlizeFloatingPanel>
