@@ -22,13 +22,12 @@
 			import com.worlize.model.CurrentUser;
 			import com.worlize.model.PreferencesManager;
 			import com.worlize.model.locker.BackgroundsLocker;
+			import com.worlize.model.locker.CopyrightNag;
 			import com.worlize.rpc.HTTPMethod;
 			import com.worlize.rpc.WorlizeResultEvent;
 			import com.worlize.rpc.WorlizeServiceClient;
 			import com.worlize.view.itemrenderers.BackgroundLockerItemRenderer;
 			import com.worlize.view.windows.BuyStorageSpaceWindow;
-			
-			import flex.utils.spark.resize.ResizeManager;
 			
 			import mx.binding.utils.ChangeWatcher;
 			import mx.controls.Alert;
@@ -46,6 +45,8 @@
 			import spark.events.IndexChangeEvent;
 			import spark.events.TitleWindowBoundsEvent;
 			import spark.primitives.Rect;
+			
+			import flex.utils.spark.resize.ResizeManager;
 			
 			private var logger:ILogger = Log.getLogger("com.worlize.view.author.MyBackgroundsWindow");
 			
@@ -77,6 +78,31 @@
 					case BackgroundsLocker.STATE_READY:
 						currentState = "ready";
 						break;
+				}
+			}
+			
+			private function handleUploadButtonClick(event:MouseEvent):void {
+				if (CopyrightNag.dialogShown) {
+					uploadBackground();
+				}
+				else {
+					Alert.show(
+						"Be advised: you may only upload images that you have created or that you have permission to use from the original artist! " +
+						"Unauthorized usage of copyrighted material may lead to removal of that material and restrictions placed on your account.\n\n" +
+						"Do you promise not to use unauthorized artwork?",
+						"Copyright Reminder",
+						Alert.YES | Alert.NO,
+						null,
+						handleCopyrightAgreementClick,
+						null,
+						Alert.NO);
+				}
+			}
+			
+			private function handleCopyrightAgreementClick(event:CloseEvent):void {
+				if (event.detail === Alert.YES) {
+					CopyrightNag.dialogShown = true;
+					uploadBackground();
 				}
 			}
 
@@ -208,7 +234,7 @@
 
 			<mx:LinkButton
 				id="uploadButton"
-				click="uploadBackground()"
+				click="handleUploadButtonClick(event)"
 				enabled="{uploader.state === Uploader.STATE_READY &amp;&amp; backgroundsLocker.state === BackgroundsLocker.STATE_READY}"
 				styleName="lockerNavButton"
 				color="#2b9610"

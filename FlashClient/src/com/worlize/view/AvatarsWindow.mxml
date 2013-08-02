@@ -28,6 +28,7 @@
 			import com.worlize.model.PreferencesManager;
 			import com.worlize.model.SimpleAvatar;
 			import com.worlize.model.locker.AvatarLocker;
+			import com.worlize.model.locker.CopyrightNag;
 			import com.worlize.model.locker.PropLocker;
 			import com.worlize.model.locker.Slots;
 			import com.worlize.notification.AvatarNotification;
@@ -35,8 +36,6 @@
 			import com.worlize.rpc.WorlizeResultEvent;
 			import com.worlize.rpc.WorlizeServiceClient;
 			import com.worlize.view.windows.BuyStorageSpaceWindow;
-			
-			import flex.utils.spark.resize.ResizeManager;
 			
 			import mx.binding.utils.ChangeWatcher;
 			import mx.controls.Alert;
@@ -55,6 +54,8 @@
 			import spark.events.IndexChangeEvent;
 			import spark.events.TitleWindowBoundsEvent;
 			import spark.primitives.Rect;
+			
+			import flex.utils.spark.resize.ResizeManager;
 			private static var _open:Boolean = false;
 			private static var _instance:WorlizeWindow;
 			
@@ -142,6 +143,31 @@
 //				avatarLocker.load();
 				
 				avatarUploader.addEventListener(StateChangeEvent.CURRENT_STATE_CHANGE, handleUploadStateChange);
+			}
+			
+			private function handleUploadButtonClick(event:MouseEvent):void {
+				if (CopyrightNag.dialogShown) {
+					uploadAvatar();
+				}
+				else {
+					Alert.show(
+						"Be advised: you may only upload images that you have created or that you have permission to use from the original artist! " +
+						"Unauthorized usage of copyrighted material may lead to removal of that material and restrictions placed on your account.\n\n" +
+						"Do you promise not to use unauthorized artwork?",
+						"Copyright Reminder",
+						Alert.YES | Alert.NO,
+						null,
+						handleCopyrightAgreementClick,
+						null,
+						Alert.NO);
+				}
+			}
+			
+			private function handleCopyrightAgreementClick(event:CloseEvent):void {
+				if (event.detail === Alert.YES) {
+					CopyrightNag.dialogShown = true;
+					uploadAvatar();
+				}
 			}
 			
 			private function uploadAvatar():void {
@@ -353,7 +379,7 @@
 			
 			<mx:LinkButton
 				id="uploadButton"
-				click="uploadAvatar()"
+				click="handleUploadButtonClick(event)"
 				enabled="{avatarUploader.state === Uploader.STATE_READY &amp;&amp; avatarLocker.state === AvatarLocker.STATE_READY}"
 				styleName="lockerNavButton"
 				color="#2b9610"
