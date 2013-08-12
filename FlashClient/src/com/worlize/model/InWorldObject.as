@@ -6,10 +6,6 @@ package com.worlize.model
 		public var guid:String;
 		public var creatorGuid:String;
 		public var name:String;
-		public var iconURL:String;
-		public var mediumIconURL:String;
-		public var smallIconURL:String;
-		public var appURL:String;
 		public var thumbnailURL:String;
 		public var mediumURL:String;
 		public var fullsizeURL:String;
