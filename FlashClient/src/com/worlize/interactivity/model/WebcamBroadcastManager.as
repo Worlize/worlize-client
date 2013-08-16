@@ -1,5 +1,6 @@
 package com.worlize.interactivity.model
 {
+	import com.worlize.Constants;
 	import com.worlize.interactivity.event.WebcamBroadcastEvent;
 	import com.worlize.video.control.NetConnectionManager;
 	import com.worlize.video.events.NetConnectionManagerEvent;
@@ -129,6 +130,9 @@ package com.worlize.interactivity.model
 		}
 		
 		public function isCameraAvailable():Boolean {
+			if (!Constants.webcamEnabled) {
+				return false;
+			}
 			if (Camera.getCamera()) {
 				return true;
 			}

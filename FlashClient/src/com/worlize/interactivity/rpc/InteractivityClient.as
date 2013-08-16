@@ -1,6 +1,7 @@
 package com.worlize.interactivity.rpc
 {
 	import com.adobe.net.URI;
+	import com.worlize.Constants;
 	import com.worlize.command.GotoRoomCommand;
 	import com.worlize.components.visualnotification.VisualNotification;
 	import com.worlize.components.visualnotification.VisualNotificationManager;
@@ -16,11 +17,11 @@ package com.worlize.interactivity.rpc
 	import com.worlize.interactivity.event.WorlizeCommEvent;
 	import com.worlize.interactivity.iptscrae.IptEventHandler;
 	import com.worlize.interactivity.iptscrae.IptInteractivityController;
-	import com.worlize.interactivity.model.IgnoredUserManager;
 	import com.worlize.interactivity.model.CurrentRoom;
 	import com.worlize.interactivity.model.Hotspot;
 	import com.worlize.interactivity.model.ILinkableRoomItem;
 	import com.worlize.interactivity.model.IRoomItem;
+	import com.worlize.interactivity.model.IgnoredUserManager;
 	import com.worlize.interactivity.model.InteractivityConfig;
 	import com.worlize.interactivity.model.InteractivityUser;
 	import com.worlize.interactivity.model.RoomHistoryManager;
@@ -465,6 +466,10 @@ package com.worlize.interactivity.rpc
 		}
 		
 		private function handleSetVideoServer(data:Object):void {
+			if (!Constants.webcamEnabled) {
+				logger.info("WebCam functionality disabled.  Ignoring command to connect to video server.");
+				return;
+			}
 			netConnectionManager.connect(data as String);
 		}
 		
