@@ -22,6 +22,7 @@
 			import com.worlize.interactivity.rpc.InteractivityClient;
 			import com.worlize.model.PreferencesManager;
 			import com.worlize.rpc.HTTPMethod;
+			import com.worlize.view.components.WorlizeWindow;
 			
 			import mx.controls.Alert;
 			import mx.events.CloseEvent;

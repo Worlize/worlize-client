@@ -311,9 +311,13 @@ package com.worlize.interactivity.model
 		}
 		
 		public function dimRoom(level:int):void {
-			level = Math.max(0, level);
-			level = Math.min(100, level);
-			dimLevel = level / 100;
+			dimRoom2(level / 100);
+		}
+		
+		public function dimRoom2(level:Number):void {
+			if      (level > 1) { level = 1; }
+			else if (level < 0) { level = 0; }
+			dimLevel = level;
 		}
 		
 		public function addUser(user:InteractivityUser):void {

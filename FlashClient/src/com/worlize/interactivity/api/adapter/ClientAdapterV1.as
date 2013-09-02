@@ -13,7 +13,6 @@ package com.worlize.interactivity.api.adapter
 	import com.worlize.model.Permission;
 	import com.worlize.model.Prop;
 	import com.worlize.model.WorldDefinition;
-	import com.worlize.state.AuthorModeState;
 	
 	import flash.display.DisplayObject;
 	import flash.display.Loader;
@@ -21,12 +20,9 @@ package com.worlize.interactivity.api.adapter
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
 	import flash.events.MouseEvent;
-	import flash.events.TimerEvent;
 	import flash.events.UncaughtErrorEvent;
-	import flash.geom.Point;
 	import flash.system.Capabilities;
 	import flash.utils.ByteArray;
-	import flash.utils.Timer;
 	
 	import mx.core.mx_internal;
 	import mx.logging.ILogger;
@@ -79,9 +75,13 @@ package com.worlize.interactivity.api.adapter
 			host.addClientAdapter(this);
 		}
 		
+		public function canHandleClientVersion(version:int):Boolean {
+			return (version > 0 && version <= 6);
+		}
+		
 		public function handshakeClient(data:Object):void {
 			data.success = false;
-			if (data.APIVersion < 1 || data.APIVersion > 4) {
+			if (!canHandleClientVersion(data.APIVersion)) {
 				var errorMessage:String = "ClientAdapterV1 unable to handshake with version " + data.APIVersion + " API client.";
 				logger.error(errorMessage);
 				if (host) {
@@ -295,7 +295,7 @@ package com.worlize.interactivity.api.adapter
 		
 		private function handleClientSetRoomDimLevel(event:Event):void {
 			var eo:Object = event;
-			if (eo.data && eo.data.dimLevel is int) {
+			if (eo.data && eo.data.dimLevel is uint) {
 				host.dimRoom(eo.data.dimLevel);
 			}
 		}
@@ -645,7 +645,7 @@ package com.worlize.interactivity.api.adapter
 			trace("TODO: Implement restrictions in Worlize SDK");
 		}
 		
-		public function roomDimLevelChanged(dimLevel:int):void {
+		public function roomDimLevelChanged(dimLevel:uint):void {
 			if (sharedEvents === null) { return; }
 			var event:APIBridgeEvent = new APIBridgeEvent("host_roomDimLevelChanged");
 			event.data = { dimLevel: dimLevel };
@@ -863,6 +863,7 @@ package com.worlize.interactivity.api.adapter
 				guid: room.id,
 				name: room.name,
 				locked: room.locked,
+				dimLevel: Math.floor(room.dimLevel * 100),
 				ownerGuid: room.ownerGuid,
 				users: [],
 				objects: [],

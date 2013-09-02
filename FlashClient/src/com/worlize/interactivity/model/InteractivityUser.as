@@ -1,29 +1,19 @@
 package com.worlize.interactivity.model
 {
 	import com.adobe.utils.ArrayUtil;
-	import com.worlize.interactivity.rpc.InteractivityClient;
 	import com.worlize.interactivity.view.JellyImages;
 	import com.worlize.model.SimpleAvatar;
-	import com.worlize.model.VideoAvatar;
-	import com.worlize.rpc.WorlizeServiceClient;
-	import com.worlize.video.control.NetConnectionManager;
-	import com.worlize.video.events.NetConnectionManagerEvent;
 	
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
-	import flash.events.NetStatusEvent;
-	import flash.media.Camera;
-	import flash.media.Video;
-	import flash.net.NetConnection;
-	import flash.net.NetStream;
 	
-	import mx.collections.ArrayCollection;
 	import mx.events.FlexEvent;
 
 	[Bindable]
 	public class InteractivityUser extends EventDispatcher
 	{
 		public var isSelf:Boolean = false;
+		public var isVirtual:Boolean = false;
 		public var id:String;
 		public var name:String = "Uninitialized User";
 		public var x:int;

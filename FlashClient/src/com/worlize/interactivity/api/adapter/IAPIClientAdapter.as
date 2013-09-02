@@ -11,7 +11,6 @@ package com.worlize.interactivity.api.adapter
 	
 	import flash.events.MouseEvent;
 	import flash.events.UncaughtErrorEvent;
-	import flash.ui.Mouse;
 	import flash.utils.ByteArray;
 
 	public interface IAPIClientAdapter
@@ -22,6 +21,8 @@ package com.worlize.interactivity.api.adapter
 		// Called from AppLoader to attach the adapter
 		function attachHost(host:APIController):void;
 		function attachClient(client:AppLoader):void;
+		
+		function canHandleClientVersion(version:int):Boolean;
 		
 		// Called from AppLoader which handles the first handshake event from
 		// the client.  The adapter should do what is necessary to wire up
@@ -56,7 +57,7 @@ package com.worlize.interactivity.api.adapter
 		function userAvatarChanged(user:InteractivityUser):void;
 		function userPermissionsChanged(user:InteractivityUser):void;
 		function userRestrictionsChanged(user:InteractivityUser):void;
-		function roomDimLevelChanged(dimLevel:int):void;
+		function roomDimLevelChanged(dimLevel:uint):void;
 		function roomNameChanged(guid:String, name:String):void;
 		function roomLocked(lockedByUserGuid:String):void;
 		function roomUnlocked(unlockedByUserGuid:String):void;

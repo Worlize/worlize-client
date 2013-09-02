@@ -4,7 +4,6 @@ package com.worlize.interactivity.api
 	import com.worlize.event.NotificationCenter;
 	import com.worlize.interactivity.api.adapter.ClientAdapterV1;
 	import com.worlize.interactivity.api.adapter.IAPIClientAdapter;
-	import com.worlize.interactivity.event.ChatEvent;
 	import com.worlize.interactivity.event.LoosePropEvent;
 	import com.worlize.interactivity.event.RoomEvent;
 	import com.worlize.interactivity.model.CurrentRoom;
@@ -15,16 +14,17 @@ package com.worlize.interactivity.api
 	import com.worlize.interactivity.rpc.InteractivityClient;
 	import com.worlize.model.WorldDefinition;
 	import com.worlize.state.AuthorModeState;
+	import com.worlize.util.GUIDUtil;
 	
 	import flash.events.MouseEvent;
 	import flash.utils.ByteArray;
 	
 	import mx.binding.utils.ChangeWatcher;
-	import mx.core.Application;
 	import mx.core.FlexGlobals;
 	import mx.events.PropertyChangeEvent;
 	import mx.logging.ILogger;
 	import mx.logging.Log;
+	import mx.utils.UIDUtil;
 
 	public class APIController
 	{
@@ -127,8 +127,8 @@ package com.worlize.interactivity.api
 
 		public function getClientAdapterForVersion(version:int):IAPIClientAdapter {
 			var adapter:IAPIClientAdapter = null;
-			if (version >= 1 && version <= 4) {
-				// ClientAdapterV1 handles api versions 1-4.
+			if (version >= 1 && version <= 5) {
+				// ClientAdapterV1 handles api versions 1-5.
 				adapter = new ClientAdapterV1();
 			}
 			else {
@@ -275,7 +275,7 @@ package com.worlize.interactivity.api
 		
 		protected function handleRoomDimLevelChanged(event:PropertyChangeEvent):void {
 			for each (var client:IAPIClientAdapter in apiClientAdapters) {
-				client.roomDimLevelChanged(Math.round(int(event.newValue)*100));
+				client.roomDimLevelChanged(Math.round(Number(event.newValue)*100));
 			}
 		}
 		
@@ -375,6 +375,14 @@ package com.worlize.interactivity.api
 			interactivityClient.naked();
 		}
 		
+		public function createVirtualUser(spec:InteractivityUser):void {
+			var u:InteractivityUser = new InteractivityUser();
+			u.id = UIDUtil.createUID();
+			u.name = spec.name;
+			u.simpleAvatar = null;
+			// TODO: Finish this
+		}
+		
 		public function setThisUserAvatar(avatar:String):void {
 			if (avatar !== null && avatar.match(GUID_REGEXP)) {
 				interactivityClient.setSimpleAvatar(avatar);
@@ -403,7 +411,7 @@ package com.worlize.interactivity.api
 			}
 		}
 		
-		public function dimRoom(dimLevel:int):void {
+		public function dimRoom(dimLevel:Number):void {
 			thisRoom.dimRoom(dimLevel);
 		}
 		
