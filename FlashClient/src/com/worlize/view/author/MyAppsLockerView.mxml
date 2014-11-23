@@ -77,7 +77,7 @@
 				uploader.browse();
 			}
 			
-			private function launchAppMarketplace():void {
+			private function launchMarketplace():void {
 				ExternalInterface.call("openMarketplace", Marketplace.config['apps_category_id']);
 			}
 		]]>
@@ -151,7 +151,7 @@
 		</s:VGroup>
 	</s:Group>
 	
-	<s:Group width="100%" buttonMode="true" click="launchAppMarketplace()">
+	<s:Group width="100%" buttonMode="true" click="launchMarketplace()">
 		<s:Rect top="0" left="0" right="0" height="1">
 			<s:fill>
 				<s:SolidColor color="#9fb883" />
@@ -166,7 +166,7 @@
 				 fontFamily="PTSansNarrowBold"
 				 verticalCenter="0" horizontalCenter="0"
 				 paddingTop="8" paddingBottom="5"
-				 text="Click Here to Get Apps in the App Marketplace!" />
+				 text="Click Here to Get Apps in the Marketplace!" />
 	</s:Group>
 	
 	<s:Group width="100%"

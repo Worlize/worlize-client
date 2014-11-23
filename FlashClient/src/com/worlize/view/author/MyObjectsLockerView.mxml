@@ -14,6 +14,7 @@
 	<fx:Script>
 		<![CDATA[
 			import com.worlize.control.InWorldObjectUploader;
+			import com.worlize.control.Marketplace;
 			import com.worlize.event.AuthorModeNotification;
 			import com.worlize.event.NotificationCenter;
 			import com.worlize.model.CurrentUser;
@@ -114,6 +115,11 @@
 			private function showBuySlotsWindow():void {
 				BuyStorageSpaceWindow.open('in_world_object', systemManager.getSandboxRoot());
 			}
+			
+			private function launchMarketplace():void {
+				ExternalInterface.call("openMarketplace", Marketplace.config['objects_category_id']);
+			}
+
 		]]>
 	</fx:Script>
 	
@@ -173,6 +179,24 @@
 					 text="Unable to load objects." />
 			<s:Button label="Retry" click="inWorldObjectLocker.load()" />
 		</s:VGroup>
+	</s:Group>
+	
+	<s:Group width="100%" buttonMode="true" click="launchMarketplace()">
+		<s:Rect top="0" left="0" right="0" height="1">
+			<s:fill>
+				<s:SolidColor color="#9fb883" />
+			</s:fill>
+		</s:Rect>
+		<s:Rect top="1" left="0" right="0" bottom="0">
+			<s:fill>
+				<s:SolidColor color="#c7deac" />
+			</s:fill>
+		</s:Rect>
+		<s:Label color="#376600" fontSize="20"
+				 fontFamily="PTSansNarrowBold"
+				 verticalCenter="0" horizontalCenter="0"
+				 paddingTop="8" paddingBottom="5"
+				 text="Click Here to Get Objects in the Marketplace!" />
 	</s:Group>
 	
 	<s:Group width="100%">

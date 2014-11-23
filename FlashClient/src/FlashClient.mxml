@@ -31,15 +31,11 @@
 			import com.worlize.event.PreferencesEvent;
 			import com.worlize.event.SocialShareEvent;
 			import com.worlize.interactivity.event.InteractivityEvent;
-			import com.worlize.interactivity.event.InteractivitySecurityErrorEvent;
-			import com.worlize.interactivity.iptscrae.command.CLIENTTYPECommand;
 			import com.worlize.interactivity.model.InteractivityUser;
 			import com.worlize.interactivity.rpc.InteractivityClient;
 			import com.worlize.logging.ArrayLogTarget;
 			import com.worlize.model.CurrentUser;
-			import com.worlize.model.Directory;
 			import com.worlize.model.PreferencesManager;
-			import com.worlize.model.WorlizeConfig;
 			import com.worlize.model.friends.FriendsList;
 			import com.worlize.model.locker.AvatarLocker;
 			import com.worlize.model.locker.PropLocker;
@@ -56,17 +52,12 @@
 			import com.worlize.view.windows.ScreenshotWindow;
 			import com.worlize.view.windows.UserSettingsWindow;
 			
-			import flash.desktop.Clipboard;
-			import flash.desktop.ClipboardFormats;
 			import flash.events.ErrorEvent;
 			import flash.net.navigateToURL;
-			import flash.sampler.getInvocationCount;
 			import flash.utils.setTimeout;
 			
-			import mx.binding.utils.ChangeWatcher;
 			import mx.controls.Alert;
 			import mx.controls.Menu;
-			import mx.core.mx_internal;
 			import mx.events.CloseEvent;
 			import mx.events.FlexEvent;
 			import mx.events.MenuEvent;
@@ -77,8 +68,6 @@
 			import mx.logging.targets.TraceTarget;
 			import mx.managers.PopUpManager;
 			import mx.rpc.events.FaultEvent;
-			import mx.rpc.http.HTTPService;
-			import mx.skins.spark.MenuSeparatorSkin;
 			[Bindable]
 			public var client:InteractivityClient = InteractivityClient.getInstance();
 			

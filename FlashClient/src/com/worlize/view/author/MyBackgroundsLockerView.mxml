@@ -13,6 +13,7 @@
 	<fx:Script>
 		<![CDATA[
 			import com.worlize.control.BackgroundUploader;
+			import com.worlize.control.Marketplace;
 			import com.worlize.control.Uploader;
 			import com.worlize.event.AuthorModeNotification;
 			import com.worlize.event.NotificationCenter;
@@ -151,6 +152,10 @@
 			private function showBuySlotsWindow():void {
 				BuyStorageSpaceWindow.open('background', systemManager.getSandboxRoot());
 			}
+			
+			private function launchMarketplace():void {
+				ExternalInterface.call("openMarketplace", Marketplace.config['backgrounds_category_id']);
+			}
 		]]>
 	</fx:Script>
 	
@@ -213,6 +218,24 @@
 					 text="Unable to load backgrounds." />
 			<s:Button label="Retry" click="backgroundsLocker.load()" />
 		</s:VGroup>
+	</s:Group>
+	
+	<s:Group width="100%" buttonMode="true" click="launchMarketplace()">
+		<s:Rect top="0" left="0" right="0" height="1">
+			<s:fill>
+				<s:SolidColor color="#9fb883" />
+			</s:fill>
+		</s:Rect>
+		<s:Rect top="1" left="0" right="0" bottom="0">
+			<s:fill>
+				<s:SolidColor color="#c7deac" />
+			</s:fill>
+		</s:Rect>
+		<s:Label color="#376600" fontSize="20"
+				 fontFamily="PTSansNarrowBold"
+				 verticalCenter="0" horizontalCenter="0"
+				 paddingTop="8" paddingBottom="5"
+				 text="Click Here to Get Backgrounds in the Marketplace!" />
 	</s:Group>
 	
 	<s:Group width="100%">

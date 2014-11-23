@@ -19,40 +19,30 @@
 	
 	<fx:Script>
 		<![CDATA[
-			import com.worlize.components.visualnotification.VisualNotification;
+			import com.worlize.control.Marketplace;
 			import com.worlize.control.PropUploader;
 			import com.worlize.control.Uploader;
-			import com.worlize.event.NotificationCenter;
 			import com.worlize.interactivity.model.UserRestriction;
 			import com.worlize.interactivity.rpc.InteractivityClient;
-			import com.worlize.model.CurrentUser;
 			import com.worlize.model.PreferencesManager;
-			import com.worlize.model.PropInstance;
 			import com.worlize.model.locker.PropLocker;
-			import com.worlize.model.locker.Slots;
+			import com.worlize.view.components.WorlizeWindow;
 			import com.worlize.view.windows.BuyStorageSpaceWindow;
 			
-			import flex.utils.spark.resize.ResizeManager;
-			
-			import mx.binding.utils.ChangeWatcher;
 			import mx.controls.Alert;
-			import mx.controls.Menu;
 			import mx.core.IUIComponent;
 			import mx.events.CloseEvent;
 			import mx.events.DragEvent;
-			import mx.events.IndexChangedEvent;
-			import mx.events.MenuEvent;
-			import mx.events.MoveEvent;
 			import mx.events.ResizeEvent;
 			import mx.events.StateChangeEvent;
 			import mx.graphics.SolidColor;
 			import mx.managers.DragManager;
 			import mx.managers.PopUpManager;
-			import mx.managers.SystemManager;
 			
-			import spark.events.IndexChangeEvent;
 			import spark.events.TitleWindowBoundsEvent;
 			import spark.primitives.Rect;
+			
+			import flex.utils.spark.resize.ResizeManager;
 			private static var _open:Boolean = false;
 			private static var _instance:WorlizeWindow;
 			
@@ -192,6 +182,10 @@
 				}
 			}
 			
+			private function launchMarketplace():void {
+				ExternalInterface.call("openMarketplace", Marketplace.config['props_category_id']);
+			}
+
 		]]>
 	</fx:Script>
 	
@@ -299,6 +293,24 @@
 				 width="100%" textAlign="center"
 				 paddingRight="50" paddingLeft="50"
 				 text="You don't have any Props.  Click 'Upload' below to create your first Prop!" />
+	</s:Group>
+	
+	<s:Group width="100%" buttonMode="true" click="launchMarketplace()">
+		<s:Rect top="0" left="0" right="0" height="1">
+			<s:fill>
+				<s:SolidColor color="#9fb883" />
+			</s:fill>
+		</s:Rect>
+		<s:Rect top="1" left="0" right="0" bottom="0">
+			<s:fill>
+				<s:SolidColor color="#c7deac" />
+			</s:fill>
+		</s:Rect>
+		<s:Label color="#376600" fontSize="20"
+				 fontFamily="PTSansNarrowBold"
+				 verticalCenter="0" horizontalCenter="0"
+				 paddingTop="8" paddingBottom="5"
+				 text="Click Here to Get Props in the Marketplace!" />
 	</s:Group>
 
 	<s:Group width="100%">
