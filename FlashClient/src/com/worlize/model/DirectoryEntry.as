@@ -15,11 +15,13 @@ package com.worlize.model
 		public var world:WorldListEntry;
 		public var friendsInRoom:ArrayList;
 		public var friendCount:int = 0;
+		public var roomFlags:Vector.<String>;
 		
 		[Bindable(event="roomChanged")]
 		public function set room(newValue:RoomListEntry):void {
 			if (_room !== newValue) {
 				_room = newValue;
+				updateRoomFlags();
 				dispatchEvent(new FlexEvent('roomChanged'));
 			}
 		}
@@ -42,6 +44,14 @@ package com.worlize.model
 		[Bindable(event="roomChanged")]
 		public function get roomFull():Boolean {
 			return room.userCount >= room.maxOccupancy;
+		}
+		
+		private function updateRoomFlags():void {
+			roomFlags = new Vector.<String>();
+			if (room.hidden) { roomFlags.push('Hidden'); }
+			if (room.locked) { roomFlags.push('Locked'); }
+			if (room.moderatorsOnly) { roomFlags.push('Mods Only'); }
+			if (room.noDirectEntry) { roomFlags.push('No Direct Entry'); }
 		}
 		
 		public static function fromData(data:Object):DirectoryEntry {

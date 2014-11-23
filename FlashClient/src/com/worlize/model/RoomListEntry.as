@@ -1,7 +1,5 @@
 package com.worlize.model
 {
-	import mx.utils.ObjectProxy;
-
 	[Bindable]
 	public class RoomListEntry
 	{

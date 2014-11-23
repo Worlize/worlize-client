@@ -9,6 +9,7 @@
 	<fx:Script>
 		<![CDATA[
 			import com.worlize.model.DirectoryEntry;
+			import com.worlize.model.RoomListEntry;
 			
 			import mx.events.FlexEvent;
 			private function handleDataChange(event:FlexEvent):void {
@@ -19,21 +20,33 @@
 				if (data === null) {
 					return currentState;
 				}
-				
-				if (data is DirectoryEntry) {
-					if ((data as DirectoryEntry).roomFull) {
-						return "full";
-					}
+				if (!(data is DirectoryEntry)) {
+					return "normal_visible";
 				}
 				
-				return "normal";
+				var entry:DirectoryEntry = DirectoryEntry(data);
+				var room:RoomListEntry = entry.room;
+				var parts:Vector.<String> = new Vector.<String>();
+				
+				parts.push(entry.roomFull ? 'full' : 'normal');
+				
+				if (room.hidden || room.noDirectEntry || room.moderatorsOnly || room.locked) {
+					parts.push('hidden');
+				}
+				else {
+					parts.push('visible');
+				}
+				
+				return parts.join('_');
 			}
 		]]>
 	</fx:Script>
 	
 	<s:states>
-		<s:State name="normal" />
-		<s:State name="full" />
+		<s:State name="normal_visible" stateGroups="normal,visible" />
+		<s:State name="normal_hidden" stateGroups="normal,hidden" />
+		<s:State name="full_visible" stateGroups="full,visible" />
+		<s:State name="full_hidden" stateGroups="full,hidden" />
 	</s:states>
 	
 	<s:Group id="thumbnailGroup" top="3" bottom="3" left="3">
@@ -57,24 +70,31 @@
 					 width="100%"
 					 lineBreak="toFit"
 					 fontFamily="Arial"
-					 fontWeight="bold"
-					 fontSize="15" />
+					 fontWeight.visible="bold"
+					 fontSize="15"
+					 fontStyle.hidden="italic"
+					 color.hidden="#888888" />
 			<s:Label text="{data.world.name}"
 					 maxDisplayedLines="1"
 					 lineBreak="toFit"
 					 width="100%"
 					 color="#555555"
+					 color.hidden="#AAAAAA"
 					 fontFamily="Arial"
 					 fontSize="12" />
 			<s:HGroup gap="5">
 				<s:Label text="{data.room.userCount} {data.room.userCount == 1 ? 'Person' : 'People'}"
 						 color="#555555"
+						 color.hidden="#AAAAAA"
 						 fontFamily="Arial"
 						 fontSize="12" />
 				<s:Label text="(Full)"
 						 fontFamily="Arial"
 						 color="#AA3333"
 						 includeIn="full" />
+				<s:Label text="({data.roomFlags.join(', ')})"
+						 color="#3333AA"
+						 includeIn="hidden" />
 			</s:HGroup>
 		</s:VGroup>
 		
