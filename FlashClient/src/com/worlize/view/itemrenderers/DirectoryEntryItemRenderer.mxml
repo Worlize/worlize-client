@@ -4,6 +4,7 @@
 				xmlns:mx="library://ns.adobe.com/flex/mx"
 				currentState="normal"
 				width="100%"
+				dataChange="handleDataChange(event)"
 				autoDrawBackground="true">
 	
 	<fx:Script>

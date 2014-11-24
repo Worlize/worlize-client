@@ -615,6 +615,15 @@
 				var user:InteractivityUser = room.getUserById(event.userId);
 				
 				var menuData:Array = [];
+				if (user.isGlobalModerator) {
+					menuData.push({ type: 'normal', label: 'Global Moderator', enabled: false });
+					menuData.push({ type: 'separator' });
+				}
+				else if (user.isWorldModerator) {
+					menuData.push({ type: 'normal', label: 'World Moderator', enabled: false });
+					menuData.push({ type: 'separator' });
+				}
+				
 				if (room.selectedUser != user) {
 					menuData.push({ type: 'normal', label: 'Whisper to ' + user.name, action: 'whisper', user: user});
 				}

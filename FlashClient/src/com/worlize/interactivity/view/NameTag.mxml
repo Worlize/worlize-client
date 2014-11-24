@@ -1,19 +1,109 @@
 <?xml version="1.0" encoding="utf-8"?>
-<s:Label xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark" xmlns:mx="library://ns.adobe.com/flex/halo"
-	x="{user.x + 1 - (width*scaleX)/2}" textAlign="center" y="{Math.min(user.y + 20, 530)}"
-	text="{user.name}" 
-	cacheAsBitmap="true"
-	fontStyle="{user.blocked ? 'italic' : 'normal'}"
-	fontFamily="Arial" fontSize="12" fontWeight="bold" color="{user.blocked ? 0xDD6666 : 0xFFFFFF}">
+<s:HGroup xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark" xmlns:mx="library://ns.adobe.com/flex/halo"
+	x="{user.x + 1 - (width*scaleX)/2}"
+	y="{Math.min(user.y + 16, 530)}"
+	height="16"
+	gap="0"
+	horizontalAlign="center"
+	verticalAlign="top">
+	
 	<fx:Script>
 		<![CDATA[
 			import com.worlize.interactivity.model.InteractivityUser;
-			[Bindable]
-			public var user:InteractivityUser; 
+			
+			import mx.events.PropertyChangeEvent;
+			
+			[Embed(source="src/assets/star-worldmod.swf")]
+			public static const worldModeratorIcon:Class;
+			
+			[Embed(source="src/assets/star-globalmod.swf")]
+			public static const globalModeratorIcon:Class;
+			
+			
+			[Bindable(event="userChanged")]
+			public function set user(newValue:InteractivityUser):void {
+				if (_user !== newValue) {
+					if (_user) {
+						_user.removeEventListener('globalPermissionsChanged', updateCurrentState);
+						_user.removeEventListener('worldPermissionsChanged', updateCurrentState);
+						_user.removeEventListener(PropertyChangeEvent.PROPERTY_CHANGE, updateCurrentState);
+					}
+					_user = newValue;
+					if (_user) {
+						_user.addEventListener('globalPermissionsChanged', updateCurrentState);
+						_user.addEventListener('worldPermissionsChanged', updateCurrentState);
+						_user.addEventListener(PropertyChangeEvent.PROPERTY_CHANGE, updateCurrentState);
+					}
+					updateCurrentState();
+					dispatchEvent(new Event('userChanged'));
+				}
+			}
+			public function get user():InteractivityUser {
+				return _user;
+			}
+			
+			private var _user:InteractivityUser;
+			
+			private function updateCurrentState(event:Event=null):void {
+				if (_user) {
+					if (_user.isGlobalModerator) {
+						currentState = "globalModerator";
+						return;
+					}
+					else if (_user.isWorldModerator) {
+						currentState = "worldModerator";
+						return;
+					}
+					else if (_user.blocked) {
+						currentState = "blocked";
+						return;
+					}
+				}
+				currentState = "normal";
+			}
+			
 		]]>
 	</fx:Script>
+	
+	<s:states>
+		<s:State name="normal" />
+		<s:State name="worldModerator" stateGroups="moderator" />
+		<s:State name="globalModerator" stateGroups="moderator" />
+		<s:State name="blocked" />
+	</s:states>
 
-	<s:filters>
-		<s:GlowFilter color="0x000000" alpha="1" blurX="2" blurY="2" quality="2" strength="5" />
-	</s:filters>
-</s:Label>
+	<s:SWFLoader source="@Embed(source='src/assets/star-globalmod.swf')"
+				 width="16" height="16"
+			 	 includeIn="globalModerator" />
+	
+	<s:SWFLoader source="@Embed(source='src/assets/star-worldmod.swf')"
+				 width="16" height="16"
+			 	 includeIn="worldModerator" />
+	
+	<s:Label
+		paddingTop="4"
+		textAlign="center"
+		text="{user.name}"
+		cacheAsBitmap="true"
+		fontStyle="{user.blocked ? 'italic' : 'normal'}"
+		fontFamily="Arial"
+		fontSize="12"
+		height="16"
+		fontWeight="bold"
+		color="#FFFFFF"
+		color.blocked="#DD6666"
+		color.globalModerator="#fff588"
+		color.worldModerator="#88fff8">
+		<s:filters>
+			<s:GlowFilter color="0x000000" alpha="1" blurX="2" blurY="2" quality="2" strength="5" />
+		</s:filters>
+	</s:Label>
+	
+	<s:SWFLoader source="@Embed(source='src/assets/star-globalmod.swf')"
+				 width="16" height="16"
+				 includeIn="globalModerator" />
+	
+	<s:SWFLoader source="@Embed(source='src/assets/star-worldmod.swf')"
+				 width="16" height="16"
+				 includeIn="worldModerator" />
+</s:HGroup>

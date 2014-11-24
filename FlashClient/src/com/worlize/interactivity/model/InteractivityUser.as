@@ -196,6 +196,21 @@ package com.worlize.interactivity.model
 			return _globalPermissionMap[name] ? true : false;
 		}
 		
+		[Bindable(event="globalPermissionsChanged")]
+		public function get isGlobalModerator():Boolean {
+			return hasGlobalPermission(UserPermission.CAN_MODERATE_GLOBALLY);
+		}
+		
+		[Bindable(event="worldPermissionsChanged")]
+		public function get isWorldModerator():Boolean {
+			return hasWorldPermission(UserPermission.CAN_ACCESS_MODERATION_DIALOG);
+		}
+		
+		[Bindable(event="appliedPermissionsChanged")]
+		public function get isModerator():Boolean {
+			return hasPermission(UserPermission.CAN_ACCESS_MODERATION_DIALOG);
+		}
+		
 		[Bindable(event="faceChanged")]
 		public function set face(newValue:int):void {
 			if (newValue > 12) {
