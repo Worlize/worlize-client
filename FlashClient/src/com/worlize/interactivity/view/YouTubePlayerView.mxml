@@ -38,16 +38,14 @@
 			import com.worlize.rpc.WorlizeResultEvent;
 			import com.worlize.rpc.WorlizeServiceClient;
 			import com.worlize.state.AuthorModeState;
+			import com.worlize.util.ISO8601Duration;
 			
 			import mx.binding.utils.ChangeWatcher;
 			import mx.controls.Alert;
 			import mx.events.FlexEvent;
-			import mx.events.SandboxMouseEvent;
 			import mx.logging.ILogger;
 			import mx.logging.Log;
 			import mx.rpc.events.FaultEvent;
-			
-			import org.osmf.events.TimeEvent;
 			
 			private var logger:ILogger = Log.getLogger('com.worlize.interactivity.view.YouTubePlayerView');
 			
@@ -290,17 +288,33 @@
 						}
 						return;
 					}
-					var title:String = event.resultJSON['data']['title'];
-					var duration:int = event.resultJSON['data']['duration'];
-					interactivityClient.youTubeLoad(youTubePlayerDefinition.guid, videoId, duration, title, true);
+					
+					if (!('items' in event.resultJSON)) {
+						Alert.show("Invalid response from YouTube API");
+						return;
+					}
+					
+					var items:Array = event.resultJSON['items'];
+					if (items.length === 0) {
+						Alert.show("The specified video could not be found on YouTube", "Video Not Found");
+						return;
+					}
+
+					var item:Object = items[0];
+					
+					var title:String = item['snippet']['title'];
+					var duration:ISO8601Duration = ISO8601Duration.parse(item['contentDetails']['duration']);
+					var durationSeconds:Number = duration.valueOf();
+					interactivityClient.youTubeLoad(youTubePlayerDefinition.guid, videoId, durationSeconds, title, true);
 				});
 				client.addEventListener(FaultEvent.FAULT, function(event:FaultEvent):void {
 					Alert.show("Unable to get video metadata from YouTube", "Error");
 					sharingControls.enabled = true;
 				});
-				client.send("http://gdata.youtube.com/feeds/api/videos/" + videoId, HTTPMethod.GET, {
-					v: "2",
-					alt: "jsonc"
+				client.send("https://www.googleapis.com/youtube/v3/videos", HTTPMethod.GET, {
+					key: 'AIzaSyCczEHIU9d8cz7ykY7RC5zJV9zAMqtiDsg',
+					id: videoId,
+					part: 'snippet,contentDetails'
 				});
 			}
 			

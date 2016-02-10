@@ -16,8 +16,8 @@ package com.worlize.components.youtube
 		
 		private var _playerState:int = YouTubePlayerState.UNINITIALIZED;
 		
-		private static var youTubeURLRegExp:RegExp = /^(?:http:\/\/)?(?:www\.)?youtube.com\/(watch_popup\?v=|watch\?v=|v\/)([_\-\w]{11,12})/i;
-		private static var shortYouTubeUrlRegExp:RegExp = /^(?:http:\/\/)?youtu\.be\/([_\-\w]{11,12}).*$/i;
+		private static var youTubeURLRegExp:RegExp = /^(?:https?:\/\/)?(?:www\.)?youtube.com\/(watch_popup\?v=|watch\?v=|v\/)([_\-\w]{11,12})/i;
+		private static var shortYouTubeUrlRegExp:RegExp = /^(?:https?:\/\/)?youtu\.be\/([_\-\w]{11,12}).*$/i;
 		private static var youTubeVideoIdRegExp:RegExp = /^[_\-\w]{11,12}$/;
 		
 		public var lastPlayedVideoId:String;
@@ -31,7 +31,7 @@ package com.worlize.components.youtube
 		private function handleInitialize(event:Event):void {
 			Security.allowDomain("www.youtube.com");
 			Security.allowInsecureDomain("www.youtube.com");
-			load("http://www.youtube.com/apiplayer?version=3");
+			load("https://www.youtube.com/apiplayer?version=3");
 			addEventListener(Event.INIT, handleInit);
 		}
 		

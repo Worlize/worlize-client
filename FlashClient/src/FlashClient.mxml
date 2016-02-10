@@ -210,12 +210,7 @@
 				stage.addEventListener(Event.RESIZE, handleStageResize);
 				updateFriendsListAutoDisplay();
 				
-				if (ExternalInterface.call('getFacebookLoginStatus')) {
-					logOutToolTip = "Log out of Worlize and Facebook";
-				}
-				else {
-					logOutToolTip = "Log out of Worlize";
-				}
+				logOutToolTip = "Log out of Worlize";
 				
 				if (preferences.initialized) {
 					handlePreferencesInitialized();
@@ -428,9 +423,6 @@
 			protected function requestLogout():void
 			{
 				var message:String = "Are you sure you want to log out of Worlize?";
-				if (ExternalInterface.call('getFacebookLoginStatus') as Boolean) {
-					message = "Are you sure you want to log out of Worlize and Facebook?";
-				}
 				Alert.show(message,
 						   "Logout",
 						   Alert.YES | Alert.NO,

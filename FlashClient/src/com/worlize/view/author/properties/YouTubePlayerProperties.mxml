@@ -9,7 +9,6 @@
 	
 	<fx:Script>
 		<![CDATA[
-			import com.worlize.interactivity.rpc.InteractivityClient;
 			import com.worlize.model.YouTubePlayerDefinition;
 			import com.worlize.state.AuthorModeState;
 			

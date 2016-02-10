@@ -12,8 +12,8 @@ package com.worlize.model
 		private var _videoURL:String;
 		public var autoPlay:Boolean = true;
 		
-		private static var youTubeURLRegExp:RegExp = /^(?:http:\/\/)?(?:www\.)?youtube.com\/(watch_popup\?v=|watch\?v=|v\/)([_\-\w]{11,12})/;
-		private static var shortYouTubeUrlRegExp:RegExp = /^(?:http:\/\/)?youtu\.be\/([_\-\w]{11,12}).*$/;
+		private static var youTubeURLRegExp:RegExp = /^(?:https?:\/\/)?(?:www\.)?youtube.com\/(watch_popup\?v=|watch\?v=|v\/)([_\-\w]{11,12})/i;
+		private static var shortYouTubeUrlRegExp:RegExp = /^(?:https?:\/\/)?youtu\.be\/([_\-\w]{11,12}).*$/i;
 		private static var youTubeVideoIdRegExp:RegExp = /^[_\-\w]{11,12}$/;
 		
 		public function updateData(data:Object):void {
