@@ -121,6 +121,17 @@
 					event.preventDefault();
 				}
 				
+				if (event.error is SecurityError) {
+					var se:SecurityError = event.error as SecurityError;
+					if (se.errorID === 2121) {
+						// Ignore security errors that we can't do anything about.
+						logger.error("Un-handleable SecurityError (" + se.errorID + ") " + se.message);
+						event.stopPropagation();
+						event.stopImmediatePropagation();
+						return;
+					}
+				}
+				
 				var logText:String = arrayTarget.getLogText();
 				var truncatedLogText:String = "";
 				if (logText.length > 61440) { // Only send the last 60KiB of logs
